@@ -1,9 +1,9 @@
-// @ts-ignore // !TODO! recover icon styles
-import styles from "@scss/foreign/fe-icon.scss?inline";
-import { preloadStyle } from "../../core/Utils";
+// @ts-ignore
+import styles from "./Icon.scss?inline";
 
 //
-import { GLitElement, defineElement, E, H, property } from "u2re/lure";
+import { defineElement, GLitElement, property, E, H } from "u2re/lure";
+import { kebabToCamel, preloadStyle } from "u2re/dom";
 import { subscribe } from "u2re/object";
 import { importCdn } from "u2re/cdnImport";
 
@@ -13,9 +13,8 @@ const marked  = H`<div class="fill"></div>`;
 const iconMap = new Map<string, Promise<string>>();
 const rasterizeSVG = async (blob)=>{ return URL.createObjectURL(blob); }
 const loadAsImage  = (name: string, creator?: (name: string)=>any)=>{
-    // !experimental `getOrInsert` feature!
-    // @ts-ignore
-    iconMap.getOrInsertComputed(name, ()=>{
+    // @ts-ignore // !experimental `getOrInsert` feature!
+    return iconMap.getOrInsertComputed(name, ()=>{
         const element = creator ? creator(name) : null;
         const text = element.outerHTML, file = new Blob([`<?xml version=\"1.0\" encoding=\"UTF-8\"?>`, text], { type: "image/svg+xml" });
         return rasterizeSVG(file);
@@ -26,7 +25,7 @@ const loadAsImage  = (name: string, creator?: (name: string)=>any)=>{
 @defineElement('ui-icon')
 export class UILucideIcon extends GLitElement() {
     @property() protected iconElement?: SVGElement;
-    @property({ source: "attr" }) icon?: string;
+    @property({ source: "attr" }) icon?: any;
     @property({ source: "attr" }) width?: number;
     #options = { padding: 0, icon: "" };
 
@@ -37,17 +36,14 @@ export class UILucideIcon extends GLitElement() {
     constructor(options = {icon: "", padding: ""}) { super(); Object.assign(this.#options, options); }
 
     //
-    protected updateIcon(icon?: string) {
-        // @ts-ignore
+    protected updateIcon(icon?: any) {
         if (icon ||= (this.icon?.value ?? (typeof this.icon == "string" ? this.icon : "")) || "");
 
         // @ts-ignore
         Promise.try(importCdn, ["/u2re/vendor/lucide.min.js"])?.then?.((icons)=>{
-            // @ts-ignore
-            const ICON = toCamelCase(icon || "");
+            const ICON = kebabToCamel(icon || "");
             if (icons?.[ICON]) {
                 const self = this as any;
-                // @ts-ignore
                 loadAsImage(ICON, (U)=>icons?.createElement?.(icons?.[U]))?.then?.((url)=>{
                     const src  = `url(\"${url}\")`;
                     const fill = self?.shadowRoot?.querySelector?.(".fill");
@@ -63,8 +59,7 @@ export class UILucideIcon extends GLitElement() {
     //
     public firstUpdated() { this.updateIcon(); }
     public onInitialize() {
-        super.onInitialize?.();
-        const self = this as unknown as HTMLElement;
+        super.onInitialize?.(); const self = this as unknown as HTMLElement;
         E(self, { classList: new Set(["ui-icon", "u2-icon"]), inert: true });
         if (!self?.style.getPropertyValue("padding") && this.#options?.padding) { self.style.setProperty("padding", typeof this.#options?.padding == "number" ? (this.#options?.padding + "rem") : this.#options?.padding); };
         this.updateIcon();

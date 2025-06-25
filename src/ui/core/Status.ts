@@ -1,4 +1,4 @@
-import { setIdleInterval } from "./Utils";
+import { setIdleInterval } from "u2re/dom";
 import { ref } from "u2re/object";
 
 //

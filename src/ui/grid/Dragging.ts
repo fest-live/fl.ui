@@ -1,4 +1,6 @@
-import { convertOrientPxToCX, bindDraggable, doAnimate, getBoundingOrientRect, orientOf, redirectCell, setProperty } from "u2re/dom";
+import { bindDraggable, convertOrientPxToCX, getBoundingOrientRect, doAnimate, orientOf, redirectCell, setProperty } from "u2re/dom";
+
+//
 import { makeShiftTrigger } from "../../interface/Trigger";
 import { LongPressHandler } from "../../interface/LongPress";
 

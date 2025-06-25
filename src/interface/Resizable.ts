@@ -1,4 +1,4 @@
-import { clamp, bbh, bbw, cbh, cbw, ROOT,  type InteractStatus } from "../core/Utils";
+import { clamp, bbh, bbw, cbh, cbw, ROOT,  type InteractStatus } from "../ui/core/Utils";
 import { fixedClientZoom, getBoundingOrientRect, bindDraggable } from "u2re/dom";
 import { makeShiftTrigger, doObserve } from "./Trigger";
 

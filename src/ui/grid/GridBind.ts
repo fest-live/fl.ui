@@ -1,6 +1,8 @@
 import { ref, subscribe } from "u2re/object";
-import { reflectCell } from "./Reflect";
 import { E } from "u2re/lure";
+
+//
+import { reflectCell } from "./Reflect";
 import { makeDragEvents } from "./Dragging";
 
 // shifting - reactive basis
@@ -10,9 +12,8 @@ export const bindInteraction = async (newItem: any, pArgs: any)=>{
     reflectCell(newItem, pArgs, true);
 
     //
-    const {item, list, items} = pArgs, layout = [pArgs?.layout?.columns || pArgs?.layout?.[0] || 4, pArgs?.layout?.rows || pArgs?.layout?.[1] || 8];
-    const dragging    = [ ref(0), ref(0) ];
-    const currentCell = [ ref(item?.cell?.[0] || 0), ref(item?.cell?.[1] || 0) ];
+    const { item, list, items } = pArgs, layout = [pArgs?.layout?.columns || pArgs?.layout?.[0] || 4, pArgs?.layout?.rows || pArgs?.layout?.[1] || 8];
+    const dragging = [ ref(0), ref(0) ], currentCell = [ ref(item?.cell?.[0] || 0), ref(item?.cell?.[1] || 0) ];
 
     //
     E(newItem, { style: {

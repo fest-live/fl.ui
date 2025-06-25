@@ -1,5 +1,4 @@
-import { borderBoxHeight, borderBoxWidth, contentBoxHeight, contentBoxWidth, setProperty, ROOT } from "../ui/core/Utils";
-import { getBoundingOrientRect, bindDraggable } from "u2re/dom";
+import { getBoundingOrientRect, bindDraggable, setProperty, contentBoxWidth, contentBoxHeight, borderBoxWidth, borderBoxHeight } from "u2re/dom";
 import { makeShiftTrigger, doObserve } from "./Trigger";
 
 //

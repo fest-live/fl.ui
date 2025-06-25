@@ -1,10 +1,4 @@
-import { borderBoxHeight, borderBoxWidth, contentBoxHeight, contentBoxWidth, doBorderObserve, doContentObserve, ROOT } from "../ui/core/Utils";
-import { agWrapEvent, fixedClientZoom } from "u2re/dom";
-
-//
-function handleListeners(root, fn, handlers) {
-    Object.entries(handlers).forEach(([name, cb]) => root?.[fn]?.call?.(root, name, cb));
-}
+import { handleListeners, agWrapEvent, fixedClientZoom, borderBoxHeight, borderBoxWidth, contentBoxHeight, contentBoxWidth, doBorderObserve, doContentObserve, ROOT } from "u2re/dom";
 
 //
 export const doObserve = (holder, parent)=>{

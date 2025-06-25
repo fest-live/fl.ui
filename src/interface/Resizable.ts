@@ -1,5 +1,4 @@
-import { clamp, bbh, bbw, cbh, cbw, ROOT,  type InteractStatus } from "../ui/core/Utils";
-import { fixedClientZoom, getBoundingOrientRect, bindDraggable } from "u2re/dom";
+import { fixedClientZoom, getBoundingOrientRect, bindDraggable, clamp, bbh, bbw, cbh, cbw, ROOT, type InteractStatus } from "u2re/dom";
 import { makeShiftTrigger, doObserve } from "./Trigger";
 
 //
@@ -24,7 +23,6 @@ export class ResizeHandler {
 
     //
     limitResize(real, virtual, holder, container) {
-        //const box = this.#holder.getBoundingClientRect();
         const box        = getBoundingOrientRect(holder) || holder?.getBoundingClientRect?.();
         const widthDiff  = cbw(container) - (bbw(holder) - (this.#resizing[0].value || 0) + ((box.left || 0) * fixedClientZoom(this.#holder)));
         const heightDiff = cbh(container) - (bbh(holder) - (this.#resizing[1].value || 0) + ((box.top  || 0) * fixedClientZoom(this.#holder)));

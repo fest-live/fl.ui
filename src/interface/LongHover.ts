@@ -1,5 +1,4 @@
-import { blockClickTrigger, ROOT } from "../ui/core/Utils";
-import { agWrapEvent } from "u2re/dom";
+import { agWrapEvent, blockClickTrigger, ROOT } from "u2re/dom";
 
 //
 export class LongHoverHandler {
@@ -26,9 +25,8 @@ export class LongHoverHandler {
                 action.pointerId = ev.pointerId;
                 action.timer = setTimeout(()=>{
                     fx?.(ev);
-                    if (matchMedia("(pointer: coarse) and (hover: none)").matches) {
-                        blockClickTrigger(evc);
-                    }
+                    if (matchMedia("(pointer: coarse) and (hover: none)").matches)
+                        { blockClickTrigger(evc); }
                 }, options.holdTime ?? 300);
             }
         });

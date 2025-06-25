@@ -1,4 +1,4 @@
-import { blockClickTrigger } from "../ui/core/Utils";
+import { blockClickTrigger } from "u2re/dom";
 
 //
 export class LongPressHandler {

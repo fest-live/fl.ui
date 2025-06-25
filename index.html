@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Vite + TS</title>
+
+        <script>
+            WeakMap.prototype.getOrInsert ??= function (key, defaultValue) {
+                if (!this.has(key)) { this.set(key, defaultValue); }
+                return this.get(key);
+            };
+
+            WeakMap.prototype.getOrInsertComputed ??= function (key, callbackFunction) {
+                if (!this.has(key)) { this.set(key, callbackFunction(key)); }
+                return this.get(key);
+            };
+
+            Map.prototype.getOrInsert ??= function (key, defaultValue) {
+                if (!this.has(key)) { this.set(key, defaultValue); }
+                return this.get(key);
+            };
+
+            Map.prototype.getOrInsertComputed ??= function (key, callbackFunction) {
+                if (!this.has(key)) { this.set(key, callbackFunction(key)); }
+                return this.get(key);
+            };
+        </script>
+
+        <!-- -->
+        <script type="importmap">{
+            "imports": {
+                "u2re/": "u2re-src/",
+                "u2re/cdnImport": "u2re/cdnImport",
+                "u2re/dom": "u2re-src/dom.ts/src/index.ts",
+                "u2re/lure": "u2re-src/BLU.E/src/index.ts",
+                "u2re/object": "u2re-src/object.ts/src/index.ts",
+                "u2re/uniform": "u2re-src/uniform.ts/src/index.ts",
+                "u2re/theme": "u2re-src/theme.core/src/index.ts"
+            }
+        }</script>
+    </head>
+    <body>
+        <div id="app"></div>
+        <script type="module" src="./test/test.ts"></script>
+    </body>
+</html>

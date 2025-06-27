@@ -1,6 +1,6 @@
 import { H, defineElement, property, GLitElement } from "u2re/lure"
 import { Q, loadInlineStyle, DOMMixin } from "u2re/dom"
-import { ScrollBar } from "../ui/scrollbar/Scrollbar"
+import { ScrollBar } from "../../ui/scrollbar/Scrollbar"
 
 // @ts-ignore
 import styles from "./ScrollFrame.scss?inline"

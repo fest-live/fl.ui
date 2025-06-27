@@ -1,15 +1,11 @@
-import { defineElement, E, GLitElement, H, property } from "u2re/lure"
+import { H, defineElement, property, GLitElement } from "u2re/lure"
+import { Q, loadInlineStyle, DOMMixin } from "u2re/dom"
+import { ScrollBar } from "../ui/scrollbar/Scrollbar"
 
 // @ts-ignore
 import styles from "./ScrollFrame.scss?inline"
-import { ScrollBar } from "../ui/scrollbar/Scrollbar";
-import { loadInlineStyle, Q } from "u2re/dom";
-
-//
 const preInit = URL.createObjectURL(new Blob([styles], {type: "text/css"}));
 const loading = fetch(preInit, {priority: "high", keepalive: true, cache: "force-cache", mode: "same-origin"});
-
-// @ts-ignore
 const styled  = loadInlineStyle(preInit, null, "ux-layer");
 
 // @ts-ignore
@@ -44,16 +40,8 @@ export class ScrollBoxed extends GLitElement() {
 }
 
 //
-export default ScrollBoxed;
-//div style="display: contents !important;"
-
-import { DOMMixin } from "u2re/dom";
-
-//
 export class OverlayScrollbarMixin extends DOMMixin {
-    constructor(name?) {
-        super(name);
-    }
+    constructor(name?) { super(name); }
 
     // @ts-ignore
     connect(self) { // @ts-ignore
@@ -72,3 +60,4 @@ export class OverlayScrollbarMixin extends DOMMixin {
 
 //
 new OverlayScrollbarMixin("ov-scrollbar");
+export default ScrollBoxed;

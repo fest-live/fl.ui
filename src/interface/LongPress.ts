@@ -5,18 +5,10 @@ export class LongPressHandler {
     #holder: HTMLElement;
 
     //
-    private holding: any = {
-        fx: null,
-        options: {},
-        actionState: {}
-    }
-
-    //
     constructor(holder,  options: any = {}, fx?: (ev: PointerEvent) => void) {
-        this.#holder = holder;
+        (this.#holder = holder)["@control"] = this;
         if (!holder) { throw Error("Element is null..."); }
         if (options) { this.longPress(options, fx); }
-        this.#holder["@control"] = this;
     }
 
     //
@@ -143,9 +135,7 @@ export class LongPressHandler {
     private onPointerUp(self: any, ev: PointerEvent) {
         const {actionState} = self;
         if (ev.pointerId !== actionState.pointerId) return;
-
-        const [x, y] = [ev.clientX, ev.clientY];
-        actionState.lastCoord = [x, y];
+        actionState.lastCoord = [ev.clientX, ev.clientY];
 
         if (actionState.isReadyForLongPress && this.isInPlace(self)) {
             self.fx?.(ev);
@@ -156,11 +146,14 @@ export class LongPressHandler {
     }
 
     //
-    private hasParent(current, parent) {
-        while (current) {
-            if (current === parent) return true;
-            current = current.parentElement;
-        }
+    private holding: any = { fx: null, options: {}, actionState: {} }
+    private hasParent(current, parent) { while (current) { if (current === parent) return true; current = current.parentElement; } }
+    private isInPlace(self: any): boolean {
+        const {actionState}    = self;
+        const [startX, startY] = actionState.startCoord;
+        const [lastX, lastY]   = actionState.lastCoord;
+        const  distance        = Math.hypot(lastX - startX, lastY - startY);
+        return distance <= (self.options.maxOffsetRadius ?? 10);
     }
 
     //
@@ -170,15 +163,6 @@ export class LongPressHandler {
             weakElement && (this.hasParent(target, weakElement) || target === weakElement) &&
             (!self.options.handler || target.matches(self.options.handler))
         );
-    }
-
-    //
-    private isInPlace(self: any): boolean {
-        const {actionState}    = self;
-        const [startX, startY] = actionState.startCoord;
-        const [lastX, lastY]   = actionState.lastCoord;
-        const  distance        = Math.hypot(lastX - startX, lastY - startY);
-        return distance <= (self.options.maxOffsetRadius ?? 10);
     }
 }
 

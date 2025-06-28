@@ -16,8 +16,7 @@ export class DragHandler {
     //
     constructor(holder) {
         if (!holder) { throw Error("Element is null..."); }
-        doObserve(this.#holder = holder, this.#parent);
-        this.#dragging = [ref(0), ref(0)];
+        doObserve(this.#holder = holder, this.#parent); this.#dragging = [ref(0), ref(0)];
         E(holder, { style: { "--drag-x": this.#dragging[0], "--drag-y": this.#dragging[1] } });
     }
 
@@ -44,7 +43,7 @@ export class DragHandler {
         }
 
         //
-        bindDraggable(binding, dragResolve, dragging);
+        return bindDraggable(binding, dragResolve, dragging);
     }
 }
 

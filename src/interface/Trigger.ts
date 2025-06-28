@@ -1,26 +1,10 @@
-import { handleListeners, agWrapEvent, fixedClientZoom, borderBoxHeight, borderBoxWidth, contentBoxHeight, contentBoxWidth, doBorderObserve, doContentObserve, ROOT } from "u2re/dom";
+import { handleListeners, agWrapEvent, doBorderObserve, doContentObserve, ROOT } from "u2re/dom";
 
 //
 export const doObserve = (holder, parent)=>{
-    if (!holder) { throw Error("Element is null..."); }
-
-    //
-    const updateSize = ()=>{
-        holder[borderBoxWidth]  = holder.offsetWidth  * fixedClientZoom(holder);
-        holder[borderBoxHeight] = holder.offsetHeight * fixedClientZoom(holder);
-        if (parent) {
-            parent[contentBoxWidth]  = (parent.clientWidth ) * fixedClientZoom(parent);
-            parent[contentBoxHeight] = (parent.clientHeight) * fixedClientZoom(parent);
-        }
-    }
-
-    //
-    holder["@control"] = this; doBorderObserve(holder);
-    if (parent) { doContentObserve(parent); }
-    const updSize_w = new WeakRef(updateSize);
-
-    //
-    ROOT.addEventListener("scaling", ()=>{try { updSize_w?.deref?.call?.(self); } catch(e) {}});
+    if (!holder) { throw Error("Element is null..."); };
+    if ( parent) { doContentObserve(parent); };
+    doBorderObserve(holder);
 }
 
 //

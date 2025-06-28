@@ -16,8 +16,7 @@ export class ResizeHandler {
     //
     constructor(holder) {
         if (!holder) { throw Error("Element is null..."); }
-        doObserve(this.#holder = holder, this.#parent);
-        this.#resizing = [ref(0), ref(0)];
+        doObserve(this.#holder = holder, this.#parent); this.#resizing = [ref(0), ref(0)];
         E(holder, { style: { "--resize-x": this.#resizing[0], "--resize-y": this.#resizing[1] } });
     }
 
@@ -31,28 +30,26 @@ export class ResizeHandler {
         // discount of dragging offset!
         real[0] = clamp(0, virtual[0], widthDiff);
         real[1] = clamp(0, virtual[1], heightDiff);
-
-        //
         return real;
     }
 
     //
     resizable(options) {
         const handler  = options.handler ?? this.#holder, status: InteractStatus = { pointerId: -1 };
-        const weak     = new WeakRef(this.#holder), self_w = new WeakRef(this);
-        const resizing = this.#resizing;
+        const resizing = this.#resizing, weak = new WeakRef(this.#holder), self_w = new WeakRef(this);
 
         //
         const dragResolve = (dragging) => weak?.deref?.()?.style.removeProperty("will-change");
         const binding  = (grabAction)=>handler.addEventListener("pointerdown", (ev)=>makeShiftTrigger(grabAction, this.#holder)?.(ev));
-
-        //
-        bindDraggable(binding, dragResolve, resizing, ()=>{
+        const initDrag = ()=>{
             const starting = [resizing[0].value || 0, resizing[1].value || 0];
             const holder = weak?.deref?.() as any;
             const parent = holder?.offsetParent ?? holder?.host ?? ROOT;
             self_w?.deref?.()?.limitResize?.(starting, starting, holder, parent)
-        });
+        };
+
+        //
+        return bindDraggable(binding, dragResolve, resizing, initDrag);
     }
 }
 

@@ -1,6 +1,6 @@
-import AxGesture from "../../ext/interact/Gesture";
-
-import {importCdn} from "u2re/cdnImport";
+// @ts-ignore
+import { importCdn } from "u2re/cdnImport";
+import LongHoverHandler from "../../src/interface/LongHover";
 
 //
 const ROOT = document.documentElement;
@@ -48,8 +48,7 @@ export const runTooltip = async ()=>{
     //
     ROOT.addEventListener("pointerover", fixTooltip);
     ROOT.addEventListener("pointerdown", fixTooltip);
-    const controller = new AxGesture(ROOT);
-    controller.longHover({
+    new LongHoverHandler(ROOT).longHover({
         selector: "*[data-tooltip]",
         holdTime: 500
     }, (ev)=>{

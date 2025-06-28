@@ -14,10 +14,11 @@ export class ResizeHandler {
     get #parent() { return this.#holder.offsetParent ?? this.#holder?.host ?? ROOT; }
 
     //
-    constructor(holder) {
+    constructor(holder, options?: any) {
         if (!holder) { throw Error("Element is null..."); }
         doObserve(this.#holder = holder, this.#parent); this.#resizing = [ref(0), ref(0)];
         E(holder, { style: { "--resize-x": this.#resizing[0], "--resize-y": this.#resizing[1] } });
+        if (options) this.resizable(options);
     }
 
     //

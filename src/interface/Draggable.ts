@@ -14,10 +14,11 @@ export class DragHandler {
     get #parent() { return this.#holder.offsetParent ?? this.#holder?.host ?? ROOT; }
 
     //
-    constructor(holder) {
+    constructor(holder, options?: any) {
         if (!holder) { throw Error("Element is null..."); }
         doObserve(this.#holder = holder, this.#parent); this.#dragging = [ref(0), ref(0)];
         E(holder, { style: { "--drag-x": this.#dragging[0], "--drag-y": this.#dragging[1] } });
+        if (options) this.draggable(options);
     }
 
     //

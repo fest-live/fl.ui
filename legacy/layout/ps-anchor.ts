@@ -1,4 +1,4 @@
-
+// @ts-ignore
 import {importCdn} from "u2re/cdnImport";
 
 //

@@ -1,4 +1,3 @@
-//
 const ROOT = document.documentElement;
 const HIDE = (ev: any)=>{
     const target = ev?.target || document.querySelector(":hover, :active") || document.activeElement;

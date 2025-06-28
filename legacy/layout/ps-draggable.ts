@@ -1,12 +1,13 @@
+import   DragHandler from "../../src/interface/Draggable";
+import ResizeHandler from "../../src/interface/Resizable";
+
 //
 export const $control$ = Symbol("@control");
 export const makeControl = async (frameElement: HTMLElement)=>{
-    //
     let gestureControl: any = null;
     if (frameElement && !frameElement[$control$]) {
-        gestureControl = new AxGesture(frameElement);
-        gestureControl.resizable({ handler: frameElement?.shadowRoot?.querySelector(".ui-resize") });
-        gestureControl.draggable({ handler: frameElement?.shadowRoot?.querySelector(".ui-title-handle") });
+        new ResizeHandler(frameElement, { handler: frameElement?.shadowRoot?.querySelector(".ui-resize") })
+        new DragHandler(  frameElement, { handler: frameElement?.shadowRoot?.querySelector(".ui-title-handle") })
         frameElement[$control$] = gestureControl;
     }
 

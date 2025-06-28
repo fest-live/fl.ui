@@ -1,7 +1,16 @@
 import { setStyleProperty, bindDraggable } from "u2re/dom";
 import { makeShiftTrigger } from "../../interface/Trigger";
 import { bindWith, handleStyleChange } from "u2re/lure";
-import { computed, ref } from "u2re/object";
+import { computed, conditional, ref } from "u2re/object";
+
+
+//
+export const boolDepIconRef = (cnd)=> conditional(cnd, "badge-check", "badge");
+export const indicationRef = (ref)=> computed(ref, (v)=>(parseFloat(v) || 0)?.toLocaleString?.('en-US', {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 1
+}));
+
 
 //
 export const dragSlider = (container, handler, input)=>{ // @ts-ignore
@@ -15,7 +24,8 @@ export const dragSlider = (container, handler, input)=>{ // @ts-ignore
     //
     const computeRelation = ()=>{
         if (input?.type == "number" || input?.type == "range")
-            { const range = (parseFloat(input?.max || 0) - parseFloat(input?.min || 0)); return ((dragging?.[0]?.value || 0) / (container?.offsetWidth || 1)) * range; } else
+            {const range = (parseFloat(input?.max || 0) - parseFloat(input?.min || 0));
+            return ((dragging?.[0]?.value || 0) / (container?.offsetWidth || 1)) * range; } else
         if (input?.type == "checkbox") { return Math.sign(dragging?.[0]?.value); } else
         if (input?.type == "radio") {
             const all = [...input?.parentNode?.querySelectorAll?.('input[type="radio"]')], len = all?.length;
@@ -48,14 +58,10 @@ export const dragSlider = (container, handler, input)=>{ // @ts-ignore
 
     //
     const dragging = [ ref(0), ref(0) ];
-    bindWith(handler, "--drag-x", dragging?.[0], handleStyleChange);
-    bindWith(handler, "--relate", computed(dragging?.[0], (v)=>computeRelation()), handleStyleChange);
-
-    //
-    const customTrigger = (doGrab)=>handler.addEventListener("pointerdown", makeShiftTrigger((ev)=>{correctOffset(dragging); doGrab?.(ev, handler)}));
+    const customTrigger = (doGrab)=>handler?.addEventListener?.("pointerdown", makeShiftTrigger((ev)=>{correctOffset(dragging); doGrab?.(ev, handler)}));
     const handleValue = (ev)=>{
         const inp = ev?.target ?? input;
-        if (inp?.valueAsNumber != null) { setStyleProperty(handler, "--value", (inp?.valueAsNumber || 0) / ((parseFloat(inp?.max || 0) - parseFloat(inp?.min || 0)) || 1)); } else
+        if (inp?.valueAsNumber != null) { setStyleProperty(handler, "--value", ((inp?.valueAsNumber || 0) - parseFloat(inp?.min || 0)) / ((parseFloat(inp?.max || 0) - parseFloat(inp?.min || 0)) || 1)); } else
         if (inp?.checked != null && inp?.type == "checkbox") { setStyleProperty(handler, "--value", inp?.checked ? 1 : 0); } else
         if (inp?.type == "radio") {
             const all = [...inp?.parentNode?.querySelectorAll?.('input[type="radio"]')];
@@ -65,11 +71,11 @@ export const dragSlider = (container, handler, input)=>{ // @ts-ignore
     }
 
     //
+    handler?.addEventListener?.("click", (ev)=>{ if (input?.type == "checkbox" || input?.type == "radio") { input?.click?.(); } });
+    bindWith?.(handler, "--drag-x", dragging?.[0], handleStyleChange);
+    bindWith?.(handler, "--relate", computed(dragging?.[0], (v)=>computeRelation()), handleStyleChange);
     container?.addEventListener?.("click", handleValue);
     container?.addEventListener?.("input", handleValue);
     container?.addEventListener?.("change", handleValue);
-    handler?.addEventListener?.("click", (ev)=>{ if (input?.type == "checkbox" || input?.type == "radio") { input?.click?.(); } });
-
-    //
     return bindDraggable(customTrigger, resolveDragging, dragging);
 };

@@ -6,7 +6,7 @@ export const reflectCell = async (newItem: any, pArgs: any, withAnimate = false)
     const layout = [pArgs?.layout?.columns || pArgs?.layout?.[0] || 4, pArgs?.layout?.rows || pArgs?.layout?.[1] || 8];
     const {item, list, items} = pArgs;
     await new Promise((r)=>requestAnimationFrame(r));
-    subscribe?.(item, (state, property)=>{
+    return subscribe?.(item, (state, property)=>{
         const gridSystem = newItem?.parentElement;
         layout[0] = parseInt(gridSystem?.style?.getPropertyValue?.("--layout-c")) || layout[0];
         layout[1] = parseInt(gridSystem?.style?.getPropertyValue?.("--layout-r")) || layout[1];

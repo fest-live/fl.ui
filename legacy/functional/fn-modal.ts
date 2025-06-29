@@ -30,3 +30,10 @@ ROOT.addEventListener("pointerdown", HIDE);
 // TODO! activate modal model
 export const activateModal = ()=>{}
 export default activateModal;
+
+
+//
+//! TODO: My final promise...
+//! - area out trigger (unflag)
+//! - area outer click/action trigger (unflag)
+//! - area dynamicly updated by events (getBoundingClientRect or some sort of)

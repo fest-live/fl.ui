@@ -1,8 +1,5 @@
-// @ts-ignore
-import { importCdn } from "u2re/cdnImport";
 import { ref, booleanRef, stringRef } from "u2re/object";
-import { observeContentBox } from "u2re/dom";
-
+import { WRef, observeContentBox } from "u2re/dom";
 
 //
 const ROOT = document.documentElement;
@@ -33,19 +30,18 @@ export const handleForFixPosition = (container, cb, root = window)=>{
     }
 }
 
-
-
 //
 export const pointerRef = ()=>{
     const coordinate = [ ref(0), ref(0) ];
-    handleByPointer((ev)=>{ coordinate[0].value = ev.clientX; coordinate[1].value = ev.clientY; });
+    coordinate.push(WRef(handleByPointer((ev)=>{ coordinate[0].value = ev.clientX; coordinate[1].value = ev.clientY; })));
+    coordinate[Symbol.dispose] = coordinate[2]?.deref?.() ?? coordinate[2];
     return coordinate;
 }
 
 //
 export const visibleBySelectorRef = (selector)=>{
     const visRef = booleanRef(false);
-    handleByPointer((ev)=>{
+    visRef[Symbol.dispose] = handleByPointer((ev)=>{
         const target = document.elementFromPoint(ev.clientX, ev.clientY);
         visRef.value = target?.matches?.(selector) ?? false;
     });
@@ -55,7 +51,7 @@ export const visibleBySelectorRef = (selector)=>{
 //
 export const showAttributeRef = (attribute = "data-tooltip")=>{
     const valRef = stringRef("");
-    handleByPointer((ev)=>{
+    valRef[Symbol.dispose] = handleByPointer((ev)=>{
         const target: any = document.elementFromPoint(ev.clientX, ev.clientY);
         valRef.value = target?.getAttribute?.(attribute)?.(`[${attribute}]`) ?? "";
     });

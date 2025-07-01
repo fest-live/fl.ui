@@ -28,10 +28,24 @@ const stepped  = (count = 100)=>{ return Array.from({ length: count }, (_, i) =>
 const sheduler = makeRAFCycle();
 
 //
+const getPropertyValue = (src, name)=>{
+    if ("computedStyleMap" in src) {
+        return src?.computedStyleMap?.()?.get(name)?.value || 0;
+    }
+    return parseFloat(getComputedStyle(src)?.getPropertyValue?.(name) || "0") || 0;
+}
+
+//
+const getPadding = (src, axis)=>{
+    if (axis == "inline") { return (getPropertyValue(src, "padding-inline-start") + getPropertyValue(src, "padding-inline-end")); };
+    return (getPropertyValue(src, "padding-block-start") + getPropertyValue(src, "padding-block-end"));
+}
+
+//
 const makeTimeline = (source, axis: number)=>{
     const target   = asWeak(source);
     const scroll   = scrollRef(source, (["inline", "block"] as ["inline", "block"])[axis]);
-    const content  = sizeRef  (source, (["inline", "block"] as ["inline", "block"])[axis], "content-box");
+    const content  = computed(sizeRef(source, (["inline", "block"] as ["inline", "block"])[axis], "content-box"), (v)=>(v + getPadding(source, (["inline", "block"] as ["inline", "block"])[axis])));
     const percent  = computed (scroll, (vl)=> ((vl || 0) / ((target?.deref?.()?.[['scrollWidth', 'scrollHeight'][axis]] - content?.value) || 1)));
     subscribe(content,  (vl: any)=>((scroll?.value || 0) / ((target?.deref?.()?.[['scrollWidth', 'scrollHeight'][axis]] - vl) || 1))); return percent;
 }
@@ -41,8 +55,8 @@ const effectProperty = { fill: "both", delay: 0, easing: "linear", rangeStart: "
 const scrollbarCoef  = (source: HTMLElement, axis: number)=>{ // @ts-ignore
     const target  = asWeak(source);
     const scroll  = scrollRef(source, (["inline", "block"] as ["inline", "block"])[axis]);
-    const content = sizeRef  (source, (["inline", "block"] as ["inline", "block"])[axis], "content-box");
-    const percent = computed (content, (vl)=> (vl / (target?.deref?.()?.[['scrollWidth', 'scrollHeight'][axis]] || 1)));
+    const content = computed(sizeRef(source, (["inline", "block"] as ["inline", "block"])[axis], "content-box"), (v)=>(v + getPadding(source, (["inline", "block"] as ["inline", "block"])[axis])));
+    const percent = computed(content, (vl)=> (vl / (target?.deref?.()?.[['scrollWidth', 'scrollHeight'][axis]] || 1)));
     subscribe(scroll, ()=>percent.value = (content?.value / (target?.deref?.()?.[['scrollWidth', 'scrollHeight'][axis]] || 1))); return percent;
 }
 
@@ -79,10 +93,8 @@ CSS.registerProperty({ name: "--percent-y", syntax: "<number>", inherits: true, 
 
 //
 const makeInteractive = (holder, content, scrollbar, axis = 0, status: any = {})=>{
-    const status_w  = asWeak(status);
-    const content_w = asWeak(content);
-
-    //
+    const status_w   = asWeak(status);
+    const content_w  = asWeak(content);
     const moveScroll = (evc) => {
         const ev     = evc?.detail || evc;
         const status = status_w?.deref?.();

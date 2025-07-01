@@ -3,13 +3,11 @@ import { ref, makeReactive, assign } from "u2re/object"; import { Q } from "u2re
 import { css, GLitElement, property, E, H, defineElement } from "u2re/lure";
 
 //
-import ScrollBoxed from "../src/components/ScrollFrame";
-import WithOverlay from "../src/components/OverlayExt";
+import ScrollBoxed from "../src/components/scroll-frame/ScrollFrame";
 import { bindInteraction } from "../src/ui/grid/GridBind";
 
 //
 console.log(ScrollBoxed);
-console.log(WithOverlay);
 
 //
 @defineElement("x-block")

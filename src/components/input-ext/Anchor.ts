@@ -40,28 +40,26 @@ export const handleForFixPosition = (container, cb, root = window)=>{
 export const pointerRef = ()=>{
     const coordinate = [ ref(0), ref(0) ];
     coordinate.push(WRef(handleByPointer((ev)=>{ coordinate[0].value = ev.clientX; coordinate[1].value = ev.clientY; })));
-    coordinate[Symbol.dispose] ??= coordinate[2]?.deref?.() ?? coordinate[2];
+    if (coordinate[2]?.deref?.() ?? coordinate[2]) { coordinate[Symbol.dispose] ??= coordinate[2]?.deref?.() ?? coordinate[2]; }
     return coordinate;
 }
 
 //
 export const visibleBySelectorRef = (selector)=>{
-    const visRef = booleanRef(false);
-    visRef[Symbol.dispose] ??= handleByPointer((ev)=>{
+    const visRef = booleanRef(false), usub = handleByPointer((ev)=>{
         const target = document.elementFromPoint(ev.clientX, ev.clientY);
         visRef.value = target?.matches?.(selector) ?? false;
     });
-    return visRef;
+    if (usub) visRef[Symbol.dispose] ??= usub; return visRef;
 }
 
 //
 export const showAttributeRef = (attribute = "data-tooltip")=>{
-    const valRef = stringRef("");
-    valRef[Symbol.dispose] ??= handleByPointer((ev)=>{
+    const valRef = stringRef(""), usub = handleByPointer((ev)=>{
         const target: any = document.elementFromPoint(ev.clientX, ev.clientY);
         valRef.value = target?.getAttribute?.(attribute)?.(`[${attribute}]`) ?? "";
     });
-    return valRef;
+    if (usub) valRef[Symbol.dispose] ??= usub; return valRef;
 }
 
 //
@@ -90,7 +88,7 @@ export function makeInterruptTrigger(
     const wr = new WeakRef(ref);
     const close = () => { $set(wr, "value", false); }, open = () => { $set(wr, "value", true); };
     closeEvents.forEach(event => element.addEventListener(event, close));
-    ref[Symbol.dispose] ??= closeEvents.forEach(event => element.removeEventListener(event, close));
+    ref[Symbol.dispose] ??= ()=>closeEvents.forEach(event => element.removeEventListener(event, close));
     return ref;
 }
 
@@ -204,6 +202,6 @@ export function boundingBoxRef(anchor: HTMLElement, options?: {
     }
 
     //
-    area[Symbol.dispose] ??= destroy;
+    if (destroy) area[Symbol.dispose] ??= destroy;
     return area;
 }

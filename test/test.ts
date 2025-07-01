@@ -38,23 +38,6 @@ export class XBlock extends GLitElement() {
 }
 
 //
-const children = ref("Движуха!");
-const style = makeReactive({
-    backgroundColor: "darkred",
-    color: "white",
-    inlineSize: "100px",
-    blockSize: "100px",
-    display: "flex",
-    placeContent: "center",
-    placeItems: "center",
-    fontFamily: "\"Fira Code\"",
-    fontSize: "0.8em"
-});
-
-// create document fragment
-const dom = H`<${"x-block#test.test"} on:click=${()=>alert("Тетрис!")} style=${style}><span>${children}</span></div>`;
-
-//
 /*const scb = H`
 <div anchor-host="test" style="overflow: scroll; anchor-name: --test; display: block; inline-size: 800px; block-size: 600px;">
 <div style="inline-size: 100px; block-size: 1200px; background-color: black;">Black Dolphin</div>
@@ -68,13 +51,6 @@ const scb = H`
 </div>`
 
 //
-setTimeout(()=>{
-    children.value = "Разруха!";
-    style.backgroundColor = "darkblue";
-}, 1000);
-
-//
-document.body.append(dom);
 document.body.append(scb);
 
 //

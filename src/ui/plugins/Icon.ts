@@ -37,22 +37,21 @@ export class UILucideIcon extends GLitElement() {
 
     //
     protected updateIcon(icon?: any) {
-        if (icon ||= (this.icon?.value ?? (typeof this.icon == "string" ? this.icon : "")) || "");
-
-        // @ts-ignore
-        Promise.try(importCdn, ["/u2re/vendor/lucide.min.js"])?.then?.((icons)=>{
-            const ICON = kebabToCamel(icon || "");
-            if (icons?.[ICON]) {
-                const self = this as any;
-                loadAsImage(ICON, (U)=>icons?.createElement?.(icons?.[U]))?.then?.((url)=>{
-                    const src  = `url(\"${url}\")`;
-                    const fill = self?.shadowRoot?.querySelector?.(".fill");
-                    if (fill?.style?.getPropertyValue?.("mask-image") != src) {
-                        fill?.style?.setProperty?.("mask-image", src);
-                    }
-                });
-            }
-        }).catch(console.warn.bind(console));
+        if (icon ||= (this.icon?.value ?? (typeof this.icon == "string" ? this.icon : "")) || "") { // @ts-ignore
+            Promise.try(importCdn, ["/u2re/vendor/lucide.min.js"])?.then?.((icons)=>{
+                const ICON = kebabToCamel(icon || "");
+                if (icons?.[ICON]) {
+                    const self = this as any;
+                    loadAsImage(ICON, (U)=>icons?.createElement?.(icons?.[U]))?.then?.((url)=>{
+                        const src  = `url(\"${url}\")`;
+                        const fill = self?.shadowRoot?.querySelector?.(".fill");
+                        if (fill?.style?.getPropertyValue?.("mask-image") != src) {
+                            fill?.style?.setProperty?.("mask-image", src);
+                        }
+                    });
+                }
+            }).catch(console.warn.bind(console));
+        }
         return this;
     }
 

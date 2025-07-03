@@ -17,7 +17,6 @@ export class DragHandler {
     constructor(holder, options?: any) {
         if (!holder) { throw Error("Element is null..."); }
         doObserve(this.#holder = holder, this.#parent); this.#dragging = [ref(0), ref(0)];
-        E(holder, { style: { "--drag-x": this.#dragging[0], "--drag-y": this.#dragging[1] } });
         if (options) this.draggable(options);
     }
 
@@ -27,9 +26,9 @@ export class DragHandler {
         const dragging = this.#dragging;
 
         //
-        const weak   = new WeakRef(this.#holder);
-        const binding = (grabAction) => handler.addEventListener("pointerdown", makeShiftTrigger(grabAction, this.#holder));
-        const dragResolve = (dragging) => {
+        const weak        = new WeakRef(this.#holder);
+        const binding     = (grabAction) => handler.addEventListener("pointerdown", makeShiftTrigger(grabAction, this.#holder));
+        const dragResolve = (dragging)   => {
             const holder = weak?.deref?.() as any;
             holder?.style?.removeProperty?.("will-change");
 
@@ -44,6 +43,7 @@ export class DragHandler {
         }
 
         //
+        E(this.#holder, { style: { "--drag-x": this.#dragging[0], "--drag-y": this.#dragging[1] } });
         return bindDraggable(binding, dragResolve, dragging);
     }
 }

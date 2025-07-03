@@ -17,7 +17,6 @@ export class ResizeHandler {
     constructor(holder, options?: any) {
         if (!holder) { throw Error("Element is null..."); }
         doObserve(this.#holder = holder, this.#parent); this.#resizing = [ref(0), ref(0)];
-        E(holder, { style: { "--resize-x": this.#resizing[0], "--resize-y": this.#resizing[1] } });
         if (options) this.resizable(options);
     }
 
@@ -50,6 +49,7 @@ export class ResizeHandler {
         };
 
         //
+        E(this.#holder, { style: { "--resize-x": this.#resizing[0], "--resize-y": this.#resizing[1] } });
         return bindDraggable(binding, dragResolve, resizing, initDrag);
     }
 }

@@ -1,4 +1,4 @@
-import { blockClickTrigger } from "u2re/dom";
+import { blockClickTrigger } from "fest/dom";
 
 //
 export class LongPressHandler {

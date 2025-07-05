@@ -1,10 +1,10 @@
 
-import { importCdn } from "u2re/cdnImport";
+import { importCdn } from "fest/cdnImport";
 import { ScrollBar } from "../fl.ui/ui/scrollbar/Scrollbar";
 import { includeSelf } from "../fl.ui/core/Utils";
 
 // @ts-ignore
-const { observeBySelector } = await Promise.try(importCdn, ["u2re/dom"]);
+const { observeBySelector } = await Promise.try(importCdn, ["fest/dom"]);
 export const doButtonAction = (button, input: HTMLInputElement)=>{
     if (button.matches(".u2-copy") && input?.matches?.("input") && (input?.selectionStart != input?.selectionEnd)) { navigator.clipboard.writeText(input.value.substring(input.selectionStart || 0, input.selectionEnd || input.selectionStart || 0)); }
     if (button.matches(".u2-paste") && input?.selectionStart != null) {

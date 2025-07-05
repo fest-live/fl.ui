@@ -1,4 +1,4 @@
-import { bindDraggable, convertOrientPxToCX, getBoundingOrientRect, doAnimate, orientOf, redirectCell, setProperty } from "u2re/dom";
+import { bindDraggable, convertOrientPxToCX, getBoundingOrientRect, doAnimate, orientOf, redirectCell, setProperty } from "fest/dom";
 
 //
 import { makeShiftTrigger } from "../../interface/Trigger";

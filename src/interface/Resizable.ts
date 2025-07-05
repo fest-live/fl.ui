@@ -1,9 +1,9 @@
-import { fixedClientZoom, getBoundingOrientRect, bindDraggable, clamp, bbh, bbw, cbh, cbw, ROOT, type InteractStatus } from "u2re/dom";
+import { fixedClientZoom, getBoundingOrientRect, bindDraggable, clamp, bbh, bbw, cbh, cbw, ROOT, type InteractStatus } from "fest/dom";
 import { makeShiftTrigger, doObserve } from "./Trigger";
 
 //
-import {  E  } from "u2re/lure";
-import { ref } from "u2re/object";
+import {  E  } from "fest/lure";
+import { ref } from "fest/object";
 
 //
 export class ResizeHandler {

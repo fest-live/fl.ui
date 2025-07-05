@@ -1,4 +1,4 @@
-import { ROOT, agWrapEvent } from "u2re/dom";
+import { ROOT, agWrapEvent } from "fest/dom";
 
 //
 export class SwipeHandler {

@@ -1,9 +1,9 @@
-import { getBoundingOrientRect, bindDraggable, setProperty, contentBoxWidth, contentBoxHeight, borderBoxWidth, borderBoxHeight } from "u2re/dom";
+import { getBoundingOrientRect, bindDraggable, setProperty, contentBoxWidth, contentBoxHeight, borderBoxWidth, borderBoxHeight } from "fest/dom";
 import { makeShiftTrigger, doObserve } from "./Trigger";
 
 //
-import {  E  } from "u2re/lure";
-import { ref } from "u2re/object";
+import {  E  } from "fest/lure";
+import { ref } from "fest/object";
 
 //
 export class DragHandler {

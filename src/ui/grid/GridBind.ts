@@ -1,5 +1,5 @@
-import { ref, subscribe } from "u2re/object";
-import { E } from "u2re/lure";
+import { ref, subscribe } from "fest/object";
+import { E } from "fest/lure";
 
 //
 import { reflectCell } from "./Reflect";

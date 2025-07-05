@@ -1,5 +1,5 @@
-import { ref, booleanRef, stringRef, makeReactive } from "u2re/object";
-import { WRef, observeContentBox } from "u2re/dom";
+import { ref, booleanRef, stringRef, makeReactive } from "fest/object";
+import { WRef, observeContentBox } from "fest/dom";
 
 //
 const ROOT = document.documentElement;

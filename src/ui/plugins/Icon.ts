@@ -2,10 +2,10 @@
 import styles from "./Icon.scss?inline";
 
 //
-import { defineElement, GLitElement, property, E, H } from "u2re/lure";
-import { kebabToCamel, preloadStyle } from "u2re/dom";
-import { subscribe } from "u2re/object";
-import { importCdn } from "u2re/cdnImport";
+import { defineElement, GLitElement, property, E, H } from "fest/lure";
+import { kebabToCamel, preloadStyle } from "fest/dom";
+import { subscribe } from "fest/object";
+import { importCdn } from "fest/cdnImport";
 
 //
 const styled  = preloadStyle(styles);
@@ -38,7 +38,7 @@ export class UILucideIcon extends GLitElement() {
     //
     protected updateIcon(icon?: any) {
         if (icon ||= (this.icon?.value ?? (typeof this.icon == "string" ? this.icon : "")) || "") { // @ts-ignore
-            Promise.try(importCdn, ["/u2re/vendor/lucide.min.js"])?.then?.((icons)=>{
+            Promise.try(importCdn, ["/fest/vendor/lucide.min.js"])?.then?.((icons)=>{
                 const ICON = kebabToCamel(icon || "");
                 if (icons?.[ICON]) {
                     const self = this as any;

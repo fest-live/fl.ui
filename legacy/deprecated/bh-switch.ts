@@ -1,5 +1,5 @@
 // @ts-ignore
-import { importCdn } from "u2re/cdnImport";
+import { importCdn } from "fest/cdnImport";
 
 //
 export const setStyle = async (self, confirm: boolean = false, exact: number = 0, val: number = 0)=>{
@@ -34,7 +34,7 @@ export const makeSwitchBH = async (self?: HTMLElement)=>{
     if (!self) return;
 
     // @ts-ignore
-    const { getBoundingOrientRect, agWrapEvent } = await Promise.try(importCdn, ["u2re/dom"]);
+    const { getBoundingOrientRect, agWrapEvent } = await Promise.try(importCdn, ["fest/dom"]);
 
     //
     const sws  = { pointerId: -1 };

@@ -1,5 +1,5 @@
-import { setIdleInterval } from "u2re/dom";
-import { ref } from "u2re/object";
+import { setIdleInterval } from "fest/dom";
+import { ref } from "fest/object";
 
 //
 export const batteryStatusRef = ()=>{

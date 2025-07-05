@@ -1,7 +1,7 @@
-import { setStyleProperty, bindDraggable } from "u2re/dom";
+import { setStyleProperty, bindDraggable } from "fest/dom";
 import { makeShiftTrigger } from "../../interface/Trigger";
-import { bindWith, handleStyleChange } from "u2re/lure";
-import { computed, conditional, ref } from "u2re/object";
+import { bindWith, handleStyleChange } from "fest/lure";
+import { computed, conditional, ref } from "fest/object";
 
 
 //

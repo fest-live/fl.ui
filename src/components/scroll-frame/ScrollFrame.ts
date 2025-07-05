@@ -1,5 +1,5 @@
-import { H, defineElement, property, GLitElement } from "u2re/lure"
-import { Q, loadInlineStyle, DOMMixin } from "u2re/dom"
+import { H, defineElement, property, GLitElement } from "fest/lure"
+import { Q, loadInlineStyle, DOMMixin } from "fest/dom"
 import { ScrollBar } from "../../ui/scrollbar/Scrollbar"
 
 // @ts-ignore

@@ -1,6 +1,6 @@
 // @ts-ignore
-import { ref, makeReactive, assign } from "u2re/object"; import { Q } from "u2re/dom"; // @ts-ignore
-import { css, GLitElement, property, E, H, defineElement } from "u2re/lure";
+import { ref, makeReactive, assign } from "fest/object"; import { Q } from "fest/dom"; // @ts-ignore
+import { css, GLitElement, property, E, H, defineElement } from "fest/lure";
 
 //
 import ScrollBoxed from "../src/components/scroll-frame/ScrollFrame";

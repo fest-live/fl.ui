@@ -1,4 +1,4 @@
-import { agWrapEvent, blockClickTrigger, ROOT } from "u2re/dom";
+import { agWrapEvent, blockClickTrigger, ROOT } from "fest/dom";
 
 //
 export class LongHoverHandler {

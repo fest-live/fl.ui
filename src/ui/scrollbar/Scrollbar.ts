@@ -1,6 +1,6 @@
-import {    subscribe, computed } from "u2re/object";
-import { E, scrollRef, sizeRef  } from "u2re/lure";
-import { Q, setProperty, makeRAFCycle } from "u2re/dom";
+import {    subscribe, computed } from "fest/object";
+import { E, scrollRef, sizeRef  } from "fest/lure";
+import { Q, setProperty, makeRAFCycle } from "fest/dom";
 
 //
 export interface ScrollBarStatus {

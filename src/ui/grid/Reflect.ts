@@ -1,5 +1,5 @@
-import { makeObjectAssignable, makeReactive, subscribe } from "u2re/object";
-import { redirectCell } from "u2re/dom";
+import { makeObjectAssignable, makeReactive, subscribe } from "fest/object";
+import { redirectCell } from "fest/dom";
 
 //
 export const reflectCell = async (newItem: any, pArgs: any, withAnimate = false)=>{ // @ts-ignore

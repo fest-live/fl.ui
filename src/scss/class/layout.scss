@@ -1,0 +1,117 @@
+@mixin place($method: stretch) {
+    place-content: $method;
+    place-items: center;
+}
+
+//
+@mixin grid-flow ($direction: row) {
+    display: grid;
+    grid-auto-flow: $direction;
+}
+
+//
+@mixin flex-flow ($direction: row) {
+    display: flex;
+    flex-direction: $direction;
+}
+
+//
+@mixin grid-column {
+    @include grid-flow(column);
+    @include place(center);
+
+    & {
+        --order: sibling-index();
+        grid-column: var(--order, 1) / var(--order, 1) span; grid-row: 1 / -1;
+        grid-template-columns: minmax(0px, 1fr); grid-template-rows: subgrid;
+    }
+}
+
+//
+@mixin grid-row {
+    @include grid-flow(row);
+    @include place(center);
+
+    & {
+        --order: sibling-index();
+        grid-column: 1 / -1; grid-row: var(--order, 1) / var(--order, 1) span;
+        grid-template-columns: subgrid; grid-template-rows: minmax(0px, max-content);
+    }
+}
+
+//
+@mixin flex-column {
+    --order: sibling-index();
+    order: var(--order, auto);
+    flex: 1 1 max-content;
+
+    //
+    @include place(center);
+}
+
+//
+@mixin grid-layered-box {
+    display: grid;
+    grid-template-columns: minmax(0px, 1fr);
+    grid-template-rows: minmax(0px, 1fr);
+    inline-size: max-content;
+    block-size: max-content;
+
+    & > * {
+        --order: sibling-index();
+        order: var(--order, auto);
+        grid-column: 1 / -1;
+        grid-row: 1 / -1;
+        z-index: var(--order, 0);
+        inline-size: max-content;
+        block-size: max-content;
+    }
+}
+
+//
+@layer ux-classes {
+    //
+    .grid-rows {
+        @include grid-flow(row);
+        @include place();
+
+        //
+        & {
+            grid-auto-rows: minmax(0px, max-content);
+            grid-template-columns: minmax(0px, 1fr);
+            block-size: max-content;
+        }
+
+        //
+        & > * { @include grid-row; }
+    }
+
+    //
+    .grid-columns {
+        @include grid-flow(column);
+        @include place();
+
+        //
+        & {
+            grid-auto-columns: minmax(0px, 1fr);
+            grid-template-rows: minmax(0px, 1fr);
+        }
+
+        //
+        & > * { @include grid-column; }
+    }
+
+    //
+    .flex-columns {
+        @include flex-flow(row);
+        @include place();
+
+        //
+        & > * { @include flex-column; }
+    }
+}
+
+// used with padding
+@function limit-by-size($pwidth, $basis: 100cqi, $min: 0px) {
+    @return max(calc($basis - ($basis - $pwidth)), $min);
+}

@@ -89,6 +89,8 @@ $counter: 0;
             inset-#{$inv}-start: auto;
             inset-#{$fit}-start: 0.5rem;
             inset-#{$inv}-end  : 1px;
+            --content-size: calc(#{$cqf} / 1px); --scroll-size: calc(var(--content-size, 0) / var(--scroll-coef, 1));
+            --clamped-size: calc(#{$cqf} - 1rem); --max-size: min(100%, var(--clamped-size, #{$cqf}));
             //inset-#{$fit}-start: calc(anchor(--ux-scrollbox start, 0px) + 0.5rem);
             //inset-#{$inv}-end  : calc(anchor(--ux-scrollbox end  , 0px) +    1px);
             //position-try-fallbacks: --just-inline, --just-block;
@@ -98,7 +100,7 @@ $counter: 0;
 
         //
         & :where(#{$thumb})
-        {   --clamped-size: calc(#{$cqf} - 1rem); --max-size: min(100%, var(--clamped-size, #{$cqf})); //
+        {
             #{$inv}-size: 100%; #{$fit}-size: min(calc(var(--max-size, 100%) * var(--scroll-coef, 1)), var(--max-size, 100%));
             @if $fit == block
                 { translate: 0px calc(var(--clamped-size, 100cqb) * var(--percent-y, 0) * (1 - var(--scroll-coef, 0))) 0px; } @else
@@ -170,8 +172,17 @@ $counter: 0;
         //position: relative;
         //position: fixed !important;
     }
+
+    //
+    &, & * {
+        interpolate-size: allow-keywords;
+        transition-behavior: allow-discrete;
+    }
+
+    //
     @include scroll-tm-2-axis("", $timeline);
     @include anchor($timeline);
     @include scrollbar();
     @include anchor-bind();
 }
+

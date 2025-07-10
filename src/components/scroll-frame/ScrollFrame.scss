@@ -2,6 +2,9 @@
 
 //
 @property --max-size { syntax: "<length-percentage>"; initial-value: 0px; inherits: true; };
+@property --scroll-coef { syntax: "<number>"; initial-value: 1; inherits: true; };
+@property --scroll-size { syntax: "<number>"; initial-value: 0; inherits: true; };
+@property --content-size { syntax: "<number>"; initial-value: 0; inherits: true; };
 
 //
 @layer ui-scrollbox {

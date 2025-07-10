@@ -41,15 +41,15 @@ export const batteryStatusRef = ()=>{
 }
 
 // TODO? support of seconds option (user-defined)
-export const timeStatusRef = (async()=>{
+export const timeStatusRef = ()=>{
     const rv = ref("00:00:00");
     const updateTime = ()=> (rv.value = new Date().toLocaleTimeString(navigator.language, { hour12: false, timeStyle: "short" }))
     setIdleInterval(updateTime, 15000); document.addEventListener("DOMContentLoaded", updateTime, { once: true });
     return rv;
-});
+};
 
 //
-export const signalStatusRef = (async()=>{
+export const signalStatusRef = ()=>{
     const rv = ref("wifi-off");
 
     // @ts-ignore
@@ -66,4 +66,4 @@ export const signalStatusRef = (async()=>{
     navigator.connection?.addEventListener("change", changeSignal);
     setIdleInterval(changeSignal, 1000);
     changeSignal?.(); return rv;
-});
+};

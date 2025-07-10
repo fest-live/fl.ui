@@ -88,8 +88,11 @@ const animateByTimeline = async (source: HTMLElement, properties = {}, timeline:
 }
 
 //
-CSS.registerProperty({ name: "--percent-x", syntax: "<number>", inherits: true, initialValue: "0" });
-CSS.registerProperty({ name: "--percent-y", syntax: "<number>", inherits: true, initialValue: "0" });
+try { CSS.registerProperty({ name: "--percent-x", syntax: "<number>", inherits: true, initialValue: "0" }); } catch(e) {};
+try { CSS.registerProperty({ name: "--percent-y", syntax: "<number>", inherits: true, initialValue: "0" }); } catch(e) {};
+try { CSS.registerProperty({ name: "--scroll-coef", syntax: "<number>", inherits: true, initialValue: "1" }); } catch(e) {};
+try { CSS.registerProperty({ name: "--scroll-size", syntax: "<number>", inherits: true, initialValue: "0" }); } catch(e) {};
+try { CSS.registerProperty({ name: "--content-size", syntax: "<number>", inherits: true, initialValue: "0" }); } catch(e) {};
 
 //
 const makeInteractive = (holder, content, scrollbar, axis = 0, status: any = {})=>{

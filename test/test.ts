@@ -7,6 +7,14 @@ import ScrollBoxed from "../src/components/scroll-frame/ScrollFrame";
 import { bindInteraction } from "../src/ui/grid/GridBind";
 
 //
+import { timeStatusRef } from "../src/ui/core/Status";
+import "../src/scss/index.scss";
+
+//
+import Icon from "../src/ui/plugins/Icon"
+
+//
+console.log(Icon);
 console.log(ScrollBoxed);
 
 //
@@ -65,3 +73,13 @@ const SVO = H`<ux-grid style="margin: 1rem; inline-size:800px; block-size:600px;
 //
 document.body.append(scb);
 document.body.append(SVO);
+
+//
+const tref = timeStatusRef();
+const time = H`<div class="time-format">${tref}</div>`;
+document.body.append(time);
+
+
+//
+const icon = H`<ui-icon icon="github"></ui-icon>`;
+document.body.append(icon);

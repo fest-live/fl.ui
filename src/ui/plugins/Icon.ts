@@ -8,8 +8,10 @@ import { subscribe } from "fest/object";
 import { importCdn } from "fest/cdnImport";
 
 //
+import * as icons from "lucide";
+
+//
 const styled  = preloadStyle(styles);
-const marked  = H`<div class="fill"></div>`;
 const iconMap = new Map<string, Promise<string>>();
 const rasterizeSVG = async (blob)=>{ return URL.createObjectURL(blob); }
 const loadAsImage  = (name: string, creator?: (name: string)=>any)=>{
@@ -21,36 +23,44 @@ const loadAsImage  = (name: string, creator?: (name: string)=>any)=>{
     });
 };
 
+function capitalizeFirstLetter(str) {
+    if (typeof str !== 'string' || str.length === 0) {
+        return str; // Handle non-string or empty inputs gracefully
+    }
+    return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
 // @ts-ignore
 @defineElement('ui-icon')
 export class UILucideIcon extends GLitElement() {
     @property() protected iconElement?: SVGElement;
-    @property({ source: "attr" }) icon?: any;
+    @property({ source: "attr" }) icon: any = "";
     @property({ source: "attr" }) width?: number;
     #options = { padding: 0, icon: "" };
 
     // also "display" may be "contents"
     public styles = ()  => styled.cloneNode(true);
-    public render = (we)=> marked.cloneNode(true); // @ts-ignore
-    public onRender() { this.icon = this.#options?.icon || this.icon; this.updateIcon(); subscribe([this.getProperty("icon"), "value"], (icon)=>{ this.updateIcon() }); }
+    public render = (we)=> []; // @ts-ignore
+    public onRender() { this.icon = this.#options?.icon || this.icon; this.updateIcon(); subscribe([this.getProperty("icon"), "value"], (icon)=>{ this.updateIcon(icon) }); }
     constructor(options = {icon: "", padding: ""}) { super(); Object.assign(this.#options, options); }
 
     //
     protected updateIcon(icon?: any) {
         if (icon ||= (this.icon?.value ?? (typeof this.icon == "string" ? this.icon : "")) || "") { // @ts-ignore
-            Promise.try(importCdn, ["/fest/vendor/lucide.min.js"])?.then?.((icons)=>{
-                const ICON = kebabToCamel(icon || "");
+            //Promise.try(importCdn, ["/fest/vendor/lucide.min.js"])?.then?.((icons)=>{
+                const ICON = capitalizeFirstLetter(kebabToCamel(icon || ""));
                 if (icons?.[ICON]) {
                     const self = this as any;
                     loadAsImage(ICON, (U)=>icons?.createElement?.(icons?.[U]))?.then?.((url)=>{
+                        console.log(url);
                         const src  = `url(\"${url}\")`;
-                        const fill = self?.shadowRoot?.querySelector?.(".fill");
+                        const fill = self;//self?.shadowRoot?.querySelector?.(".fill");
                         if (fill?.style?.getPropertyValue?.("mask-image") != src) {
                             fill?.style?.setProperty?.("mask-image", src);
                         }
                     });
                 }
-            }).catch(console.warn.bind(console));
+            //}).catch(console.warn.bind(console));
         }
         return this;
     }

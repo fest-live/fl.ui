@@ -60,6 +60,19 @@
 }
 
 //
+@mixin round-corner($radius: 1rem) {
+    clip-path: inset(0px 0px round #{$radius});
+}
+
+// it's old version, needs better shape version!
+@mixin wavy-shaped($detail: 100) {
+    --clip-amplitude: 0.05;
+    --clip-freq: 8;
+    --clip-path: #{wavy.Integrate("WavyFx", $detail)};
+    --corrector: 1.1;
+}
+
+//
 @layer ux-classes {
     //
     .grid-rows {

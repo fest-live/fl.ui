@@ -1,31 +1,37 @@
+/*** Color Theme Model (CTM) v2 ***/
+
 /* ! THERE WILL NO IMPLEMENTATION OF JS PART! */
 @mixin property-color($name, $initial: #fff, $syntax: "<color>", $inherits: true) {
     @property --#{$name} {
         syntax: "#{$syntax}";
         inherits: #{$inherits};
         initial-value: #{$initial};
-    }
+    };
+}
+
+/* */
+@mixin property-themed($primary-name, $base: #fefffe) {
+    @include property-color("#{$primary-name}-theme", 0, "<number>");
+    @include property-color("#{$primary-name}-light", #fefffe);
+    @include property-color("#{$primary-name}-dark", #101110);
+    @include property-color("#{$primary-name}", #fefffe);
 }
 
 /* */
 @mixin property-themed-nodes($primary-name) {
-    @include property-color("#{$primary-name}", #fefffe);
-    @include property-color("#{$primary-name}-surface-light", #fefffe);
-    @include property-color("#{$primary-name}-surface-dark", #101110);
-    @include property-color("#{$primary-name}-contrast-light", #101110);
-    @include property-color("#{$primary-name}-contrast-dark", #fefffe);
-    @include property-color("#{$primary-name}-accent-light", #fefffe);
-    @include property-color("#{$primary-name}-accent-dark", #101110);
-    @include property-color("#{$primary-name}-highlight-light", #fefffe);
-    @include property-color("#{$primary-name}-highlight-dark", #101110);
-}
+    @include property-color ("#{$primary-name}", #1a1);
+    @include property-themed("#{$primary-name}-surface");
+    @include property-themed("#{$primary-name}-contrast");
+    @include property-themed("#{$primary-name}-accent");
+    @include property-themed("#{$primary-name}-highlight");
 
-/* */
-@mixin property-theme-dependency($ld-color-name) {
-    @include property-color("#{$ld-color-name}", #fefffe);
-    @include property-color("#{$ld-color-name}-light", #fefffe);
-    @include property-color("#{$ld-color-name}-dark", #101110);
-    @include property-color("#{$ld-color-name}-theme", 0, "<number>");
+    /* inverse */
+    $inverse-name: "#{$primary-name}-inverse";
+    @include property-color ("#{$inverse-name}", #1a1);
+    @include property-themed("#{$inverse-name}-surface");
+    @include property-themed("#{$inverse-name}-contrast");
+    @include property-themed("#{$inverse-name}-accent");
+    @include property-themed("#{$inverse-name}-highlight");
 }
 
 /* */
@@ -54,6 +60,7 @@
 @mixin themed-nodes-inverse($primary-name) {
     $inverse-name: #{$primary-name}-inverse;
 
+    //
     & {
         --#{$inverse-name}: var(--#{$primary-name}, #efe);
 
@@ -66,14 +73,15 @@
         --#{$inverse-name}-contrast-dark:  oklch(from var(--#{$inverse-name}, #fefffe) calc(l * 0.04 + 0.96) calc(c * 0.1) h / a);
 
         /* for accent (with theme shading) */
-        --#{$inverse-name}-accent-light: oklch(from var(--#{$inverse-name}, #fefffe) calc(l * 0.4 + 0.6) calc(c * 0.7 + 0.1) h / a);
-        --#{$inverse-name}-accent-dark:  oklch(from var(--#{$inverse-name}, #000000) calc(l * 0.4 + 0.2) calc(c * 0.7 + 0.1) h / a);
+        --#{$inverse-name}-accent-light: oklch(from var(--#{$inverse-name}, #fefffe) calc(l * 0.4 + 0.6) calc(c * 0.8 + 0.1) h / a);
+        --#{$inverse-name}-accent-dark:  oklch(from var(--#{$inverse-name}, #000000) calc(l * 0.4 + 0.2) calc(c * 0.8 + 0.1) h / a);
 
         /* for highlight */
-        --#{$inverse-name}-highlight-light: oklch(from var(--#{$inverse-name}, #fefffe) calc(l * 0.06 + 0.94) calc(c * 0.15) h / a);
-        --#{$inverse-name}-highlight-dark:  oklch(from var(--#{$inverse-name}, #000000) calc(l * 0.02 + 0.01) calc(c * 0.15) h / a);
+        --#{$inverse-name}-highlight-light: oklch(from var(--#{$inverse-name}, #fefffe) calc(l * 0.06 + 0.94) calc(c * 0.1) h / a);
+        --#{$inverse-name}-highlight-dark:  oklch(from var(--#{$inverse-name}, #000000) calc(l * 0.02 + 0.01) calc(c * 0.1) h / a);
     }
 
+    //
     @include theme-dependency("#{$inverse-name}-surface");
     @include theme-dependency("#{$inverse-name}-contrast");
     @include theme-dependency("#{$inverse-name}-highlight");
@@ -107,6 +115,8 @@
     @include theme-dependency("#{$primary-name}-accent");
 }
 
+
+
 /* */
 @function color-highlighted($primary-name, $hl-coef, $suffix: "") {
     @return color-mix(in oklch, var(--#{$primary-name}-highlight, #101110) calc(#{$hl-coef} * 100%), var(--#{$primary-name}#{$suffix}, #fefffe) calc((1 - #{$hl-coef}) * 100%));
@@ -116,4 +126,40 @@
 @mixin color-super-mixin($primary-name) {
     @include themed-nodes-inverse($primary-name);
     @include themed-nodes($primary-name);
+}
+
+
+
+/*** Enable components in DOM ***/
+
+/* */
+$current-name: "current";
+$primary-name: "primary";
+$trinary-name: "trinary";
+$secondary-name: "secondary";
+
+
+
+/* */
+@include property-themed($current-name);
+@include property-themed($primary-name);
+@include property-themed($trinary-name);
+@include property-themed($secondary-name);
+
+
+
+/* */
+:root, :host, :scope {
+    --#{$primary-name}  : #1a1;
+    --#{$trinary-name}  : oklch(from var(--#{$primary-name}, #1a1) l c rem(calc(h + 240), 360) / a);
+    --#{$secondary-name}: oklch(from var(--#{$primary-name}, #1a1) l c rem(calc(h + 120), 360) / a);
+
+    /* variable */
+    --#{$current-name}  : var(--#{$primary-name}, #1a1);
+
+    /* */
+    @include color-super-mixin($current-name);
+    @include color-super-mixin($primary-name);
+    @include color-super-mixin($trinary-name);
+    @include color-super-mixin($secondary-name);
 }

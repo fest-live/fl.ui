@@ -69,6 +69,7 @@
     --clip-amplitude: 0.05;
     --clip-freq: 8;
     --clip-path: #{wavy.Integrate("WavyFx", $detail)};
+    --icon-size: 100%;
     --corrector: 1.1;
 }
 

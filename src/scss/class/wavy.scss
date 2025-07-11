@@ -30,8 +30,8 @@
     $adjust: calc($variant * var(--clip-amplitude, 0));
     $x: calc((cos(#{$angle}) * (0.5 - #{$adjust})) * var(--icon-size, 100%));
     $y: calc((sin(#{$angle}) * (0.5 - #{$adjust})) * var(--icon-size, 100%));
-    //$ox: calc(0.5 * var(--icon-size, 100%));
-    //$oy: calc(0.5 * var(--icon-size, 100%));
+    //$ox: 50%;//calc(0.5 * var(--icon-size, 100%));
+    //$oy: 50%;//calc(0.5 * var(--icon-size, 100%));
     result: #{$x} #{$y};
 }
 
@@ -57,8 +57,8 @@
 // space cadet or cheater-tale
 @function Integrate($name, $steps: 100) {
     $fx: meta.get-function($name);
-    $ox: calc(0.5 * var(--icon-size, 100%));
-    $oy: calc(0.5 * var(--icon-size, 100%));
+    $ox: 50%;//calc(0.5 * var(--icon-size, 100%));
+    $oy: 50%;//calc(0.5 * var(--icon-size, 100%));
     $points: ();
     @for $i from 1 through $steps { $points: list.append($points, meta.call($fx, math.div($i, $steps))); }
     @return shape(from #{$ox} #{$oy}, #{fl.join($points, ", ")});

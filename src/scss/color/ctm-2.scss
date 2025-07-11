@@ -138,28 +138,26 @@ $primary-name: "primary";
 $trinary-name: "trinary";
 $secondary-name: "secondary";
 
-
-
 /* */
 @include property-themed($current-name);
 @include property-themed($primary-name);
 @include property-themed($trinary-name);
 @include property-themed($secondary-name);
 
-
-
 /* */
-:root, :host, :scope {
-    --#{$primary-name}  : #1a1;
-    --#{$trinary-name}  : oklch(from var(--#{$primary-name}, #1a1) l c rem(calc(h + 240), 360) / a);
-    --#{$secondary-name}: oklch(from var(--#{$primary-name}, #1a1) l c rem(calc(h + 120), 360) / a);
+@layer ux-ctm {
+    :root, :host, :scope {
+        --#{$primary-name}  : #1a1;
+        --#{$trinary-name}  : oklch(from var(--#{$primary-name}, #1a1) l c rem(calc(h + 240), 360) / a);
+        --#{$secondary-name}: oklch(from var(--#{$primary-name}, #1a1) l c rem(calc(h + 120), 360) / a);
 
-    /* variable */
-    --#{$current-name}  : var(--#{$primary-name}, #1a1);
+        /* variable */
+        --#{$current-name}  : var(--#{$primary-name}, #1a1);
 
-    /* */
-    @include color-super-mixin($current-name);
-    @include color-super-mixin($primary-name);
-    @include color-super-mixin($trinary-name);
-    @include color-super-mixin($secondary-name);
+        /* */
+        @include color-super-mixin($current-name);
+        @include color-super-mixin($primary-name);
+        @include color-super-mixin($trinary-name);
+        @include color-super-mixin($secondary-name);
+    }
 }

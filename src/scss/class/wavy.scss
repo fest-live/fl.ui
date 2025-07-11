@@ -28,8 +28,10 @@
     $angle: calc(($step * 2) * 1rad * #{"pi"});
     $variant: calc(cos(var(--clip-freq, 8) * #{$angle}) * 0.5 + 0.5);
     $adjust: calc($variant * var(--clip-amplitude, 0));
-    $x: calc((0.5 + (cos(#{$angle}) * (0.5 - #{$adjust}))) * var(--icon-size, 100%));
-    $y: calc((0.5 + (sin(#{$angle}) * (0.5 - #{$adjust}))) * var(--icon-size, 100%));
+    $x: calc((cos(#{$angle}) * (0.5 - #{$adjust})) * var(--icon-size, 100%));
+    $y: calc((sin(#{$angle}) * (0.5 - #{$adjust})) * var(--icon-size, 100%));
+    //$ox: calc(0.5 * var(--icon-size, 100%));
+    //$oy: calc(0.5 * var(--icon-size, 100%));
     result: #{$x} #{$y};
 }
 
@@ -48,16 +50,16 @@
     }
 */
     @if $step == 0
-        { @return "from --wavy-step(#{$step})"; } @else
+        { @return "move --wavy-step(#{$step})"; } @else
         { @return "smooth to --wavy-step(#{$step})"; }
 }
 
 // space cadet or cheater-tale
 @function Integrate($name, $steps: 100) {
     $fx: meta.get-function($name);
+    $ox: calc(0.5 * var(--icon-size, 100%));
+    $oy: calc(0.5 * var(--icon-size, 100%));
     $points: ();
-    @for $i from 1 through $steps {
-        $points: list.append($points, meta.call($fx, math.div($i, $steps)));
-    }
-    @return shape(#{fl.join($points, ", ")});
+    @for $i from 1 through $steps { $points: list.append($points, meta.call($fx, math.div($i, $steps))); }
+    @return shape(from #{$ox} #{$oy}, #{fl.join($points, ", ")});
 }

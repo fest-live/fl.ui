@@ -1,0 +1,119 @@
+/* ! THERE WILL NO IMPLEMENTATION OF JS PART! */
+@mixin property-color($name, $initial: #fff, $syntax: "<color>", $inherits: true) {
+    @property --#{$name} {
+        syntax: "#{$syntax}";
+        inherits: #{$inherits};
+        initial-value: #{$initial};
+    }
+}
+
+/* */
+@mixin property-themed-nodes($primary-name) {
+    @include property-color("#{$primary-name}", #fefffe);
+    @include property-color("#{$primary-name}-surface-light", #fefffe);
+    @include property-color("#{$primary-name}-surface-dark", #101110);
+    @include property-color("#{$primary-name}-contrast-light", #101110);
+    @include property-color("#{$primary-name}-contrast-dark", #fefffe);
+    @include property-color("#{$primary-name}-accent-light", #fefffe);
+    @include property-color("#{$primary-name}-accent-dark", #101110);
+    @include property-color("#{$primary-name}-highlight-light", #fefffe);
+    @include property-color("#{$primary-name}-highlight-dark", #101110);
+}
+
+/* */
+@mixin property-theme-dependency($ld-color-name) {
+    @include property-color("#{$ld-color-name}", #fefffe);
+    @include property-color("#{$ld-color-name}-light", #fefffe);
+    @include property-color("#{$ld-color-name}-dark", #101110);
+    @include property-color("#{$ld-color-name}-theme", 0, "<number>");
+}
+
+/* */
+@mixin detected-theme($name: "detected") {
+    & { --#{$name}-theme: 0; };
+    @media (prefers-color-scheme: dark)  { --#{$name}-theme: 1; }; /* dark  */
+    @media (prefers-color-scheme: light) { --#{$name}-theme: 0; }; /* light */
+}
+
+/* */
+@mixin theme-dependency($ld-color-name, $dep-name: "detected") {
+    & { /* there should been `@supports` */ /* TODO: color-mix may be not correct... */
+        --#{$ld-color-name}: color-mix(
+            in oklch,
+            var(--#{$ld-color-name}-light, #fefffe) calc((1 - var(--#{$ld-color-name}-theme, 0)) * 100%),
+            var(--#{$ld-color-name}-dark, #101110) calc(var(--#{$ld-color-name}-theme, 0) * 100%)
+        );
+        --#{$ld-color-name}: light-dark(var(--#{$ld-color-name}-light, #fefffe), var(--#{$ld-color-name}-dark, #101110));
+        --#{$ld-color-name}-theme: var(--#{$dep-name}-theme, 0); /* light */
+    }
+}
+
+
+
+/* */
+@mixin themed-nodes-inverse($primary-name) {
+    $inverse-name: #{$primary-name}-inverse;
+
+    & {
+        --#{$inverse-name}: var(--#{$primary-name}, #efe);
+
+        /* for surfaces */
+        --#{$inverse-name}-surface-light: oklch(from var(--#{$inverse-name}, #fefffe) calc(l * 0.02 + 0.01) calc(c * 0.05) h / a);
+        --#{$inverse-name}-surface-dark:  oklch(from var(--#{$inverse-name}, #000000) calc(l * 0.06 + 0.94) calc(c * 0.05) h / a);
+
+        /* for texts, icons */
+        --#{$inverse-name}-contrast-light: oklch(from var(--#{$inverse-name}, #101110) calc(l * 0.01 + 0.01) calc(c * 0.1) h / a);
+        --#{$inverse-name}-contrast-dark:  oklch(from var(--#{$inverse-name}, #fefffe) calc(l * 0.04 + 0.96) calc(c * 0.1) h / a);
+
+        /* for accent (with theme shading) */
+        --#{$inverse-name}-accent-light: oklch(from var(--#{$inverse-name}, #fefffe) calc(l * 0.4 + 0.6) calc(c * 0.7 + 0.1) h / a);
+        --#{$inverse-name}-accent-dark:  oklch(from var(--#{$inverse-name}, #000000) calc(l * 0.4 + 0.2) calc(c * 0.7 + 0.1) h / a);
+
+        /* for highlight */
+        --#{$inverse-name}-highlight-light: oklch(from var(--#{$inverse-name}, #fefffe) calc(l * 0.06 + 0.94) calc(c * 0.15) h / a);
+        --#{$inverse-name}-highlight-dark:  oklch(from var(--#{$inverse-name}, #000000) calc(l * 0.02 + 0.01) calc(c * 0.15) h / a);
+    }
+
+    @include theme-dependency("#{$inverse-name}-surface");
+    @include theme-dependency("#{$inverse-name}-contrast");
+    @include theme-dependency("#{$inverse-name}-highlight");
+    @include theme-dependency("#{$inverse-name}-accent");
+}
+
+/* ? almost correctly configures coefficients */
+@mixin themed-nodes($primary-name) {
+    & {
+        /* for surfaces */
+        --#{$primary-name}-surface-light: oklch(from var(--#{$primary-name}, #fefffe) calc(l * 0.06 + 0.94) calc(c * 0.01) h / a);
+        --#{$primary-name}-surface-dark:  oklch(from var(--#{$primary-name}, #101110) calc(l * 0.02 + 0.01) calc(c * 0.01) h / a);
+
+        /* for texts, icons */
+        --#{$primary-name}-contrast-light: oklch(from var(--#{$primary-name}, #101110) calc(l * 0.01 + 0.01) calc(c * 0.02) h / a);
+        --#{$primary-name}-contrast-dark:  oklch(from var(--#{$primary-name}, #fefffe) calc(l * 0.04 + 0.96) calc(c * 0.02) h / a);
+
+        /* for accent (with theme shading) */
+        --#{$primary-name}-accent-light: oklch(from var(--#{$primary-name}, #fefffe) calc(l * 0.4 + 0.6) calc(c * 0.9 + 0.1) h / a);
+        --#{$primary-name}-accent-dark:  oklch(from var(--#{$primary-name}, #101110) calc(l * 0.4 + 0.2) calc(c * 0.9 + 0.1) h / a);
+
+        /* for highlight */
+        --#{$primary-name}-highlight-light: oklch(from var(--#{$primary-name}, #fefffe) calc(l * 0.02 + 0.01) calc(c * 0.1) h / a);
+        --#{$primary-name}-highlight-dark:  oklch(from var(--#{$primary-name}, #101110) calc(l * 0.06 + 0.94) calc(c * 0.1) h / a);
+    }
+
+    /* */
+    @include theme-dependency("#{$primary-name}-surface");
+    @include theme-dependency("#{$primary-name}-contrast");
+    @include theme-dependency("#{$primary-name}-highlight");
+    @include theme-dependency("#{$primary-name}-accent");
+}
+
+/* */
+@function color-highlighted($primary-name, $hl-coef, $suffix: "") {
+    @return color-mix(in oklch, var(--#{$primary-name}-highlight, #101110) calc(#{$hl-coef} * 100%), var(--#{$primary-name}#{$suffix}, #fefffe) calc((1 - #{$hl-coef}) * 100%));
+}
+
+/* */
+@mixin color-super-mixin($primary-name) {
+    @include themed-nodes-inverse($primary-name);
+    @include themed-nodes($primary-name);
+}

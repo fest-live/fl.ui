@@ -24,7 +24,8 @@
 };
 
 // F(X):[x,y] where X:[0..1]
-#{"@function"} --wavy-step#{"(--step <number>)"} {
+@#{"function --wavy-step(--step <number>)"} {
+    $step: var(--step, 0);
     $angle: calc(($step * 2) * 1rad * #{"pi"});
     $variant: calc(cos(var(--clip-freq, 8) * #{$angle}) * 0.5 + 0.5);
     $adjust: calc($variant * var(--clip-amplitude, 0));

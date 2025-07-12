@@ -61,6 +61,10 @@ export const dragSlider = (container, handler, input)=>{ // @ts-ignore
     const customTrigger = (doGrab)=>handler?.addEventListener?.("pointerdown", makeShiftTrigger((ev)=>{correctOffset(dragging); doGrab?.(ev, handler)}));
     const handleValue = (ev)=>{
         const inp = ev?.target ?? input;
+
+        //! css related:
+        // --value: progress(var(--input-value, 0), attr(min type(<number>), 0), attr(max type(<number>), 1))
+
         if (inp?.valueAsNumber != null) { setStyleProperty(handler, "--value", ((inp?.valueAsNumber || 0) - parseFloat(inp?.min || 0)) / ((parseFloat(inp?.max || 0) - parseFloat(inp?.min || 0)) || 1)); } else
         if (inp?.checked != null && inp?.type == "checkbox") { setStyleProperty(handler, "--value", inp?.checked ? 1 : 0); } else
         if (inp?.type == "radio") {

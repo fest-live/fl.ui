@@ -76,7 +76,7 @@ $counter: 0;
 @include  inner-property("percent-coef-x", "percent-x");
 @include  inner-property("percent-coef-y", "percent-y");
 
-// anchor-size(#{$fit}, 100%)
+// TODO: use CSS if() for hiding these scrollbar
 @mixin axis-scrollbar($selector, $fit: "inline", $thumb: ".thumb", $timeline-name: "ux-scrollbox") {
     $cqf: 100cqi; @if $fit == 'block' { $cqf: 100cqb; };
     $inv: block ; @if $fit == 'block' { $inv: inline; };
@@ -89,12 +89,16 @@ $counter: 0;
             inset-#{$inv}-start: auto;
             inset-#{$fit}-start: 0.5rem;
             inset-#{$inv}-end  : 1px;
-            --content-size: calc(#{$cqf} / 1px); --scroll-size: calc(var(--content-size, 0) / var(--scroll-coef, 1));
+            --content-size: calc(#{$cqf} * 1); //--scroll-size: calc(var(--content-size, 0) / var(--scroll-coef, 1));
             --clamped-size: calc(#{$cqf} - 1rem); --max-size: min(100%, var(--clamped-size, #{$cqf}));
+            --scroll-coef: clamp(0, calc(var(--content-size, 0px) / var(--scroll-size, 0.0001px)), 1); //! new CSS calc feature
+            --determinant: clamp(0, round(up, calc(1 - (var(--scroll-coef, 1) + 0.0001)), 1), 1);
             //inset-#{$fit}-start: calc(anchor(--ux-scrollbox start, 0px) + 0.5rem);
             //inset-#{$inv}-end  : calc(anchor(--ux-scrollbox end  , 0px) +    1px);
             //position-try-fallbacks: --just-inline, --just-block;
             //@include timeline-interpol-coef("--percent-#{$axe}", "#{$timeline-name}-#{$axe}");
+            pointer-events: #{"if(style(--determinant: 0): none; else: auto)"} !important;    //! new CSS if feature
+            visibility: #{"if(style(--determinant: 0): collapse; else: visible)"} !important; //! new CSS if feature
             @include timeline-interpol-coef("--percent-#{$axe}", "#{$timeline-name}-#{$axe}");
         }
 
@@ -102,14 +106,16 @@ $counter: 0;
         & :where(#{$thumb})
         {
             #{$inv}-size: 100%; #{$fit}-size: min(calc(var(--max-size, 100%) * var(--scroll-coef, 1)), var(--max-size, 100%));
+            --thumb-size: calc(var(--clamped-size, #{$cqf}) * var(--scroll-coef, 0));
+            --max-offset: calc(var(--clamped-size, #{$cqf}) - var(--thumb-size, 0));
             @if $fit == block
-                { translate: 0px calc(var(--clamped-size, 100cqb) * var(--percent-y, 0) * (1 - var(--scroll-coef, 0))) 0px; } @else
-                { translate: calc(var(--clamped-size, 100cqi) * var(--percent-x, 0) * (1 - var(--scroll-coef, 0))) 0px 0px; }
+                { translate: 0px calc(var(--max-offset, 0) * var(--percent-y, 0))     0px; } @else
+                { translate:     calc(var(--max-offset, 0) * var(--percent-x, 0)) 0px 0px; }
         }
     }
 }
 
-//
+// TODO: use CSS if() for hiding these scrollbar
 @mixin scrollbar ($selector: ".ui-scrollbar", $anchor: "ux-scrollbox", $thumb: ".ui-thumb") { :where(#{$selector}) {
     & { --fit-unit: calc((var(--content-size, 1) * 1px - 1rem) / var(--content-size, 1)); };
     & { --scroll-coef: 0; }
@@ -185,4 +191,3 @@ $counter: 0;
     @include scrollbar();
     @include anchor-bind();
 }
-

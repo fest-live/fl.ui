@@ -3,8 +3,12 @@
 //
 @property --max-size { syntax: "<length-percentage>"; initial-value: 0px; inherits: true; };
 @property --scroll-coef { syntax: "<number>"; initial-value: 1; inherits: true; };
-@property --scroll-size { syntax: "<number>"; initial-value: 0; inherits: true; };
-@property --content-size { syntax: "<number>"; initial-value: 0; inherits: true; };
+@property --determinant { syntax: "<number>"; initial-value: 1; inherits: true; };
+@property --scroll-size { syntax: "<length-percentage>"; initial-value: 0px; inherits: true; };
+@property --content-size { syntax: "<length-percentage>"; initial-value: 0px; inherits: true; };
+@property --thumb-size { syntax: "<length-percentage>"; initial-value: 0px; inherits: true; };
+@property --clamped-size { syntax: "<length-percentage>"; initial-value: 0px; inherits: true; };
+@property --max-offset { syntax: "<length-percentage>"; initial-value: 0px; inherits: true; };
 
 //
 @layer ui-scrollbox {
@@ -13,6 +17,10 @@
     :host {
         & { --scrollbar-color: light-dark(#101010f0, #fdfdfdf0); };
         & { display: block; }
+        &, & * {
+            interpolate-size: allow-keywords;
+            transition-behavior: allow-discrete;
+        }
 
         //
         //:where(.ui-scrollbar),
@@ -27,9 +35,9 @@
         }
 
         //
+        @include sb.scrollbox();
+        @include sb.scroll-tm-2-axis();
         @include sb.axis-scrollbar(".ui-scrollbar", "inline", ".ui-thumb", "ux-scrollbox");
         @include sb.axis-scrollbar(".ui-scrollbar", "block" , ".ui-thumb", "ux-scrollbox");
-        @include sb.scroll-tm-2-axis();
-        @include sb.scrollbox();
     }
 }

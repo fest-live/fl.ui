@@ -1,5 +1,5 @@
-import {    subscribe, computed } from "fest/object";
-import { E, scrollRef, sizeRef  } from "fest/lure";
+import {    subscribe, computed, numberRef } from "fest/object";
+import { E, getPadding, scrollRef, sizeRef  } from "fest/lure";
 import { Q, setProperty, makeRAFCycle } from "fest/dom";
 
 //
@@ -28,20 +28,6 @@ const stepped  = (count = 100)=>{ return Array.from({ length: count }, (_, i) =>
 const sheduler = makeRAFCycle();
 
 //
-const getPropertyValue = (src, name)=>{
-    if ("computedStyleMap" in src) {
-        return src?.computedStyleMap?.()?.get(name)?.value || 0;
-    }
-    return parseFloat(getComputedStyle(src)?.getPropertyValue?.(name) || "0") || 0;
-}
-
-//
-const getPadding = (src, axis)=>{
-    if (axis == "inline") { return (getPropertyValue(src, "padding-inline-start") + getPropertyValue(src, "padding-inline-end")); };
-    return (getPropertyValue(src, "padding-block-start") + getPropertyValue(src, "padding-block-end"));
-}
-
-//
 const makeTimeline = (source, axis: number)=>{
     const target   = asWeak(source);
     const scroll   = scrollRef(source, (["inline", "block"] as ["inline", "block"])[axis]);
@@ -52,12 +38,26 @@ const makeTimeline = (source, axis: number)=>{
 
 //
 const effectProperty = { fill: "both", delay: 0, easing: "linear", rangeStart: "cover 0%", rangeEnd: "cover 100%", duration: 1 };
+
+//
 const scrollbarCoef  = (source: HTMLElement, axis: number)=>{ // @ts-ignore
     const target  = asWeak(source);
     const scroll  = scrollRef(source, (["inline", "block"] as ["inline", "block"])[axis]);
     const content = computed(sizeRef(source, (["inline", "block"] as ["inline", "block"])[axis], "content-box"), (v)=>(v + getPadding(source, (["inline", "block"] as ["inline", "block"])[axis])));
     const percent = computed(content, (vl)=> (vl / (target?.deref?.()?.[['scrollWidth', 'scrollHeight'][axis]] || 1)));
     subscribe(scroll, ()=>percent.value = (content?.value / (target?.deref?.()?.[['scrollWidth', 'scrollHeight'][axis]] || 1))); return percent;
+}
+
+//
+const scrollSize  = (source: HTMLElement, axis: number = 0)=>{ // @ts-ignore
+    const target  = asWeak(source);
+    const scroll  = scrollRef(source, (["inline", "block"] as ["inline", "block"])[axis]);
+    const content = sizeRef(source, (["inline", "block"] as ["inline", "block"])[axis], "content-box");
+    const compute = ()=>(target?.deref?.()?.[['scrollWidth', 'scrollHeight'][axis] || 'scrollWidth'] || (content.value + getPadding(target?.deref?.(), (["inline", "block"] as ["inline", "block"])[axis])));
+    const percent = numberRef(compute());
+    subscribe(content, ()=>percent.value = compute())
+    subscribe(scroll,  ()=>percent.value = compute());
+    return percent;
 }
 
 //
@@ -91,8 +91,13 @@ const animateByTimeline = async (source: HTMLElement, properties = {}, timeline:
 try { CSS.registerProperty({ name: "--percent-x", syntax: "<number>", inherits: true, initialValue: "0" }); } catch(e) {};
 try { CSS.registerProperty({ name: "--percent-y", syntax: "<number>", inherits: true, initialValue: "0" }); } catch(e) {};
 try { CSS.registerProperty({ name: "--scroll-coef", syntax: "<number>", inherits: true, initialValue: "1" }); } catch(e) {};
-try { CSS.registerProperty({ name: "--scroll-size", syntax: "<number>", inherits: true, initialValue: "0" }); } catch(e) {};
-try { CSS.registerProperty({ name: "--content-size", syntax: "<number>", inherits: true, initialValue: "0" }); } catch(e) {};
+try { CSS.registerProperty({ name: "--determinant", syntax: "<number>", inherits: true, initialValue: "1" }); } catch(e) {};
+try { CSS.registerProperty({ name: "--scroll-size", syntax: "<length-percentage>", inherits: true, initialValue: "0px" }); } catch(e) {};
+try { CSS.registerProperty({ name: "--content-size", syntax: "<length-percentage>", inherits: true, initialValue: "0px" }); } catch(e) {};
+try { CSS.registerProperty({ name: "--clamped-size", syntax: "<length-percentage>", inherits: true, initialValue: "0px" }); } catch(e) {};
+try { CSS.registerProperty({ name: "--thumb-size", syntax: "<length-percentage>", inherits: true, initialValue: "0px" }); } catch(e) {};
+try { CSS.registerProperty({ name: "--max-offset", syntax: "<length-percentage>", inherits: true, initialValue: "0px" }); } catch(e) {};
+try { CSS.registerProperty({ name: "--max-size", syntax: "<length-percentage>", inherits: true, initialValue: "0px" }); } catch(e) {};
 
 //
 const makeInteractive = (holder, content, scrollbar, axis = 0, status: any = {})=>{
@@ -184,13 +189,12 @@ export class ScrollBar {
             { animateByTimeline(bar, properties, timeline); }
 
         //
-        const sce = scrollbarCoef(this.content, axis);
         setProperty    (this.scrollbar, "visibility", "collapse");
         setProperty    (this.scrollbar?.querySelector?.("*"), "pointer-events", "none");
-        controlVisible (this.scrollbar, sce);
+        //controlVisible (this.scrollbar, scrollbarCoef(this.content, axis));
         makeInteractive(this.holder, this.content, this.scrollbar, axis, this.status);
 
         //
-        E(Q("*", this.scrollbar), { style: { "--scroll-coef": sce } });
+        E(this.scrollbar, { style: { "--scroll-size": computed(scrollSize(this.content, axis), (v)=>`${v}px`) } });
     }
 }

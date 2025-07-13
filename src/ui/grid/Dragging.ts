@@ -1,8 +1,8 @@
 import { bindDraggable, convertOrientPxToCX, getBoundingOrientRect, doAnimate, orientOf, redirectCell, setProperty } from "fest/dom";
 
 //
-import { makeShiftTrigger } from "../../interface/Trigger";
-import { LongPressHandler } from "../../interface/LongPress";
+import { makeShiftTrigger } from "../../controllers/Trigger";
+import { LongPressHandler } from "../../controllers/LongPress";
 
 //
 export const makeDragEvents = async (newItem, {layout, dragging, currentCell}, {item, list, items})=>{ // @ts-ignore

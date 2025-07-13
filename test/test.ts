@@ -3,15 +3,15 @@ import { ref, makeReactive, assign } from "fest/object"; import { Q } from "fest
 import { css, GLitElement, property, E, H, defineElement } from "fest/lure";
 
 //
-import ScrollBoxed from "../src/components/scroll-frame/ScrollFrame";
+import ScrollBoxed from "../src/ui/scroll-frame/ScrollFrame";
 import { bindInteraction } from "../src/ui/grid/GridBind";
 
 //
-import { timeStatusRef } from "../src/ui/core/Status";
+import { timeStatusRef } from "../src/core/Status";
 import "../src/scss/index.scss";
 
 //
-import Icon from "../src/components/icons/Icon"
+import Icon from "../src/ui/icons/Icon"
 
 //
 console.log(Icon);

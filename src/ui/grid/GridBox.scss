@@ -1,0 +1,36 @@
+@layer ui-grid-box {
+    :host(ui-gridbox) {
+        & {
+            position: relative;
+            container-type: size;
+            contain: strict;
+            background-color: transparent;
+
+            grid-column: 1 / -1;
+            grid-row: 1 / -1;
+            place-self: center;
+
+            min-inline-size: 1px;
+            min-block-size: 1px;
+            inline-size: 100%;
+            block-size: 100%;
+            max-inline-size: 100%;
+            max-block-size: 100%;
+
+            inset: 0;
+            zoom: max(var(--zoom, 1), 0.125);
+            font-size: 16px;
+            pointer-events: none;
+
+            //
+            writing-mode: horizontal-tb !important;
+            direction: ltr !important;
+        }
+
+        //
+        ::slotted(*) {
+            writing-mode: inherit;
+            direction: inherit;
+        }
+    }
+}

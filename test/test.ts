@@ -11,7 +11,7 @@ import { timeStatusRef } from "../src/ui/core/Status";
 import "../src/scss/index.scss";
 
 //
-import Icon from "../src/ui/plugins/Icon"
+import Icon from "../src/components/icons/Icon"
 
 //
 console.log(Icon);

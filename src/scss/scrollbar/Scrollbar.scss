@@ -1,4 +1,6 @@
 @use "sass:string";
+
+//
 @mixin anchor($name: "ux-scrollbox") { & { anchor-name: --#{$name}; } }
 
 //

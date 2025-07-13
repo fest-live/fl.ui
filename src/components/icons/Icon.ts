@@ -1,13 +1,9 @@
-// @ts-ignore
-import styles from "./Icon.scss?inline";
-
-//
 import { defineElement, GLitElement, property, E, H } from "fest/lure";
 import { kebabToCamel, preloadStyle } from "fest/dom";
 import { subscribe } from "fest/object";
-import { importCdn } from "fest/cdnImport";
 
-//
+// @ts-ignore
+import styles from "./Icon.scss?inline";
 import * as icons from "lucide";
 
 //
@@ -23,10 +19,9 @@ const loadAsImage  = (name: string, creator?: (name: string)=>any)=>{
     });
 };
 
+// Handle non-string or empty inputs gracefully
 function capitalizeFirstLetter(str) {
-    if (typeof str !== 'string' || str.length === 0) {
-        return str; // Handle non-string or empty inputs gracefully
-    }
+    if (typeof str !== 'string' || str.length === 0) { return str; }
     return str.charAt(0).toUpperCase() + str.slice(1);
 }
 

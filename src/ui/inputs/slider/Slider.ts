@@ -1,8 +1,23 @@
+/* **
+ * @module ui/inputs/slider/Slider
+ * @description Slider input element
+ * @author [@danielx](https://github.com/danielx)
+ * @version 1.0.0
+ * @license MIT
+ * @copyright 2025
+ */
+
+/*
+ * Functional Appearance: Slider (alike range)
+ * Usable for: Radio, Range, Checkbox, Number
+ * Differs by: Universal Wrapper, Mobile Friendly, More Functional
+ */
+
 import { H, GLitElement, property, defineElement } from "fest/lure";
 import { preloadStyle } from "fest/dom";
 
 //
-import { dragSlider } from "../../helpers/core/InputExt";
+import { dragSlider } from "../../../helpers/core/InputExt";
 
 // @ts-ignore
 import styles from "./Slider.scss?inline"

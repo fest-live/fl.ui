@@ -27,6 +27,7 @@ export class UIGridBox extends GLitElement() {
     render = () => `<template><slot></slot></template>`;
     bindWith(content: any) {
         const self = this as any;
+        self.classList.add("u2-grid-layout");
 
         //
         E(self, {style: { "--orient": self.getProperty("orient"), "--zoom": self.getProperty("zoom") }});

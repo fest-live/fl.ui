@@ -1,0 +1,45 @@
+@layer ux-layer {
+    :host(ui-slider) {
+        & {
+            display: flex;
+            place-items: center;
+            place-content: center;
+            inline-size: 100%;
+            block-size: 100%;
+        }
+
+        //
+        .ui-box {
+            position: relative;
+            inline-size: 100%;
+            block-size: 100%;
+            place-items: center;
+            place-content: center;
+            display: flex;
+
+            .ui-track {
+                position: absolute;
+                inset: 0;
+                block-size: 0.125rem;
+                clip-path: inset(0px round 50%);
+            }
+
+            .ui-thumb {
+                inset: 0;
+                position: absolute;
+                cursor: grab;
+                aspect-ratio: 1 / 1;
+                clip-path: inset(0px round 50%);
+            }
+        }
+
+        //
+        ::slotted(*) {
+            position: absolute;
+            inset: 0;
+            display: none;
+            background-color: transparent;
+            pointer-events: none;
+        }
+    }
+}

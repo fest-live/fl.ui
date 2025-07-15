@@ -1,5 +1,5 @@
 import { setStyleProperty, bindDraggable } from "fest/dom";
-import { makeShiftTrigger } from "../../controllers/Trigger";
+import { makeShiftTrigger } from "../controllers/Trigger";
 import { bindWith, handleStyleChange } from "fest/lure";
 import { computed, conditional, ref } from "fest/object";
 

@@ -2,7 +2,7 @@ import { H, GLitElement, property, defineElement } from "fest/lure";
 import { preloadStyle } from "fest/dom";
 
 //
-import { dragSlider } from "../input-ext/InputExt";
+import { dragSlider } from "../../core/InputExt";
 
 // @ts-ignore
 import styles from "./Slider.scss?inline"

@@ -1,5 +1,8 @@
 @use "sass:meta";
 @use "sass:color";
+@use "sass:string";
+
+//
 @use "./functions" as fn;
 
 //
@@ -63,3 +66,7 @@ $def-ff: 'Open Sans', 'Source Sans 3','Gill Sans Nova', Ubuntu, 'DejaVu Sans', C
     font-size: $fs;
     font-family: $ff;
 }
+
+// Функции цветового микширования
+@function tm-hi($base, $percent) { @return color-mix(in oklch, #{$base} calc(100% - #{$percent}), var(--tm-hi, white)); }
+@function tm-lo($base, $percent) { @return color-mix(in oklch, #{$base} calc(100% - #{$percent}), var(--tm-lo, black)); }

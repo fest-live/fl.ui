@@ -7,7 +7,7 @@ import ScrollBoxed from "../src/ui/scrollframe/ScrollFrame";
 import { bindInteraction } from "../src/ui/grid/GridBind";
 
 //
-import { timeStatusRef } from "../src/core/Status";
+import { timeStatusRef } from "../src/helpers/core/Status";
 import "../src/scss/index.scss";
 
 //

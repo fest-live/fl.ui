@@ -1,4 +1,4 @@
-import { ref, booleanRef, stringRef, makeReactive } from "fest/object";
+import { ref, booleanRef, stringRef, makeReactive, addToCallChain } from "fest/object";
 import { WRef, observeContentBox } from "fest/dom";
 
 //
@@ -40,7 +40,7 @@ export const handleForFixPosition = (container, cb, root = window)=>{
 export const pointerRef = ()=>{
     const coordinate = [ ref(0), ref(0) ];
     coordinate.push(WRef(handleByPointer((ev)=>{ coordinate[0].value = ev.clientX; coordinate[1].value = ev.clientY; })));
-    if (coordinate[2]?.deref?.() ?? coordinate[2]) { coordinate[Symbol.dispose] ??= coordinate[2]?.deref?.() ?? coordinate[2]; }
+    if (coordinate[2]?.deref?.() ?? coordinate[2]) { addToCallChain(coordinate, Symbol.dispose, coordinate[2]?.deref?.() ?? coordinate[2]); }
     return coordinate;
 }
 
@@ -50,7 +50,7 @@ export const visibleBySelectorRef = (selector)=>{
         const target = document.elementFromPoint(ev.clientX, ev.clientY);
         visRef.value = target?.matches?.(selector) ?? false;
     });
-    if (usub) visRef[Symbol.dispose] ??= usub; return visRef;
+    if (usub) addToCallChain(visRef, Symbol.dispose, usub); return visRef;
 }
 
 //
@@ -59,7 +59,7 @@ export const showAttributeRef = (attribute = "data-tooltip")=>{
         const target: any = document.elementFromPoint(ev.clientX, ev.clientY);
         valRef.value = target?.getAttribute?.(attribute)?.(`[${attribute}]`) ?? "";
     });
-    if (usub) valRef[Symbol.dispose] ??= usub; return valRef;
+    if (usub) addToCallChain(valRef, Symbol.dispose, usub); return valRef;
 }
 
 //
@@ -88,7 +88,7 @@ export function makeInterruptTrigger(
     const wr = new WeakRef(ref);
     const close = () => { $set(wr, "value", false); }, open = () => { $set(wr, "value", true); };
     closeEvents.forEach(event => element.addEventListener(event, close));
-    ref[Symbol.dispose] ??= ()=>closeEvents.forEach(event => element.removeEventListener(event, close));
+    addToCallChain(ref, Symbol.dispose, ()=>closeEvents.forEach(event => element.removeEventListener(event, close)));
     return ref;
 }
 
@@ -141,7 +141,7 @@ export function makeClickOutsideTrigger(ref: RefBool, element: any, options: Tri
     }
 
     //
-    ref[Symbol.dispose] ??= destroy;
+    addToCallChain(ref, Symbol.dispose, destroy);
     return ref;
 }
 
@@ -202,6 +202,6 @@ export function boundingBoxRef(anchor: HTMLElement, options?: {
     }
 
     //
-    if (destroy) area[Symbol.dispose] ??= destroy;
+    if (destroy) addToCallChain(area, Symbol.dispose, destroy);
     return area;
 }

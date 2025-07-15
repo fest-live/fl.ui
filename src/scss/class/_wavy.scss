@@ -64,4 +64,3 @@
     @for $i from 1 through $steps { $points: list.append($points, meta.call($fx, math.div($i, $steps))); }
     @return shape(from #{$ox} #{$oy}, #{fl.join($points, ", ")});
 }
-

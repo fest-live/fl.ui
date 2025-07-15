@@ -1,6 +1,6 @@
 import { H, defineElement, property, GLitElement } from "fest/lure"
 import { Q, DOMMixin, preloadStyle } from "fest/dom"
-import { ScrollBar } from "../../scss/scrollbar/Scrollbar"
+import { ScrollBar } from "../scrollbar/Scrollbar"
 
 // @ts-ignore
 import styles from "./ScrollFrame.scss?inline"

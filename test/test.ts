@@ -3,7 +3,7 @@ import { ref, makeReactive, assign } from "fest/object"; import { Q } from "fest
 import { css, GLitElement, property, E, H, defineElement } from "fest/lure";
 
 //
-import ScrollBoxed from "../src/ui/scroll-frame/ScrollFrame";
+import ScrollBoxed from "../src/ui/scrollframe/ScrollFrame";
 import { bindInteraction } from "../src/ui/grid/GridBind";
 
 //

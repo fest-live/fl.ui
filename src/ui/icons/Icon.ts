@@ -4,11 +4,13 @@ import { subscribe } from "fest/object";
 
 // @ts-ignore
 import styles from "./Icon.scss?inline";
-import * as icons from "lucide";
+const styled  = preloadStyle(styles);
 
 //
-const styled  = preloadStyle(styles);
+import * as icons from "lucide";
 const iconMap = new Map<string, Promise<string>>();
+
+//
 const rasterizeSVG = async (blob)=>{ return URL.createObjectURL(blob); }
 const loadAsImage  = (name: string, creator?: (name: string)=>any)=>{
     // @ts-ignore // !experimental `getOrInsert` feature!

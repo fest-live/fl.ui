@@ -1,12 +1,10 @@
 import { H, defineElement, property, GLitElement } from "fest/lure"
-import { Q, loadInlineStyle, DOMMixin } from "fest/dom"
+import { Q, DOMMixin, preloadStyle } from "fest/dom"
 import { ScrollBar } from "../../scss/scrollbar/Scrollbar"
 
 // @ts-ignore
 import styles from "./ScrollFrame.scss?inline"
-const preInit = URL.createObjectURL(new Blob([styles], {type: "text/css"}));
-const loading = fetch(preInit, {priority: "high", keepalive: true, cache: "force-cache", mode: "same-origin"});
-const styled  = loadInlineStyle(preInit, null, "ux-layer");
+const styled = preloadStyle(styles);
 
 // @ts-ignore
 @defineElement("ui-scrollframe")

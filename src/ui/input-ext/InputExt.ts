@@ -3,14 +3,12 @@ import { makeShiftTrigger } from "../../controllers/Trigger";
 import { bindWith, handleStyleChange } from "fest/lure";
 import { computed, conditional, ref } from "fest/object";
 
-
 //
 export const boolDepIconRef = (cnd)=> conditional(cnd, "badge-check", "badge");
 export const indicationRef = (ref)=> computed(ref, (v)=>(parseFloat(v) || 0)?.toLocaleString?.('en-US', {
     minimumFractionDigits: 0,
     maximumFractionDigits: 1
 }));
-
 
 //
 export const dragSlider = (container, handler, input)=>{ // @ts-ignore

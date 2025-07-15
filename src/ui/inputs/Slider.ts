@@ -1,14 +1,12 @@
 import { H, GLitElement, property, defineElement } from "fest/lure";
-import { loadInlineStyle } from "fest/dom";
+import { preloadStyle } from "fest/dom";
 
 //
 import { dragSlider } from "../input-ext/InputExt";
 
 // @ts-ignore
 import styles from "./Slider.scss?inline"
-const preInit = URL.createObjectURL(new Blob([styles], {type: "text/css"}));
-const loading = fetch(preInit, {keepalive: true, cache: "force-cache", mode: "same-origin"});
-const styled  = loadInlineStyle(preInit, null, "ux-layer");
+const styled  = preloadStyle(styles);
 
 // @ts-ignore
 @defineElement("ui-slider")

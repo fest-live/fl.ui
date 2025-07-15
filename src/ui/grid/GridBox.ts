@@ -1,13 +1,9 @@
 import { defineElement, E, GLitElement, property } from "fest/lure";
-import { loadInlineStyle, elementPointerMap } from "fest/dom";
+import { preloadStyle, elementPointerMap } from "fest/dom";
 
 // @ts-ignore
 import styles from "./GridBox.scss?inline&compress";
-
-//
-const preInit = URL.createObjectURL(new Blob([styles], {type: "text/css"}));
-const loading = fetch(preInit, {priority: "high", keepalive: true, cache: "force-cache", mode: "same-origin"});
-const styled  = loadInlineStyle(preInit, null, "ux-layer");
+const styled = preloadStyle(styles);
 
 // @ts-ignore
 @defineElement("ui-gridbox")

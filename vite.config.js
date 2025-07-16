@@ -4,8 +4,7 @@ import { readFile } from "node:fs/promises";
 //
 const importConfig = (url, ...args)=>{ return import(url)?.then?.((m)=>m?.default?.(...args)); }
 const objectAssign = (target, ...sources) => {
-    if (!sources.length) return target;
-
+    if (!sources?.length) return target;
     const source = sources.shift();
     if (source && typeof source === 'object') {
         for (const key in source) {
@@ -21,12 +20,11 @@ const objectAssign = (target, ...sources) => {
             }
         }
     }
-
     return objectAssign(target, ...sources);
 }
 
 //
-export const NAME = "flui"; // TODO! rename to lure
+export const NAME = "fl-ui"; // TODO! rename to lure
 export const __dirname = resolve(import.meta.dirname, "./");
 export default objectAssign(
     await importConfig(resolve(__dirname, "../shared/vite.config.js"),

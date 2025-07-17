@@ -1,8 +1,9 @@
-import { ref, subscribe } from "fest/object";
+import { subscribe, autoRef, assign } from "fest/object";
 import { E } from "fest/lure";
 
 //
 import { reflectCell } from "./Reflect";
+import { RAFBehavior } from "fest/dom";
 import { makeDragEvents } from "./Dragging";
 
 // shifting - reactive basis
@@ -13,7 +14,7 @@ export const bindInteraction = async (newItem: any, pArgs: any)=>{
 
     //
     const { item, list, items } = pArgs, layout = [pArgs?.layout?.columns || pArgs?.layout?.[0] || 4, pArgs?.layout?.rows || pArgs?.layout?.[1] || 8];
-    const dragging = [ ref(0), ref(0) ], currentCell = [ ref(item?.cell?.[0] || 0), ref(item?.cell?.[1] || 0) ];
+    const dragging = [ autoRef(0, RAFBehavior()), autoRef(0, RAFBehavior()) ], currentCell = [ autoRef(item?.cell?.[0] || 0), autoRef(item?.cell?.[1] || 0) ];
 
     //
     E(newItem, { style: {
@@ -24,8 +25,8 @@ export const bindInteraction = async (newItem: any, pArgs: any)=>{
     } });
 
     //
-    subscribe([currentCell[0], "value"], (val)=> item.cell[0] = val);
-    subscribe([currentCell[1], "value"], (val)=> item.cell[1] = val);
+    assign(currentCell[0], item.cell[0], "value");
+    assign(currentCell[1], item.cell[1], "value");
     makeDragEvents(newItem, {layout, currentCell, dragging}, {item, list, items});
     return currentCell;
 }

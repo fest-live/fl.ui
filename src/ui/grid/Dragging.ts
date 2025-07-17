@@ -1,4 +1,4 @@
-import { bindDraggable, convertOrientPxToCX, getBoundingOrientRect, doAnimate, orientOf, redirectCell, setProperty } from "fest/dom";
+import { bindDraggable, convertOrientPxToCX, getBoundingOrientRect, doAnimate, orientOf, redirectCell, setStyleProperty, getPropertyValue } from "fest/dom";
 
 //
 import { makeShiftTrigger } from "../../helpers/controllers/Trigger";
@@ -8,8 +8,8 @@ import { LongPressHandler } from "../../helpers/controllers/LongPress";
 export const makeDragEvents = async (newItem, {layout, dragging, currentCell}, {item, list, items})=>{ // @ts-ignore
     const $updateLayout = (newItem)=>{
         const gridSystem = newItem?.parentElement;
-        layout[0] = parseInt(gridSystem.style.getPropertyValue("--layout-c")) || layout[0];
-        layout[1] = parseInt(gridSystem.style.getPropertyValue("--layout-r")) || layout[1];
+        layout[0] = parseInt(getPropertyValue(gridSystem, "--layout-c")) || layout[0];
+        layout[1] = parseInt(getPropertyValue(gridSystem, "--layout-r")) || layout[1];
         return layout;
     }
 
@@ -34,8 +34,8 @@ export const makeDragEvents = async (newItem, {layout, dragging, currentCell}, {
 
         //
         newItem.dataset.dragging = "";
-        setProperty(newItem, "--p-cell-x", newItem.style.getPropertyValue("--cell-x") || 0);
-        setProperty(newItem, "--p-cell-y", newItem.style.getPropertyValue("--cell-y") || 0);
+        setStyleProperty(newItem, "--p-cell-x", parseInt(getPropertyValue(newItem, "--cell-x")) || 0);
+        setStyleProperty(newItem, "--p-cell-y", parseInt(getPropertyValue(newItem, "--cell-y")) || 0);
 
         // reset dragging offset
         try { dragging[0].value = 0, dragging[1].value = 0; } catch(e) {};

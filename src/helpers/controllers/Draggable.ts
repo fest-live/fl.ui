@@ -1,4 +1,4 @@
-import { getBoundingOrientRect, bindDraggable, setProperty, contentBoxWidth, contentBoxHeight, borderBoxWidth, borderBoxHeight } from "fest/dom";
+import { setStyleProperty, getBoundingOrientRect, bindDraggable, contentBoxWidth, contentBoxHeight, borderBoxWidth, borderBoxHeight } from "fest/dom";
 import { makeShiftTrigger, doObserve } from "./Trigger";
 
 //
@@ -33,13 +33,13 @@ export class DragHandler {
             holder?.style?.removeProperty?.("will-change");
 
             //
-            setProperty(holder, "--drag-x", dragging[0].value = 0);
-            setProperty(holder, "--drag-y", dragging[1].value = 0);
+            setStyleProperty(holder, "--drag-x", dragging[0].value = 0);
+            setStyleProperty(holder, "--drag-y", dragging[1].value = 0);
 
             //
             const box = getBoundingOrientRect(holder) || holder?.getBoundingClientRect?.();
-            setProperty(holder, "--shift-x", (box?.left || 0) - (this.#parent?.[contentBoxWidth ] - this.#holder[borderBoxWidth ]) * 0.5);
-            setProperty(holder, "--shift-y", (box?.top  || 0) - (this.#parent?.[contentBoxHeight] - this.#holder[borderBoxHeight]) * 0.5);
+            setStyleProperty(holder, "--shift-x", (box?.left || 0) - (this.#parent?.[contentBoxWidth ] - this.#holder[borderBoxWidth ]) * 0.5);
+            setStyleProperty(holder, "--shift-y", (box?.top  || 0) - (this.#parent?.[contentBoxHeight] - this.#holder[borderBoxHeight]) * 0.5);
         }
 
         //

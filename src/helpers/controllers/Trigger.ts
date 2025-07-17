@@ -14,11 +14,8 @@ export const makeShiftTrigger = (callable, newItem?)=> agWrapEvent((evc)=>{
     if (!newItem.dataset.dragging) {
         const n_coord: [number, number] = (ev.orient ? [...ev.orient] : [ev?.clientX || 0, ev?.clientY || 0]) as [number, number];
         if (ev?.pointerId >= 0) {
-            ev?.capture?.(newItem);
-            if (!ev?.capture) {
-                (newItem as HTMLElement)?.setPointerCapture?.(ev?.pointerId);
-            }
-        }
+            (newItem as HTMLElement)?.setPointerCapture?.(ev?.pointerId);
+        };
 
         //
         const shifting = agWrapEvent((evc_l: any)=>{
@@ -26,7 +23,10 @@ export const makeShiftTrigger = (callable, newItem?)=> agWrapEvent((evc)=>{
             if (ev_l?.pointerId == ev?.pointerId) {
                 const coord: [number, number] = (ev_l.orient ? [...ev_l.orient] : [ev_l?.clientX || 0, ev_l?.clientY || 0]) as [number, number];
                 const shift: [number, number] = [coord[0] - n_coord[0], coord[1] - n_coord[1]];
-                if (Math.hypot(...shift) > 10) { newItem?.style?.setProperty?.("will-change", "transform", "important"); callable?.(ev); releasePointer?.(evc_l); }
+                if (Math.hypot(...shift) > 10) {
+                    newItem?.style?.setProperty?.("will-change", "transform", "important");
+                    releasePointer?.(evc_l); callable?.(ev);
+                }
             }
         });
 
@@ -34,8 +34,8 @@ export const makeShiftTrigger = (callable, newItem?)=> agWrapEvent((evc)=>{
         const releasePointer = agWrapEvent((evc_l)=>{
             const ev_l = evc_l?.detail || evc_l;
             if (ev_l?.pointerId == ev?.pointerId) {
+                (newItem as HTMLElement)?.releasePointerCapture?.(ev?.pointerId);
                 unbind(ev_l);
-                ev_l?.release?.();
             }
         });
 

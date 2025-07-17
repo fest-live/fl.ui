@@ -1,9 +1,11 @@
 // @ts-ignore
 import { ref, makeReactive, assign } from "fest/object"; import { Q } from "fest/dom"; // @ts-ignore
 import { css, GLitElement, property, E, H, defineElement } from "fest/lure";
+import loadCSS from "fest/dom";
 
 //
 import ScrollBoxed from "../src/ui/scrollframe/ScrollFrame";
+import { UIGridBox } from "../src/ui/grid/GridBox";
 import { bindInteraction } from "../src/ui/grid/GridBind";
 
 //
@@ -16,6 +18,10 @@ import Icon from "../src/ui/icons/Icon"
 //
 console.log(Icon);
 console.log(ScrollBoxed);
+console.log(UIGridBox);
+
+//
+loadCSS();
 
 //
 @defineElement("x-block")
@@ -66,9 +72,9 @@ const withItem = Q((el)=>{
 });
 
 //
-const SVO = H`<ux-grid style="margin: 1rem; inline-size:800px; block-size:600px; display: block; --layout-c: 4; --layout-r: 8;">
-    <div ref=${withItem} style="border-radius: 1rem; user-select: none; background-color: black; inline-size: 6rem; block-size: 6rem; translate: calc(var(--drag-x, 0) * 1px) calc(var(--drag-y, 0) * 1px);"></div>
-</ux-grid>`;
+const SVO = H`<ui-gridbox style="margin: 1rem; inline-size:800px; block-size:600px; display: block; --layout-c: 4; --layout-r: 8;">
+    <div ref=${withItem} style="pointer-events: auto; border-radius: 1rem; user-select: none; background-color: black; inline-size: 6rem; block-size: 6rem;"></div>
+</ui-gridbox>`;
 
 //
 document.body.append(scb);

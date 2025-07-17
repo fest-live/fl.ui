@@ -1,6 +1,6 @@
 import {    subscribe, computed, numberRef } from "fest/object";
 import { E, getPadding, scrollRef, sizeRef  } from "fest/lure";
-import { Q, setProperty, makeRAFCycle } from "fest/dom";
+import { Q, setProperty, makeRAFCycle, RAFBehavior } from "fest/dom";
 
 //
 export interface ScrollBarStatus {
@@ -46,6 +46,11 @@ const scrollbarCoef  = (source: HTMLElement, axis: number)=>{ // @ts-ignore
     const content = computed(sizeRef(source, (["inline", "block"] as ["inline", "block"])[axis], "content-box"), (v)=>(v + getPadding(source, (["inline", "block"] as ["inline", "block"])[axis])));
     const percent = computed(content, (vl)=> (vl / (target?.deref?.()?.[['scrollWidth', 'scrollHeight'][axis]] || 1)));
     subscribe(scroll, ()=>percent.value = (content?.value / (target?.deref?.()?.[['scrollWidth', 'scrollHeight'][axis]] || 1))); return percent;
+}
+
+//
+const _LOG_ = (a)=>{
+    console.log(a); return a;
 }
 
 //
@@ -189,12 +194,11 @@ export class ScrollBar {
             { animateByTimeline(bar, properties, timeline); }
 
         //
-        setProperty    (this.scrollbar, "visibility", "collapse");
-        setProperty    (this.scrollbar?.querySelector?.("*"), "pointer-events", "none");
-        //controlVisible (this.scrollbar, scrollbarCoef(this.content, axis));
+        setProperty(this.scrollbar, "visibility", "collapse");
+        setProperty(this.scrollbar?.querySelector?.("*"), "pointer-events", "none");
         makeInteractive(this.holder, this.content, this.scrollbar, axis, this.status);
 
         //
-        E(this.scrollbar, { style: { "--scroll-size": computed(scrollSize(this.content, axis), (v)=>`${v}px`) } });
+        E(this.scrollbar, { style: { "--scroll-size": computed(scrollSize(this.content, axis), (v)=>`${v}px`, "value", RAFBehavior()) } });
     }
 }

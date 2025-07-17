@@ -1,4 +1,4 @@
-import { defineElement, E, GLitElement, property } from "fest/lure";
+import { defineElement, E, H, GLitElement, property } from "fest/lure";
 import { preloadStyle, elementPointerMap } from "fest/dom";
 
 // @ts-ignore
@@ -19,18 +19,15 @@ export class UIGridBox extends GLitElement() {
     constructor() { super(); }
     onInitialize() { //@ts-ignore
         super.onInitialize?.(); //@ts-ignore
-        this.bindWith();
+        this.bindWith(); const self = this as any;
+        E(self, {classList: new Set(["ui-gridlayout", "ui-orientbox"]), style: { "--orient": self.getProperty("orient"), "--zoom": self.getProperty("zoom") }});
     }
 
     //
     styles = () => styled?.cloneNode?.(true);
-    render = () => `<template><slot></slot></template>`;
+    render = () => H`<template><slot></slot></template>`;
     bindWith(content: any) {
         const self = this as any;
-        self.classList.add("u2-grid-layout");
-
-        //
-        E(self, {style: { "--orient": self.getProperty("orient"), "--zoom": self.getProperty("zoom") }});
 
         //
         const size = self.size;

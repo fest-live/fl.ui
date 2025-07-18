@@ -1,7 +1,8 @@
 // @ts-ignore
-import { ref, makeReactive, assign } from "fest/object"; import { Q } from "fest/dom"; // @ts-ignore
-import { css, GLitElement, property, E, H, defineElement, orientRef } from "fest/lure";
+import { makeReactive } from "fest/object";
+import { H, orientRef } from "fest/lure";
 import loadCSS from "fest/dom";
+import { Q } from "fest/dom";
 
 //
 import ScrollBoxed from "../src/ui/scrollframe/ScrollFrame";
@@ -16,12 +17,11 @@ import "../src/scss/index.scss";
 import Icon from "../src/ui/icons/Icon"
 
 //
+loadCSS();
 console.log(Icon);
 console.log(ScrollBoxed);
 console.log(UIGridBox);
 
-//
-loadCSS();
 
 //
 const scb = H`

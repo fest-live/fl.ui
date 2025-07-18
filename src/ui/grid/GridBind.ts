@@ -1,4 +1,4 @@
-import { subscribe, autoRef, assign } from "fest/object";
+import { autoRef, assign } from "fest/object";
 import { E } from "fest/lure";
 
 //

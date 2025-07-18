@@ -1,6 +1,7 @@
-import { H, defineElement, property, GLitElement } from "fest/lure"
-import { Q, DOMMixin, preloadStyle } from "fest/dom"
+import { H, defineElement, property } from "fest/lure"
+import { Q, preloadStyle, DOMMixin } from "fest/dom"
 import { ScrollBar } from "@ui/scrollbar/Scrollbar"
+import { UIElement } from "@helpers/base/UIElement";
 
 // @ts-ignore
 import styles from "@ui/scrollframe/ScrollFrame.scss?inline"
@@ -8,7 +9,8 @@ const styled = preloadStyle(styles);
 
 // @ts-ignore
 @defineElement("ui-scrollframe")
-export class ScrollBoxed extends GLitElement() {
+export class ScrollBoxed extends UIElement {
+    //
     @property({source: "attr"}) anchor = "_";
     #x: any = null;
     #y: any = null;

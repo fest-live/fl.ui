@@ -1,5 +1,6 @@
-import { defineElement, E, H, GLitElement, property } from "fest/lure";
+import { defineElement, E, H, property } from "fest/lure";
 import { preloadStyle, elementPointerMap } from "fest/dom";
+import { UIElement } from "@helpers/base/UIElement";
 
 // @ts-ignore
 import styles from "@ui/grid/GridBox.scss?inline&compress";
@@ -7,12 +8,11 @@ const styled = preloadStyle(styles);
 
 // @ts-ignore
 @defineElement("ui-gridbox")
-export class UIGridBox extends GLitElement() {
-    @property({source: "attr"}) orient = 0;
-    @property({source: "attr"}) zoom = 1;
-
+export class UIGridBox extends UIElement {
     //
     static observedAttributes = ["orient", "zoom"];
+    @property({source: "attr"}) orient = 0;
+    @property({source: "attr"}) zoom = 1;
     public size : [number, number] = [0, 0];
 
     //

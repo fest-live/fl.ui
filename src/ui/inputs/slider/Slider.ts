@@ -13,11 +13,12 @@
  * Differs by: Universal Wrapper, Mobile Friendly, More Functional
  */
 
-import { H, GLitElement, property, defineElement } from "fest/lure";
+import { H, property, defineElement } from "fest/lure";
 import { preloadStyle } from "fest/dom";
 
 //
 import { dragSlider } from "@helpers/core/InputExt";
+import { UIElement } from "@helpers/base/UIElement";
 
 // @ts-ignore
 import styles from "@ui/inputs/slider/Slider.scss?inline"
@@ -25,7 +26,7 @@ const styled  = preloadStyle(styles);
 
 // @ts-ignore
 @defineElement("ui-slider")
-export class SliderInput extends GLitElement() {
+export class SliderInput extends UIElement {
     @property({ source: "query", name: "input" }) input?: HTMLInputElement;
     @property({ source: "query-shadow", name: ".ui-thumb" }) thumb?: HTMLElement;
     @property({ source: "query-shadow", name: ".ui-box" }) handle?: HTMLElement;

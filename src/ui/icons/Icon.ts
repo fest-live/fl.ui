@@ -1,6 +1,7 @@
-import { defineElement, GLitElement, property, E, H } from "fest/lure";
+import { defineElement, property, E } from "fest/lure";
 import { kebabToCamel, preloadStyle } from "fest/dom";
 import { subscribe } from "fest/object";
+import { UIElement } from "@helpers/base/UIElement";
 
 // @ts-ignore
 import styles from "@ui/icons/Icon.scss?inline";
@@ -29,16 +30,16 @@ function capitalizeFirstLetter(str) {
 
 // @ts-ignore
 @defineElement('ui-icon')
-export class UILucideIcon extends GLitElement() {
-    @property() protected iconElement?: SVGElement;
+export class UILucideIcon extends UIElement {
+    //
     @property({ source: "attr" }) icon: any = "";
     @property({ source: "attr" }) width?: number;
+    @property() protected iconElement?: SVGElement;
     #options = { padding: 0, icon: "" };
 
     // also "display" may be "contents"
     public styles = ()  => styled.cloneNode(true);
-    public render = (we)=> []; // @ts-ignore
-    public onRender() { this.icon = this.#options?.icon || this.icon; this.updateIcon(); subscribe([this.getProperty("icon"), "value"], (icon)=>{ this.updateIcon(icon) }); }
+    public onRender() { this.icon = this.#options?.icon || this.icon; this.updateIcon(); subscribe([(this as any).getProperty("icon"), "value"], (icon)=>{ this.updateIcon(icon) }); }
     constructor(options = {icon: "", padding: ""}) { super(); Object.assign(this.#options, options); }
 
     //

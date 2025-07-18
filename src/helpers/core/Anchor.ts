@@ -1,5 +1,5 @@
-import { ref, booleanRef, stringRef, makeReactive, addToCallChain } from "fest/object";
-import { WRef, observeContentBox } from "fest/dom";
+import { ref, booleanRef, stringRef, makeReactive, addToCallChain, WRef } from "fest/object";
+import { observeContentBox } from "fest/dom";
 
 //
 const ROOT = document.documentElement;

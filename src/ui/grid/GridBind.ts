@@ -2,9 +2,9 @@ import { subscribe, autoRef, assign } from "fest/object";
 import { E } from "fest/lure";
 
 //
-import { reflectCell } from "./Reflect";
 import { RAFBehavior } from "fest/dom";
-import { makeDragEvents } from "./Dragging";
+import { makeDragEvents } from "@ui/grid/Dragging";
+import { reflectCell } from "@ui/grid/Reflect";
 
 // shifting - reactive basis
 export const ROOT = document.documentElement;

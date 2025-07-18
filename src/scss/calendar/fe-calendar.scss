@@ -2,8 +2,8 @@
 @use "sass:meta";
 
 //
-@use "abstracts/functions";
-@use "abstracts/mixins";
+@use "@scss/calendar/abstracts/functions" as fn;
+@use "@scss/calendar/abstracts/mixins" as mx;
 
 //
 @use "ui-calendar/host";

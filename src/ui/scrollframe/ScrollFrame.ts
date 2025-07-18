@@ -1,9 +1,9 @@
 import { H, defineElement, property, GLitElement } from "fest/lure"
 import { Q, DOMMixin, preloadStyle } from "fest/dom"
-import { ScrollBar } from "../scrollbar/Scrollbar"
+import { ScrollBar } from "@ui/scrollbar/Scrollbar"
 
 // @ts-ignore
-import styles from "./ScrollFrame.scss?inline"
+import styles from "@ui/scrollframe/ScrollFrame.scss?inline"
 const styled = preloadStyle(styles);
 
 // @ts-ignore
@@ -42,8 +42,10 @@ export class OverlayScrollbarMixin extends DOMMixin {
     constructor(name?) { super(name); }
 
     // @ts-ignore
-    connect(self) { // @ts-ignore
-        const frame = document.createElement("ui-scrollframe"); frame?.bindWith?.(self);
+    connect(ws) {
+        const self: any = ws?.deref?.();
+        const frame = document.createElement("ui-scrollframe"); // @ts-ignore
+        frame?.bindWith?.(self);
 
         //
         self.style.scrollbarGutter = "auto";

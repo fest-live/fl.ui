@@ -2,7 +2,7 @@ import { defineElement, E, H, GLitElement, property } from "fest/lure";
 import { preloadStyle, elementPointerMap } from "fest/dom";
 
 // @ts-ignore
-import styles from "./GridBox.scss?inline&compress";
+import styles from "@ui/grid/GridBox.scss?inline&compress";
 const styled = preloadStyle(styles);
 
 // @ts-ignore

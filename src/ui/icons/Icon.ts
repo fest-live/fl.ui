@@ -3,7 +3,7 @@ import { kebabToCamel, preloadStyle } from "fest/dom";
 import { subscribe } from "fest/object";
 
 // @ts-ignore
-import styles from "./Icon.scss?inline";
+import styles from "@ui/icons/Icon.scss?inline";
 const styled  = preloadStyle(styles);
 
 //

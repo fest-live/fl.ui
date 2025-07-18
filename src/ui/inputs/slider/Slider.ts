@@ -17,10 +17,10 @@ import { H, GLitElement, property, defineElement } from "fest/lure";
 import { preloadStyle } from "fest/dom";
 
 //
-import { dragSlider } from "../../../helpers/core/InputExt";
+import { dragSlider } from "@helpers/core/InputExt";
 
 // @ts-ignore
-import styles from "./Slider.scss?inline"
+import styles from "@ui/inputs/slider/Slider.scss?inline"
 const styled  = preloadStyle(styles);
 
 // @ts-ignore

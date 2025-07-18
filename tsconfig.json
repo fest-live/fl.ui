@@ -1,5 +1,5 @@
 {
-    "include": ["./src/**/*", "./test/**/*"],
+    "include": ["./src/**/*.ts", "./test/**/*.ts"],
     "exclude": ["./dist/**/*", "./externals/**/*"],
     "compilerOptions": {
         "outDir": "./dist/",
@@ -12,7 +12,13 @@
             "fest/uniform": ["../uniform.ts/src/index.ts"],
             "fest/theme": ["../theme.core/src/index.ts"],
             "fest/fl-ui": ["./src/index.ts"],
-            "fest/ui": ["./src/index.ts"]
+            "fest/ui": ["./src/index.ts"],
+            "fest/polyfill/*": ["../shared/fest/polyfill/*"],
+            "polyfill/*": ["../shared/fest/polyfill/*"],
+            "@legacy/*": ["./legacy/*"],
+            "@helpers/*": ["./src/helpers/*"],
+            "@scss/*": ["./src/scss/*"],
+            "@ui/*": ["./src/ui/*"]
         },
         "target": "ESNext",
         "module": "ESNext",

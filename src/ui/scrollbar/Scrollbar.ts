@@ -1,6 +1,10 @@
 import {    subscribe, computed, numberRef } from "fest/object";
 import { E, getPadding, scrollRef, sizeRef  } from "fest/lure";
-import { Q, setProperty, makeRAFCycle, RAFBehavior } from "fest/dom";
+import { Q, setProperty, makeRAFCycle, RAFBehavior, preloadStyle } from "fest/dom";
+
+// @ts-ignore
+import styles from "@ui/scrollbar/Scrollbar.scss?inline";
+const styled  = preloadStyle(styles);
 
 //
 export interface ScrollBarStatus {

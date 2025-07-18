@@ -29,7 +29,7 @@
 @mixin         size { @include pair-props('', 'inline-size', 'block-size', '100%', '100%', '<length-percentage>'); }
 
 //
-@scope(:host, :root, :scope) {
+@#{"scope(:host, :root, :scope)"} {
     @include pointer-coords;
     @include page-coords;
     @include drag-coords;

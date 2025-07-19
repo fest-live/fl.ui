@@ -13,7 +13,7 @@
  * Differs by: Universal Wrapper, Mobile Friendly, More Functional
  */
 
-import { H, property, defineElement } from "fest/lure";
+import { defineElement, H, property } from "fest/lure";
 import { preloadStyle } from "fest/dom";
 
 //

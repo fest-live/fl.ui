@@ -21,9 +21,10 @@ export const indicationRef = (ref)=> computed(ref, (v)=>(parseFloat(v) || 0)?.to
 }));
 
 // currently, unused
-const convertValueToPointer = (input, value)=>{
+const convertValueToPointer = (input)=>{
+    const $cmp = getInputValues(input);
+    const [value, min, max] = $cmp;
     if (input?.type == "number" || input?.type == "range") {
-        const min = parseFloat(input?.min || 0), max = parseFloat(input?.max || 0);
         return (value - min) / (max - min);
     } else
     if (input?.type == "checkbox") {
@@ -40,72 +41,52 @@ const convertValueToPointer = (input, value)=>{
 const convertPointerToValueShift = (input, shift, container)=>{
     // relative pointer coordinate info [0, 1]
     const dec = (shift?.[0]?.value || 0) / (container?.offsetWidth || 1);
+    const $cmp = getInputValues(input), [_, min, max] = $cmp;
 
     // compute value shift
-    if (input?.type == "number" || input?.type == "range"){
-        const max = (parseFloat(input?.max || 0) - parseFloat(input?.min || 0));
-        return dec * max;
-    } else
     if (input?.type == "checkbox") { return Math.sign(shift?.[0]?.value); } else
+    if (input?.type == "range" || input?.type == "number") { return dec * (max - min); } else
+    if (input?.type == "radio") { return Math.round(dec * max); }
+    return dec;
+}
+
+// get correct value for input types
+const correctValue = (input, val)=>{
+    if (input?.type == "number" || input?.type == "range")
+        { return val; } else
+    if (input?.type == "checkbox")
+        { return val > 0.5 ? true : false;
+    } else
     if (input?.type == "radio") {
         const all = [...input?.parentNode?.querySelectorAll?.('input[type="radio"]')], len = all?.length;
-        const max = Math.max(len - 1, 0);
-        return dec * max;
+        return Math.max(Math.min(Math.round(val), len), 0);
     }
-
-    // get value shift
-    return dec;
 }
 
 // "absolute"
 const convertPointerToValue = (input, relateFromCorner, container)=>{
-    const intoValue = relateFromCorner / (container?.offsetWidth || 1); // [0, 1]
-
-    //
-    if (input?.type == "number" || input?.type == "range") {
-        const min = parseFloat(input?.min || 0), max = parseFloat(input?.max || 0);
-        return intoValue * (max - min) + min;
-    } else
-    if (input?.type == "checkbox") {
-        return intoValue > 0.5;
-    } else
-    if (input?.type == "radio") {
-        const all = [...input?.parentNode?.querySelectorAll?.('input[type="radio"]')], len = all?.length, nth = all.indexOf(input);
-        return Math.max(Math.min(Math.round(intoValue), len - 1), 0);
-    }
-    return intoValue;
+    const clamped = relateFromCorner / (container?.offsetWidth || 1); // [0, 1]
+    const $cmp = getInputValues(input), [_, min, max] = $cmp;
+    const val = clamped * (max - min) + min;
+    return correctValue(input, val);
 }
-
-
 
 //
 const getValueWithShift = (input, valueShift)=>{
-    if (input?.type == "number" || input?.type == "range") {
-        return input.valueAsNumber + valueShift;
-    } else
-    if (input?.type == "checkbox") {
-        // valueShift 0 is centroid, so minus (left) to false, plus (right) to true
-        return valueShift > 0 ? true : false;
-    } else
-    if (input?.type == "radio") {
-        const all = [...input?.parentNode?.querySelectorAll?.('input[type="radio"]')], len = all?.length, nth = all.indexOf(input);
-        return Math.max(Math.min(nth + Math.round(valueShift), len - 1), 0);
-    }
-    return valueShift;
+    const $cmp = getInputValues(input);
+    return correctValue(input, $cmp?.[0] + valueShift);
 }
 
 //
 const setValue = (input, value)=>{
-    if (input?.type == "number" || input?.type == "range") {
-        if (value != input.valueAsNumber) { input.valueAsNumber = value; input?.dispatchEvent?.(new Event("change", { bubbles: true })); }
-    } else
-    if (input?.type == "checkbox") {
-        if (value && input.chacked != value) { input?.click?.(); }
-    } else
+    const $cmp = getInputValues(input), [_, min, max] = $cmp;
+    if (input?.type == "number" || input?.type == "range")
+        { if (value != input.valueAsNumber) { input.valueAsNumber = value; input?.dispatchEvent?.(new Event("change", { bubbles: true })); } } else
+    if (input?.type == "checkbox")
+        { if (value && input.chacked != value) { input?.click?.(); } } else
     if (input?.type == "radio") {
-        const all = [...input?.parentNode?.querySelectorAll?.('input[type="radio"]')], len = all?.length, nth = all.indexOf(input);
-        const idx = Math.max(Math.min(Math.round(value), len - 1), 0);
-        if (value != 0 && nth >= 0) { all[idx]?.click?.(); }
+        const all = [...input?.parentNode?.querySelectorAll?.('input[type="radio"]')];
+        if (value != 0) { all[Math.max(Math.min(Math.round(value), max), min)]?.click?.(); }
     }
 }
 
@@ -113,20 +94,6 @@ const setValue = (input, value)=>{
 
 // combined getValueWithShift with setValue
 const setValueByShift = (input, valueShift) => {
-    /*
-    if (input?.type == "number" || input?.type == "range") {
-        if (valueShift != 0) { input.valueAsNumber += valueShift; input?.dispatchEvent?.(new Event("change", { bubbles: true })); }
-    } else
-    if (input?.type == "checkbox") {
-        if (valueShift > 0 && !input?.checked || valueShift < 0 &&  input?.checked) { input?.click?.(); }
-    } else
-    if (input?.type == "radio") {
-        const all = [...input?.parentNode?.querySelectorAll?.('input[type="radio"]')], len = all?.length, nth = all.indexOf(input);
-        const idx = Math.max(Math.min(nth + Math.round(valueShift), len - 1), 0);
-        if (valueShift != 0 && nth >= 0) { all[idx]?.click?.(); };
-    }*/
-
-    //
     return setValue(input, getValueWithShift(input, valueShift));
 }
 
@@ -147,22 +114,30 @@ const resolveDragging = (input, dragging, container) => {
     return [0, 0];
 };
 
-
-
-// get into [0, 1]
-const getClampedValue = (inp)=>{
-    if (inp?.valueAsNumber != null) { return ((inp?.valueAsNumber || 0) - parseFloat(inp?.min || 0)) / ((parseFloat(inp?.max || 0) - parseFloat(inp?.min || 0)) || 1); } else
-    if (inp?.checked != null && inp?.type == "checkbox") { return inp?.checked ? 1 : 0; } else
+//
+const getInputValues = (inp): [number, number, number] =>{
+    if (inp?.valueAsNumber != null) { return [(inp?.valueAsNumber || 0), parseFloat(inp?.min || 0), parseFloat(inp?.max || 0)]; } else
+    if (inp?.checked != null && inp?.type == "checkbox") { return [inp?.checked ? 1 : 0, 0, 1]; } else
     if (inp?.type == "radio") {
         const all = [...inp?.parentNode?.querySelectorAll?.('input[type="radio"]')];
         const len = all?.length, nth = all?.indexOf?.(inp) ?? -1;
-        if (nth >= 0) { return Math.max(Math.min(nth / (len - 1), 1), 0); }
+        return [nth, 0, len-1];
     }
-    return 0;
+    return [0, 0, 0];
+}
+
+//
+const progress = (value, min, max)=>{
+    return (value - min) / (max - min);
+}
+
+// get into [0, 1]
+const getClampedValue = (inp)=>{
+    return progress(...getInputValues(inp));
 }
 
 // reference of [0, 1]
-const clampedValueRef = (inp)=>{
+export const clampedValueRef = (inp)=>{
     const rf = numberRef(getClampedValue(inp));
     const ctr = (ev)=>{ rf.value = getClampedValue(ev?.target ?? inp); };
     bindCtrl?.(inp, ctr); return rf;

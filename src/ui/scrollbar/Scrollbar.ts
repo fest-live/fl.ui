@@ -203,6 +203,6 @@ export class ScrollBar {
         makeInteractive(this.holder, this.content, this.scrollbar, axis, this.status);
 
         //
-        E(this.scrollbar, { style: { "--scroll-size": computed(scrollSize(this.content, axis), (v)=>`${v}px`, "value", RAFBehavior()) } });
+        E(this.scrollbar, { style: { "--scroll-size": computed(scrollSize(this.content, axis), (v)=>`${v}px`, RAFBehavior()) } });
     }
 }

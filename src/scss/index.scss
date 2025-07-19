@@ -1,4 +1,5 @@
 @use "@scss/class/layout.scss";
+@use "@scss/class/wavy.scss";
 
 //
 @property --scroll-coef { syntax: "<number>"; initial-value: 1; inherits: true; };

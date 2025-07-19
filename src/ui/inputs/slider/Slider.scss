@@ -1,45 +1,73 @@
+@use "@scss/class/mixins.scss" as m;
+
+// sizes
+@property --ui-slider-track-size { syntax: "<percentage> | <length>"; inherits: true; initial-value: 0.125rem; }
+@property --ui-slider-thumb-size { syntax: "<percentage> | <length>"; inherits: true; initial-value: 1rem; }
+
+// radius
+@property --ui-slider-track-radius { syntax: "<percentage> | <length>"; inherits: true; initial-value: 0.0625rem; }
+@property --ui-slider-thumb-radius { syntax: "<percentage> | <length>"; inherits: true; initial-value: 0.5rem; }
+
+// colors
+@property --ui-slider-track-color { syntax: "<color>"; inherits: true; initial-value: #111; }
+@property --ui-slider-thumb-color { syntax: "<color>"; inherits: true; initial-value: #222; }
+
+//
 @layer ui-slider {
     :host(ui-slider) {
         & {
-            display: flex;
-            place-items: center;
-            place-content: center;
-            inline-size: 100%;
-            block-size: 100%;
+            // sizes
+            --ui-slider-track-size: 0.125rem;
+            --ui-slider-thumb-size: 1rem;
+
+            // radius
+            --ui-slider-track-radius: 0.0625rem;
+            --ui-slider-thumb-radius: 0.5rem;
+
+            // colors
+            --ui-slider-track-color: light-dark(#111, #e0e0e0);
+            --ui-slider-thumb-color: light-dark(#222, #f0f0f0);
+        }
+
+        & {
+            @include m.display();
+            @include m.size();
+        }
+
+        //
+        &, * {
+            @include m.scrollbar(hidden);
+            user-select: none;
         }
 
         //
         .ui-box {
-            position: relative;
-            inline-size: 100%;
-            block-size: 100%;
-            place-items: center;
-            place-content: center;
-            display: flex;
+            @include m.position(relative);
+            @include m.size();
+            @include m.display();
 
+            //
             .ui-track {
-                position: absolute;
-                inset: 0;
-                block-size: 0.125rem;
-                clip-path: inset(0px round 50%);
+                @include m.position(absolute);
+                @include m.size(100%, var(--ui-slider-track-size));
+                @include m.round-corner(var(--ui-slider-track-radius));
+                @include m.color(var(--ui-slider-track-color));
             }
 
+            //
             .ui-thumb {
-                inset: 0;
-                position: absolute;
-                cursor: grab;
-                aspect-ratio: 1 / 1;
-                clip-path: inset(0px round 50%);
+                @include m.interaction(auto, grab);
+                @include m.position(absolute);
+                @include m.size(var(--ui-slider-thumb-size), var(--ui-slider-thumb-size), 1 / 1);
+                @include m.round-corner(var(--ui-slider-thumb-radius));
+                @include m.color(var(--ui-slider-thumb-color));
             }
         }
 
         //
         ::slotted(*) {
-            position: absolute;
-            inset: 0;
-            display: none;
-            background-color: transparent;
-            pointer-events: none;
+            @include m.position(absolute);
+            @include m.display(none);
         }
     }
 }

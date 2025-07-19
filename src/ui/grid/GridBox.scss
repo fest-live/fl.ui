@@ -1,36 +1,40 @@
+@use "@scss/class/mixins.scss" as m;
+
+//
 @layer ui-grid-box {
     :host(ui-gridbox) {
         & {
-            position: relative;
             container-type: size;
             contain: strict;
-            background-color: transparent;
 
-            grid-column: 1 / -1;
-            grid-row: 1 / -1;
-            place-self: center;
-
-            min-inline-size: 1px;
-            min-block-size: 1px;
-            inline-size: 100%;
-            block-size: 100%;
-            max-inline-size: 100%;
-            max-block-size: 100%;
-
-            inset: 0;
+            //
             zoom: max(var(--zoom, 1), 0.125);
-            font-size: 16px;
-            pointer-events: none;
+            font-size: 1rem;
 
             //
             writing-mode: horizontal-tb !important;
             direction: ltr !important;
+
+            //
+            grid-column: 1 / -1;
+            grid-row: 1 / -1;
+
+            //
+            @include m.color(transparent);
+            @include m.interaction(none);
+            @include m.position(relative);
+            @include m.display(grid, center, center);
+            @include m.size(
+                clamp(1px, 100%, 100%),
+                clamp(1px, 100%, 100%),
+                1 / 1
+            );
         }
 
         //
         ::slotted(*) {
-            writing-mode: inherit;
             direction: inherit;
+            writing-mode: inherit;
             inset-inline-start: var(--cs-inset-x, 0px) !important;
             inset-block-start: var(--cs-inset-y, 0px) !important;
         }

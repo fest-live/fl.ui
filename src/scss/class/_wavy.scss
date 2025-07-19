@@ -64,3 +64,12 @@
     @for $i from 1 through $steps { $points: list.append($points, meta.call($fx, math.div($i, $steps))); }
     @return shape(from #{$ox} #{$oy}, #{fl.join($points, ", ")});
 }
+
+//
+@mixin wavy-shaped($detail: 100) {
+    --clip-amplitude: 0.05;
+    --clip-freq: 8;
+    --clip-path: #{Integrate("WavyFx", $detail)};
+    --icon-size: 100%;
+    --corrector: 1.1;
+}

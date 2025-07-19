@@ -66,3 +66,106 @@ $def-ff: 'Open Sans', 'Source Sans 3','Gill Sans Nova', Ubuntu, 'DejaVu Sans', C
 //
 @function tm-hi($base, $percent) { @return color-mix(in oklch, #{$base} calc(100% - #{$percent}), var(--tm-hi, white)); }
 @function tm-lo($base, $percent) { @return color-mix(in oklch, #{$base} calc(100% - #{$percent}), var(--tm-lo, black)); }
+
+//
+@mixin size($inline: 100%, $block: 100%, $aspect-ratio: auto) {
+    inline-size: $inline;
+    block-size: $block;
+    aspect-ratio: $aspect-ratio;
+}
+
+//
+@mixin position($type: absolute, $inset: 0) {
+    position: $type;
+    inset: $inset;
+}
+
+//
+@mixin display($type: flex, $items: center, $content: center) {
+    display: $type;
+    place-items: $items;
+    place-content: $content;
+    box-sizing: border-box;
+}
+
+//
+@mixin interaction($pointerEvents: auto, $cursor: default, $userSelect: none) {
+    pointer-events: $pointerEvents;
+    user-select: $userSelect;
+    cursor: $cursor;
+}
+
+//
+@mixin scrollbar($overflow: hidden, $width: thin, $color: transparent transparent, $gutter: auto) {
+    scrollbar-width: $width;
+    scrollbar-color: $color;
+    scrollbar-gutter: $gutter;
+    overflow: $overflow;
+}
+
+//
+@mixin color($bg: transparent, $color: transparent) {
+    color: $color;
+    background-color: $bg;
+}
+
+//
+@mixin place($method: stretch) {
+    place-content: $method;
+    place-items: center;
+}
+
+//
+@mixin grid-flow ($direction: row) {
+    display: grid;
+    grid-auto-flow: $direction;
+}
+
+//
+@mixin flex-flow ($direction: row) {
+    display: flex;
+    flex-direction: $direction;
+}
+
+//
+@mixin grid-column {
+    @include grid-flow(column);
+    @include place(center);
+
+    & {
+        --order: sibling-index();
+        grid-column: var(--order, 1) / var(--order, 1) span; grid-row: 1 / -1;
+        grid-template-columns: minmax(0px, 1fr); grid-template-rows: subgrid;
+    }
+}
+
+//
+@mixin grid-row {
+    @include grid-flow(row);
+    @include place(center);
+
+    & {
+        --order: sibling-index();
+        grid-column: 1 / -1; grid-row: var(--order, 1) / var(--order, 1) span;
+        grid-template-columns: subgrid; grid-template-rows: minmax(0px, max-content);
+    }
+}
+
+//
+@mixin flex-column {
+    --order: sibling-index();
+    order: var(--order, auto);
+    flex: 1 1 max-content;
+
+    //
+    @include place(center);
+}
+
+// used with padding
+@function limit-by-size($pwidth, $basis: 100%, $min: 0px) {
+    @return max(calc($basis - ($basis - $pwidth)), $min);
+}
+
+//
+//@mixin radius($radius: 50%) { clip-path: inset(0px 0px round #{$radius}); }
+@mixin round-corner($radius: 50%) { clip-path: inset(0px 0px round #{$radius}); }

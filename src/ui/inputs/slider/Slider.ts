@@ -39,9 +39,9 @@ export class SliderInput extends UIElement {
     //
     styles = () => styled.cloneNode(true);
     render() { return H`
-<div class="ui-box">
-    <div class="ui-track"></div>
-    <div class="ui-thumb"></div>
+<div class="ui-box" part="box">
+    <div class="ui-track" part="track"></div>
+    <div class="ui-thumb" part="thumb"></div>
 </div>
 <slot></slot>
 `; }

@@ -18,8 +18,10 @@
             //
             grid-column: 1 / -1;
             grid-row: 1 / -1;
+        }
 
-            //
+        //
+        & {
             @include m.color(transparent);
             @include m.interaction(none);
             @include m.position(relative);

@@ -29,15 +29,12 @@
             --ui-slider-thumb-color: light-dark(#222, #f0f0f0);
         }
 
+        //
         & {
             @include m.display();
             @include m.size();
-        }
-
-        //
-        &, * {
             @include m.scrollbar(hidden);
-            user-select: none;
+            @include m.interaction(none);
         }
 
         //
@@ -52,6 +49,7 @@
                 @include m.size(100%, var(--ui-slider-track-size));
                 @include m.round-corner(var(--ui-slider-track-radius));
                 @include m.color(var(--ui-slider-track-color));
+                @include m.interaction(auto);
             }
 
             //

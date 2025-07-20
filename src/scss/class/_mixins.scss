@@ -3,9 +3,6 @@
 @use "sass:string";
 
 //
-@use "@scss/class/functions" as fn;
-
-//
 @mixin hover($selector: "&") {
     @media screen and ((hover: hover) or (pointer: fine))   { #{$selector}:hover { @content; } }
     @media screen and ((hover: none) and (pointer: coarse)) { #{$selector}:action { @content; } }
@@ -22,7 +19,7 @@
 //
 @mixin inverse {
     @include tm-dep("--tm-cr", var(--tm-cr-dark), var(--tm-cr-light));
-    & { --tm-ac: #{fn.tm-lo(var(--tm-origin, currentColor), 80%) };}
+    & { --tm-ac: #{tm-lo(var(--tm-origin, currentColor), 80%) };}
 }
 
 //

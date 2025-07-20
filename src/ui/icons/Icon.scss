@@ -5,7 +5,7 @@
     :host(ui-icon) {
         & {
             --ui-icon-size: 2rem;
-            --ui-icon-color: currentColor;
+            --ui-icon-color: light-dark(black, white);
         }
 
         & { // mask image
@@ -21,11 +21,12 @@
         & { //
             padding: 0.125rem;
             content-visibility: visible;
+            background-color: var(--ui-icon-color, currentColor);
         }
 
         & {
             @include m.color(var(--ui-icon-color, currentColor));
-            @include m.size(var(--ui-icon-size), var(--ui-icon-size), 1 / 1);
+            @include m.size(var(--ui-icon-size), var(--ui-icon-size), '1 / 1');
             @include m.display(inline flex, center, center);
         }
     }

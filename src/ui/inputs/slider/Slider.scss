@@ -56,7 +56,7 @@
             .ui-thumb {
                 @include m.interaction(auto, grab);
                 @include m.position(absolute);
-                @include m.size(var(--ui-slider-thumb-size), var(--ui-slider-thumb-size), 1 / 1);
+                @include m.size(var(--ui-slider-thumb-size), var(--ui-slider-thumb-size), '1 / 1');
                 @include m.round-corner(var(--ui-slider-thumb-radius));
                 @include m.color(var(--ui-slider-thumb-color));
             }

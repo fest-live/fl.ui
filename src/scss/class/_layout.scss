@@ -73,7 +73,7 @@
 
     //
     .grid-rows-3c, :host(.grid-rows-3c) { // hovewer, would be 'grid-columns-count' variable...
-        @include m.grid-template-columns(minmax(0px, max-content) minmax(0px, 1fr) minmax(0px, max-content));
+        grid-template-columns: minmax(0px, max-content) minmax(0px, 1fr) minmax(0px, max-content);
     }
 
     //

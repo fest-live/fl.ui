@@ -1,6 +1,6 @@
-import { ref, booleanRef, stringRef, makeReactive, addToCallChain, WRef } from "fest/object";
+import { ref, makeReactive, booleanRef, stringRef, addToCallChain, WRef } from "fest/object";
 import { handleStyleChange, observeContentBox } from "fest/dom";
-import { H, Q, bindWith } from "fest/lure";
+import { bindWith } from "fest/lure";
 
 //
 const ROOT = document.documentElement;
@@ -83,14 +83,15 @@ const $set = (rv, key, val)=>{ if (rv?.deref?.() != null) { return (rv.deref()[k
 
 //
 export function makeInterruptTrigger(
-    ref: RefBool, element: any = document.documentElement,
-    closeEvents: string[] = ["pointerdown", "click", "contextmenu", "scroll"]
+    element: any = document.documentElement, ref: RefBool|Function = booleanRef(false),
+    closeEvents: string[] = ["pointerdown", "click", "contextmenu", "scroll"],
 ) {
     const wr = new WeakRef(ref);
-    const close = () => { $set(wr, "value", false); }, open = () => { $set(wr, "value", true); };
+    const close = typeof ref === "function" ? ref : () => { $set(wr, "value", false); };
     closeEvents.forEach(event => element.addEventListener(event, close));
-    addToCallChain(ref, Symbol.dispose, ()=>closeEvents.forEach(event => element.removeEventListener(event, close)));
-    return ref;
+    const ubs = ()=>closeEvents.forEach(event => element.removeEventListener(event, close));
+    addToCallChain(ref, Symbol.dispose, ubs);
+    return ubs;
 }
 
 //
@@ -204,4 +205,13 @@ export function boundingBoxRef(anchor: HTMLElement, options?: {
     //
     if (destroy) addToCallChain(area, Symbol.dispose, destroy);
     return area;
+}
+
+//
+export const withInsetWithPointer = (exists: HTMLElement, pRef: any)=>{
+    const ubs = [
+        bindWith(exists, "--client-x", pRef?.[0], handleStyleChange),
+        bindWith(exists, "--client-y", pRef?.[1], handleStyleChange)
+    ];
+    return ()=>ubs?.forEach?.(ub=>ub?.());
 }

@@ -1,6 +1,12 @@
 @use "@scss/class/mixins.scss" as m;
 
 //
+@property --value { syntax: "<number>"; initial-value: 0; inherits: true; };
+@property --relate { syntax: "<number>"; initial-value: 0; inherits: true; };
+@property --drag-x { syntax: "<number>"; initial-value: 0; inherits: true; };
+@property --drag-y { syntax: "<number>"; initial-value: 0; inherits: true; };
+
+//
 @property --order { syntax: "<integer>"; initial-value: 1; inherits: true; };
 @property --content-inline-size { syntax: "<length-percentage>"; initial-value: 100%; inherits: true; };
 @property --content-block-size  { syntax: "<length-percentage>"; initial-value: 100%; inherits: true; };

@@ -7,6 +7,7 @@ import loadCSS from "fest/dom";
 import ScrollBoxed from "../src/ui/scrollframe/ScrollFrame";
 import { UIGridBox } from "../src/ui/grid/GridBox";
 import { bindInteraction } from "../src/ui/grid/GridBind";
+import { SliderInput } from "../src/ui/inputs/slider/Slider";
 
 //
 import { timeStatusRef } from "../src/helpers/core/Status";
@@ -20,7 +21,7 @@ loadCSS();
 console.log(Icon);
 console.log(ScrollBoxed);
 console.log(UIGridBox);
-
+console.log(SliderInput);
 
 //
 const scb = H`
@@ -66,3 +67,7 @@ container.append(time);
 //
 const icon = H`<ui-icon icon="github"></ui-icon>`;
 container.append(icon);
+
+//
+const slider = H`<ui-slider style="inline-size: 100px; block-size: 1rem; border-radius: 0.5rem;"></ui-slider>`;
+container.append(slider);

@@ -38,18 +38,18 @@ export class SliderInput extends UIElement {
 
     //
     styles = () => styled.cloneNode(true);
-    render() { return H`
+    render = ()=> H`
 <div class="ui-box" part="box">
     <div class="ui-track" part="track"></div>
     <div class="ui-thumb" part="thumb"></div>
 </div>
 <slot></slot>
-`; }
+`;
 
     //
     onInitialize() {
         super.onInitialize();
-        dragSlider(this, this.thumb, this.input);
+        dragSlider(this, this.handle, this.input);
     }
 }
 

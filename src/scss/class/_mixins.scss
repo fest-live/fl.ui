@@ -88,7 +88,7 @@ $def-ff: 'Open Sans', 'Source Sans 3','Gill Sans Nova', Ubuntu, 'DejaVu Sans', C
 }
 
 //
-@mixin display($type: flex, $items: center, $content: center) {
+@mixin display($type: inline-block, $items: center, $content: center) {
     & {
         display: #{$type};
         place-items: #{$items};
@@ -191,4 +191,6 @@ $def-ff: 'Open Sans', 'Source Sans 3','Gill Sans Nova', Ubuntu, 'DejaVu Sans', C
 
 //
 //@mixin radius($radius: 50%) { clip-path: inset(0px 0px round #{$radius}); }
-@mixin round-corner($radius: 50%) { clip-path: inset(0px 0px round #{$radius}); }
+@mixin round-corner($radius: 50%) {
+    & { clip-path: inset(0px 0px round #{$radius}); }
+}

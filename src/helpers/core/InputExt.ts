@@ -1,6 +1,6 @@
-import { bindDraggable } from "fest/dom";
+import { bindDraggable, handleStyleChange } from "fest/dom";
 import { makeShiftTrigger } from "../controllers/Trigger";
-import { bindCtrl, bindWith, handleStyleChange } from "fest/lure";
+import { bindCtrl, bindWith } from "fest/lure";
 import { computed, numberRef, conditional, ref } from "fest/object";
 
 /* ***************************************************************************************** *
@@ -146,7 +146,7 @@ export const clampedValueRef = (inp)=>{
 //
 export const dragSlider = (container, handler, input)=>{ // @ts-ignore
     const correctOffset = (dragging)=>{ try { dragging[0].value = 0, dragging[1].value = 0; } catch(e) {}; return [0, 0]; };
-    const customTrigger = (doGrab)=>handler?.addEventListener?.("pointerdown", makeShiftTrigger((ev)=>{correctOffset(dragging); doGrab?.(ev, handler)}));
+    const customTrigger = (doGrab)=>handler?.addEventListener?.("pointerdown", makeShiftTrigger((ev)=>{ correctOffset(dragging); doGrab?.(ev, handler)}));
 
     //
     handler?.addEventListener?.("click", (ev)=>{ if (input?.type == "checkbox" || input?.type == "radio") { input?.click?.(); } });

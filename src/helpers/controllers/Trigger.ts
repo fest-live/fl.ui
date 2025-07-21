@@ -23,7 +23,7 @@ export const makeShiftTrigger = (callable, newItem?)=> agWrapEvent((evc)=>{
             if (ev_l?.pointerId == ev?.pointerId) {
                 const coord: [number, number] = (ev_l.orient ? [...ev_l.orient] : [ev_l?.clientX || 0, ev_l?.clientY || 0]) as [number, number];
                 const shift: [number, number] = [coord[0] - n_coord[0], coord[1] - n_coord[1]];
-                if (Math.hypot(...shift) > 10) {
+                if (Math.hypot(...shift) > 2) {
                     newItem?.style?.setProperty?.("will-change", "transform", "important");
                     releasePointer?.(evc_l); callable?.(ev);
                 }

@@ -69,5 +69,7 @@ const icon = H`<ui-icon icon="github"></ui-icon>`;
 container.append(icon);
 
 //
-const slider = H`<ui-slider style="inline-size: 100px; block-size: 1rem; border-radius: 0.5rem;"></ui-slider>`;
+const slider = H`<ui-slider style="inline-size: 100px; block-size: 1rem; border-radius: 0.5rem;">
+    <input type="range" min="0" max="100" value="0">
+</ui-slider>`;
 container.append(slider);

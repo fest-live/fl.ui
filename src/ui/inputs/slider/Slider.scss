@@ -19,6 +19,8 @@
             box-sizing: border-box;
             transition-behavior: allow-discrete;
             interpolate-size: allow-keywords;
+            user-select: none;
+            pointer-events: none;
         }
 
         //
@@ -38,10 +40,17 @@
 
         //
         & {
-            @include m.display('inline-flex');
+            @include m.display('inline-flex', center, center);
             @include m.size(100px, 1rem);
-            @include m.scrollbar(hidden);
             @include m.interaction(none);
+        }
+
+        //
+        & {
+            container-type: size;
+            container-name: ui-slider;
+            overflow: visible;
+            contain: none;
         }
 
         //
@@ -59,8 +68,8 @@
         //
         .ui-box {
             @include m.position(relative);
-            @include m.size();
-            @include m.display();
+            @include m.size(calc(100% - var(--ui-slider-thumb-size) - var(--ui-slider-track-size) * 2));
+            @include m.display(flex, center, center);
 
             //
             .ui-track {
@@ -87,9 +96,25 @@
 
                 //
                 & {
+                    &:not([data-dragging]) {
+                        transition: --translate-x 0.1s ease-in-out;
+                    }
+
+                    //
+                    &[data-dragging] {
+                        transition: none;
+                        pointer-events: none;
+                    }
+
+                    --size-w: calc(100cqi - var(--ui-slider-thumb-size) - var(--ui-slider-track-size) * 2);
+                    --shift-x: calc(var(--value, 0) * var(--size-w, 100cqi));
+                    --translate-x: calc(clamp(0px, calc(var(--drag-x, 0) * 1px + var(--shift-x, 0px)), var(--size-w, 100cqi)) - var(--ui-slider-thumb-size) / 2);
+
+                    //
                     inset-block-start: 50%;
-                    transform: translateY(-50%);
+                    transform: translateX(var(--translate-x, 0px)) translateY(-50%);
                     border-radius: 50%;
+                    pointer-events: auto;
                 }
             }
         }

@@ -65,7 +65,7 @@ const correctValue = (input, val)=>{
 
 // "absolute"
 const convertPointerToValue = (input, relateFromCorner, container)=>{
-    const clamped = relateFromCorner / (container?.offsetWidth || 1); // [0, 1]
+    const clamped = relateFromCorner / (container?.offsetWidth || 1); // [0, 1]);
     const $cmp = getInputValues(input), [_, min, max] = $cmp;
     const val = clamped * (max - min) + min;
     return correctValue(input, val);
@@ -144,18 +144,23 @@ export const clampedValueRef = (inp)=>{
 }
 
 //
-export const dragSlider = (container, handler, input)=>{ // @ts-ignore
-    const correctOffset = (dragging)=>{ try { dragging[0].value = 0, dragging[1].value = 0; } catch(e) {}; return [0, 0]; };
-    const customTrigger = (doGrab)=>handler?.addEventListener?.("pointerdown", makeShiftTrigger((ev)=>{ correctOffset(dragging); doGrab?.(ev, handler)}));
+export const dragSlider = (thumb, handler, input)=>{ // @ts-ignore
+    const correctOffset = ($dragging)=>{ const drg = $dragging || dragging; try { drg[0].value = 0, drg[1].value = 0; } catch(e) {}; return [0, 0]; };
+    const customTrigger = (doGrab)=>handler?.addEventListener?.("pointerdown", makeShiftTrigger((ev)=>{ thumb?.setAttribute?.("data-dragging", "true"); correctOffset(dragging); doGrab?.(ev, handler)}, handler));
 
     //
     handler?.addEventListener?.("click", (ev)=>{ if (input?.type == "checkbox" || input?.type == "radio") { input?.click?.(); } });
-    handler?.addEventListener?.("pointerdown", (ev)=>{ setValueByPointer(input, ev?.layerX || 0, container); }); // "absolute"
+    handler?.addEventListener?.("pointerdown", (ev)=>{
+        if ((ev?.target?.element ?? ev?.target) != (thumb?.element ?? handler)) {
+            correctOffset(dragging);
+            setValueByPointer(input, (ev?.layerX || 0), handler);
+        }
+    }); // "absolute"
 
     //
     const dragging = [ ref(0), ref(0) ];
     bindWith?.(handler, "--drag-x", dragging?.[0], handleStyleChange);
-    bindWith?.(handler, "--relate", computed(dragging?.[0], (v)=>convertPointerToValueShift(input, dragging, container)), handleStyleChange); // "relative"
+    bindWith?.(handler, "--relate", computed(dragging?.[0], (v)=>convertPointerToValueShift(input, dragging, handler)), handleStyleChange); // "relative"
     bindWith?.(handler, "--value", clampedValueRef(input), handleStyleChange); // from [0, 1]
-    return bindDraggable(customTrigger, resolveDragging, dragging);
+    return bindDraggable(customTrigger, (dragging)=>{ thumb?.removeAttribute?.("data-dragging"); resolveDragging(input, dragging, handler); }, dragging, correctOffset);
 };

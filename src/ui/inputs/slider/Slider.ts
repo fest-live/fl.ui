@@ -49,7 +49,7 @@ export class SliderInput extends UIElement {
     //
     onInitialize() {
         super.onInitialize();
-        dragSlider(this, this.handle, this.input);
+        dragSlider(this.thumb, this.handle, this.input);
     }
 }
 

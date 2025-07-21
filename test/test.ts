@@ -1,8 +1,7 @@
 // @ts-ignore
 import { makeReactive } from "fest/object";
-import { H, orientRef } from "fest/lure";
+import { H, orientRef, Q } from "fest/lure";
 import loadCSS from "fest/dom";
-import { Q } from "fest/dom";
 
 //
 import ScrollBoxed from "../src/ui/scrollframe/ScrollFrame";

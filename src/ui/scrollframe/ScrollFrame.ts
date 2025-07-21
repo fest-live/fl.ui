@@ -1,5 +1,5 @@
-import { H, defineElement, property } from "fest/lure"
-import { Q, preloadStyle, DOMMixin } from "fest/dom"
+import { property, defineElement, Q, H } from "fest/lure"
+import { DOMMixin, preloadStyle } from "fest/dom"
 import { ScrollBar } from "@ui/scrollbar/Scrollbar"
 import { UIElement } from "@helpers/base/UIElement";
 

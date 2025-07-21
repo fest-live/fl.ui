@@ -27,24 +27,30 @@
 
 //
 @mixin box($r, $ov: visible) {
-    border-radius: $r;
-    overflow: $ov;
+    & {
+        border-radius: $r;
+        overflow: $ov;
+    }
 }
 
 //
 @mixin flex($dir, $justify: start, $align: center) {
-    display: flex;
-    flex-direction: $dir;
-    justify-content: $justify;
-    align-items: $align;
+    & {
+        display: flex;
+        flex-direction: $dir;
+        justify-content: $justify;
+        align-items: $align;
+    }
 }
 
 //
 @mixin grid($cols, $rows, $gap: 0) {
-    display: grid;
-    grid-template-columns: $cols;
-    grid-template-rows: $rows;
-    gap: $gap;
+    & {
+        display: grid;
+        grid-template-columns: $cols;
+        grid-template-rows: $rows;
+        gap: $gap;
+    }
 }
 
 //
@@ -66,62 +72,80 @@ $def-ff: 'Open Sans', 'Source Sans 3','Gill Sans Nova', Ubuntu, 'DejaVu Sans', C
 
 //
 @mixin size($inline: 100%, $block: 100%, $aspect-ratio: auto) {
-    inline-size: $inline;
-    block-size: $block;
-    aspect-ratio: $aspect-ratio;
+    & {
+        inline-size: #{$inline};
+        block-size: #{$block};
+        aspect-ratio: #{$aspect-ratio};
+    }
 }
 
 //
 @mixin position($type: absolute, $inset: 0) {
-    position: $type;
-    inset: $inset;
+    & {
+        position: #{$type};
+        inset: #{$inset};
+    }
 }
 
 //
 @mixin display($type: flex, $items: center, $content: center) {
-    display: $type;
-    place-items: $items;
-    place-content: $content;
-    box-sizing: border-box;
+    & {
+        display: #{$type};
+        place-items: #{$items};
+        place-content: #{$content};
+        box-sizing: border-box;
+    }
 }
 
 //
 @mixin interaction($pointerEvents: auto, $cursor: default, $userSelect: none) {
-    pointer-events: $pointerEvents;
-    user-select: $userSelect;
-    cursor: $cursor;
+    & {
+        pointer-events: #{$pointerEvents};
+        user-select: #{$userSelect};
+        cursor: #{$cursor};
+    }
 }
 
 //
 @mixin scrollbar($overflow: hidden, $width: thin, $color: transparent transparent, $gutter: auto) {
-    scrollbar-width: $width;
-    scrollbar-color: $color;
-    scrollbar-gutter: $gutter;
-    overflow: $overflow;
+    & {
+        scrollbar-width: #{$width};
+        scrollbar-color: #{$color};
+        scrollbar-gutter: #{$gutter};
+        overflow: #{$overflow};
+    }
 }
 
 //
 @mixin color($bg: transparent, $color: transparent) {
-    color: $color;
-    background-color: $bg;
+    & {
+        color: #{$color};
+        background-color: #{$bg};
+    }
 }
 
 //
 @mixin place($method: stretch) {
-    place-content: $method;
-    place-items: center;
+    & {
+        place-content: #{$method};
+        place-items: center;
+    }
 }
 
 //
 @mixin grid-flow ($direction: row) {
-    display: grid;
-    grid-auto-flow: $direction;
+    & {
+        display: grid;
+        grid-auto-flow: #{$direction};
+    }
 }
 
 //
 @mixin flex-flow ($direction: row) {
-    display: flex;
-    flex-direction: $direction;
+    & {
+        display: flex;
+        flex-direction: #{$direction};
+    }
 }
 
 //
@@ -150,9 +174,11 @@ $def-ff: 'Open Sans', 'Source Sans 3','Gill Sans Nova', Ubuntu, 'DejaVu Sans', C
 
 //
 @mixin flex-column {
-    --order: sibling-index();
-    order: var(--order, auto);
-    flex: 1 1 max-content;
+    & {
+        --order: sibling-index();
+        order: var(--order, auto);
+        flex: 1 1 max-content;
+    }
 
     //
     @include place(center);

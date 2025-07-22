@@ -53,17 +53,24 @@ $secondary-name: "secondary";
         --#{$current-name}  : var(--#{$primary-name}, #1a1);
     }
 
-    /* */
-    .c2-themed {
-        background-color: var(--primary-surface);
-        color: var(--primary-contrast);
-
-        //
+    .c2-surface, .c2-contrast {
         @include detected-theme();
         @include generate-toned-nodes();
         @include generate-themed-nodes($primary-name);
         @include generate-themed-nodes($secondary-name);
         @include generate-themed-nodes($trinary-name);
         @include generate-themed-nodes($current-name);
+    }
+
+    /* */
+    .c2-surface {
+        background-color: var(--primary-surface);
+        color: var(--primary-surface);
+    }
+
+    /* */
+    .c2-contrast {
+        background-color: var(--primary-contrast);
+        color: var(--primary-contrast);
     }
 }

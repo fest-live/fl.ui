@@ -13,8 +13,14 @@
 /* */
 @mixin detected-theme($name: "detected") {
     & { --#{$name}-theme: 1; };
+
+    //
     @media (prefers-color-scheme: dark)  { --#{$name}-theme: 0; }; /* dark  */
     @media (prefers-color-scheme: light) { --#{$name}-theme: 1; }; /* light */
+
+    //
+    @container(#{"style(color-scheme: light) or style(color-scheme: light only)"}) { --#{$name}-theme: 1; };
+    @container(#{"style(color-scheme: dark)  or style(color-scheme: dark only)"})  { --#{$name}-theme: 0; };
 }
 
 
@@ -28,6 +34,16 @@ $tone-names: "surface", "contrast", "accent", "highlight";
 $tone-values: 0.05, 0.95, 0.5, 0.9;
 $tone-values-count: list.length($tone-values);
 $tone-values-index: 0;
+$tone-light-theme-affect:
+    "calc(1.0 - var(--surface-tone, 0.5) * 0.3)",
+    "calc(0.1 + var(--contrast-tone, 0.5) * 0.2)",
+    "calc(0.1 + var(--accent-tone, 0.5) * 0.6)",
+    "calc(0.1 + var(--highlight-tone, 0.5) * 0.6)";
+$tone-dark-theme-affect:
+    "calc(0.1 + var(--surface-tone, 0.5) * 0.55)",
+    "calc(1.0 - var(--contrast-tone, 0.5) * 0.7)",
+    "calc(1.0 - var(--accent-tone, 0.5) * 0.3)",
+    "calc(1.0 - var(--highlight-tone, 0.5) * 0.3)";
 
 /* */
 @mixin property-tone-values($tone-name) {
@@ -105,9 +121,9 @@ $tone-values-index: 0;
 /*************/
 
 /* theme shading determination in [0 to 1] */
-@mixin theme-affect($basis-tone: "surface") {
-    $when-light: calc(1.0 - var(--#{$basis-tone}-tone, 0.5) * 0.3);
-    $when-dark: calc(0.1 + var(--#{$basis-tone}-tone, 0.5) * 0.6);
+@mixin theme-affect($basis-tone: "surface", $when-light, $when-dark) {
+    //$when-light: "calc(1.0 - var(--#{$basis-tone}-tone, 0.5) * 0.3)";
+    //$when-dark: "calc(0.1 + var(--#{$basis-tone}-tone, 0.5) * 0.6)";
 
     //
     & { --#{$basis-tone}-dep: #{$when-light}; };
@@ -115,7 +131,16 @@ $tone-values-index: 0;
     @media (prefers-color-scheme: dark)  { --#{$basis-tone}-dep: #{$when-dark}; }; /* dark  */
 
     //
+    @container(#{"style(color-scheme: light) or style(color-scheme: light only)"}) { --#{$basis-tone}-dep: #{$when-light}; };
+    @container(#{"style(color-scheme: dark) or style(color-scheme: dark only)"})  { --#{$basis-tone}-dep: #{$when-dark}; };
+
+    //
     & { --#{$basis-tone}-dep: calc(#{$when-light} * var(--detected-theme, 0) + #{$when-dark} * (1 - var(--detected-theme, 0))); };
+}
+
+/* */
+@mixin theme-affect-default($basis-tone: "surface") {
+    @include theme-affect($basis-tone, "calc(1.0 - var(--#{$basis-tone}-tone, 0.5) * 0.3)", "calc(0.1 + var(--#{$basis-tone}-tone, 0.5) * 0.6)");
 }
 
 /* */
@@ -138,7 +163,12 @@ $tone-values-index: 0;
 /*********************/
 
 /* */
-@mixin generate-toned($tone-name: "surface", $initial-value: 0.05) {
+@mixin generate-toned($tone-names, $index: 1) {
+    $tone-name: list.nth($tone-names, $index);
+    $initial-value: list.nth($tone-values, $index);
+    $tone-light-theme-affect: list.nth($tone-light-theme-affect, $index);
+    $tone-dark-theme-affect: list.nth($tone-dark-theme-affect, $index);
+
     /* initial (default) value */
     & {
         --#{$tone-name}-tone: #{$initial-value};
@@ -146,7 +176,7 @@ $tone-values-index: 0;
     }
 
     /* tone values */
-    @include theme-affect($tone-name);
+    @include theme-affect($tone-name, $tone-light-theme-affect, $tone-dark-theme-affect);
     @include tone-shifting($tone-name, "#{$tone-name}-shift");
 }
 
@@ -197,7 +227,7 @@ $tone-values-index: 0;
 @mixin generate-toned-nodes() {
     $tone-values-index: 1;
     @each $tone-name in $tone-names {
-        @include generate-toned($tone-name, list.nth($tone-values, $tone-values-index));
+        @include generate-toned($tone-names, $tone-values-index);
         $tone-values-index: $tone-values-index + 1;
     }
 }

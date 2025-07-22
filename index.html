@@ -40,9 +40,56 @@
                 "fest/theme": "fest-src/theme.core/src/index.ts"
             }
         }</script>
+
+        <style>
+            .color-section {
+                margin: 24px 0;
+                padding: 16px 0;
+            }
+            .color-title {
+                font-weight: bold;
+                margin-bottom: 8px;
+                font-size: 1.1em;
+                letter-spacing: 0.05em;
+            }
+            .color-row {
+                display: flex;
+                gap: 16px;
+            }
+            .color-block {
+                width: 100px;
+                height: 100px;
+                border-radius: 16px;
+                box-shadow: 0 2px 8px 0 #0002;
+                display: flex;
+                align-items: flex-end;
+                justify-content: center;
+                position: relative;
+                transition: transform 0.2s, box-shadow 0.2s;
+                border: 2px solid #fff4;
+                overflow: hidden;
+            }
+            .color-block:hover {
+                transform: scale(1.05);
+                box-shadow: 0 4px 16px 0 #0003;
+            }
+            .tone-label {
+                background: #fff8;
+                color: #222;
+                font-size: 0.9em;
+                padding: 2px 8px;
+                border-radius: 8px 8px 0 0;
+                position: absolute;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                text-align: center;
+                pointer-events: none;
+            }
+        </style>
     </head>
     <body>
         <div id="app"></div>
-        <script type="module" src="./test/test.ts"></script>
+        <script type="module" src="./test/ctm-2.ts"></script>
     </body>
 </html>

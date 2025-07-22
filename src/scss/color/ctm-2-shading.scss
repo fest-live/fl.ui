@@ -40,8 +40,8 @@ $tone-light-theme-affect:
     "calc(0.1 + var(--accent-tone, 0.5) * 0.6)",
     "calc(0.1 + var(--highlight-tone, 0.5) * 0.6)";
 $tone-dark-theme-affect:
-    "calc(0.1 + var(--surface-tone, 0.5) * 0.55)",
-    "calc(1.0 - var(--contrast-tone, 0.5) * 0.7)",
+    "calc(0.1 + var(--surface-tone, 0.5) * 0.5)",
+    "calc(1.0 - var(--contrast-tone, 0.5) * 0.1)",
     "calc(1.0 - var(--accent-tone, 0.5) * 0.3)",
     "calc(1.0 - var(--highlight-tone, 0.5) * 0.3)";
 

@@ -54,7 +54,7 @@ $secondary-name: "secondary";
     }
 
     .c2-surface, .c2-contrast {
-        @include detected-theme();
+        //@include detected-theme();
         @include generate-toned-nodes();
         @include generate-themed-nodes($primary-name);
         @include generate-themed-nodes($secondary-name);

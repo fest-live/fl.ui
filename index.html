@@ -43,8 +43,19 @@
 
         <style>
             .color-section {
+                display: flex;
+                flex-direction: row;
+                gap: 24px;
+                inline-size: 100%;
+            }
+
+            .theme-section {
                 margin: 24px 0;
                 padding: 16px 0;
+                container-type: inline-size;
+                container-name: color-section;
+                contain: none;
+                flex-grow: 1;
             }
             .color-title {
                 font-weight: bold;
@@ -57,8 +68,8 @@
                 gap: 16px;
             }
             .color-block {
-                width: 100px;
-                height: 100px;
+                width: 60px;
+                height: 60px;
                 border-radius: 16px;
                 box-shadow: 0 2px 8px 0 #0002;
                 display: flex;
@@ -85,6 +96,15 @@
                 right: 0;
                 text-align: center;
                 pointer-events: none;
+            }
+
+            .light {
+                color-scheme: light;
+                --detected-theme: 1;
+            }
+            .dark {
+                color-scheme: dark;
+                --detected-theme: 0;
             }
         </style>
     </head>

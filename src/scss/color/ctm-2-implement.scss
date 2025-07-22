@@ -1,0 +1,36 @@
+@use "ctm-2-shading" as *;
+
+/*** Enable components in DOM ***/
+/** CURRENTLY, NOT IMPLEMENTED **/
+
+/* */
+$current-name: "current";
+$primary-name: "primary";
+$trinary-name: "trinary";
+$secondary-name: "secondary";
+
+/* */
+@include property-tones();
+@include property-themed($primary-name);
+@include property-themed($secondary-name);
+@include property-themed($trinary-name);
+@include property-themed($current-name);
+
+/* */
+@layer ux-ctm {
+    :scope, :host, :root {
+        --#{$primary-name}  : #1a1;
+        --#{$trinary-name}  : oklch(from var(--#{$primary-name}, #1a1) l c rem(calc(h + 240), 360) / a);
+        --#{$secondary-name}: oklch(from var(--#{$primary-name}, #1a1) l c rem(calc(h + 120), 360) / a);
+
+        /* variable */
+        --#{$current-name}  : var(--#{$primary-name}, #1a1);
+
+        /* */
+        @include generate-toned-nodes();
+        @include generate-themed-nodes($primary-name);
+        @include generate-themed-nodes($secondary-name);
+        @include generate-themed-nodes($trinary-name);
+        @include generate-themed-nodes($current-name);
+    }
+}

@@ -1,10 +1,11 @@
 /* ! THERE WILL NO IMPLEMENTATION OF JS PART! */
 @mixin property-color($name, $initial: #fff, $syntax: "<color>", $inherits: true) {
-    @property --#{$name} {
-        syntax: "#{$syntax}";
-        inherits: #{$inherits};
-        initial-value: #{$initial};
-    };
+    @property --#{$name} { syntax: "#{$syntax}"; inherits: #{$inherits}; initial-value: #{$initial}; };
+}
+
+/* */
+@mixin property-value($name, $initial: 0, $syntax: "<number>", $inherits: true) {
+    @property --#{$name} { syntax: "#{$syntax}"; inherits: #{$inherits}; initial-value: #{$initial}; };
 }
 
 /* */
@@ -12,6 +13,58 @@
     & { --#{$name}-theme: 0; };
     @media (prefers-color-scheme: dark)  { --#{$name}-theme: 1; }; /* dark  */
     @media (prefers-color-scheme: light) { --#{$name}-theme: 0; }; /* light */
+}
+
+
+
+/*********************/
+/* TONE COEF VALUES */
+/*********************/
+
+/* */
+$tone-names: "surface", "contrast", "accent", "highlight";
+$tone-values: 0.05, 0.95, 0.5, 0.9;
+$tone-values-count: length($tone-values);
+$tone-values-index: 0;
+
+/* */
+@mixin property-tone-values($tone-name) {
+    @include property-value("#{$tone-name}", 0);
+    @include property-value("#{$tone-name}-shift", 0);
+    @include property-value("#{$tone-name}-tm", 0);
+}
+
+/* */
+@mixin property-tones() {
+    @each $tone-name in $tone-names {
+        @include property-tone-values($tone-name);
+    }
+}
+
+
+
+/* */
+@mixin property-tone-derivatives($primary-name, $tone-name) {
+    @include property-color("#{$primary-name}-#{$tone-name}", #fefffe);
+    @include property-color("#{$primary-name}-#{$tone-name}-tm", #fefffe);
+}
+
+/* */
+@mixin property-themed($primary-name) {
+    @include property-color("#{$primary-name}-lighter", #fefffe);
+    @include property-color("#{$primary-name}-darker", #101110);
+    @include property-color("#{$primary-name}-neutral", #fefffe);
+    @include property-color("#{$primary-name}-accent", #101110);
+
+    /* */
+    @include property-color("#{$primary-name}-light-shade", #fefffe);
+    @include property-color("#{$primary-name}-dark-shade", #101110);
+    @include property-color("#{$primary-name}-accent-shade", #101110);
+
+    /* */
+    @each $tone-name in $tone-names {
+        @include property-tone-derivatives($primary-name, $tone-name);
+    }
 }
 
 
@@ -24,7 +77,7 @@
 @mixin accent-shades($primary: "primary") {
     --#{$primary}-lighter: oklch(from var(--#{$primary}, #fefffe) calc(l * 0.6 + 0.4) calc(c * 0.9 + 0.1) h / a);
     --#{$primary}-darker:  oklch(from var(--#{$primary}, #101110) calc(l * 0.6 + 0.1) calc(c * 0.9 + 0.1) h / a);
-    //--#{$primary}-neutral: oklch(from var(--#{$primary}, #fefffe) calc(l * 0.4 + 0.4) calc(c * 0.6 + 0.1) h / a); // neutral unused
+    --#{$primary}-neutral: oklch(from var(--#{$primary}, #fefffe) calc(l * 0.4 + 0.4) calc(c * 0.6 + 0.1) h / a); /* neutral unused*/
 }
 
 /* for primary accency */
@@ -44,9 +97,8 @@
 @mixin sub-shades($primary: "primary", $suffix: "-tm") { /* dark shades from 0 as light to 1 as dark... */
     --#{$primary}-light-shade:  oklch(from var(--#{$primary}#{$suffix}, #fefffe) calc(l * 0.06 + 0.94) calc(c * 0.01) h / a);
     --#{$primary}-dark-shade:   oklch(from var(--#{$primary}#{$suffix}, #101110) calc(l * 0.02 + 0.01) calc(c * 0.01) h / a);
-    --#{$primary}-accent-shade: var(--#{$primary}#{$suffix}, #101110);//oklch(from var(--#{$primary}#{$suffix}, #101110) calc(l * 0.5 + 0.4) calc(c * 0.9 + 0.1) h / a);
+    --#{$primary}-accent-shade: var(--#{$primary}#{$suffix}, #101110); // oklch(from var(--#{$primary}#{$suffix}, #101110) calc(l * 0.5 + 0.4) calc(c * 0.9 + 0.1) h / a);
 }
-
 
 
 
@@ -78,10 +130,10 @@
 @mixin apply-shade($dependency: "surface", $primary: "primary") {
     $dep-named: "#{$primary}-#{$dependency}";
 
-    // if 0 to 0.5
+    /* if 0 to 0.5 */
     $from-light-to-accent: color-mix(in oklch, var(--#{$primary}-light-shade) calc(clamp(0, var(--#{$dependency}, 0) * 2, 1) * 100%), var(--#{$primary}-accent-shade));
 
-    // if 0.5 to 1
+    /* if 0.5 to 1*/
     $from-accent-to-dark: color-mix(in oklch, var(--#{$primary}-accent-shade) calc(clamp(0, (var(--#{$dependency}, 0) - 0.5) * 2, 1) * 100%), var(--#{$primary}-dark-shade));
 
     /* if > 0.5, try first variant, if <= 0.5, try secondary */
@@ -91,7 +143,6 @@
     /* resolve color, determinated by dependency */
     --#{$dep-named}: color-mix(in oklch, #{$from-light-to-accent} calc(#{$choice-factor} * 100%), #{$from-accent-to-dark});
 }
-
 
 
 
@@ -108,44 +159,30 @@
     /* tone values */
     @include theme-affect($tone-name);
     @include tone-shifting("#{$tone-name}-dep", "#{$tone-name}-shift");
+}
+
+
+
+/****************************/
+/* SHADING EDGES GENERATION */
+/****************************/
+
+/* */
+@mixin generate-themed-nodes($primary: "primary") {
+    @include accent-shades($primary); /* make different version of chromatic center */
+    @include theme-accents($primary); /* determine chromatic base by theme */
+    @include sub-shades($primary);    /* generate shadings from light or dark */
 
     /* use final tone value for shading primary */
-    @include apply-shade("#{$tone-name}-dep-shift", $primary);
+    @each $tone-name in $tone-names {
+        @include apply-shade("#{$tone-name}-dep-shift", $primary);
+    }
 }
 
-
-/* */
-@mixin theme-example($primary: "primary") {
-    @include accent-shades($primary); // make different version of chromatic center
-    @include theme-accents($primary); // determine chromatic base by theme
-    @include sub-shades($primary);    // generate shadings from light or dark
-
-    /* variable tone-maps */
-    @include generate-toned("surface");
-    @include generate-toned("constrast");
-    @include generate-toned("accent");
-    @include generate-toned("highlight");
-}
-
-
-
-/*** Enable components in DOM ***/
-/** CURRENTLY, NOT IMPLEMENTED **/
-
-/* */
-$current-name: "current";
-$primary-name: "primary";
-$trinary-name: "trinary";
-$secondary-name: "secondary";
-
-/* */
-@layer ux-ctm {
-    :root, :host, :scope {
-        --#{$primary-name}  : #1a1;
-        --#{$trinary-name}  : oklch(from var(--#{$primary-name}, #1a1) l c rem(calc(h + 240), 360) / a);
-        --#{$secondary-name}: oklch(from var(--#{$primary-name}, #1a1) l c rem(calc(h + 120), 360) / a);
-
-        /* variable */
-        --#{$current-name}  : var(--#{$primary-name}, #1a1);
+/* variable tone-maps */
+@mixin generate-toned-nodes() {
+    @each $tone-name in $tone-names {
+        @include generate-toned($tone-name, nth($tone-values, $tone-values-index));
+        $tone-values-index: $tone-values-index + 1;
     }
 }

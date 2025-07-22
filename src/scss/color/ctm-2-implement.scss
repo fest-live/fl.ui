@@ -18,19 +18,37 @@ $secondary-name: "secondary";
 
 /* */
 @layer ux-ctm {
-    :scope, :host, :root {
+    :root {
+        interpolate-size: allow-keywords;
+
+        /* */
         --#{$primary-name}  : #1a1;
         --#{$trinary-name}  : oklch(from var(--#{$primary-name}, #1a1) l c rem(calc(h + 240), 360) / a);
         --#{$secondary-name}: oklch(from var(--#{$primary-name}, #1a1) l c rem(calc(h + 120), 360) / a);
 
         /* variable */
         --#{$current-name}  : var(--#{$primary-name}, #1a1);
+    }
 
-        /* */
+    /* */
+    :scope, :host, :root {
         @include generate-toned-nodes();
         @include generate-themed-nodes($primary-name);
         @include generate-themed-nodes($secondary-name);
         @include generate-themed-nodes($trinary-name);
         @include generate-themed-nodes($current-name);
+    }
+
+    /* inherit from parent */
+    :scope:not(:root), :host {
+        interpolate-size: allow-keywords;
+
+        /* */
+        --#{$primary-name}  : inherit;
+        --#{$trinary-name}  : oklch(from var(--#{$primary-name}, #1a1) l c rem(calc(h + 240), 360) / a);
+        --#{$secondary-name}: oklch(from var(--#{$primary-name}, #1a1) l c rem(calc(h + 120), 360) / a);
+
+        /* variable */
+        --#{$current-name}  : var(--#{$primary-name}, #1a1);
     }
 }

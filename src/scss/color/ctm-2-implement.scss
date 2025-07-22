@@ -23,8 +23,8 @@ $secondary-name: "secondary";
 
         /* */
         --#{$primary-name}  : #1a1;
-        --#{$trinary-name}  : oklch(from var(--#{$primary-name}, #1a1) l c rem(calc(h + 240), 360) / a);
-        --#{$secondary-name}: oklch(from var(--#{$primary-name}, #1a1) l c rem(calc(h + 120), 360) / a);
+        --#{$trinary-name}  : oklch(from var(--#{$primary-name}, #1a1) l c rem(calc(h + 240), 360));
+        --#{$secondary-name}: oklch(from var(--#{$primary-name}, #1a1) l c rem(calc(h + 120), 360));
 
         /* variable */
         --#{$current-name}  : var(--#{$primary-name}, #1a1);
@@ -32,6 +32,7 @@ $secondary-name: "secondary";
 
     /* */
     :scope, :host, :root {
+        @include detected-theme();
         @include generate-toned-nodes();
         @include generate-themed-nodes($primary-name);
         @include generate-themed-nodes($secondary-name);
@@ -45,10 +46,24 @@ $secondary-name: "secondary";
 
         /* */
         --#{$primary-name}  : inherit;
-        --#{$trinary-name}  : oklch(from var(--#{$primary-name}, #1a1) l c rem(calc(h + 240), 360) / a);
-        --#{$secondary-name}: oklch(from var(--#{$primary-name}, #1a1) l c rem(calc(h + 120), 360) / a);
+        --#{$trinary-name}  : oklch(from var(--#{$primary-name}, #1a1) l c rem(calc(h + 240), 360));
+        --#{$secondary-name}: oklch(from var(--#{$primary-name}, #1a1) l c rem(calc(h + 120), 360));
 
         /* variable */
         --#{$current-name}  : var(--#{$primary-name}, #1a1);
+    }
+
+    /* */
+    .c2-themed {
+        background-color: var(--primary-surface);
+        color: var(--primary-contrast);
+
+        //
+        @include detected-theme();
+        @include generate-toned-nodes();
+        @include generate-themed-nodes($primary-name);
+        @include generate-themed-nodes($secondary-name);
+        @include generate-themed-nodes($trinary-name);
+        @include generate-themed-nodes($current-name);
     }
 }

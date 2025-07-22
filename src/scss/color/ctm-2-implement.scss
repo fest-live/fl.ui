@@ -65,12 +65,12 @@ $secondary-name: "secondary";
     /* */
     .c2-surface {
         background-color: var(--primary-surface);
-        color: var(--primary-surface);
+        color: var(--primary-on-surface);
     }
 
     /* */
     .c2-contrast {
         background-color: var(--primary-contrast);
-        color: var(--primary-contrast);
+        color: var(--primary-on-contrast);
     }
 }

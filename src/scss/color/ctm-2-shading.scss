@@ -30,25 +30,31 @@
 /*********************/
 
 /* */
-$tone-names: "surface", "contrast", "accent", "highlight";
-$tone-values: 0, 0, 0, 0;
+$tone-names:
+    "surface", "on-surface",
+    "contrast", "on-contrast",
+    "inverse", "on-inverse",
+    "accent", "on-accent";
+$tone-values:
+    0.2, 0.95,
+    0.02, 0.98,
+    0.9, 0.2,
+    0.4, 0.6;
 $tone-values-count: list.length($tone-values);
 $tone-values-index: 0;
+
+/*
 $tone-light-theme-affect:
-    "calc(1.0 - var(--surface-tone, 0.5) * 0.3)",
-    "calc(0.1 + var(--contrast-tone, 0.5) * 0.2)",
-    "calc(0.1 + var(--accent-tone, 0.5) * 0.6)",
-    "calc(0.1 + var(--highlight-tone, 0.5) * 0.6)";
+    "calc(0.01 - var(--surface-tone, 0.5) * 0.99)";
 $tone-dark-theme-affect:
-    "calc(0.1 + var(--surface-tone, 0.5) * 0.5)",
-    "calc(1.0 - var(--contrast-tone, 0.5) * 0.1)",
-    "calc(1.0 - var(--accent-tone, 0.5) * 0.3)",
-    "calc(1.0 - var(--highlight-tone, 0.5) * 0.3)";
+    "calc(0.01 - var(--surface-tone, 0.5) * 0.99)";
+*/
 
 /* */
 @mixin property-tone-values($tone-name) {
     @include property-value("#{$tone-name}-tone", 0);
-    @include property-value("#{$tone-name}-shift", 0);
+    @include property-value("#{$tone-name}-tone-shift", 0);
+    @include property-value("#{$tone-name}-choice-factor", 0);
     @include property-value("#{$tone-name}-tm", 0);
 }
 
@@ -65,7 +71,6 @@ $tone-dark-theme-affect:
     @include property-color("#{$primary-name}-#{$tone-name}-tm", #fefffe);
     @include property-color("#{$primary-name}-#{$tone-name}-from-light-to-accent", #fefffe);
     @include property-color("#{$primary-name}-#{$tone-name}-from-accent-to-dark", #fefffe);
-    @include property-value("#{$primary-name}-#{$tone-name}-choice-factor", 0);
 }
 
 /* */
@@ -140,15 +145,22 @@ $tone-dark-theme-affect:
 
 /* */
 @mixin theme-affect-default($basis-tone: "surface") {
-    @include theme-affect($basis-tone, "calc(1.0 - var(--#{$basis-tone}-tone, 0.5) * 0.3)", "calc(0.1 + var(--#{$basis-tone}-tone, 0.5) * 0.6)");
+    @include theme-affect($basis-tone,
+        "calc(1.0 - var(--#{$basis-tone}-tone, 0.0) * 0.9)",
+        "calc(0.1 + var(--#{$basis-tone}-tone, 0.5) * 0.9)");
 }
 
 /* */
-@mixin tone-shifting($affected: "surface", $shift: "surface-shift") {
+@function mix($a, $b, $c) {
+    @return calc(#{$a} * #{$c} + #{$b} * (1 - #{$c}) );
+}
+
+/* */
+@mixin tone-shifting($affected: "surface", $shift: "surface-tone-shift") {
     & {
         /* 0.2 - power of shift affection */
         /* 0.9 - tone correction factor */
-        --#{$affected}-dep-shift: calc( var(--#{$affected}-dep, 0) * 0.9 + var(--#{$shift}, 0) * 0.2 );
+        --#{$affected}-dep-shift: clamp(0, calc( var(--#{$affected}-dep, 0) * 0.99 + calc(var(--#{$shift}, 0) * #{mix(-1, 1, 'var(--detected-theme, 0)')}) * 0.6 ), 1);
 
         /* if > 0.5, try first variant, if <= 0.5, try secondary */
         /* if (d - 0.5) less than 0, rounds up to 0 (lights), more than 0, rounds up to 1 (darker) */
@@ -167,18 +179,19 @@ $tone-dark-theme-affect:
 @mixin generate-toned($tone-names, $index: 1) {
     $tone-name: list.nth($tone-names, $index);
     $initial-value: list.nth($tone-values, $index);
-    $tone-light-theme-affect: list.nth($tone-light-theme-affect, $index);
-    $tone-dark-theme-affect: list.nth($tone-dark-theme-affect, $index);
+    //$tone-light-theme-affect: list.nth($tone-light-theme-affect, $index);
+    //$tone-dark-theme-affect: list.nth($tone-dark-theme-affect, $index);
 
     /* initial (default) value */
     & {
         --#{$tone-name}-tone: #{$initial-value};
-        --#{$tone-name}-shift: 0.0;
+        --#{$tone-name}-tone-shift: 0.0;
     }
 
     /* tone values */
-    @include theme-affect($tone-name, $tone-light-theme-affect, $tone-dark-theme-affect);
-    @include tone-shifting($tone-name, "#{$tone-name}-shift");
+    //@include theme-affect($tone-name, $tone-light-theme-affect, $tone-dark-theme-affect);
+    @include theme-affect-default($tone-name);
+    @include tone-shifting($tone-name, "#{$tone-name}-tone-shift");
 }
 
 

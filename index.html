@@ -84,7 +84,9 @@
                 transform: scale(1.05);
                 box-shadow: 0 4px 16px 0 #0003;
             }
+
             .tone-label {
+                background-color: transparent;
                 background: #fff8;
                 color: #222;
                 font-size: 0.9em;
@@ -95,6 +97,26 @@
                 left: 0;
                 right: 0;
                 text-align: center;
+                pointer-events: none;
+                user-select: none;
+            }
+
+            .text-test {
+                position: absolute;
+                background: transparent;
+                color: inherit;
+                inset-inline-start: 50%;
+                inset-block-start: 50%;
+                transform: translateY(-6px) translate(-50%, -50%);
+                font-size: 1.5em;
+                font-weight: bold;
+                inline-size: max-content;
+                block-size: max-content;
+                display: flex;
+                place-content: center;
+                place-items: center;
+                text-align: center;
+                user-select: none;
                 pointer-events: none;
             }
 

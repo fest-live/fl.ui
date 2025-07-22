@@ -1,16 +1,18 @@
 import { H, M } from "fest/lure";
 import "../src/scss/index.scss";
 
-const tones = [0, 0.125, 0.25, 0.375, 0.5, 0.625, 0.75, 0.875, 1];
+//
+const tonesShift = [0, 0.025, 0.05, 0.075, 0.1, 0.125, 0.15, 0.175, 0.2];
 
 //
 function makeDecorativeBlocks(className, theme, colorScheme) {
     return H`
         <div class="color-row">
-            ${M(tones, (tone) => H`<div class="color-block" classList=${[className]} style=${{
-                "--contrast-tone": `${tone}`,
-                "--surface-tone": `${tone}`
+            ${M(tonesShift, (tone) => H`<div class="color-block" classList=${[className]} style=${{
+                "--contrast-tone-shift": `${tone}`,
+                "--surface-tone-shift": `${tone}`
             }}>
+            <span class="text-test">A</span>
             <span class="tone-label">${tone}</span>
             </div>
         `)?.element}</div>`;

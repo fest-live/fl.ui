@@ -26,7 +26,13 @@ export const bindMenuItemClickHandler = (menuElement: HTMLElement, menuDesc: any
 
 //
 export const makeMenuHandler = (triggerElement: HTMLElement, placement: any, ctxMenuDesc: any, menuElement: HTMLElement = Q("ui-modal[type=\"contextmenu\"]", document.body))=>{
-    return (ev)=>{
+    return (ev)=>{ // @ts-ignore
+        if (menuElement?.contains?.(ev?.target) || ev?.target == (menuElement?.element ?? menuElement)) {
+            ev?.preventDefault?.();
+            return;
+        }
+
+        //
         const initiator  = ev?.target ?? triggerElement ?? document.elementFromPoint(ev?.clientX || 0, ev?.clientY || 0);
         const visibleRef = getBoundVisibleRef(menuElement);
 
@@ -44,7 +50,6 @@ export const makeMenuHandler = (triggerElement: HTMLElement, placement: any, ctx
                 element: menuElement,
                 close() {
                     if (visibleRef != null) visibleRef.value = false;
-                    console.log(visibleRef.value);
                     ctxMenuDesc.openedWith = null;
                     unbind?.(); where?.();
                 }
@@ -56,8 +61,8 @@ export const makeMenuHandler = (triggerElement: HTMLElement, placement: any, ctx
 //
 export const ctxMenuTrigger = (triggerElement: HTMLElement, ctxMenuDesc: any, menuElement: HTMLElement = Q("ui-modal[type=\"contextmenu\"]", document.body))=>{
     const evHandler = makeMenuHandler(triggerElement, (ev)=>[ev?.clientX, ev?.clientY], ctxMenuDesc, menuElement);
-    const untrigger = makeInterruptTrigger?.(menuElement, (ev)=>{
-        ctxMenuDesc?.openedWith?.close?.()
+    const untrigger = makeInterruptTrigger?.(menuElement, (ev)=>{ // @ts-ignore
+        if (!(menuElement?.contains?.(ev?.target) || ev?.target == (triggerElement?.element ?? triggerElement)) || !ev?.target) ctxMenuDesc?.openedWith?.close?.();
     }, [ "click", "pointerdown", "scroll" ]);
 
     //

@@ -46,9 +46,6 @@ $secondary-name: "secondary";
     }
 }
 
-/* */
-@layer ux-layer.u2-normalize, ux-ctm;
-
 /* Enable components in DOM */
 @layer ux-ctm {
     :root {
@@ -174,6 +171,11 @@ $secondary-name: "secondary";
             /* Reject alt-themed children */
             & *:not(.c2-surface, .c2-contrast, .c2-inverse):not(#{exclude($type, "surface", "contrast", "inverse")}):not(:has(.c2-surface > *, .c2-contrast > *, .c2-inverse > *)) {
                 @include reset-all-properties();
+                @include generate-toned-nodes();
+                @include generate-themed-nodes($primary-name);
+                @include generate-themed-nodes($secondary-name);
+                @include generate-themed-nodes($trinary-name);
+                @include generate-themed-nodes($current-name);
             }
 
             /* Transparent */

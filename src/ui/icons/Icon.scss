@@ -23,6 +23,8 @@
             content-visibility: visible;
             background-color: var(--ui-icon-color, currentColor);
             box-sizing: border-box;
+            user-select: none;
+            pointer-events: none;
         }
 
         & {

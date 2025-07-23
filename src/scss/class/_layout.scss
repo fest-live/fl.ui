@@ -1,4 +1,5 @@
 @use "@scss/class/mixins.scss" as m;
+@use "@scss/lib/ps-cursor.scss" as *;
 
 //
 @property --value { syntax: "<number>"; initial-value: 0; inherits: true; };
@@ -125,34 +126,24 @@
     }
 
     //
-    .time-format {
-        // font styles
-        & {
-            font-size: 1em;
-            font-optical-sizing: auto;
-            font-variant-numeric: tabular-nums;
-            font-weight: 500;
-            font-kerning: auto;
-            font-family: 'Fira Mono', 'Menlo', 'Consolas', monospace;
-            font-stretch: condensed;
-            font-width: condensed;
-        }
-
-        // text styles
-        & {
-            text-overflow: ellipsis;
-            text-overflow: "";
-            text-wrap: nowrap;
-            text-align: center;
-            white-space: nowrap;
-            letter-spacing: -0.05em;
-        }
+    .round-decor {
+        padding-block: 0.25rem;
+        border-radius: 0.25rem;
+        box-shadow: 0px 0px 0.5rem var(--color-border, #00000040);
+        overflow: hidden;
 
         //
-        & { flex-direction: row; }
+        &:empty {
+            padding: 0px;
+            display: none;
+            pointer-events: none;
+            visibility: collapse;
+        }
+    }
 
-        // IDK, where put direction, after display or end of mixin?
-        @include m.display(inline flex, center, center);
-        @include m.size(max-content, max-content);
+    //
+    .ux-anchor {
+        transform: scale(var(--scale, 1)) translate(var(--translate-x, 0px), var(--translate-y, 0px));
+        @include ps-cursor;
     }
 }

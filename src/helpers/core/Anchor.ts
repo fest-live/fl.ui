@@ -86,7 +86,7 @@ export function makeInterruptTrigger(
     except: any = null,
     ref: RefBool|Function = booleanRef(false),
     closeEvents: string[] = ["pointerdown", "click", "contextmenu", "scroll"],
-    element: any = document.documentElement
+    element: any = document?.documentElement
 ) {
     const wr = new WeakRef(ref);
     const close = typeof ref === "function" ? ref : (ev) => { (!(except?.contains?.(ev?.target) || ev?.target == (except?.element ?? except)) || !except) ? $set(wr, "value", false) : false; };

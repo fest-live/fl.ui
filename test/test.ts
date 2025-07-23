@@ -79,7 +79,7 @@ const slider = H`<ui-slider style="inline-size: 100px; block-size: 1rem; border-
 </ui-slider>`;
 container.append(slider);
 
-
+//
 const ctxMenuDesc = {
     openedWith: null,
     items: [
@@ -94,7 +94,7 @@ const ctxMenuDesc = {
 }
 
 // TODO: add containement element (slot)
-const ctxMenu = H`<ul style="color-scheme: light; --detected-theme: 1; position: fixed; inline-size: 100px; block-size: max-content; inset-inline-start: var(--client-x, 0px); inset-block-start: var(--client-y, 0px);" class="grid-rows c2-surface"></ul>`;
+const ctxMenu = H`<ul class="grid-rows c2-surface round-decor ctx-menu ux-anchor"></ul>`;
 ctxMenuTrigger(document.body, ctxMenuDesc, ctxMenu);
 
 //

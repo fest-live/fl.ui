@@ -1,0 +1,95 @@
+@use "@scss/class/mixins.scss" as m;
+
+//
+@layer ux-classes {
+    .ux-essentials {
+        & {
+            --scale: 1;
+            --translate-x: 0px;
+            --translate-y: 0px;
+        }
+    }
+
+    //
+    .ctx-menu {
+        color-scheme: light;
+        --detected-theme: 1;
+        position: fixed;
+        min-inline-size: 100px;
+        inline-size: max-content;
+        block-size: max-content;
+        z-index: 99999;
+        opacity: var(--opacity, 1);
+        transform: scale(var(--scale, 1)) translate(var(--translate-x, 0px), var(--translate-y, 0px));
+        pointer-events: auto;
+
+        //
+        &, * {
+            visibility: visible;
+            content-visibility: visible;
+        }
+
+        //
+        & > * {
+            background-color: var(--current-surface, transparent);
+            pointer-events: auto;
+            place-content: center;
+            place-items: center;
+            cursor: pointer;
+
+            &:hover {
+                --surface-tone-shift: 0.1;
+                background-color: var(--current-surface, transparent);
+            }
+
+            & > span {
+                text-align: start;
+                justify-self: start;
+                user-select: none;
+                pointer-events: none;
+            }
+
+            & > ui-icon {
+                --icon-size: 1rem;
+                --icon-color: var(--current-on-surface, inherit);
+                padding: 0.5rem;
+                user-select: none;
+                pointer-events: none;
+            }
+        }
+    }
+
+
+    //
+    .time-format {
+        // font styles
+        & {
+            font-size: 1em;
+            font-optical-sizing: auto;
+            font-variant-numeric: tabular-nums;
+            font-weight: 500;
+            font-kerning: auto;
+            font-family: 'Fira Mono', 'Menlo', 'Consolas', monospace;
+            font-stretch: condensed;
+            font-width: condensed;
+        }
+
+        // text styles
+        & {
+            text-overflow: ellipsis;
+            text-overflow: "";
+            text-wrap: nowrap;
+            text-align: center;
+            white-space: nowrap;
+            letter-spacing: -0.05em;
+        }
+
+        //
+        & { flex-direction: row; }
+
+        // IDK, where put direction, after display or end of mixin?
+        @include m.display(inline flex, center, center);
+        @include m.size(max-content, max-content);
+    }
+
+}

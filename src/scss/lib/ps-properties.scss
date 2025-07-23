@@ -29,18 +29,21 @@
 @mixin         size { @include pair-props('', 'inline-size', 'block-size', '100%', '100%', '<length-percentage>'); }
 
 //
-@#{"scope(:host, :root, :scope)"} {
-    @include pointer-coords;
-    @include page-coords;
-    @include drag-coords;
-    @include sp-coords;
-    @include ds-coords;
-    @include r-coords;
-    @include limit-shift-coords;
-    @include limit-drag-coords;
-    @include resize-coords;
-    @include rs-coords;
-    @include bound-size;
-    @include size;
-    @include initial-size;
-}
+@property --scroll-coef { syntax: "<number>"; initial-value: 1; inherits: true; }
+@property --scroll-size { syntax: "<number>"; initial-value: 0; inherits: true; }
+@property --content-size { syntax: "<number>"; initial-value: 0; inherits: true; }
+
+//
+@include pointer-coords;
+@include page-coords;
+@include drag-coords;
+@include sp-coords;
+@include ds-coords;
+@include r-coords;
+@include limit-shift-coords;
+@include limit-drag-coords;
+@include resize-coords;
+@include rs-coords;
+@include bound-size;
+@include size;
+@include initial-size;

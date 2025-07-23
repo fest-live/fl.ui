@@ -116,16 +116,20 @@ $secondary-name: "secondary";
             @include reset-all-properties();
 
             /* Variables */
-            accent-color: var(--#{$current-name}-#{$type}, inherit);
-            scrollbar-color: var(--#{$current-name}-#{$type}) var(--#{$current-name}-on-#{$type}, inherit);
-            background-color: var(--#{$current-name}-#{$type}, transparent);
-            color: var(--#{$current-name}-on-#{$type}, inherit);
+            & {
+                accent-color: var(--#{$current-name}-#{$type}, inherit);
+                scrollbar-color: var(--#{$current-name}-#{$type}) var(--#{$current-name}-on-#{$type}, inherit);
+                background-color: var(--#{$current-name}-#{$type}, transparent);
+                color: var(--#{$current-name}-on-#{$type}, inherit);
+            };
 
             /* Variables */
-            border-color: oklch(from var(--#{$current-name}-on-#{$type}, inherit) l c h / 0);
-            outline-color: oklch(from var(--#{$current-name}-on-#{$type}, inherit) l c h / 0);
-            text-decoration-color: oklch(from var(--#{$current-name}-on-#{$type}, inherit) l c h / 0);
-            text-emphasis-color: oklch(from var(--#{$current-name}-on-#{$type}, inherit) l c h / 0);
+            & {
+                border-color: oklch(from var(--#{$current-name}-on-#{$type}, inherit) l c h / 0);
+                outline-color: oklch(from var(--#{$current-name}-on-#{$type}, inherit) l c h / 0);
+                text-decoration-color: oklch(from var(--#{$current-name}-on-#{$type}, inherit) l c h / 0);
+                text-emphasis-color: oklch(from var(--#{$current-name}-on-#{$type}, inherit) l c h / 0);
+            }
 
             /* Inherit from parent */
             &::before, &::after, &::placeholder, &::marker,

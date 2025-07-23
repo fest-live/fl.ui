@@ -1,4 +1,5 @@
 @use "ctm-2-shading" as *;
+@use "sass:list";
 
 /*** Enable components in DOM ***/
 /** CURRENTLY, NOT IMPLEMENTED **/
@@ -53,7 +54,21 @@ $secondary-name: "secondary";
         --#{$current-name}  : var(--#{$primary-name}, #1a1);
     }
 
-    .c2-surface, .c2-contrast {
+    /* */
+    .c2-is-primary {
+        --#{$current-name}  : var(--#{$primary-name}, #1a1);
+    }
+
+    .c2-is-secondary {
+        --#{$current-name}  : var(--#{$secondary-name}, #12a);
+    }
+
+    .c2-is-trinary {
+        --#{$current-name}  : var(--#{$trinary-name}, #a21);
+    }
+
+    /* */
+    .c2-surface, .c2-contrast, .c2-inverse, .c2-primary, .c2-secondary, .c2-trinary {
         //@include detected-theme();
         @include generate-toned-nodes();
         @include generate-themed-nodes($primary-name);
@@ -63,14 +78,100 @@ $secondary-name: "secondary";
     }
 
     /* */
-    .c2-surface {
-        background-color: var(--primary-surface);
-        color: var(--primary-on-surface);
+    @function exclude($type, $types...) {
+        $result: ();
+        @each $item in $types {
+            @if $item != $type {
+                $transformed: ".c2-#{$item} *";
+                $result: list.append($result, $transformed, comma);
+            }
+        }
+        @return $result;
     }
 
     /* */
-    .c2-contrast {
-        background-color: var(--primary-contrast);
-        color: var(--primary-on-contrast);
+    @mixin reset-all-properties() {
+        $properties: ("accent-color", "scrollbar-color", "color", "text-decoration-color", "text-emphasis-color");
+        @each $property in $properties {
+            #{$property}: inherit;
+        }
+    }
+
+    /* */
+    .c2-transparent {
+        interpolate-size: allow-keywords;
+        background-color: transparent;
+        color: inherit;
+        accent-color: inherit;
+        scrollbar-color: inherit;
+        border-color: oklch(from inherit l c h / 0);
+        outline-color: oklch(from inherit l c h / 0);
+        text-decoration-color: oklch(from inherit l c h / 0);
+        text-emphasis-color: oklch(from inherit l c h / 0);
+    }
+
+    /* */
+    @each $type in ("surface", "contrast", "inverse") {
+        .c2-#{$type}  {
+            @include reset-all-properties();
+
+            /* */
+            accent-color: var(--#{$current-name}-#{$type}, inherit);
+            scrollbar-color: var(--#{$current-name}-#{$type}) var(--#{$current-name}-on-#{$type}, inherit);
+            background-color: var(--#{$current-name}-#{$type}, transparent);
+            color: var(--#{$current-name}-on-#{$type}, inherit);
+
+            /* */
+            border-color: oklch(from var(--#{$current-name}-on-#{$type}, inherit) l c h / 0);
+            outline-color: oklch(from var(--#{$current-name}-on-#{$type}, inherit) l c h / 0);
+            text-decoration-color: oklch(from var(--#{$current-name}-on-#{$type}, inherit) l c h / 0);
+            text-emphasis-color: oklch(from var(--#{$current-name}-on-#{$type}, inherit) l c h / 0);
+
+            /* */
+            &::before, &::after, &::placeholder, &::marker,
+            & *::before, & *::after, & *::placeholder, & *::marker {
+                @include reset-all-properties();
+            }
+
+            /* */
+            &::selection, & *::selection {
+                --#{$type}-tone: 0.05;
+                background-color: var(--#{$current-name}-on-#{$type}, inherit);
+                color: var(--#{$current-name}-#{$type}, inherit);
+            }
+
+            /* */
+            &.c2-with-blur, & .c2-with-blur {
+                backdrop-filter: blur(1rem);
+                background-color: oklch(from var(--#{$current-name}-#{$type}, transparent) l c h / 0.2);
+            }
+
+            /* */
+            & :where(.c2-primary, .c2-secondary, .c2-trinary) {
+                @include reset-all-properties();
+                accent-color: var(--#{$current-name}-#{$type}, inherit);
+                scrollbar-color: var(--#{$current-name}-#{$type}) var(--#{$current-name}-on-#{$type}, inherit);
+                color: var(--#{$current-name}-on-#{$type}, inherit);
+            }
+
+            /* reject themed childrens */
+            & *:not(.c2-surface, .c2-contrast, .c2-inverse):not(#{exclude($type, "surface", "contrast", "inverse")}):not(:has(.c2-surface > *, .c2-contrast > *, .c2-inverse > *)) {
+                @include reset-all-properties();
+            }
+
+            /* */
+            &.c2-transparent { background-color: transparent; }
+            & .c2-transparent {
+                interpolate-size: allow-keywords;
+                background-color: transparent;
+                color: inherit;
+                accent-color: inherit;
+                scrollbar-color: inherit transparent;
+                border-color: oklch(from inherit l c h / 0);
+                outline-color: oklch(from inherit l c h / 0);
+                text-decoration-color: oklch(from inherit l c h / 0);
+                text-emphasis-color: oklch(from inherit l c h / 0);
+            }
+        }
     }
 }

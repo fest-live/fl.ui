@@ -115,7 +115,7 @@ const resolveDragging = (input, dragging, container) => {
 };
 
 //
-const getInputValues = (inp): [number, number, number] =>{
+export const getInputValues = (inp): [number, number, number] =>{
     if (inp?.valueAsNumber != null) { return [(inp?.valueAsNumber || 0), parseFloat(inp?.min || 0), parseFloat(inp?.max || 0)]; } else
     if (inp?.checked != null && inp?.type == "checkbox") { return [inp?.checked ? 1 : 0, 0, 1]; } else
     if (inp?.type == "radio") {

@@ -13,11 +13,13 @@
  * Differs by: Universal Wrapper, Mobile Friendly, More Functional
  */
 
-import { defineElement, H, property } from "fest/lure";
+//
+import { attrRef, defineElement, H, property, valueAsNumberRef, valueRef } from "fest/lure";
 import { preloadStyle } from "fest/dom";
+import { computed, assign } from "fest/object";
 
 //
-import { dragSlider } from "@helpers/core/InputExt";
+import { dragSlider, getInputValues } from "@helpers/core/InputExt";
 import { UIElement } from "@helpers/base/UIElement";
 
 // @ts-ignore
@@ -27,6 +29,11 @@ const styled  = preloadStyle(styles);
 // @ts-ignore
 @defineElement("ui-slider")
 export class SliderInput extends UIElement {
+    get valueAsNumber() {
+        return getInputValues(this.input)?.[0] || 0;
+    }
+
+    //
     @property({ source: "query", name: "input" }) input?: HTMLInputElement;
     @property({ source: "query-shadow", name: ".ui-thumb" }) thumb?: HTMLElement;
     @property({ source: "query-shadow", name: ".ui-box" }) handle?: HTMLElement;
@@ -34,7 +41,13 @@ export class SliderInput extends UIElement {
     @property({ source: "property", name: "value", from: "input[type=\"radio\"]:checked, input:where([type=\"checkbox\"], [type=\"number\"], [type=\"range\"])" }) value?: string;
 
     //
-    constructor() { super(); }
+    static formAssociated = true;
+
+    //
+    constructor() {
+        super(); // @ts-ignore
+        this.internals_ = this.attachInternals();
+    }
 
     //
     styles = () => styled.cloneNode(true);
@@ -49,7 +62,14 @@ export class SliderInput extends UIElement {
     //
     onInitialize() {
         super.onInitialize();
-        dragSlider(this.thumb, this.handle, this.input);
+        dragSlider(this.thumb, this.handle, this.input); // @ts-ignore
+        assign([this.internals_, "ariaValueMax"], computed(attrRef(this.input, "max"), (v)=>getInputValues(this.input)?.[2]??v)); // @ts-ignore
+        assign([this.internals_, "ariaValueMin"], computed(attrRef(this.input, "min"), (v)=>getInputValues(this.input)?.[1]??v)); // @ts-ignore
+        assign([this.internals_, "ariaValueNow"], computed(valueAsNumberRef(this.input), (v)=>getInputValues(this.input)?.[0]??v)); // @ts-ignore
+        assign([this.internals_, "ariaValueText"], valueRef(this.input)); // @ts-ignore
+        assign([this.internals_, "ariaOrientation"], "horizontal"); // @ts-ignore
+        assign([this.internals_, "ariaLive"], "polite"); // @ts-ignore
+        assign([this.internals_, "ariaRelevant"], "additions"); // @ts-ignore
     }
 }
 

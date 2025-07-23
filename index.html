@@ -59,7 +59,7 @@
             }
             .color-title {
                 font-weight: bold;
-                margin-bottom: 8px;
+                margin-block-end: 8px;
                 font-size: 1.1em;
                 letter-spacing: 0.05em;
             }
@@ -68,8 +68,8 @@
                 gap: 16px;
             }
             .color-block {
-                width: 60px;
-                height: 60px;
+                inline-size: 60px;
+                block-size: 60px;
                 border-radius: 16px;
                 box-shadow: 0 2px 8px 0 #0002;
                 display: flex;
@@ -93,9 +93,9 @@
                 padding: 2px 8px;
                 border-radius: 8px 8px 0 0;
                 position: absolute;
-                bottom: 0;
-                left: 0;
-                right: 0;
+                inset-block-end: 0;
+                inset-inline-start: 0;
+                inset-inline-end: 0;
                 text-align: center;
                 pointer-events: none;
                 user-select: none;
@@ -107,7 +107,7 @@
                 color: inherit;
                 inset-inline-start: 50%;
                 inset-block-start: 50%;
-                transform: translateY(-6px) translate(-50%, -50%);
+                transform: translateY(-6px) translate(-50%, -50%) scale(1.2);
                 font-size: 1.5em;
                 font-weight: bold;
                 inline-size: max-content;
@@ -132,6 +132,6 @@
     </head>
     <body>
         <div id="app"></div>
-        <script type="module" src="./test/test.ts"></script>
+        <script type="module" src="./test/ctm-2.ts"></script>
     </body>
 </html>

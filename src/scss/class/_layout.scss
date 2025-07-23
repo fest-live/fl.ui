@@ -16,13 +16,17 @@
     //
     .grid-rows > *, :host(.grid-rows) > ::slotted(*) { @include m.grid-row; }
     .grid-rows, :host(.grid-rows) {
-        @include m.grid-flow(row);
+        @include m.grid-flow(column);
         @include m.place();
 
         //
         & {
             grid-auto-rows: minmax(0px, max-content);
-            grid-template-columns: minmax(0px, 1fr);
+            grid-template-columns: minmax(0px, max-content) minmax(0px, 1fr)  minmax(0px, max-content);
+            margin: 0px;
+            padding: 0px;
+            list-style-type: none;
+            list-style-position: inside;
         }
 
         //
@@ -32,18 +36,22 @@
     //
     .grid-columns > *, :host(.grid-columns) > ::slotted(*) { @include m.grid-column; }
     .grid-columns, :host(.grid-columns) {
-        @include m.grid-flow(column);
+        @include m.grid-flow(row);
         @include m.place();
 
         //
         & {
             grid-auto-columns: minmax(0px, 1fr);
             grid-template-rows: minmax(0px, 1fr);
+            margin: 0px;
+            padding: 0px;
+            list-style-type: none;
+            list-style-position: inside;
         }
     }
 
     //
-    .flex-columns > *, .flex-columns > ::slotted(*) { @include m.flex-column; }
+    .flex-columns > *, :host(.flex-columns) > ::slotted(*) { @include m.flex-column; }
     .flex-columns, :host(.flex-columns) {
         @include m.flex-flow(row);
         @include m.place();

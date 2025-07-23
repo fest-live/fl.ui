@@ -11,13 +11,18 @@ import { SliderInput } from "../src/ui/inputs/slider/Slider";
 
 //
 import { timeStatusRef } from "../src/helpers/core/Status";
-import "../src/scss/index.scss";
 
 //
 import Icon from "../src/ui/icons/Icon"
+import { ctxMenuTrigger } from "../src/helpers/core/CtxMenu";
 
 //
-loadCSS();
+await loadCSS();
+
+//
+import "../src/scss/index.scss";
+
+//
 console.log(Icon);
 console.log(ScrollBoxed);
 console.log(UIGridBox);
@@ -73,3 +78,25 @@ const slider = H`<ui-slider style="inline-size: 100px; block-size: 1rem; border-
     <input type="range" min="0" max="100" value="0">
 </ui-slider>`;
 container.append(slider);
+
+/*
+const ctxMenuDesc = {
+    openedWith: null,
+    items: [
+        { id: "1", label: "Item 1", icon: "github" },
+        { id: "2", label: "Item 2", icon: "github" },
+        { id: "3", label: "Item 3", icon: "github" },
+        { id: "4", label: "Item 4", icon: "github" },
+        { id: "5", label: "Item 5", icon: "github" },
+        { id: "6", label: "Item 6", icon: "github" },
+        { id: "7", label: "Item 7", icon: "github" },
+    ]
+}
+
+// TODO: add containement element (slot)
+const ctxMenu = H`<ul style="color-scheme: light; --detected-theme: 1; position: fixed; inline-size: 100px; block-size: max-content; inset-inline-start: var(--client-x, 0px); inset-block-start: var(--client-y, 0px);" class="grid-rows c2-surface"></ul>`;
+ctxMenuTrigger(document.body, ctxMenuDesc, ctxMenu);
+
+//
+document.body.append(ctxMenu);
+*/

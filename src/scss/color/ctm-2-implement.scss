@@ -37,6 +37,9 @@ $secondary-name: "secondary";
     }
 }
 
+/* */
+@layer ux-layer.u2-normalize, ux-ctm;
+
 /* Enable components in DOM */
 @layer ux-ctm {
     :root {
@@ -121,7 +124,13 @@ $secondary-name: "secondary";
                 scrollbar-color: var(--#{$current-name}-#{$type}) var(--#{$current-name}-on-#{$type}, inherit);
                 background-color: var(--#{$current-name}-#{$type}, transparent);
                 color: var(--#{$current-name}-on-#{$type}, inherit);
+                --ui-icon-color: var(--#{$current-name}-on-#{$type}, inherit);
             };
+
+            /* */
+            & ui-icon {
+                --ui-icon-color: var(--#{$current-name}-on-#{$type}, inherit);
+            }
 
             /* Variables */
             & {

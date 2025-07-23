@@ -150,24 +150,24 @@ $def-ff: 'Open Sans', 'Source Sans 3','Gill Sans Nova', Ubuntu, 'DejaVu Sans', C
 
 //
 @mixin grid-column {
-    @include grid-flow(column);
+    @include grid-flow(row);
     @include place(center);
 
     & {
         --order: sibling-index();
-        grid-column: var(--order, 1) / var(--order, 1) span; grid-row: 1 / -1;
+        grid-column: var(--order, 1) / calc(var(--order, 1) + 1); grid-row: 1 / -1;
         grid-template-columns: minmax(0px, 1fr); grid-template-rows: subgrid;
     }
 }
 
 //
 @mixin grid-row {
-    @include grid-flow(row);
+    @include grid-flow(column);
     @include place(center);
 
     & {
         --order: sibling-index();
-        grid-column: 1 / -1; grid-row: var(--order, 1) / var(--order, 1) span;
+        grid-column: 1 / -1; grid-row: var(--order, 1) / calc(var(--order, 1) + 1);
         grid-template-columns: subgrid; grid-template-rows: minmax(0px, max-content);
     }
 }

@@ -1,4 +1,4 @@
-import { H, Q } from "fest/lure";
+import { H, Q, visibleRef } from "fest/lure";
 import { makeInterruptTrigger, withInsetWithPointer } from "./Anchor";
 
 //
@@ -9,16 +9,19 @@ export const itemClickHandle = (ev, ctxMenuDesc: any)=>{
     ctxMenuDesc?.openedWith?.close?.();
 }
 
+//
+const visibleMap = new WeakMap();
+
 // TODO: visible bindings
-const getBoundVisibleRef = (menuElement: HTMLElement): any => {
-    return null;
+const getBoundVisibleRef = (menuElement: HTMLElement): any => { // @ts-ignore
+    return visibleMap?.getOrInsertComputed?.(menuElement, ()=>visibleRef(menuElement, false));
 }
 
 //
 export const bindMenuItemClickHandler = (menuElement: HTMLElement, menuDesc: any)=>{
-    const handler = (ev)=>{ itemClickHandle(ev, menuDesc); };
-    menuElement?.addEventListener?.("click", handler);
-    return ()=>menuElement?.removeEventListener?.("click", handler);
+    //const handler = (ev)=>{ itemClickHandle(ev, menuDesc); };
+    //menuElement?.addEventListener?.("click", handler);
+    //return ()=>menuElement?.removeEventListener?.("click", handler);
 }
 
 //
@@ -30,18 +33,18 @@ export const makeMenuHandler = (triggerElement: HTMLElement, placement: any, ctx
         //
         if (initiator && visibleRef) {
             ev?.preventDefault?.();
-            menuElement.innerHTML = ''; visibleRef.value = true;
+            menuElement.innerHTML = ''; if (visibleRef != null) visibleRef.value = true;
             menuElement?.append?.(...(ctxMenuDesc?.items?.map?.(item=>H`<li data-id=${item?.id||""}><ui-icon icon=${item?.icon||""}></ui-icon><span>${item?.label||""}</span></li>`)?.filter?.((E)=>!!E)||[]));
-            const untrigger = makeInterruptTrigger?.(menuElement, (ev)=>ctxMenuDesc?.openedWith?.close?.(), ["pointerdown", "click", "contextmenu", "scroll"]);
             const where     = withInsetWithPointer?.(menuElement, placement?.(ev, initiator));
             const unbind    = bindMenuItemClickHandler(menuElement, ctxMenuDesc);
             if (ctxMenuDesc) ctxMenuDesc.openedWith = {
                 initiator,
                 element: menuElement,
                 close() {
-                    visibleRef.value = false;
+                    if (visibleRef != null) visibleRef.value = false;
+                    console.log(visibleRef.value);
                     ctxMenuDesc.openedWith = null;
-                    unbind?.(); untrigger?.(); where?.();
+                    unbind?.(); where?.();
                 }
             };
         }
@@ -51,6 +54,11 @@ export const makeMenuHandler = (triggerElement: HTMLElement, placement: any, ctx
 //
 export const ctxMenuTrigger = (triggerElement: HTMLElement, ctxMenuDesc: any, menuElement: HTMLElement = Q("ui-modal[type=\"contextmenu\"]", document.body))=>{
     const evHandler = makeMenuHandler(triggerElement, (ev)=>[ev?.clientX, ev?.clientY], ctxMenuDesc, menuElement);
+    const untrigger = makeInterruptTrigger?.(menuElement, (ev)=>{
+        ctxMenuDesc?.openedWith?.close?.()
+    }, [ "click", /*"pointerdown","contextmenu",*/ "scroll"]);
+
+    //
     triggerElement?.addEventListener?.("contextmenu", evHandler);
-    return ()=>{ triggerElement?.removeEventListener?.("contextmenu", evHandler); };
+    return ()=>{ untrigger?.(); triggerElement?.removeEventListener?.("contextmenu", evHandler); };
 }

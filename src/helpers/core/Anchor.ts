@@ -83,13 +83,15 @@ const $set = (rv, key, val)=>{ if (rv?.deref?.() != null) { return (rv.deref()[k
 
 //
 export function makeInterruptTrigger(
-    element: any = document.documentElement, ref: RefBool|Function = booleanRef(false),
+    except: any = null,
+    ref: RefBool|Function = booleanRef(false),
     closeEvents: string[] = ["pointerdown", "click", "contextmenu", "scroll"],
+    element: any = document.documentElement
 ) {
     const wr = new WeakRef(ref);
-    const close = typeof ref === "function" ? ref : () => { $set(wr, "value", false); };
-    closeEvents.forEach(event => element.addEventListener(event, close));
-    const ubs = ()=>closeEvents.forEach(event => element.removeEventListener(event, close));
+    const close = typeof ref === "function" ? ref : (ev) => { (!(except?.contains?.(ev?.target) || ev?.target == (except?.element ?? except)) || !except) ? $set(wr, "value", false) : false; };
+    closeEvents.forEach(event => element?.addEventListener?.(event, close));
+    const ubs = ()=>closeEvents.forEach(event => element?.removeEventListener?.(event, close));
     addToCallChain(ref, Symbol.dispose, ubs);
     return ubs;
 }

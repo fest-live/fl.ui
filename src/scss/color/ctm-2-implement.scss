@@ -124,10 +124,15 @@ $secondary-name: "secondary";
         .c2-#{$type}  {
             @include reset-all-properties();
 
+            & {
+                color-scheme: light;
+                --detected-theme: 1;
+            }
+
             /* Variables */
             & {
                 accent-color: var(--#{$current-name}-#{$type}, inherit);
-                scrollbar-color: var(--#{$current-name}-#{$type}) var(--#{$current-name}-on-#{$type}, inherit);
+                scrollbar-color: var(--#{$current-name}-on-#{$type}, inherit) transparent;
                 background-color: var(--#{$current-name}-#{$type}, transparent);
                 color: var(--#{$current-name}-on-#{$type}, inherit);
                 --ui-icon-color: var(--#{$current-name}-on-#{$type}, inherit);
@@ -164,18 +169,22 @@ $secondary-name: "secondary";
             & :where(.c2-primary, .c2-secondary, .c2-trinary) {
                 @include reset-all-properties();
                 accent-color: var(--#{$current-name}-#{$type}, inherit);
-                scrollbar-color: var(--#{$current-name}-#{$type}) var(--#{$current-name}-on-#{$type}, inherit);
+                scrollbar-color: var(--#{$current-name}-on-#{$type}, inherit) transparent;
                 color: var(--#{$current-name}-on-#{$type}, inherit);
             }
 
-            /* Reject alt-themed children */
-            & *:not(.c2-surface, .c2-contrast, .c2-inverse):not(#{exclude($type, "surface", "contrast", "inverse")}):not(:has(.c2-surface > *, .c2-contrast > *, .c2-inverse > *)) {
-                @include reset-all-properties();
+            /* */
+            & * {
                 @include generate-toned-nodes();
                 @include generate-themed-nodes($primary-name);
                 @include generate-themed-nodes($secondary-name);
                 @include generate-themed-nodes($trinary-name);
                 @include generate-themed-nodes($current-name);
+            }
+
+            /* Reject alt-themed children */
+            & *:not(.c2-surface, .c2-contrast, .c2-inverse):not(#{exclude($type, "surface", "contrast", "inverse")}):not(:has(.c2-surface > *, .c2-contrast > *, .c2-inverse > *)) {
+                @include reset-all-properties();
             }
 
             /* Transparent */
@@ -197,5 +206,17 @@ $secondary-name: "secondary";
                 --ui-icon-color: var(--#{$current-name}-on-#{$type}, inherit);
             }
         }
+    }
+
+    //
+    .c2-light {
+        color-scheme: light;
+        --detected-theme: 1;
+    }
+
+    //
+    .c2-dark {
+        color-scheme: dark;
+        --detected-theme: 0;
     }
 }

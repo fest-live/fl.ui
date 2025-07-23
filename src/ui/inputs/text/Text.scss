@@ -1,0 +1,123 @@
+@use "@scss/class/mixins.scss" as m;
+
+//
+@layer ui-text {
+    :host(ui-longtext) {
+        & {
+            max-inline-size: 100%;
+            max-block-size: 100%;
+            inline-size: max-content;
+            block-size: max-content;
+            display: grid !important;
+            place-content: stretch;
+            place-items: stretch;
+            text-align: start;
+            user-select: none;
+            pointer-events: none;
+            background-color: var(--current-surface, transparent);
+            border: none;
+            outline: none;
+            padding: 0;
+            margin: 0;
+            font-size: var(--ui-text-font-size, 1rem);
+            grid-template-columns: minmax(0px, 1fr);
+            grid-template-rows: minmax(0px, 1fr);
+            position: relative;
+            overflow: hidden;
+            border-radius: 0.5rem;
+            contain: none;
+        }
+
+        //
+        @include m.round-corner(0.5rem);
+
+        //
+        &, * {
+            box-sizing: border-box;
+            transition-behavior: allow-discrete;
+            interpolate-size: allow-keywords;
+            user-select: none;
+            pointer-events: none;
+        }
+
+        //
+        & > * {
+            grid-column: 1 / -1;
+            grid-row: 1 / -1;
+            justify-content: start;
+            text-align: start;
+            user-select: none;
+            pointer-events: none;
+            background-color: transparent;
+            border: none;
+            outline: none;
+            padding: 0;
+            margin: 0;
+            font-size: var(--ui-text-font-size, 1rem);
+            font-family: var(--ui-text-font-family, Helvetica, Calibri, Carlito);
+            inline-size: 100%;
+            block-size: 100%;
+            background-color: transparent;
+        }
+
+        //
+        & {
+            --ui-text-color: var(--current-on-surface, currentColor);
+            --ui-text-font-size: 1rem;
+            --ui-text-font-family: Helvetica, Calibri, Carlito;
+        }
+
+        //
+        .box-layer {
+            inline-size: 100%;
+            block-size: 100%;
+            display: block;
+            //display: flex;
+            text-align: start;
+            place-content: stretch;
+            place-items: stretch;
+            justify-content: start;
+            justify-self: start;
+            justify-items: start;
+            user-select: none;
+            pointer-events: auto;
+            border: none;
+            outline: none;
+            padding: 0;
+            margin: 0;
+            font-size: var(--ui-text-font-size, 1rem);
+            font-family: var(--ui-text-font-family, inherit);
+            overflow-inline: scroll;
+            overflow-block: hidden;
+            contain: none;
+            background-color: transparent;
+            clip-path: inset(0px 0.25rem round 0.125rem);
+        }
+
+        //
+        ::slotted(input) {
+            //min-inline-size: 100%;
+            display: inline-block;
+            min-inline-size: -webkit-fill-available;
+            min-inline-size: stretch;
+            min-block-size: 100%;
+            inline-size: auto;
+            block-size: max-content;
+            place-content: stretch;
+            place-items: stretch;
+            text-align: start;
+            justify-self: start;
+            justify-content: start;
+            user-select: none;
+            pointer-events: auto;
+            background-color: transparent;
+            border: none;
+            outline: none;
+            padding: 0.5rem;
+            margin: 0;
+            field-sizing: content;
+            font-size: var(--ui-text-font-size, 1rem);
+            font-family: var(--ui-text-font-family, Helvetica, Calibri, Carlito);
+        }
+    }
+}

@@ -37,8 +37,8 @@ export class SliderInput extends UIElement {
     @property({ source: "query", name: "input" }) input?: HTMLInputElement;
     @property({ source: "query-shadow", name: ".ui-thumb" }) thumb?: HTMLElement;
     @property({ source: "query-shadow", name: ".ui-box" }) handle?: HTMLElement;
-    @property({ source: "attr", from: "input[type=\"radio\"]:checked, input:where([type=\"checkbox\"], [type=\"number\"], [type=\"range\"]), input" }) name?: string;
-    @property({ source: "property", name: "value", from: "input[type=\"radio\"]:checked, input:where([type=\"checkbox\"], [type=\"number\"], [type=\"range\"])" }) value?: string;
+    @property({ source: "property", from: "input[type=\"radio\"]:checked, input:where([type=\"checkbox\"], [type=\"number\"], [type=\"range\"]), input" }) name?: string;
+    @property({ source: "property", from: "input[type=\"radio\"]:checked, input:where([type=\"checkbox\"], [type=\"number\"], [type=\"range\"])", name: "value" }) value?: string;
 
     //
     static formAssociated = true;
@@ -70,6 +70,7 @@ export class SliderInput extends UIElement {
         assign([this.internals_, "ariaOrientation"], "horizontal"); // @ts-ignore
         assign([this.internals_, "ariaLive"], "polite"); // @ts-ignore
         assign([this.internals_, "ariaRelevant"], "additions"); // @ts-ignore
+        assign([this.internals_, "ariaRole"], "slider"); // @ts-ignore
     }
 }
 

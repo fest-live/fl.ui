@@ -15,7 +15,7 @@
 
     //
     :host {
-        & { --scrollbar-color: light-dark(#101010f0, #fdfdfdf0); };
+        & { --scrollbar-color: oklch(from var(--current-on-surface, #111) l c h / 0.8); };
         & { display: block; }
         &, & * {
             interpolate-size: allow-keywords;

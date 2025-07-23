@@ -1,6 +1,6 @@
 import {    subscribe, computed, numberRef } from "fest/object";
-import { E, getPadding, scrollRef, sizeRef  } from "fest/lure";
-import { Q, setProperty, makeRAFCycle, RAFBehavior, preloadStyle } from "fest/dom";
+import { E, getPadding, scrollRef, sizeRef } from "fest/lure";
+import { setProperty, makeRAFCycle, RAFBehavior, preloadStyle } from "fest/dom";
 
 // @ts-ignore
 import styles from "@ui/scrollbar/Scrollbar.scss?inline";
@@ -64,8 +64,10 @@ const scrollSize  = (source: HTMLElement, axis: number = 0)=>{ // @ts-ignore
     const content = sizeRef(source, (["inline", "block"] as ["inline", "block"])[axis], "content-box");
     const compute = ()=>(target?.deref?.()?.[['scrollWidth', 'scrollHeight'][axis] || 'scrollWidth'] || (content.value + getPadding(target?.deref?.(), (["inline", "block"] as ["inline", "block"])[axis])));
     const percent = numberRef(compute());
-    subscribe(content, ()=>percent.value = compute())
-    subscribe(scroll,  ()=>percent.value = compute());
+    subscribe(content, ()=>(percent.value = compute()));
+    subscribe(scroll,  ()=>(percent.value = compute()));
+    source?.addEventListener?.("input", ()=>(percent.value = compute()));
+    source?.addEventListener?.("change", ()=>(percent.value = compute()));
     return percent;
 }
 
@@ -118,8 +120,8 @@ const makeInteractive = (holder, content, scrollbar, axis = 0, status: any = {})
         if (self && status?.pointerId == ev.pointerId) {
             evc?.stopPropagation?.(); evc?.preventDefault?.();
             const cm = ev[CAXIS[axis]] || 0; const dm = (cm - status.point) || 0;
-            const contentScrollSize = content.scrollHeight - content.clientHeight;
-            const trackSize = scrollbar.clientHeight - handler?.querySelector?.("*")?.clientHeight;
+            const contentScrollSize = content?.[['scrollWidth', 'scrollHeight'][axis]] - content?.[['clientWidth', 'clientHeight'][axis]];
+            const trackSize = scrollbar?.[['clientWidth', 'clientHeight'][axis]] - handler?.querySelector?.("*")?.[['clientWidth', 'clientHeight'][axis]];
             const DT = (dm * contentScrollSize) / trackSize; status.point = cm;
 
             // Скроллим содержимое
@@ -203,6 +205,6 @@ export class ScrollBar {
         makeInteractive(this.holder, this.content, this.scrollbar, axis, this.status);
 
         //
-        E(this.scrollbar, { style: { "--scroll-size": computed(scrollSize(this.content, axis), (v)=>`${v}px`, RAFBehavior()) } });
+        E(this.scrollbar, { style: { "--scroll-size": computed(scrollSize(this.content, axis), (v)=>_LOG_(`${v}px`), RAFBehavior()) } });
     }
 }

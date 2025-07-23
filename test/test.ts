@@ -8,6 +8,7 @@ import ScrollBoxed from "../src/ui/scrollframe/ScrollFrame";
 import { UIGridBox } from "../src/ui/grid/GridBox";
 import { bindInteraction } from "../src/ui/grid/GridBind";
 import { SliderInput } from "../src/ui/inputs/slider/Slider";
+import LongTextInput from "../src/ui/inputs/text/Text";
 
 //
 import { timeStatusRef } from "../src/helpers/core/Status";
@@ -27,11 +28,12 @@ console.log(Icon);
 console.log(ScrollBoxed);
 console.log(UIGridBox);
 console.log(SliderInput);
+console.log(LongTextInput);
 
 //
 const scb = H`
-<div data-mixin="ov-scrollbar" style="clip-path: inset(0px round 0.5%); background-color: rgba(0,0,0, 0.1); padding: 1rem; margin: 1rem; box-sizing: border-box; overflow: scroll; display: block; inline-size: 800px; block-size: 600px; border: none 0px transparent; outline: none 0px transparent;">
-<div style="user-select: none; font-family: Helvetica, Calibri, Carlito; border-radius: 0.5rem; padding: 0.5rem; inline-size: 100px; block-size: 1800px; background-color: darkred; color: white; display: flex; place-content: center; place-items: center;">Black Dolphin</div>
+<div class="c2-surface" data-mixin="ov-scrollbar" style="clip-path: inset(0px round 0.5%); padding: 1rem; margin: 1rem; box-sizing: border-box; overflow: scroll; display: block; inline-size: 800px; block-size: 600px; border: none 0px transparent; outline: none 0px transparent;">
+<div class="c2-surface c2-dark" style="user-select: none; font-family: Helvetica, Calibri, Carlito; border-radius: 0.5rem; padding: 0.5rem; inline-size: 100px; block-size: 1800px; display: flex; place-content: center; place-items: center;">Black Dolphin</div>
 </div>`
 
 //
@@ -99,3 +101,12 @@ ctxMenuTrigger(document.body, ctxMenuDesc, ctxMenu);
 
 //
 document.body.append(ctxMenu);
+
+//
+const longText = H`<ui-longtext class="c2-surface" style="inline-size: 200px; border-radius: 0.5rem;">
+    <input type="text" min="0" max="100" value="0">
+</ui-longtext>`;
+longText.value = "Hello, world!";
+
+//
+container.append(longText);

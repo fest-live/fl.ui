@@ -25,7 +25,7 @@ export class UIGridBox extends UIElement {
 
     //
     styles = () => styled?.cloneNode?.(true);
-    render = () => H`<template><slot></slot></template>`;
+    render = () => H`<slot></slot>`;
     bindWith(content: any) {
         const self = this as any;
 

@@ -12,8 +12,6 @@
 
     //
     .ctx-menu {
-        color-scheme: light;
-        --detected-theme: 1;
         position: fixed;
         min-inline-size: 100px;
         inline-size: max-content;
@@ -39,7 +37,6 @@
 
             &:hover {
                 --surface-tone-shift: 0.1;
-                background-color: var(--current-surface, transparent);
             }
 
             & > span {
@@ -50,8 +47,8 @@
             }
 
             & > ui-icon {
-                --icon-size: 1rem;
-                --icon-color: var(--current-on-surface, inherit);
+                --ui-icon-size: 2rem;
+                --ui-icon-color: var(--current-on-surface, inherit);
                 padding: 0.5rem;
                 user-select: none;
                 pointer-events: none;

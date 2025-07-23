@@ -1,16 +1,16 @@
 @use "sass:list";
 
-/* ! THERE WILL NO IMPLEMENTATION OF JS PART! */
+/* Define property color */
 @mixin property-color($name, $initial: #fff, $syntax: "<color>", $inherits: true) {
     @property --#{$name} { syntax: "#{$syntax}"; inherits: #{$inherits}; initial-value: #{$initial}; };
 }
 
-/* */
+/* Define property value */
 @mixin property-value($name, $initial: 0, $syntax: "<number>", $inherits: true) {
     @property --#{$name} { syntax: "#{$syntax}"; inherits: #{$inherits}; initial-value: #{$initial}; };
 }
 
-/* */
+/* Detect theme */
 @mixin detected-theme($name: "detected") {
     & { --#{$name}-theme: 1; };
 
@@ -29,7 +29,7 @@
 /* TONE COEF VALUES */
 /*********************/
 
-/* */
+/* Tone names */
 $tone-names:
     "surface", "on-surface",
     "contrast", "on-contrast",
@@ -43,14 +43,7 @@ $tone-values:
 $tone-values-count: list.length($tone-values);
 $tone-values-index: 0;
 
-/*
-$tone-light-theme-affect:
-    "calc(0.01 - var(--surface-tone, 0.5) * 0.99)";
-$tone-dark-theme-affect:
-    "calc(0.01 - var(--surface-tone, 0.5) * 0.99)";
-*/
-
-/* */
+/* Define property tone values */
 @mixin property-tone-values($tone-name) {
     @include property-value("#{$tone-name}-tone", 0);
     @include property-value("#{$tone-name}-tone-shift", 0);
@@ -58,14 +51,14 @@ $tone-dark-theme-affect:
     @include property-value("#{$tone-name}-tm", 0);
 }
 
-/* */
+/* Generate property tones */
 @mixin property-tones() {
     @each $tone-name in $tone-names {
         @include property-tone-values($tone-name);
     }
 }
 
-/* */
+/* Generate property tone derivatives */
 @mixin property-tone-derivatives($primary-name, $tone-name) {
     @include property-color("#{$primary-name}-#{$tone-name}", #fefffe);
     @include property-color("#{$primary-name}-#{$tone-name}-tm", #fefffe);
@@ -73,19 +66,19 @@ $tone-dark-theme-affect:
     @include property-color("#{$primary-name}-#{$tone-name}-from-accent-to-dark", #fefffe);
 }
 
-/* */
+/* Generate property themed */
 @mixin property-themed($primary-name) {
     @include property-color("#{$primary-name}-lighter", #fefffe);
     @include property-color("#{$primary-name}-darker", #101110);
     @include property-color("#{$primary-name}-neutral", #fefffe);
     @include property-color("#{$primary-name}-accent", #101110);
 
-    /* */
+    /* Generate property light shade */
     @include property-color("#{$primary-name}-light-shade", #fefffe);
     @include property-color("#{$primary-name}-dark-shade", #101110);
     @include property-color("#{$primary-name}-accent-shade", #101110);
 
-    /* */
+    /* Generate property tone derivatives */
     @each $tone-name in $tone-names {
         @include property-tone-derivatives($primary-name, $tone-name);
     }
@@ -97,7 +90,7 @@ $tone-dark-theme-affect:
 /* SHADING EDGES GENERATION */
 /****************************/
 
-/* dependend on light or dark theme */
+/* Generate accent shades */
 @mixin accent-shades($primary: "primary") {
     & {
         --#{$primary}-lighter: oklch(from var(--#{$primary}, #fefffe) calc(l * 0.6 + 0.4) calc(c * 0.9 + 0.1) h);
@@ -106,7 +99,7 @@ $tone-dark-theme-affect:
     }
 }
 
-/* for primary accency */
+/* Generate theme accents */
 @mixin theme-accents($ld-color-name, $dep-name: "detected") {
     & { /* there should been `@supports` */ /* TODO: color-mix may be not correct... */
         --#{$ld-color-name}-tm: color-mix(
@@ -143,19 +136,19 @@ $tone-dark-theme-affect:
     & { --#{$basis-tone}-dep: calc(#{$when-light} * var(--detected-theme, 0) + #{$when-dark} * (1 - var(--detected-theme, 0))); };
 }
 
-/* */
+/* Generate theme affect */
 @mixin theme-affect-default($basis-tone: "surface") {
     @include theme-affect($basis-tone,
         "calc(1.0 - var(--#{$basis-tone}-tone, 0.0) * 0.9)",
         "calc(0.1 + var(--#{$basis-tone}-tone, 0.5) * 0.9)");
 }
 
-/* */
+/* Mix colors */
 @function mix($a, $b, $c) {
     @return calc(#{$a} * #{$c} + #{$b} * (1 - #{$c}) );
 }
 
-/* */
+/* Generate tone shifting */
 @mixin tone-shifting($affected: "surface", $shift: "surface-tone-shift") {
     & {
         /* 0.2 - power of shift affection */
@@ -175,7 +168,7 @@ $tone-dark-theme-affect:
 /* GENERATION SYSTEM */
 /*********************/
 
-/* */
+/* Generate toned */
 @mixin generate-toned($tone-names, $index: 1) {
     $tone-name: list.nth($tone-names, $index);
     $initial-value: list.nth($tone-values, $index);
@@ -200,7 +193,7 @@ $tone-dark-theme-affect:
 /* USING TONE */
 /**************/
 
-/* (like tailwind) potentially styled, where $dependency variable is 0 to 1 as like [0 to 1000] */
+/* Generate sub-shades */
 @mixin sub-shades($primary: "primary", $suffix: "-tm") { /* dark shades from 0 as light to 1 as dark... */
     & {
         --#{$primary}-light-shade:  oklch(from var(--#{$primary}#{$suffix}, #fefffe) calc(l * 0.06 + 0.94) calc(c * 0.01) h);
@@ -209,7 +202,7 @@ $tone-dark-theme-affect:
     }
 }
 
-/* */
+/* Apply shade */
 @mixin apply-shade($subset: "surface", $primary: "primary", $dep-name: "dep-shift") {
     $dep-named: '#{$subset}-#{$dep-name}';
 
@@ -225,7 +218,7 @@ $tone-dark-theme-affect:
     }
 }
 
-/* */
+/* Generate themed nodes */
 @mixin generate-themed-nodes($primary: "primary") {
     @include accent-shades($primary); /* make different version of chromatic center */
     @include theme-accents($primary); /* determine chromatic base by theme */
@@ -237,7 +230,7 @@ $tone-dark-theme-affect:
     }
 }
 
-/* variable tone-maps */
+/* Generate toned nodes */
 @mixin generate-toned-nodes() {
     $tone-values-index: 1;
     @each $tone-name in $tone-names {

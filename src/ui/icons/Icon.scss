@@ -19,9 +19,10 @@
         }
 
         & { //
-            padding: 0.125rem;
+            padding: 0.25rem;
             content-visibility: visible;
             background-color: var(--ui-icon-color, currentColor);
+            box-sizing: border-box;
         }
 
         & {

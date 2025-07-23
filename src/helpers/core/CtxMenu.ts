@@ -19,9 +19,9 @@ const getBoundVisibleRef = (menuElement: HTMLElement): any => { // @ts-ignore
 
 //
 export const bindMenuItemClickHandler = (menuElement: HTMLElement, menuDesc: any)=>{
-    //const handler = (ev)=>{ itemClickHandle(ev, menuDesc); };
-    //menuElement?.addEventListener?.("click", handler);
-    //return ()=>menuElement?.removeEventListener?.("click", handler);
+    const handler = (ev)=>{ itemClickHandle(ev, menuDesc); };
+    menuElement?.addEventListener?.("click", handler);
+    return ()=>menuElement?.removeEventListener?.("click", handler);
 }
 
 //
@@ -37,6 +37,8 @@ export const makeMenuHandler = (triggerElement: HTMLElement, placement: any, ctx
             menuElement?.append?.(...(ctxMenuDesc?.items?.map?.(item=>H`<li data-id=${item?.id||""}><ui-icon icon=${item?.icon||""}></ui-icon><span>${item?.label||""}</span></li>`)?.filter?.((E)=>!!E)||[]));
             const where     = withInsetWithPointer?.(menuElement, placement?.(ev, initiator));
             const unbind    = bindMenuItemClickHandler(menuElement, ctxMenuDesc);
+
+            //
             if (ctxMenuDesc) ctxMenuDesc.openedWith = {
                 initiator,
                 element: menuElement,
@@ -56,7 +58,7 @@ export const ctxMenuTrigger = (triggerElement: HTMLElement, ctxMenuDesc: any, me
     const evHandler = makeMenuHandler(triggerElement, (ev)=>[ev?.clientX, ev?.clientY], ctxMenuDesc, menuElement);
     const untrigger = makeInterruptTrigger?.(menuElement, (ev)=>{
         ctxMenuDesc?.openedWith?.close?.()
-    }, [ "click", /*"pointerdown","contextmenu",*/ "scroll"]);
+    }, [ "click", "pointerdown", "scroll" ]);
 
     //
     triggerElement?.addEventListener?.("contextmenu", evHandler);

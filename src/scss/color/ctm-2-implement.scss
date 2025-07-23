@@ -10,6 +10,15 @@ $primary-name: "primary";
 $trinary-name: "trinary";
 $secondary-name: "secondary";
 
+/* */
+@property --primary { syntax: "<color>"; initial-value: #1a1; inherits: true; };
+@property --trinary { syntax: "<color>"; initial-value: #a21; inherits: true; };
+@property --secondary { syntax: "<color>"; initial-value: #12a; inherits: true; };
+@property --current { syntax: "<color>"; initial-value: #1a1; inherits: true; };
+
+/* */
+@property --detected-theme { syntax: "<number>"; initial-value: 1; inherits: true; };
+
 /* Generate property tones */
 @include property-tones();
 @include property-themed($primary-name);
@@ -127,11 +136,6 @@ $secondary-name: "secondary";
                 --ui-icon-color: var(--#{$current-name}-on-#{$type}, inherit);
             };
 
-            /* */
-            & ui-icon {
-                --ui-icon-color: var(--#{$current-name}-on-#{$type}, inherit);
-            }
-
             /* Variables */
             & {
                 border-color: oklch(from var(--#{$current-name}-on-#{$type}, inherit) l c h / 0);
@@ -184,6 +188,11 @@ $secondary-name: "secondary";
                 outline-color: oklch(from inherit l c h / 0);
                 text-decoration-color: oklch(from inherit l c h / 0);
                 text-emphasis-color: oklch(from inherit l c h / 0);
+            }
+
+            /* */
+            &:is(ui-icon), & ui-icon {
+                --ui-icon-color: var(--#{$current-name}-on-#{$type}, inherit);
             }
         }
     }

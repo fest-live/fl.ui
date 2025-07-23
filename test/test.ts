@@ -79,7 +79,7 @@ const slider = H`<ui-slider style="inline-size: 100px; block-size: 1rem; border-
 </ui-slider>`;
 container.append(slider);
 
-/*
+
 const ctxMenuDesc = {
     openedWith: null,
     items: [
@@ -99,4 +99,3 @@ ctxMenuTrigger(document.body, ctxMenuDesc, ctxMenu);
 
 //
 document.body.append(ctxMenu);
-*/

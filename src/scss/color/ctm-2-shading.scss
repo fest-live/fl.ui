@@ -21,6 +21,9 @@
     //
     @container(#{"style(color-scheme: light) or style(color-scheme: light only)"}) { --#{$name}-theme: 1; };
     @container(#{"style(color-scheme: dark)  or style(color-scheme: dark only)"})  { --#{$name}-theme: 0; };
+
+    //
+    & * { --detected-theme: inherit; }
 }
 
 

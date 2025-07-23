@@ -58,6 +58,7 @@
             inline-size: 100%;
             block-size: 100%;
             background-color: transparent;
+            overflow: hidden;
         }
 
         //
@@ -118,6 +119,8 @@
             field-sizing: content;
             font-size: var(--ui-text-font-size, 1rem);
             font-family: var(--ui-text-font-family, Helvetica, Calibri, Carlito);
+            box-sizing: border-box;
+            overflow: visible;
         }
     }
 }

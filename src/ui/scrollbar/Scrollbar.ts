@@ -62,7 +62,7 @@ const scrollSize  = (source: HTMLElement, axis: number = 0)=>{ // @ts-ignore
     const target  = asWeak(source);
     const scroll  = scrollRef(source, (["inline", "block"] as ["inline", "block"])[axis]);
     const content = sizeRef(source, (["inline", "block"] as ["inline", "block"])[axis], "content-box");
-    const compute = ()=>(target?.deref?.()?.[['scrollWidth', 'scrollHeight'][axis] || 'scrollWidth'] || (content.value + getPadding(target?.deref?.(), (["inline", "block"] as ["inline", "block"])[axis])));
+    const compute = ()=>((target?.deref?.()?.[['scrollWidth', 'scrollHeight'][axis] || 'scrollWidth'] - 1) || 1);
     const percent = numberRef(compute());
     subscribe(content, ()=>(percent.value = compute()));
     subscribe(scroll,  ()=>(percent.value = compute()));
@@ -121,7 +121,7 @@ const makeInteractive = (holder, content, scrollbar, axis = 0, status: any = {})
             evc?.stopPropagation?.(); evc?.preventDefault?.();
             const cm = ev[CAXIS[axis]] || 0; const dm = (cm - status.point) || 0;
             const contentScrollSize = content?.[['scrollWidth', 'scrollHeight'][axis]] - content?.[['clientWidth', 'clientHeight'][axis]];
-            const trackSize = scrollbar?.[['clientWidth', 'clientHeight'][axis]] - handler?.querySelector?.("*")?.[['clientWidth', 'clientHeight'][axis]];
+            const trackSize = scrollbar?.[['clientWidth', 'clientHeight'][axis]] - handler?.querySelector?.("*")?.[['offsetWidth', 'offsetHeight'][axis]];
             const DT = (dm * contentScrollSize) / trackSize; status.point = cm;
 
             // Скроллим содержимое
@@ -205,6 +205,6 @@ export class ScrollBar {
         makeInteractive(this.holder, this.content, this.scrollbar, axis, this.status);
 
         //
-        E(this.scrollbar, { style: { "--scroll-size": computed(scrollSize(this.content, axis), (v)=>_LOG_(`${v}px`), RAFBehavior()) } });
+        E(this.scrollbar, { style: { "--scroll-size": computed(scrollSize(this.content, axis), (v)=>_LOG_(`${v||1}px`), RAFBehavior()) } });
     }
 }

@@ -145,7 +145,7 @@ $counter: 0;
 
     //
     & :where(#{$thumb}) {
-        background-color: oklch(from var(--scrollbar-color, #101010F0) l c h / 0.8) !important;
+        background-color: oklch(from var(--scrollbar-color, #101010F0) l c h / 0.6) !important;
         position-anchor: --#{$anchor};
         pointer-events: auto;
         border-radius: 0.25rem;

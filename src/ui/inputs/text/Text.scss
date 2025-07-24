@@ -26,6 +26,8 @@
             overflow: hidden;
             border-radius: 0.5rem;
             contain: none;
+
+            --surface-tone-shift: 0.1;
         }
 
         //
@@ -85,6 +87,7 @@
             border: none;
             outline: none;
             padding: 0;
+            padding-block-end: 0.25rem;
             margin: 0;
             font-size: var(--ui-text-font-size, 1rem);
             font-family: var(--ui-text-font-family, inherit);

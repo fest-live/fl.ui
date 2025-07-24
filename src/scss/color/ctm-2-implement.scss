@@ -135,8 +135,9 @@ $secondary-name: "secondary";
                 scrollbar-color: var(--#{$current-name}-on-#{$type}, inherit) transparent;
                 background-color: var(--#{$current-name}-#{$type}, transparent);
                 color: var(--#{$current-name}-on-#{$type}, inherit);
+                caret-color: var(--#{$current-name}-on-#{$type}, inherit);
                 --ui-icon-color: var(--#{$current-name}-on-#{$type}, inherit);
-            };
+            }
 
             /* Variables */
             & {
@@ -171,6 +172,7 @@ $secondary-name: "secondary";
                 accent-color: var(--#{$current-name}-#{$type}, inherit);
                 scrollbar-color: var(--#{$current-name}-on-#{$type}, inherit) transparent;
                 color: var(--#{$current-name}-on-#{$type}, inherit);
+                caret-color: var(--#{$current-name}-on-#{$type}, inherit);
             }
 
             /* */
@@ -204,6 +206,11 @@ $secondary-name: "secondary";
             /* */
             &:is(ui-icon), & ui-icon {
                 --ui-icon-color: var(--#{$current-name}-on-#{$type}, inherit);
+            }
+
+            /* */
+            &:is(ui-longtext), & ui-longtext {
+                --#{$type}-tone-shift: 0.1;
             }
         }
     }

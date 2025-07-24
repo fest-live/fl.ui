@@ -10,7 +10,6 @@ const styled = preloadStyle(styles);
 // @ts-ignore
 @defineElement("ui-scrollframe")
 export class ScrollBoxed extends UIElement {
-    //
     @property({source: "attr"}) anchor = "_";
     #x: any = null;
     #y: any = null;

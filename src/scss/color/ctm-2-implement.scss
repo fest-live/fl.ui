@@ -211,6 +211,6 @@ $secondary-name: "secondary";
     }
 
     //
-    .c2-light { color-scheme: light; @include detected-theme(); & { --detected-theme: 0; }; }
-    .c2-dark  { color-scheme: dark;  @include detected-theme(); & { --detected-theme: 1; }; }
+    .c2-light { color-scheme: light; @include detected-theme(); /*& { --detected-theme: 0; };*/ }
+    .c2-dark  { color-scheme: dark;  @include detected-theme(); /*& { --detected-theme: 1; };*/ }
 }

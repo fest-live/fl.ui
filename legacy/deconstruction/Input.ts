@@ -1,10 +1,7 @@
+import { ScrollBar } from "fest/ui";
+import { includeSelf } from "fest/dom";
 
-import { importCdn } from "fest/cdnImport";
-import { ScrollBar } from "../fl.ui/ui/scrollbar/Scrollbar";
-import { includeSelf } from "../fl.ui/core/Utils";
-
-// @ts-ignore
-const { observeBySelector } = await Promise.try(importCdn, ["fest/dom"]);
+//
 export const doButtonAction = (button, input: HTMLInputElement)=>{
     if (button.matches(".u2-copy") && input?.matches?.("input") && (input?.selectionStart != input?.selectionEnd)) { navigator.clipboard.writeText(input.value.substring(input.selectionStart || 0, input.selectionEnd || input.selectionStart || 0)); }
     if (button.matches(".u2-paste") && input?.selectionStart != null) {
@@ -215,49 +212,4 @@ export const updateInput = (state, target)=>{
             }
         }
     }
-}
-
-//
-export const synchronizeInputs = (state, wrapper = ".u2-input", fields = document.documentElement, subscribe?: Function)=>{
-
-    //
-    const onChange = (ev)=>{
-        const input  = ev?.target?.matches("input") ? ev?.target : ev?.target?.querySelector?.("input");
-        const target = ev?.target?.matches(wrapper) ? ev?.target : input?.closest?.(wrapper);
-        const name   = input?.name || target?.dataset?.name;
-
-        //
-        if (state?.[name] != null) { // not exists not preferred...
-            if (input?.matches?.("input:where([type=\"text\"], [type=\"number\"], [type=\"range\"])")) {
-                const value = (input.valueAsNumber != null && !isNaN(input.valueAsNumber)) ? input.valueAsNumber : input.value;
-                if (state[name] != value) { state[name] = value; };
-            }
-
-            // any radio-box
-            if (input?.matches?.("input[type=\"radio\"]")) {
-                if (input?.checked && state[name] != input.value) { state[name] = input.value; };
-            }
-
-            // any check-box
-            if (input?.matches?.("input[type=\"checkbox\"]")) {
-                if (state[name] != input.checked) { state[name] = input.checked; };
-            }
-        }
-    };
-
-    //
-    fields.addEventListener("input", onChange);
-    fields.addEventListener("change", onChange);
-    fields.addEventListener("u2-appear", ()=>requestIdleCallback(()=> fields.querySelectorAll(wrapper).forEach((target)=>updateInput(state, target)), {timeout: 100}));
-
-    // cross-window or frame syncretism
-    subscribe?.(state, (value, property)=>{ fields.querySelectorAll(wrapper).forEach((target)=>updateInput(state, target)); });
-    requestIdleCallback(()=>{ fields.querySelectorAll(wrapper).forEach((target)=>updateInput(state, target)); }, {timeout: 100});
-    observeBySelector(fields, wrapper, (mutations)=>{
-        mutations.addedNodes.forEach((target)=>{
-            requestIdleCallback(()=>{
-                updateInput(state, target);
-            }, {timeout: 100});
-        });
-    });
 }

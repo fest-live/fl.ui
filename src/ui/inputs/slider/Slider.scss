@@ -106,6 +106,7 @@
                         pointer-events: none;
                     }
 
+                    //
                     --size-w: calc(100cqi - var(--ui-slider-thumb-size) - var(--ui-slider-track-size) * 2);
                     --shift-x: calc(var(--value, 0) * var(--size-w, 100cqi));
                     --translate-x: calc(clamp(0px, calc(var(--drag-x, 0) * 1px + var(--shift-x, 0px)), var(--size-w, 100cqi)) - var(--ui-slider-thumb-size) / 2);

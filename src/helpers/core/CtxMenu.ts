@@ -28,8 +28,7 @@ export const bindMenuItemClickHandler = (menuElement: HTMLElement, menuDesc: any
 export const makeMenuHandler = (triggerElement: HTMLElement, placement: any, ctxMenuDesc: any, menuElement: HTMLElement = Q("ui-modal[type=\"contextmenu\"]", document.body))=>{
     return (ev)=>{ // @ts-ignore
         if (menuElement?.contains?.(ev?.target) || ev?.target == (menuElement?.element ?? menuElement)) {
-            ev?.preventDefault?.();
-            return;
+            ev?.preventDefault?.(); return;
         }
 
         //
@@ -39,8 +38,12 @@ export const makeMenuHandler = (triggerElement: HTMLElement, placement: any, ctx
         //
         if (initiator && visibleRef) {
             ev?.preventDefault?.();
+
+            // TODO: use reactive mapped ctx-menu element
             menuElement.innerHTML = ''; if (visibleRef != null) visibleRef.value = true;
             menuElement?.append?.(...(ctxMenuDesc?.items?.map?.(item=>H`<li data-id=${item?.id||""}><ui-icon icon=${item?.icon||""}></ui-icon><span>${item?.label||""}</span></li>`)?.filter?.((E)=>!!E)||[]));
+
+            //
             const where     = withInsetWithPointer?.(menuElement, placement?.(ev, initiator));
             const unbind    = bindMenuItemClickHandler(menuElement, ctxMenuDesc);
 

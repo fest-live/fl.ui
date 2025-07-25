@@ -12,20 +12,26 @@
 
 /* Detect theme */
 @mixin detected-theme($name: "detected") {
-    & { --#{$name}-theme: 1; };
+    & { --#{$name}-theme: 0; };
+    & * { --#{$name}-theme: inherit; }
 
     //
-    @media (prefers-color-scheme: dark)  { --#{$name}-theme: 0; }; /* dark  */
-    @media (prefers-color-scheme: light) { --#{$name}-theme: 1; }; /* light */
+    @media (prefers-color-scheme: light) { --#{$name}-theme: 0; };
+    @media (prefers-color-scheme: dark)  { --#{$name}-theme: 1; };
 
     //
-    @container(#{"style(color-scheme: light) or style(color-scheme: light only)"}) { --#{$name}-theme: 1; };
-    @container(#{"style(color-scheme: dark)  or style(color-scheme: dark only)"})  { --#{$name}-theme: 0; };
+    @container(#{"style(color-scheme: light) or style(color-scheme: only light)"}) { --#{$name}-theme: 0; };
+    @container(#{"style(color-scheme: dark)  or style(color-scheme: only dark)"})  { --#{$name}-theme: 1; };
 
     //
-    & * { --detected-theme: inherit; }
+    &, & * {
+        --#{$name}-theme: if(
+            style(color-scheme: dark): 1;
+            style(color-scheme: only dark): 1;
+            else: 0;
+        );
+    };
 }
-
 
 
 /*********************/
@@ -126,17 +132,7 @@ $tone-values-index: 0;
     //$when-light: "calc(1.0 - var(--#{$basis-tone}-tone, 0.5) * 0.3)";
     //$when-dark: "calc(0.1 + var(--#{$basis-tone}-tone, 0.5) * 0.6)";
 
-    //
-    & { --#{$basis-tone}-dep: #{$when-light}; };
-    @media (prefers-color-scheme: light) { --#{$basis-tone}-dep: #{$when-light}; }; /* light */
-    @media (prefers-color-scheme: dark)  { --#{$basis-tone}-dep: #{$when-dark}; }; /* dark  */
-
-    //
-    @container(#{"style(color-scheme: light) or style(color-scheme: light only)"}) { --#{$basis-tone}-dep: #{$when-light}; };
-    @container(#{"style(color-scheme: dark) or style(color-scheme: dark only)"})  { --#{$basis-tone}-dep: #{$when-dark}; };
-
-    //
-    & { --#{$basis-tone}-dep: calc(#{$when-light} * var(--detected-theme, 0) + #{$when-dark} * (1 - var(--detected-theme, 0))); };
+    & { --#{$basis-tone}-dep: calc(#{$when-light} * (1 - var(--detected-theme, 0)) + #{$when-dark} * var(--detected-theme, 0)); };
 }
 
 /* Generate theme affect */
@@ -156,7 +152,7 @@ $tone-values-index: 0;
     & {
         /* 0.2 - power of shift affection */
         /* 0.9 - tone correction factor */
-        --#{$affected}-dep-shift: clamp(0, calc( var(--#{$affected}-dep, 0) * 0.99 + calc(var(--#{$shift}, 0) * #{mix(-1, 1, 'var(--detected-theme, 0)')}) * 0.6 ), 1);
+        --#{$affected}-dep-shift: clamp(0, calc( var(--#{$affected}-dep, 0) * 0.99 + calc(var(--#{$shift}, 0) * #{mix(1, -1, 'var(--detected-theme, 0)')}) * 0.6 ), 1);
 
         /* if > 0.5, try first variant, if <= 0.5, try secondary */
         /* if (d - 0.5) less than 0, rounds up to 0 (lights), more than 0, rounds up to 1 (darker) */

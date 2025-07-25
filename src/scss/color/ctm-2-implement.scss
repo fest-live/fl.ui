@@ -17,7 +17,7 @@ $secondary-name: "secondary";
 @property --current { syntax: "<color>"; initial-value: #1a1; inherits: true; };
 
 /* */
-@property --detected-theme { syntax: "<number>"; initial-value: 1; inherits: true; };
+@property --detected-theme { syntax: "<number>"; initial-value: 0; inherits: true; };
 
 /* Generate property tones */
 @include property-tones();
@@ -98,7 +98,7 @@ $secondary-name: "secondary";
 
     /* Generate property tones */
     .c2-surface, .c2-contrast, .c2-inverse, .c2-primary, .c2-secondary, .c2-trinary {
-        //@include detected-theme();
+        @include detected-theme();
         @include generate-toned-nodes();
         @include generate-themed-nodes($primary-name);
         @include generate-themed-nodes($secondary-name);
@@ -123,11 +123,6 @@ $secondary-name: "secondary";
     @each $type in ("surface", "contrast", "inverse") {
         .c2-#{$type}  {
             @include reset-all-properties();
-
-            & {
-                color-scheme: light;
-                --detected-theme: 1;
-            }
 
             /* Variables */
             & {
@@ -216,14 +211,6 @@ $secondary-name: "secondary";
     }
 
     //
-    .c2-light {
-        color-scheme: light;
-        --detected-theme: 1;
-    }
-
-    //
-    .c2-dark {
-        color-scheme: dark;
-        --detected-theme: 0;
-    }
+    .c2-light { color-scheme: light; @include detected-theme(); & { --detected-theme: 0; }; }
+    .c2-dark  { color-scheme: dark;  @include detected-theme(); & { --detected-theme: 1; }; }
 }

@@ -1,7 +1,7 @@
 import { bindDraggable, handleStyleChange } from "fest/dom";
 import { makeShiftTrigger } from "../controllers/Trigger";
 import { bindCtrl, bindWith } from "fest/lure";
-import { computed, numberRef, conditional, ref } from "fest/object";
+import { computed, numberRef, conditional } from "fest/object";
 
 /* ***************************************************************************************** *
  * Here few version of value and coordinates                                                 *
@@ -158,7 +158,7 @@ export const dragSlider = (thumb, handler, input)=>{ // @ts-ignore
     }); // "absolute"
 
     //
-    const dragging = [ ref(0), ref(0) ];
+    const dragging = [ numberRef(0), numberRef(0) ];
     bindWith?.(handler, "--drag-x", dragging?.[0], handleStyleChange);
     bindWith?.(handler, "--relate", computed(dragging?.[0], (v)=>convertPointerToValueShift(input, dragging, handler)), handleStyleChange); // "relative"
     bindWith?.(handler, "--value", clampedValueRef(input), handleStyleChange); // from [0, 1]

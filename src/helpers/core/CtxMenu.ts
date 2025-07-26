@@ -1,5 +1,5 @@
 import { H, Q, visibleRef } from "fest/lure";
-import { makeInterruptTrigger, withInsetWithPointer } from "./Anchor";
+import { boundingBoxRef, makeInterruptTrigger, withInsetWithPointer } from "./Anchor";
 
 //
 export const itemClickHandle = (ev, ctxMenuDesc: any)=>{
@@ -7,6 +7,10 @@ export const itemClickHandle = (ev, ctxMenuDesc: any)=>{
     const item = ctxMenuDesc?.items?.find?.((I: any)=>I?.id == id);
     item?.action?.(ctxMenuDesc?.openedWith?.initiator, item, ev);
     ctxMenuDesc?.openedWith?.close?.();
+
+    //
+    const visibleRef = getBoundVisibleRef(ctxMenuDesc?.openedWith?.element);
+    if (visibleRef != null) visibleRef.value = false;
 }
 
 //
@@ -36,6 +40,10 @@ export const makeMenuHandler = (triggerElement: HTMLElement, placement: any, ctx
         const visibleRef = getBoundVisibleRef(menuElement);
 
         //
+        if (visibleRef?.value && ev?.type != "contextmenu") {
+            visibleRef.value = false;
+            ctxMenuDesc?.openedWith?.close?.();
+        } else
         if (initiator && visibleRef) {
             ev?.preventDefault?.();
 
@@ -61,14 +69,35 @@ export const makeMenuHandler = (triggerElement: HTMLElement, placement: any, ctx
     };
 }
 
-//
+// use cursor as anchor based on contextmenu
 export const ctxMenuTrigger = (triggerElement: HTMLElement, ctxMenuDesc: any, menuElement: HTMLElement = Q("ui-modal[type=\"contextmenu\"]", document.body))=>{
-    const evHandler = makeMenuHandler(triggerElement, (ev)=>[ev?.clientX, ev?.clientY], ctxMenuDesc, menuElement);
+    const evHandler = makeMenuHandler(triggerElement, (ev)=>[ev?.clientX, ev?.clientY, 200], ctxMenuDesc, menuElement);
     const untrigger = makeInterruptTrigger?.(menuElement, (ev)=>{ // @ts-ignore
-        if (!(menuElement?.contains?.(ev?.target) || ev?.target == (triggerElement?.element ?? triggerElement)) || !ev?.target) ctxMenuDesc?.openedWith?.close?.();
+        if (!(menuElement?.contains?.(ev?.target) || ev?.target == (triggerElement?.element ?? triggerElement)) || !ev?.target) {
+            ctxMenuDesc?.openedWith?.close?.();
+            const visibleRef = getBoundVisibleRef(menuElement);
+            if (visibleRef != null) visibleRef.value = false;
+        }
     }, [ "click", "pointerdown", "scroll" ]);
 
     //
     triggerElement?.addEventListener?.("contextmenu", evHandler);
     return ()=>{ untrigger?.(); triggerElement?.removeEventListener?.("contextmenu", evHandler); };
+}
+
+// bit same as contextmenu, but different by anchor and trigger (from element drop-down)
+export const dropMenuTrigger = (triggerElement: HTMLElement, ctxMenuDesc: any, menuElement: HTMLElement = Q("ui-modal[type=\"menulist\"]", document.body))=>{
+    const anchorElement = triggerElement;
+    const evHandler = makeMenuHandler(triggerElement, (ev)=>boundingBoxRef(anchorElement)?.slice?.(0, 3), ctxMenuDesc, menuElement);
+    const untrigger = makeInterruptTrigger?.(menuElement, (ev)=>{ // @ts-ignore
+        if (!(menuElement?.contains?.(ev?.target) || ev?.target == (triggerElement?.element ?? triggerElement)) || !ev?.target) {
+            ctxMenuDesc?.openedWith?.close?.();
+            const visibleRef = getBoundVisibleRef(menuElement);
+            if (visibleRef != null) visibleRef.value = false;
+        }
+    }, [ "click", "pointerdown", "scroll" ]);
+
+    //
+    triggerElement?.addEventListener?.("click", evHandler);
+    return ()=>{ untrigger?.(); triggerElement?.removeEventListener?.("click", evHandler); };
 }

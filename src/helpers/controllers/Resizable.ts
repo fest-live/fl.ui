@@ -3,7 +3,7 @@ import { makeShiftTrigger, doObserve } from "./Trigger";
 
 //
 import {  E  } from "fest/lure";
-import { ref } from "fest/object";
+import { numberRef } from "fest/object";
 
 //
 export class ResizeHandler {
@@ -16,7 +16,7 @@ export class ResizeHandler {
     //
     constructor(holder, options?: any) {
         if (!holder) { throw Error("Element is null..."); }
-        doObserve(this.#holder = holder, this.#parent); this.#resizing = [ref(0), ref(0)];
+        doObserve(this.#holder = holder, this.#parent); this.#resizing = [numberRef(0), numberRef(0)];
         if (options) this.resizable(options);
     }
 

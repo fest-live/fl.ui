@@ -1,4 +1,4 @@
-import { ref, makeReactive, booleanRef, stringRef, addToCallChain, WRef } from "fest/object";
+import { ref, makeReactive, booleanRef, stringRef, addToCallChain, WRef, numberRef } from "fest/object";
 import { handleStyleChange, observeContentBox } from "fest/dom";
 import { bindWith } from "fest/lure";
 
@@ -39,7 +39,7 @@ export const handleForFixPosition = (container, cb, root = window)=>{
 
 //
 export const pointerRef = ()=>{
-    const coordinate = [ ref(0), ref(0) ];
+    const coordinate = [ numberRef(0), numberRef(0) ];
     coordinate.push(WRef(handleByPointer((ev)=>{ coordinate[0].value = ev.clientX; coordinate[1].value = ev.clientY; })));
     if (coordinate[2]?.deref?.() ?? coordinate[2]) { addToCallChain(coordinate, Symbol.dispose, coordinate[2]?.deref?.() ?? coordinate[2]); }
     return coordinate;
@@ -164,18 +164,21 @@ export function boundingBoxRef(anchor: HTMLElement, options?: {
     observeResize?: boolean,
     observeMutations?: boolean,
 }) {
-    const area: Area = makeReactive({ left: 0, top: 0, right: 0, bottom: 0, width: 0, height: 0 });
+    //const area: Area = makeReactive({ left: 0, top: 0, right: 0, bottom: 0, width: 0, height: 0 });
+    const area = [
+        numberRef(0), numberRef(0), numberRef(0), numberRef(0), numberRef(0), numberRef(0)
+    ]
     const { root = window, observeResize = true, observeMutations = false } = options || {};
 
     //
     function updateArea() {
         const rect  = anchor?.getBoundingClientRect?.() ?? {};
-        area.top    = rect?.top;
-        area.left   = rect?.left;
-        area.right  = rect?.right;
-        area.width  = rect?.width;
-        area.bottom = rect?.bottom;
-        area.height = rect?.height;
+        area[0].value = rect?.left; // x
+        area[1].value = rect?.top;  // y
+        area[2].value = rect?.right - rect?.left; // width
+        area[3].value = rect?.bottom - rect?.top; // height
+        area[4].value = rect?.right;  // to right
+        area[5].value = rect?.bottom; // to bottom
     }
 
     //
@@ -205,7 +208,9 @@ export function boundingBoxRef(anchor: HTMLElement, options?: {
     }
 
     //
-    if (destroy) addToCallChain(area, Symbol.dispose, destroy);
+    if (destroy) {
+        area.forEach(ub=>addToCallChain(ub, Symbol.dispose, destroy));
+    }
     return area;
 }
 
@@ -215,5 +220,7 @@ export const withInsetWithPointer = (exists: HTMLElement, pRef: any)=>{
         bindWith(exists, "--client-x", pRef?.[0], handleStyleChange),
         bindWith(exists, "--client-y", pRef?.[1], handleStyleChange)
     ];
+    if (pRef?.[2]) { ubs.push(bindWith(exists, "--anchor-width", pRef?.[2], handleStyleChange)); }
+    if (pRef?.[3]) { ubs.push(bindWith(exists, "--anchor-height", pRef?.[3], handleStyleChange)); }
     return ()=>ubs?.forEach?.(ub=>ub?.());
 }

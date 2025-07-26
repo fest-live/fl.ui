@@ -71,3 +71,38 @@ export const focusTask  = (taskManager, target: HTMLElement, deActiveWhenFocus =
     if (matchMedia("not (((hover: hover) or (pointer: fine)) and ((width >= 9in) or (orientation: landscape)))").matches)
         { if (bar) { bar.dataset.hidden = ""; }; }
 }
+
+//
+export const blurTask = (taskManager?, trigger: boolean = false) => {
+    const isMobile = matchMedia("not (((hover: hover) or (pointer: fine)) and ((width >= 9in) or (orientation: landscape)))").matches, taskbar  = isMobile ? document.querySelector("ui-taskbar:not([data-hidden])") : null;
+    const modal = (document.querySelector("ui-modal[type=\"contextmenu\"]:not([data-hidden])") ?? document.querySelector("ui-modal:not([data-hidden]):where(:has(:focus), :focus)") ?? document.querySelector("ui-modal:not([data-hidden])") ?? taskbar) as HTMLElement;
+
+    //
+    if (document.activeElement?.matches?.("input")) { (document.activeElement as any)?.blur?.(); return true; } else
+    if (modal) { modal.dataset.hidden = ""; return true; } else
+
+    // general case
+    if (taskManager) {
+        const task = taskManager?.getOnFocus?.();
+        const id   = task?.taskId;
+        if (id && id != "#") {
+            const frame = document.querySelector("ui-frame:has("+id+")");
+            if (frame) {
+                frame?.addEventListener?.("u2-hidden", ()=>{
+                    frame?.dispatchEvent?.(new CustomEvent("u2-close", {
+                        bubbles: true,
+                        cancelable: true,
+                        detail: {
+                            taskId: id
+                        }
+                    }));
+                }, {once: true});
+                taskManager.deactivate(id, trigger ?? false);
+            } else { taskManager.removeTask(id); };
+            return true;
+        }
+    }
+
+    //
+    return false;
+}

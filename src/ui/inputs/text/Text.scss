@@ -12,8 +12,8 @@
             place-content: stretch;
             place-items: stretch;
             text-align: start;
-            user-select: none;
             pointer-events: none;
+            user-select: none;
             background-color: var(--current-surface, transparent);
             border: none;
             outline: none;
@@ -75,7 +75,6 @@
             inline-size: 100%;
             block-size: 100%;
             display: block;
-            //display: flex;
             text-align: start;
             place-content: stretch;
             place-items: stretch;
@@ -83,7 +82,8 @@
             justify-self: start;
             justify-items: start;
             user-select: none;
-            pointer-events: auto;
+            pointer-events: none;
+            user-select: none;
             border: none;
             outline: none;
             padding: 0;
@@ -95,12 +95,30 @@
             overflow-block: hidden;
             contain: none;
             background-color: transparent;
-            clip-path: inset(0px 0.25rem round 0.125rem);
+
+            // prevent input from being cut off visually
+            clip-path: inset(0px 0.125rem round 0.125rem);
+
+            // smoothly crop input in left and right edges...
+            mask-image: linear-gradient(
+                to right,
+                transparent 0rem,
+                transparent 0.125rem,
+                black 0.5rem,
+                black calc(100% - 0.5rem),
+                transparent calc(100% - 0.125rem),
+                transparent 100%
+            );
+            mask-size: 100% 100%;
+            mask-repeat: no-repeat;
+            mask-position: center center;
+            mask-mode: alpha;
+            mask-origin: content-box;
+            mask-clip: padding-box;
         }
 
         //
         ::slotted(input) {
-            //min-inline-size: 100%;
             display: inline-block;
             min-inline-size: -webkit-fill-available;
             min-inline-size: stretch;
@@ -112,16 +130,20 @@
             text-align: start;
             justify-self: start;
             justify-content: start;
-            user-select: none;
+            user-select: auto;
             pointer-events: auto;
             background-color: transparent;
             border: none;
             outline: none;
-            padding: 0.5rem;
+            padding: 0.25rem;
+            padding-inline: 0.5rem;
+            padding-block-end: 0.333rem;
             margin: 0;
             field-sizing: content;
             font-size: var(--ui-text-font-size, 1rem);
             font-family: var(--ui-text-font-family, Helvetica, Calibri, Carlito);
+            border: none 0px transparent;
+            outline: none 0px transparent;
             box-sizing: border-box;
             overflow: visible;
         }

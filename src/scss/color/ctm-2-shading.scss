@@ -27,7 +27,7 @@
     @container(#{"style(color-scheme: dark)  or style(color-scheme: only dark)"})  { --#{$name}-theme: 1; };
 
     //
-    --if-theme-hack: light-dark(#111, #000);
+    & {--if-theme-hack: light-dark(#111, #000); };
 
     //
     &, & * {

@@ -2,7 +2,7 @@
 @use "@scss/lib/ps-cursor.scss" as *;
 
 //
-@property --value { syntax: "<number>"; initial-value: 0; inherits: true; };
+@property --value  { syntax: "<number>"; initial-value: 0; inherits: true; };
 @property --relate { syntax: "<number>"; initial-value: 0; inherits: true; };
 @property --drag-x { syntax: "<number>"; initial-value: 0; inherits: true; };
 @property --drag-y { syntax: "<number>"; initial-value: 0; inherits: true; };

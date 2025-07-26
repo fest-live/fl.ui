@@ -45,7 +45,7 @@ export class LongTextInput extends UIElement {
     //
     styles = () => styled.cloneNode(true);
     render = ()=> H`
-<div class="box-layer"><slot></slot></div>
+<div class="box-layer" part="box-layer"><slot></slot></div>
 `;
 
     //

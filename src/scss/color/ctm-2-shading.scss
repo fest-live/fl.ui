@@ -10,6 +10,7 @@
     @property --#{$name} { syntax: "#{$syntax}"; inherits: #{$inherits}; initial-value: #{$initial}; };
 }
 
+/* */
 @property --if-theme-hack { syntax: "<color>"; inherits: true; initial-value: #000; };
 
 /* Detect theme */

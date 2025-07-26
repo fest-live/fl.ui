@@ -2,8 +2,8 @@
 
 //
 @layer ux-classes {
-    .ux-essentials {
-        & {
+    :host, :root, :scope {
+        &, & * {
             --scale: 1;
             --translate-x: 0px;
             --translate-y: 0px;
@@ -12,14 +12,16 @@
 
     //
     .ctx-menu {
-        position: fixed;
-        min-inline-size: 100px;
-        inline-size: max-content;
-        block-size: max-content;
-        z-index: 99999;
-        opacity: var(--opacity, 1);
-        transform: scale(var(--scale, 1)) translate(var(--translate-x, 0px), var(--translate-y, 0px));
-        pointer-events: auto;
+        & {
+            position: fixed;
+            min-inline-size: 100px;
+            inline-size: max-content;
+            block-size: max-content;
+            z-index: 99999;
+            opacity: var(--opacity, 1);
+            transform: scale(var(--scale, 1)) translate(var(--translate-x, 0px), var(--translate-y, 0px));
+            pointer-events: auto;
+        }
 
         //
         &, * {
@@ -88,5 +90,4 @@
         @include m.display(inline flex, center, center);
         @include m.size(max-content, max-content);
     }
-
 }

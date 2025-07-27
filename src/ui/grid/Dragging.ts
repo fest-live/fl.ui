@@ -67,7 +67,7 @@ export const makeDragEvents = async (newItem, {layout, dragging, currentCell}, {
         mouseImmediate: true,
         minHoldTime: 60 * 3600,
         maxHoldTime: 100
-    }, makeShiftTrigger((ev)=>{correctOffset(dragging); doGrab?.(ev, newItem)}));;
+    }, makeShiftTrigger((ev)=>{correctOffset(dragging); doGrab?.(ev, newItem)}));
 
     //
     return bindDraggable(customTrigger, resolveDragging, dragging);

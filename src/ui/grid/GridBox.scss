@@ -37,8 +37,8 @@
         ::slotted(*) {
             direction: inherit;
             writing-mode: inherit;
-            inset-inline-start: var(--cs-inset-x, 0px) !important;
-            inset-block-start: var(--cs-inset-y, 0px) !important;
+            //inset-inline-start: var(--cs-inset-x, 0px) !important;
+            //inset-block-start: var(--cs-inset-y, 0px) !important;
         }
     }
 }

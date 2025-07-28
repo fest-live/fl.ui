@@ -54,7 +54,7 @@ const withItem = Q((el)=>{
 const oRef = orientRef();
 
 //
-const SVO = H`<ui-gridbox orient=${oRef} style="margin: 1rem; inline-size:800px; block-size:600px; display: block; --layout-c: 4; --layout-r: 8;">
+const SVO = H`<ui-gridbox orient=${oRef} style="margin: 1rem; inline-size:800px; block-size:600px; --layout-c: 4; --layout-r: 8;">
     <div ref=${withItem} style="pointer-events: auto; border-radius: 1rem; user-select: none; background-color: black; inline-size: 6rem; block-size: 6rem;"></div>
 </ui-gridbox>`;
 

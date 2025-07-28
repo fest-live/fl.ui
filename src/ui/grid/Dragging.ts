@@ -52,9 +52,11 @@ export const makeDragEvents = async (newItem, {layout, dragging, currentCell}, {
         const cell = redirectCell(clamped(convertOrientPxToCX(rel, args, orientOf(gridSystem)), layout), args);
 
         // set cell position and animate
-        doAnimate(newItem, cell[0], "x", true)?.then?.(()=>setCellAxis(cell, 0));
-        doAnimate(newItem, cell[1], "y", true)?.then?.(()=>setCellAxis(cell, 1));
-        delete newItem.dataset.dragging; // unflag element dragging status
+        doAnimate(newItem, cell[0], "x", true); setCellAxis(cell, 0);
+        doAnimate(newItem, cell[1], "y", true); setCellAxis(cell, 1);
+
+        // unflag element dragging status
+        delete newItem.dataset.dragging;
 
         // reset dragging coordinate
         try { dragging[0].value = 0, dragging[1].value = 0; } catch(e) {};

@@ -50,7 +50,7 @@ export class LongTextInput extends UIElement {
 
     //
     onInitialize() {
-        this.value = "";
+        if (this.value == null) { this.value = ""; }
         super.onInitialize(); // @ts-ignore
         assign([this.internals_, "ariaValueText"], valueRef(this.input)); // @ts-ignore
         assign([this.internals_, "ariaOrientation"], "horizontal"); // @ts-ignore

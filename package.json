@@ -11,6 +11,7 @@
     },
     "devDependencies": {
         "@danielx/civet": "^0.10.4",
+        "@phosphor-icons/core": "^2.1.1",
         "@rollup/plugin-terser": "^0.4.4",
         "@rollup/plugin-typescript": "^12.1.2",
         "@sass-fairy/list": "^1.2.4",

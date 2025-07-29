@@ -17,7 +17,8 @@ export const itemClickHandle = (ev, ctxMenuDesc: any)=>{
 const visibleMap = new WeakMap();
 
 // TODO: visible bindings
-const getBoundVisibleRef = (menuElement: HTMLElement): any => { // @ts-ignore
+const getBoundVisibleRef = (menuElement: HTMLElement): any => {
+    if (menuElement == null) return; // @ts-ignore
     return visibleMap?.getOrInsertComputed?.(menuElement, ()=>visibleRef(menuElement, false));
 }
 
@@ -49,7 +50,11 @@ export const makeMenuHandler = (triggerElement: HTMLElement, placement: any, ctx
 
             // TODO: use reactive mapped ctx-menu element
             menuElement.innerHTML = ''; if (visibleRef != null) visibleRef.value = true;
-            menuElement?.append?.(...(ctxMenuDesc?.items?.map?.(item=>H`<li data-id=${item?.id||""}><ui-icon icon=${item?.icon||""}></ui-icon><span>${item?.label||""}</span></li>`)?.filter?.((E)=>!!E)||[]));
+            menuElement?.append?.(...(ctxMenuDesc?.items?.map?.((section, sIdx)=>{
+                const items = section?.map?.((item, iIdx)=>H`<li data-id=${item?.id||""}><ui-icon icon=${item?.icon||""}></ui-icon><span>${item?.label||""}</span></li>`);
+                const separator = (section?.length > 1 && sIdx != (ctxMenuDesc?.items?.length - 1)) ? H`<li class="ctx-menu-separator"></li>` : null;
+                return [ ...items, separator ];
+            })?.flat()?.filter?.((E)=>!!E)||[]));
 
             //
             const where     = withInsetWithPointer?.(menuElement, placement?.(ev, initiator));

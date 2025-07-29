@@ -50,6 +50,7 @@ export class UILucideIcon extends UIElement {
                 if (icons?.[ICON]) {
                     const self = this as any;
                     loadAsImage(ICON, (U)=>icons?.createElement?.(icons?.[U]))?.then?.((url)=>{
+                        if (!url) return;
                         const src  = `url(\"${url}\")`;
                         const fill = self;//self?.shadowRoot?.querySelector?.(".fill");
                         if (fill?.style?.getPropertyValue?.("mask-image") != src) {

@@ -60,7 +60,7 @@
 };
 
 //
-$def-ff: 'Open Sans', 'Source Sans 3','Gill Sans Nova', Ubuntu, 'DejaVu Sans', Candara, Segoe, "Segoe UI", Optima, source-sans-pro, sans-serif;
+$def-ff: 'InterVariable', 'Inter', 'Open Sans', 'Source Sans 3','Gill Sans Nova', Ubuntu, 'DejaVu Sans', Candara, Segoe, "Segoe UI", Optima, source-sans-pro, sans-serif;
 @mixin typography($fs, $ff: $def-ff) {
     font-size: $fs;
     font-family: $ff;

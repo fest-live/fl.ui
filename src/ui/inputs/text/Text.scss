@@ -56,7 +56,7 @@
             padding: 0;
             margin: 0;
             font-size: var(--ui-text-font-size, 1rem);
-            font-family: var(--ui-text-font-family, Helvetica, Calibri, Carlito);
+            font-family: var(--ui-text-font-family, inherit);
             inline-size: 100%;
             block-size: 100%;
             background-color: transparent;
@@ -67,7 +67,7 @@
         & {
             --ui-text-color: var(--current-on-surface, currentColor);
             --ui-text-font-size: 1rem;
-            --ui-text-font-family: Helvetica, Calibri, Carlito;
+            --ui-text-font-family: "InterVariable", "Inter", Helvetica, Calibri, Carlito;
         }
 
         //
@@ -141,7 +141,7 @@
             margin: 0;
             field-sizing: content;
             font-size: var(--ui-text-font-size, 1rem);
-            font-family: var(--ui-text-font-family, Helvetica, Calibri, Carlito);
+            font-family: var(--ui-text-font-family, inherit);
             border: none 0px transparent;
             outline: none 0px transparent;
             box-sizing: border-box;

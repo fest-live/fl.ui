@@ -3,6 +3,16 @@
 //
 @layer ui-text {
     :host(ui-longtext) {
+        //
+        & {
+            --background-tone-shift: 0.1;
+            --ui-text-background-color: --c2-surface(var(--background-tone-shift, 0.0), var(--current, transparent));
+            --ui-text-color: --c2-on-surface(var(--ui-text-tone-shift, 0.0), var(--current, currentColor));
+            --ui-text-font-size: 0.9rem;
+            --ui-text-font-family: "InterVariable", "Inter", Helvetica, Calibri, Carlito;
+        }
+
+        //
         & {
             max-inline-size: 100%;
             max-block-size: 100%;
@@ -14,7 +24,7 @@
             text-align: start;
             pointer-events: none;
             user-select: none;
-            background-color: var(--current-surface, transparent);
+            background-color: var(--ui-text-background-color, transparent);
             border: none;
             outline: none;
             padding: 0;
@@ -26,8 +36,6 @@
             overflow: hidden;
             border-radius: 0.5rem;
             contain: none;
-
-            --surface-tone-shift: 0.1;
         }
 
         //
@@ -61,13 +69,6 @@
             block-size: 100%;
             background-color: transparent;
             overflow: hidden;
-        }
-
-        //
-        & {
-            --ui-text-color: var(--current-on-surface, currentColor);
-            --ui-text-font-size: 1rem;
-            --ui-text-font-family: "InterVariable", "Inter", Helvetica, Calibri, Carlito;
         }
 
         //

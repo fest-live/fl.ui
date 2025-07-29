@@ -1,12 +1,13 @@
 @use "sass:list";
 
 /* */
-@use "../_lib/constants" as *;
-@use "../_lib/names" as *;
-@use "../_lib/themed" as *;
-@use "../_lib/shading" as *;
-@use "../_lib/derivate" as *;
+@use "../_decl/constants" as *;
+@use "../_decl/names" as *;
+
+/* */
+@use "../_lib/decompose" as *;
 @use "../_lib/generation" as *;
+@use "../_lib/themed" as *;
 @use "../_lib/utils" as *;
 
 /* */
@@ -25,20 +26,20 @@
 
             /* Variables */
             & {
-                accent-color: var(--#{$current-name}-#{$type}, inherit);
-                scrollbar-color: var(--#{$current-name}-on-#{$type}, inherit) transparent;
-                background-color: var(--#{$current-name}-#{$type}, transparent); //--c2-#{$type}(0.0, var(--#{$current-name}, transparent));//
-                color: var(--#{$current-name}-on-#{$type}, inherit);
-                caret-color: var(--#{$current-name}-on-#{$type}, inherit);
-                --ui-icon-color: var(--#{$current-name}-on-#{$type}, inherit);
+                accent-color: --c2-on-#{$type}(var(--accent-tone-shift, 0.0), var(--#{$current-name}, transparent));
+                scrollbar-color: --c2-on-#{$type}(var(--scrollbar-tone-shift, 0.0), var(--#{$current-name}, transparent));
+                background-color: --c2-#{$type}(var(--background-tone-shift, 0.0), var(--#{$current-name}, transparent));
+                color: --c2-on-#{$type}(var(--color-tone-shift, 0.0), var(--#{$current-name}, transparent));
+                caret-color: --c2-on-#{$type}(var(--caret-tone-shift, 0.0), var(--#{$current-name}, transparent));
+                --ui-icon-color: --c2-on-#{$type}(var(--ui-icon-tone-shift, 0.0), var(--#{$current-name}, transparent));
             }
 
             /* Variables */
             & {
-                border-color: oklch(from var(--#{$current-name}-on-#{$type}, inherit) l c h / 0);
-                outline-color: oklch(from var(--#{$current-name}-on-#{$type}, inherit) l c h / 0);
-                text-decoration-color: oklch(from var(--#{$current-name}-on-#{$type}, inherit) l c h / 0);
-                text-emphasis-color: oklch(from var(--#{$current-name}-on-#{$type}, inherit) l c h / 0);
+                border-color: oklch(from --c2-on-#{$type}(var(--border-tone-shift, 0.0), var(--#{$current-name}, transparent)) l c h / 0);
+                outline-color: oklch(from --c2-on-#{$type}(var(--outline-tone-shift, 0.0), var(--#{$current-name}, transparent)) l c h / 0);
+                text-decoration-color: oklch(from --c2-on-#{$type}(var(--text-decoration-tone-shift, 0.0), var(--#{$current-name}, transparent)) l c h / 0);
+                text-emphasis-color: oklch(from --c2-on-#{$type}(var(--text-emphasis-tone-shift, 0.0), var(--#{$current-name}, transparent)) l c h / 0);
             }
 
             /* Inherit from parent */
@@ -50,23 +51,23 @@
             /* Selection styles */
             &::selection, & *::selection {
                 --#{$type}-tone: 0.05;
-                background-color: var(--#{$current-name}-on-#{$type}, inherit);
-                color: var(--#{$current-name}-#{$type}, inherit);
+                background-color: --c2-on-#{$type}(var(--selection-tone-shift, 0.0), var(--#{$current-name}, transparent));
+                color: --c2-#{$type}(var(--selection-tone-shift, 0.0), var(--#{$current-name}, transparent));
             }
 
             /* Blur */
             &.c2-with-blur, & .c2-with-blur {
                 backdrop-filter: blur(1rem);
-                background-color: oklch(from var(--#{$current-name}-#{$type}, transparent) l c h / 0.2);
+                background-color: oklch(from --c2-#{$type}(var(--blur-tone-shift, 0.0), var(--#{$current-name}, transparent)) l c h / 0.2);
             }
 
             /* Re-enable colored children */
             & :where(.c2-primary, .c2-secondary, .c2-trinary) {
                 @include reset-all-properties();
-                accent-color: var(--#{$current-name}-#{$type}, inherit);
-                scrollbar-color: var(--#{$current-name}-on-#{$type}, inherit) transparent;
-                color: var(--#{$current-name}-on-#{$type}, inherit);
-                caret-color: var(--#{$current-name}-on-#{$type}, inherit);
+                accent-color: --c2-on-#{$type}(var(--accent-tone-shift, 0.0), var(--#{$current-name}, transparent));
+                scrollbar-color: --c2-on-#{$type}(var(--scrollbar-tone-shift, 0.0), var(--#{$current-name}, transparent)) transparent;
+                color: --c2-on-#{$type}(var(--color-tone-shift, 0.0), var(--#{$current-name}, transparent));
+                caret-color: --c2-on-#{$type}(var(--caret-tone-shift, 0.0), var(--#{$current-name}, transparent));
             }
 
             /* */
@@ -85,12 +86,12 @@
 
             /* */
             &:is(ui-icon), & ui-icon {
-                --ui-icon-color: var(--#{$current-name}-on-#{$type}, inherit);
+                --ui-icon-color: --c2-on-#{$type}(var(--ui-icon-tone-shift, 0.0), var(--#{$current-name}, transparent));
             }
 
             /* */
             &:is(ui-longtext), & ui-longtext {
-                --#{$type}-tone-shift: 0.1;
+                --background-tone-shift: 0.1;
             }
         }
     }

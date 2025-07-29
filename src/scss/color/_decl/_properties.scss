@@ -1,3 +1,12 @@
+@use "sass:list";
+
+/* */
+@use "../_decl/names" as *;
+@use "../_decl/constants" as *;
+
+/* */
+@use "../_lib/decompose" as *;
+@use "../_lib/themed" as *;
 
 /* Define property color */
 @mixin property-color($name, $initial: #fff, $syntax: "<color>", $inherits: true) {
@@ -49,3 +58,19 @@
         @include property-tone-derivatives($primary-name, $tone-name);
     }
 }
+
+/* */
+@property --primary { syntax: "<color>"; initial-value: #1a1; inherits: true; };
+@property --trinary { syntax: "<color>"; initial-value: #a21; inherits: true; };
+@property --secondary { syntax: "<color>"; initial-value: #12a; inherits: true; };
+@property --current { syntax: "<color>"; initial-value: #1a1; inherits: true; };
+
+/* */
+@property --detected-theme { syntax: "<number>"; initial-value: 0; inherits: true; };
+
+/* Generate property tones */
+@include property-tones($tone-names);
+@include property-themed($primary-name, $tone-names);
+@include property-themed($secondary-name, $tone-names);
+@include property-themed($trinary-name, $tone-names);
+@include property-themed($current-name, $tone-names);

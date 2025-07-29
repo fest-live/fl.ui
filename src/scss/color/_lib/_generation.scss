@@ -1,11 +1,12 @@
 @use "sass:list";
 
 /* */
-@use "./coefficient" as *;
-@use "./constants" as *;
-@use "./shading" as *;
-@use "./derivate" as *;
+@use "../_decl/constants" as *;
 
+/* */
+@use "../_lib/decompose" as *;
+@use "../_lib/der-shades" as *;
+@use "../_lib/themed" as *;
 
 /*********************/
 /* GENERATION SYSTEM */

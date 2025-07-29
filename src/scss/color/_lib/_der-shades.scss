@@ -1,6 +1,20 @@
+@use "../_lib/utils" as *;
+
 /**************/
 /* USING TONE */
 /**************/
+
+/* Generate tone shifting */
+@mixin tone-shifting($affected: "surface", $shift: "surface-tone-shift") {
+    /* 0.2 - power of shift affection */
+    /* 0.9 - tone correction factor */
+    --#{$affected}-dep-shift: clamp(0, calc( var(--#{$affected}-dep, 0) * 0.99 + calc(var(--#{$shift}, 0) * #{mix(1, -1, 'var(--detected-theme, 0)')}) * 0.6 ), 1);
+
+    /* if > 0.5, try first variant, if <= 0.5, try secondary */
+    /* if (d - 0.5) less than 0, rounds up to 0 (lights), more than 0, rounds up to 1 (darker) */
+    --#{$affected}-choice-factor: clamp(0, round(up, calc(var(--#{$affected}-dep-shift, 0) - 0.5), 1), 1);
+    //--#{$affected}-choice-factor: clamp(0, calc(var(--#{$affected}-dep-shift, 0) - 0.5), 1);
+}
 
 /* Generate sub-shades */
 @mixin sub-shades($primary: "primary", $suffix: "-tm") { /* dark shades from 0 as light to 1 as dark... */

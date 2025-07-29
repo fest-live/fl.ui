@@ -1,0 +1,19 @@
+@use "../_decl/names" as *;
+@use "../_decl/constants" as *;
+
+/* */
+@use "../_lib/generation" as *;
+@use "../_lib/themed" as *;
+
+/* */
+@mixin enable-ctm() {
+    interpolate-size: allow-keywords;
+
+    /* */
+    @include detected-theme();
+    @include generate-toned-nodes($tone-names, $tone-values);
+    @include generate-themed-nodes($primary-name, $tone-names);
+    @include generate-themed-nodes($secondary-name, $tone-names);
+    @include generate-themed-nodes($trinary-name, $tone-names);
+    @include generate-themed-nodes($current-name, $tone-names);
+}

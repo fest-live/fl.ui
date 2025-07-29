@@ -5,7 +5,7 @@
     :host(ui-icon) {
         & {
             --ui-icon-size: 2rem;
-            --ui-icon-color: var(--current-on-surface, currentColor);
+            --ui-icon-color: --c2-on-surface(var(--ui-icon-tone-shift, 0.0), var(--current, currentColor));
         }
 
         & { // mask image

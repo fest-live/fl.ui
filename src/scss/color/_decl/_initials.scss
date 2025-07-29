@@ -1,0 +1,15 @@
+@use "sass:list";
+
+/* */
+@use "./names" as *;
+
+/* Define initials */
+@mixin initials-define($initials...) {
+    /* Variables */
+    --#{$primary-name}  : #1a1;
+    --#{$trinary-name}  : oklch(from var(--#{$primary-name}, #1a1) l c rem(calc(h + 240), 360));
+    --#{$secondary-name}: oklch(from var(--#{$primary-name}, #1a1) l c rem(calc(h + 120), 360));
+
+    /* variable */
+    --#{$current-name}  : var(--#{$primary-name}, #1a1);
+}

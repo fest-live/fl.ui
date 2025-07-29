@@ -15,7 +15,18 @@
 
 /* Detect theme */
 @mixin detected-theme($name: "detected") {
-    & { --#{$name}-theme: 0; };
+    --#{$name}-theme: 0;
+    --if-theme-hack: light-dark(#111, #000);
+    --#{$name}-theme: if(
+        style(--if-theme-hack: #000): 1;
+        style(color-scheme: dark): 1;
+        style(color-scheme: only dark): 1;
+        else: 0;
+    );
+}
+
+//
+@mixin detected-media-theme($name: "detected") {
     & * { --#{$name}-theme: inherit; }
 
     //
@@ -25,21 +36,7 @@
     //
     @container(#{"style(color-scheme: light) or style(color-scheme: only light)"}) { --#{$name}-theme: 0; };
     @container(#{"style(color-scheme: dark)  or style(color-scheme: only dark)"})  { --#{$name}-theme: 1; };
-
-    //
-    & {--if-theme-hack: light-dark(#111, #000); };
-
-    //
-    &, & * {
-        --#{$name}-theme: if(
-            style(--if-theme-hack: #000): 1;
-            style(color-scheme: dark): 1;
-            style(color-scheme: only dark): 1;
-            else: 0;
-        );
-    };
 }
-
 
 /*********************/
 /* TONE COEF VALUES */
@@ -108,24 +105,21 @@ $tone-values-index: 0;
 
 /* Generate accent shades */
 @mixin accent-shades($primary: "primary") {
-    & {
-        --#{$primary}-lighter: oklch(from var(--#{$primary}, #fefffe) calc(l * 0.6 + 0.4) calc(c * 0.9 + 0.1) h);
-        --#{$primary}-darker:  oklch(from var(--#{$primary}, #101110) calc(l * 0.6 + 0.1) calc(c * 0.9 + 0.1) h);
-        --#{$primary}-neutral: oklch(from var(--#{$primary}, #fefffe) calc(l * 0.4 + 0.4) calc(c * 0.6 + 0.1) h); /* neutral unused*/
-    }
+    --#{$primary}-lighter: oklch(from var(--#{$primary}, #fefffe) calc(l * 0.6 + 0.4) calc(c * 0.9 + 0.1) h);
+    --#{$primary}-darker:  oklch(from var(--#{$primary}, #101110) calc(l * 0.6 + 0.1) calc(c * 0.9 + 0.1) h);
+    --#{$primary}-neutral: oklch(from var(--#{$primary}, #fefffe) calc(l * 0.4 + 0.4) calc(c * 0.6 + 0.1) h); /* neutral unused*/
 }
 
 /* Generate theme accents */
 @mixin theme-accents($ld-color-name, $dep-name: "detected") {
-    & { /* there should been `@supports` */ /* TODO: color-mix may be not correct... */
-        --#{$ld-color-name}-tm: color-mix(
-            in oklch,
-            var(--#{$ld-color-name}-lighter, #fefffe) calc((1 - var(--#{$ld-color-name}-theme, 0)) * 100%),
-            var(--#{$ld-color-name}-darker, #101110) calc(var(--#{$ld-color-name}-theme, 0) * 100%)
-        );
-        --#{$ld-color-name}-tm: light-dark(var(--#{$ld-color-name}-lighter, #fefffe), var(--#{$ld-color-name}-darker, #101110));
-        --#{$ld-color-name}-theme: var(--#{$dep-name}-theme, 0); /* light */
-    }
+    /* there should been `@supports` */ /* TODO: color-mix may be not correct... */
+    --#{$ld-color-name}-tm: color-mix(
+        in oklch,
+        var(--#{$ld-color-name}-lighter, #fefffe) calc((1 - var(--#{$ld-color-name}-theme, 0)) * 100%),
+        var(--#{$ld-color-name}-darker, #101110) calc(var(--#{$ld-color-name}-theme, 0) * 100%)
+    );
+    --#{$ld-color-name}-tm: light-dark(var(--#{$ld-color-name}-lighter, #fefffe), var(--#{$ld-color-name}-darker, #101110));
+    --#{$ld-color-name}-theme: var(--#{$dep-name}-theme, 0); /* light */
 }
 
 
@@ -139,7 +133,7 @@ $tone-values-index: 0;
     //$when-light: "calc(1.0 - var(--#{$basis-tone}-tone, 0.5) * 0.3)";
     //$when-dark: "calc(0.1 + var(--#{$basis-tone}-tone, 0.5) * 0.6)";
 
-    & { --#{$basis-tone}-dep: calc(#{$when-light} * (1 - var(--detected-theme, 0)) + #{$when-dark} * var(--detected-theme, 0)); };
+    --#{$basis-tone}-dep: calc(#{$when-light} * (1 - var(--detected-theme, 0)) + #{$when-dark} * var(--detected-theme, 0));
 }
 
 /* Generate theme affect */
@@ -156,16 +150,14 @@ $tone-values-index: 0;
 
 /* Generate tone shifting */
 @mixin tone-shifting($affected: "surface", $shift: "surface-tone-shift") {
-    & {
-        /* 0.2 - power of shift affection */
-        /* 0.9 - tone correction factor */
-        --#{$affected}-dep-shift: clamp(0, calc( var(--#{$affected}-dep, 0) * 0.99 + calc(var(--#{$shift}, 0) * #{mix(1, -1, 'var(--detected-theme, 0)')}) * 0.6 ), 1);
+    /* 0.2 - power of shift affection */
+    /* 0.9 - tone correction factor */
+    --#{$affected}-dep-shift: clamp(0, calc( var(--#{$affected}-dep, 0) * 0.99 + calc(var(--#{$shift}, 0) * #{mix(1, -1, 'var(--detected-theme, 0)')}) * 0.6 ), 1);
 
-        /* if > 0.5, try first variant, if <= 0.5, try secondary */
-        /* if (d - 0.5) less than 0, rounds up to 0 (lights), more than 0, rounds up to 1 (darker) */
-        --#{$affected}-choice-factor: clamp(0, round(up, calc(var(--#{$affected}-dep-shift, 0) - 0.5), 1), 1);
-        //--#{$affected}-choice-factor: clamp(0, calc(var(--#{$affected}-dep-shift, 0) - 0.5), 1);
-    };
+    /* if > 0.5, try first variant, if <= 0.5, try secondary */
+    /* if (d - 0.5) less than 0, rounds up to 0 (lights), more than 0, rounds up to 1 (darker) */
+    --#{$affected}-choice-factor: clamp(0, round(up, calc(var(--#{$affected}-dep-shift, 0) - 0.5), 1), 1);
+    //--#{$affected}-choice-factor: clamp(0, calc(var(--#{$affected}-dep-shift, 0) - 0.5), 1);
 }
 
 
@@ -182,10 +174,8 @@ $tone-values-index: 0;
     //$tone-dark-theme-affect: list.nth($tone-dark-theme-affect, $index);
 
     /* initial (default) value */
-    & {
-        --#{$tone-name}-tone: #{$initial-value};
-        --#{$tone-name}-tone-shift: 0.0;
-    }
+    --#{$tone-name}-tone: #{$initial-value};
+    --#{$tone-name}-tone-shift: var(--#{$tone-name}-tone-shift, 0.0);
 
     /* tone values */
     //@include theme-affect($tone-name, $tone-light-theme-affect, $tone-dark-theme-affect);
@@ -201,27 +191,23 @@ $tone-values-index: 0;
 
 /* Generate sub-shades */
 @mixin sub-shades($primary: "primary", $suffix: "-tm") { /* dark shades from 0 as light to 1 as dark... */
-    & {
-        --#{$primary}-light-shade:  oklch(from var(--#{$primary}#{$suffix}, #fefffe) calc(l * 0.06 + 0.94) calc(c * 0.01) h);
-        --#{$primary}-dark-shade:   oklch(from var(--#{$primary}#{$suffix}, #101110) calc(l * 0.02 + 0.01) calc(c * 0.01) h);
-        --#{$primary}-accent-shade: var(--#{$primary}#{$suffix}, #101110); // oklch(from var(--#{$primary}#{$suffix}, #101110) calc(l * 0.5 + 0.4) calc(c * 0.9 + 0.1) h);
-    }
+    --#{$primary}-light-shade:  oklch(from var(--#{$primary}#{$suffix}, #fefffe) calc(l * 0.06 + 0.94) calc(c * 0.01) h);
+    --#{$primary}-dark-shade:   oklch(from var(--#{$primary}#{$suffix}, #101110) calc(l * 0.02 + 0.01) calc(c * 0.01) h);
+    --#{$primary}-accent-shade: var(--#{$primary}#{$suffix}, #101110); // oklch(from var(--#{$primary}#{$suffix}, #101110) calc(l * 0.5 + 0.4) calc(c * 0.9 + 0.1) h);
 }
 
 /* Apply shade */
 @mixin apply-shade($subset: "surface", $primary: "primary", $dep-name: "dep-shift") {
     $dep-named: '#{$subset}-#{$dep-name}';
 
-    & {
-        /* if 0 to 0.5 */
-        --#{$primary}-#{$subset}-from-light-to-accent: color-mix(in oklch, var(--#{$primary}-light-shade) calc(clamp(0, (var(--#{$subset}-#{$dep-name}, 0) - 0.5) * 2, 1) * 100%), var(--#{$primary}-accent-shade));
+    /* if 0 to 0.5 */
+    --#{$primary}-#{$subset}-from-light-to-accent: color-mix(in oklch, var(--#{$primary}-light-shade) calc(clamp(0, (var(--#{$subset}-#{$dep-name}, 0) - 0.5) * 2, 1) * 100%), var(--#{$primary}-accent-shade));
 
-        /* if 0.5 to 1*/
-        --#{$primary}-#{$subset}-from-accent-to-dark: color-mix(in oklch, var(--#{$primary}-accent-shade) calc(clamp(0, (var(--#{$subset}-#{$dep-name}, 0) - 0) * 2, 1) * 100%), var(--#{$primary}-dark-shade));
+    /* if 0.5 to 1*/
+    --#{$primary}-#{$subset}-from-accent-to-dark: color-mix(in oklch, var(--#{$primary}-accent-shade) calc(clamp(0, (var(--#{$subset}-#{$dep-name}, 0) - 0) * 2, 1) * 100%), var(--#{$primary}-dark-shade));
 
-        /* resolve color, determinated by dependency */
-        --#{$primary}-#{$subset}: color-mix(in oklch, var(--#{$primary}-#{$subset}-from-light-to-accent) calc(var(--#{$subset}-choice-factor) * 100%), var(--#{$primary}-#{$subset}-from-accent-to-dark));
-    }
+    /* resolve color, determinated by dependency */
+    --#{$primary}-#{$subset}: color-mix(in oklch, var(--#{$primary}-#{$subset}-from-light-to-accent) calc(var(--#{$subset}-choice-factor) * 100%), var(--#{$primary}-#{$subset}-from-accent-to-dark));
 }
 
 /* Generate themed nodes */

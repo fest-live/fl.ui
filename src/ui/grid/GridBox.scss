@@ -4,8 +4,10 @@
 @layer ui-grid-box {
     :host(ui-gridbox) {
         & {
-            container-type: size;
-            contain: strict;
+            //container-type: size;
+            container-type: normal;
+            contain: none !important;
+            overflow: visible !important;
 
             //
             zoom: max(var(--zoom, 1), 0.125);
@@ -18,6 +20,13 @@
             //
             grid-column: 1 / -1;
             grid-row: 1 / -1;
+        }
+
+        & slot {
+            isolation: auto !important;
+            display: contents !important;
+            overflow: visible !important;
+            contain: none !important;
         }
 
         //

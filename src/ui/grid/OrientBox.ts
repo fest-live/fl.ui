@@ -1,15 +1,16 @@
 import { defineElement, E, GLitElement, H, property } from "fest/lure";
 import { preloadStyle, elementPointerMap } from "fest/dom";
-import { UIElement } from "@helpers/base/UIElement";
 
 // @ts-ignore
-import styles from "@ui/grid/GridBox.scss?inline&compress";
+import styles from "@ui/grid/OrientBox.scss?inline&compress";
 const styled = preloadStyle(styles);
 
 // @ts-ignore
-@defineElement("ui-gridbox", { extends: "div" })
-export class UIGridBox extends GLitElement(HTMLDivElement) {
-    //
+@defineElement("ui-orientbox", { extends: "div" })
+export class UIOrientBox extends GLitElement(HTMLDivElement) {
+    static observedAttributes = ["orient", "zoom"];
+    @property({source: "attr"}) orient = 0;
+    @property({source: "attr"}) zoom = 1;
     public size : [number, number] = [0, 0];
 
     //
@@ -17,7 +18,10 @@ export class UIGridBox extends GLitElement(HTMLDivElement) {
     onInitialize() { //@ts-ignore
         super.onInitialize?.(); //@ts-ignore
         this.bindWith(); const self = this as any; //ui-orientbox
-        E(self, {classList: new Set(["ui-gridlayout"])});
+        E(self, {classList: new Set(["ui-orientbox"]), style: {
+            "--orient": self.getProperty("orient"),
+            "--zoom": self.getProperty("zoom")
+        }});
     }
 
     //

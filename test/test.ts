@@ -6,6 +6,7 @@ import loadCSS from "fest/dom";
 //
 import ScrollBoxed from "../src/ui/scrollframe/ScrollFrame";
 import { UIGridBox } from "../src/ui/grid/GridBox";
+import { UIOrientBox } from "../src/ui/grid/OrientBox";
 import { bindInteraction } from "../src/ui/grid/GridBind";
 import { SliderInput } from "../src/ui/inputs/slider/Slider";
 import LongTextInput from "../src/ui/inputs/text/Text";
@@ -27,6 +28,7 @@ import "../src/scss/index.scss";
 console.log(Icon);
 console.log(ScrollBoxed);
 console.log(UIGridBox);
+console.log(UIOrientBox);
 console.log(SliderInput);
 console.log(LongTextInput);
 
@@ -54,9 +56,10 @@ const withItem = Q((el)=>{
 const oRef = orientRef();
 
 //
-const SVO = H`<ui-gridbox orient=${oRef} style="margin: 1rem; inline-size:800px; block-size:600px; --layout-c: 4; --layout-r: 8;">
+const SVO = H`<div is="ui-orientbox" style="inline-size:800px; block-size:600px;" orient=${oRef}>
+<div is="ui-gridbox" style="--layout-c: 4; --layout-r: 8;">
     <div ref=${withItem} style="pointer-events: auto; border-radius: 1rem; user-select: none; background-color: black; inline-size: 6rem; block-size: 6rem;"></div>
-</ui-gridbox>`;
+</div></div>`;
 
 //
 const container = document.querySelector("#app") || document.body;

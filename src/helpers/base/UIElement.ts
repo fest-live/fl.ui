@@ -10,13 +10,10 @@ const styled = preloadStyle(styles);
 @defineElement("ui-element")
 export class UIElement extends GLitElement() {
     @property({ source: "attr" }) theme: string = "default";
-
-    constructor() { super(); }
-
-    //
-    render() { return H`<slot></slot>`; }
+     render() { return H`<slot></slot>`; }
 
     //
+     constructor() { super(); }
     onInitialize() {
         super.onInitialize();
         const self : any = this;

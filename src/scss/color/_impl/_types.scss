@@ -70,15 +70,6 @@
                 caret-color: --c2-on-#{$type}(var(--caret-tone-shift, 0.0), var(--#{$current-name}, transparent));
             }
 
-            /* */
-            /*& * {
-                @include generate-toned-nodes($tone-names, $tone-names);
-                @include generate-themed-nodes($primary-name, $tone-names);
-                @include generate-themed-nodes($secondary-name, $tone-names);
-                @include generate-themed-nodes($trinary-name, $tone-names);
-                @include generate-themed-nodes($current-name, $tone-names);
-            }*/
-
             /* Reject alt-themed children */
             & *:not(.c2-surface, .c2-contrast, .c2-inverse):not(#{exclude($type, "surface", "contrast", "inverse")}):not(:has(.c2-surface > *, .c2-contrast > *, .c2-inverse > *)) {
                 @include reset-all-properties();

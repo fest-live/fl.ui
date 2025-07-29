@@ -17,25 +17,19 @@
 @use "./_lib/themed" as *;
 @use "./_lib/utils" as *;
 
+/* */
+@use "./ctm-2-props" as *;
+
 /* Enable components in DOM */
 @layer ux-ctm {
+    /* */
+    :root { @include initials-define(); }
+    :scope:not(:root), :host { @include initials-define(inherit); }
+
     /* Generate property tones */
     :scope, :host, :root,
     .c2-surface, .c2-contrast, .c2-inverse, .c2-primary, .c2-secondary, .c2-trinary {
         @include enable-ctm();
-    }
-
-    /* inherit from parent */
-    :scope:not(:root), :host {
-        interpolate-size: allow-keywords;
-
-        /* Variables */
-        --#{$primary-name}  : inherit;
-        --#{$trinary-name}  : inherit;
-        --#{$secondary-name}: inherit;
-
-        /* variable */
-        --#{$current-name}  : inherit;
     }
 
     /* Generate property tones */

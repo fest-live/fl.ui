@@ -4,12 +4,14 @@
 @use "./names" as *;
 
 /* Define initials */
-@mixin initials-define($initials...) {
+@mixin initials-define($primary-color: #1a1) {
+    interpolate-size: allow-keywords;
+
     /* Variables */
-    --#{$primary-name}  : #1a1;
-    --#{$trinary-name}  : oklch(from var(--#{$primary-name}, #1a1) l c rem(calc(h + 240), 360));
-    --#{$secondary-name}: oklch(from var(--#{$primary-name}, #1a1) l c rem(calc(h + 120), 360));
+    --#{$primary-name}  : $primary-color;
+    --#{$trinary-name}  : oklch(from var(--#{$primary-name}, $primary-color) l c rem(calc(h + 240), 360));
+    --#{$secondary-name}: oklch(from var(--#{$primary-name}, $primary-color) l c rem(calc(h + 120), 360));
 
     /* variable */
-    --#{$current-name}  : var(--#{$primary-name}, #1a1);
+    --#{$current-name}  : var(--#{$primary-name}, $primary-color);
 }

@@ -1,0 +1,24 @@
+/**************/
+/* USING TONE */
+/**************/
+
+/* Generate sub-shades */
+@mixin sub-shades($primary: "primary", $suffix: "-tm") { /* dark shades from 0 as light to 1 as dark... */
+    --#{$primary}-light-shade:  oklch(from var(--#{$primary}#{$suffix}, #fefffe) calc(l * 0.06 + 0.94) calc(c * 0.01) h);
+    --#{$primary}-dark-shade:   oklch(from var(--#{$primary}#{$suffix}, #101110) calc(l * 0.02 + 0.01) calc(c * 0.01) h);
+    --#{$primary}-accent-shade: var(--#{$primary}#{$suffix}, #101110); // oklch(from var(--#{$primary}#{$suffix}, #101110) calc(l * 0.5 + 0.4) calc(c * 0.9 + 0.1) h);
+}
+
+/* Apply shade */
+@mixin apply-shade($subset: "surface", $primary: "primary", $dep-name: "dep-shift") {
+    $dep-named: '#{$subset}-#{$dep-name}';
+
+    /* if 0 to 0.5 */
+    --#{$primary}-#{$subset}-from-light-to-accent: color-mix(in oklch, var(--#{$primary}-light-shade) calc(clamp(0, (var(--#{$subset}-#{$dep-name}, 0) - 0.5) * 2, 1) * 100%), var(--#{$primary}-accent-shade));
+
+    /* if 0.5 to 1*/
+    --#{$primary}-#{$subset}-from-accent-to-dark: color-mix(in oklch, var(--#{$primary}-accent-shade) calc(clamp(0, (var(--#{$subset}-#{$dep-name}, 0) - 0) * 2, 1) * 100%), var(--#{$primary}-dark-shade));
+
+    /* resolve color, determinated by dependency */
+    --#{$primary}-#{$subset}: color-mix(in oklch, var(--#{$primary}-#{$subset}-from-light-to-accent) calc(var(--#{$subset}-choice-factor) * 100%), var(--#{$primary}-#{$subset}-from-accent-to-dark));
+}

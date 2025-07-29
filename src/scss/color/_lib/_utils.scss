@@ -1,0 +1,26 @@
+@use "sass:list";
+
+/* Exclude types */
+@function exclude($type, $types...) {
+    $result: ();
+    @each $item in $types {
+        @if $item != $type {
+            $transformed: ".c2-#{$item} *";
+            $result: list.append($result, $transformed, comma);
+        }
+    }
+    @return $result;
+}
+
+/* Reset all properties */
+@mixin reset-all-properties() {
+    $properties: ("accent-color", "scrollbar-color", "color", "text-decoration-color", "text-emphasis-color");
+    @each $property in $properties {
+        #{$property}: inherit;
+    }
+}
+
+/* Mix colors */
+@function mix($a, $b, $c) {
+    @return calc(#{$a} * #{$c} + #{$b} * (1 - #{$c}) );
+}

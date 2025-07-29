@@ -1,0 +1,31 @@
+@use "sass:list";
+@use "../_lib/names" as *;
+@use "../_lib/themed" as *;
+@use "../_lib/shading" as *;
+@use "../_lib/derivate" as *;
+@use "../_lib/generation" as *;
+@use "../_lib/constants" as *;
+
+/* */
+/* Generate function */
+@mixin make-function($type, $current: 'current') {
+    $f-args: "(--tone-shift <number>, --#{$current} <color>)";
+    $f-name: "--c2-#{$type}";
+    $f-o-name: "--c2-on-#{$type}";
+
+    /* */
+    @#{"function"} #{$f-name}#{$f-args} {
+        @include detected-theme();
+        @include generate-toned-nodes($tone-names, $tone-values);
+        @include generate-themed-nodes($current, $tone-names);
+        result: var(--#{$current}-#{$type}, inherit);
+    }
+
+    /* */
+    @#{"function"} #{$f-o-name}#{$f-args} {
+        @include detected-theme();
+        @include generate-toned-nodes($tone-names, $tone-values);
+        @include generate-themed-nodes($current, $tone-names);
+        result: var(--#{$current}-on-#{$type}, inherit);
+    }
+}

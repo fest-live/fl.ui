@@ -1,0 +1,73 @@
+@use "sass:list";
+@use "./_impl/function" as *;
+@use "./_impl/types" as *;
+@use "./_impl/properties" as *;
+
+/* */
+@use "./_lib/names" as *;
+@use "./_lib/themed" as *;
+@use "./_lib/generation" as *;
+@use "./_lib/constants" as *;
+
+/* Enable components in DOM */
+@layer ux-ctm {
+    :root {
+        /* Variables */
+        --#{$primary-name}  : #1a1;
+        --#{$trinary-name}  : oklch(from var(--#{$primary-name}, #1a1) l c rem(calc(h + 240), 360));
+        --#{$secondary-name}: oklch(from var(--#{$primary-name}, #1a1) l c rem(calc(h + 120), 360));
+
+        /* variable */
+        --#{$current-name}  : var(--#{$primary-name}, #1a1);
+    }
+
+    /* Generate property tones */
+    :scope, :host, :root,
+    .c2-surface, .c2-contrast, .c2-inverse, .c2-primary, .c2-secondary, .c2-trinary {
+        interpolate-size: allow-keywords;
+
+        /* */
+        @include detected-theme();
+        @include generate-toned-nodes($tone-names, $tone-values);
+        @include generate-themed-nodes($primary-name, $tone-names);
+        @include generate-themed-nodes($secondary-name, $tone-names);
+        @include generate-themed-nodes($trinary-name, $tone-names);
+        @include generate-themed-nodes($current-name, $tone-names);
+    }
+
+    /* inherit from parent */
+    :scope:not(:root), :host {
+        interpolate-size: allow-keywords;
+
+        /* Variables */
+        --#{$primary-name}  : inherit;
+        --#{$trinary-name}  : oklch(from var(--#{$primary-name}, #1a1) l c rem(calc(h + 240), 360));
+        --#{$secondary-name}: oklch(from var(--#{$primary-name}, #1a1) l c rem(calc(h + 120), 360));
+
+        /* variable */
+        --#{$current-name}  : var(--#{$primary-name}, #1a1);
+    }
+
+    /* Generate property tones */
+    .c2-is-primary { --#{$current-name}  : var(--#{$primary-name}, #1a1); }
+    .c2-is-trinary { --#{$current-name}  : var(--#{$trinary-name}, #a21); }
+    .c2-is-secondary { --#{$current-name}  : var(--#{$secondary-name}, #12a); }
+
+    /* Reset all properties */
+    .c2-light { color-scheme: light; @include detected-theme(); /*& { --detected-theme: 0; };*/ }
+    .c2-dark  { color-scheme: dark;  @include detected-theme(); /*& { --detected-theme: 1; };*/ }
+    .c2-transparent {
+        interpolate-size: allow-keywords;
+        background-color: transparent;
+        color: inherit;
+        accent-color: inherit;
+        scrollbar-color: inherit;
+        border-color: oklch(from inherit l c h / 0);
+        outline-color: oklch(from inherit l c h / 0);
+        text-decoration-color: oklch(from inherit l c h / 0);
+        text-emphasis-color: oklch(from inherit l c h / 0);
+    }
+
+    /* */
+    @include types-define("surface", "contrast", "inverse");
+}

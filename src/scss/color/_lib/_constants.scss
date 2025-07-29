@@ -1,0 +1,19 @@
+@use "sass:list";
+
+/*********************/
+/* TONE COEF VALUES */
+/*********************/
+
+/* Tone names */
+$tone-names:
+    "surface", "on-surface",
+    "contrast", "on-contrast",
+    "inverse", "on-inverse",
+    "accent", "on-accent";
+$tone-values:
+    0.04, 0.96,
+    0.02, 0.98,
+    0.9, 0.2,
+    0.4, 0.6;
+$tone-values-count: list.length($tone-values);
+$tone-values-index: 0;

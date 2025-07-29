@@ -1,0 +1,97 @@
+@use "sass:list";
+
+/* */
+@use "../_lib/constants" as *;
+@use "../_lib/names" as *;
+@use "../_lib/themed" as *;
+@use "../_lib/shading" as *;
+@use "../_lib/derivate" as *;
+@use "../_lib/generation" as *;
+@use "../_lib/utils" as *;
+
+/* */
+@use "./function" as *;
+
+/* */
+@mixin types-define($types...) {
+    @each $type in $types {
+        @include make-function($type);
+    }
+
+    /* Reset all properties */
+    @each $type in $types {
+        .c2-#{$type} {
+            @include reset-all-properties();
+
+            /* Variables */
+            & {
+                accent-color: var(--#{$current-name}-#{$type}, inherit);
+                scrollbar-color: var(--#{$current-name}-on-#{$type}, inherit) transparent;
+                background-color: var(--#{$current-name}-#{$type}, transparent); //--c2-#{$type}(0.0, var(--#{$current-name}, transparent));//
+                color: var(--#{$current-name}-on-#{$type}, inherit);
+                caret-color: var(--#{$current-name}-on-#{$type}, inherit);
+                --ui-icon-color: var(--#{$current-name}-on-#{$type}, inherit);
+            }
+
+            /* Variables */
+            & {
+                border-color: oklch(from var(--#{$current-name}-on-#{$type}, inherit) l c h / 0);
+                outline-color: oklch(from var(--#{$current-name}-on-#{$type}, inherit) l c h / 0);
+                text-decoration-color: oklch(from var(--#{$current-name}-on-#{$type}, inherit) l c h / 0);
+                text-emphasis-color: oklch(from var(--#{$current-name}-on-#{$type}, inherit) l c h / 0);
+            }
+
+            /* Inherit from parent */
+            &::before, &::after, &::placeholder, &::marker,
+            & *::before, & *::after, & *::placeholder, & *::marker {
+                @include reset-all-properties();
+            }
+
+            /* Selection styles */
+            &::selection, & *::selection {
+                --#{$type}-tone: 0.05;
+                background-color: var(--#{$current-name}-on-#{$type}, inherit);
+                color: var(--#{$current-name}-#{$type}, inherit);
+            }
+
+            /* Blur */
+            &.c2-with-blur, & .c2-with-blur {
+                backdrop-filter: blur(1rem);
+                background-color: oklch(from var(--#{$current-name}-#{$type}, transparent) l c h / 0.2);
+            }
+
+            /* Re-enable colored children */
+            & :where(.c2-primary, .c2-secondary, .c2-trinary) {
+                @include reset-all-properties();
+                accent-color: var(--#{$current-name}-#{$type}, inherit);
+                scrollbar-color: var(--#{$current-name}-on-#{$type}, inherit) transparent;
+                color: var(--#{$current-name}-on-#{$type}, inherit);
+                caret-color: var(--#{$current-name}-on-#{$type}, inherit);
+            }
+
+            /* */
+            /*& * {
+                @include generate-toned-nodes($tone-names, $tone-names);
+                @include generate-themed-nodes($primary-name, $tone-names);
+                @include generate-themed-nodes($secondary-name, $tone-names);
+                @include generate-themed-nodes($trinary-name, $tone-names);
+                @include generate-themed-nodes($current-name, $tone-names);
+            }*/
+
+            /* Reject alt-themed children */
+            & *:not(.c2-surface, .c2-contrast, .c2-inverse):not(#{exclude($type, "surface", "contrast", "inverse")}):not(:has(.c2-surface > *, .c2-contrast > *, .c2-inverse > *)) {
+                @include reset-all-properties();
+            }
+
+            /* */
+            &:is(ui-icon), & ui-icon {
+                --ui-icon-color: var(--#{$current-name}-on-#{$type}, inherit);
+            }
+
+            /* */
+            &:is(ui-longtext), & ui-longtext {
+                --#{$type}-tone-shift: 0.1;
+            }
+        }
+    }
+}

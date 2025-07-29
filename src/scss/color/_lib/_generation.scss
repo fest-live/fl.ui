@@ -1,0 +1,50 @@
+@use "sass:list";
+
+/* */
+@use "./coefficient" as *;
+@use "./constants" as *;
+@use "./shading" as *;
+@use "./derivate" as *;
+
+
+/*********************/
+/* GENERATION SYSTEM */
+/*********************/
+
+/* Generate toned */
+@mixin generate-toned($tone-names, $tone-values, $index: 1) {
+    $tone-name: list.nth($tone-names, $index);
+    $initial-value: list.nth($tone-values, $index);
+    //$tone-light-theme-affect: list.nth($tone-light-theme-affect, $index);
+    //$tone-dark-theme-affect: list.nth($tone-dark-theme-affect, $index);
+
+    /* initial (default) value */
+    --#{$tone-name}-tone: #{$initial-value};
+    --#{$tone-name}-tone-shift: var(--tone-shift, 0.0);
+
+    /* tone values */
+    //@include theme-affect($tone-name, $tone-light-theme-affect, $tone-dark-theme-affect);
+    @include theme-affect-default($tone-name);
+    @include tone-shifting($tone-name, "#{$tone-name}-tone-shift");
+}
+
+/* Generate themed nodes */
+@mixin generate-themed-nodes($primary: "primary", $tone-names) {
+    @include accent-shades($primary); /* make different version of chromatic center */
+    @include theme-accents($primary); /* determine chromatic base by theme */
+    @include sub-shades($primary);    /* generate shadings from light or dark */
+
+    /* use final tone value for shading primary */
+    @each $tone-name in $tone-names {
+        @include apply-shade($tone-name, $primary, 'dep-shift');
+    }
+}
+
+/* Generate toned nodes */
+@mixin generate-toned-nodes($tone-names, $tone-values) {
+    $tone-values-index: 1;
+    @each $tone-name in $tone-names {
+        @include generate-toned($tone-names, $tone-values, $tone-values-index);
+        $tone-values-index: $tone-values-index + 1;
+    }
+}

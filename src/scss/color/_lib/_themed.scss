@@ -1,0 +1,27 @@
+/* Detect theme */
+@property --if-theme-hack { syntax: "<color>"; inherits: true; initial-value: #000; };
+
+/* Detect theme */
+@mixin detected-theme($name: "detected") {
+    --#{$name}-theme: 0;
+    --if-theme-hack: light-dark(#111, #000);
+    --#{$name}-theme: if(
+        style(--if-theme-hack: #000): 1;
+        style(color-scheme: dark): 1;
+        style(color-scheme: only dark): 1;
+        else: 0;
+    );
+}
+
+/* Detect media theme */
+@mixin detected-media-theme($name: "detected") {
+    & * { --#{$name}-theme: inherit; }
+
+    //
+    @media (prefers-color-scheme: light) { --#{$name}-theme: 0; };
+    @media (prefers-color-scheme: dark)  { --#{$name}-theme: 1; };
+
+    //
+    @container(#{"style(color-scheme: light) or style(color-scheme: only light)"}) { --#{$name}-theme: 0; };
+    @container(#{"style(color-scheme: dark)  or style(color-scheme: only dark)"})  { --#{$name}-theme: 1; };
+}

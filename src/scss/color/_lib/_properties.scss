@@ -1,0 +1,51 @@
+
+/* Define property color */
+@mixin property-color($name, $initial: #fff, $syntax: "<color>", $inherits: true) {
+    @property --#{$name} { syntax: "#{$syntax}"; inherits: #{$inherits}; initial-value: #{$initial}; };
+}
+
+/* Define property value */
+@mixin property-value($name, $initial: 0, $syntax: "<number>", $inherits: true) {
+    @property --#{$name} { syntax: "#{$syntax}"; inherits: #{$inherits}; initial-value: #{$initial}; };
+}
+
+/* Define property tone values */
+@mixin property-tone-values($tone-name) {
+    @include property-value("#{$tone-name}-tone", 0);
+    @include property-value("#{$tone-name}-tone-shift", 0);
+    @include property-value("#{$tone-name}-choice-factor", 0);
+    @include property-value("#{$tone-name}-tm", 0);
+}
+
+/* Generate property tones */
+@mixin property-tones($tone-names) {
+    @each $tone-name in $tone-names {
+        @include property-tone-values($tone-name);
+    }
+}
+
+/* Generate property tone derivatives */
+@mixin property-tone-derivatives($primary-name, $tone-name) {
+    @include property-color("#{$primary-name}-#{$tone-name}", #fefffe);
+    @include property-color("#{$primary-name}-#{$tone-name}-tm", #fefffe);
+    @include property-color("#{$primary-name}-#{$tone-name}-from-light-to-accent", #fefffe);
+    @include property-color("#{$primary-name}-#{$tone-name}-from-accent-to-dark", #fefffe);
+}
+
+/* Generate property themed */
+@mixin property-themed($primary-name, $tone-names) {
+    @include property-color("#{$primary-name}-lighter", #fefffe);
+    @include property-color("#{$primary-name}-darker", #101110);
+    @include property-color("#{$primary-name}-neutral", #fefffe);
+    @include property-color("#{$primary-name}-accent", #101110);
+
+    /* Generate property light shade */
+    @include property-color("#{$primary-name}-light-shade", #fefffe);
+    @include property-color("#{$primary-name}-dark-shade", #101110);
+    @include property-color("#{$primary-name}-accent-shade", #101110);
+
+    /* Generate property tone derivatives */
+    @each $tone-name in $tone-names {
+        @include property-tone-derivatives($primary-name, $tone-name);
+    }
+}

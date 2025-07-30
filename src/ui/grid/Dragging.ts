@@ -3,7 +3,7 @@ import { LongPressHandler } from "@helpers/controllers/LongPress";
 import { makeShiftTrigger } from "@helpers/controllers/Trigger";
 
 //
-export const makeDragEvents = async (newItem, {layout, dragging, currentCell}, {item, list, items})=>{ // @ts-ignore
+export const makeDragEvents = async (newItem, {layout, dragging, currentCell}, {item, items})=>{ // @ts-ignore
     const $updateLayout = (newItem)=>{
         const gridSystem = newItem?.parentElement;
         layout[0] = parseInt(getPropertyValue(gridSystem, "--layout-c")) || layout[0];
@@ -27,7 +27,7 @@ export const makeDragEvents = async (newItem, {layout, dragging, currentCell}, {
         const rel: [number, number] = [(cbox.left + cbox.right)/2 - pbox.left, (cbox.top + cbox.bottom)/2 - pbox.top];
 
         // compute correct cell
-        const args = {layout: $updateLayout(newItem), size: [gridSystem?.clientWidth, gridSystem?.clientHeight]}; // @ts-ignore
+        const args = {layout: $updateLayout(newItem), item, items, size: [gridSystem?.clientWidth, gridSystem?.clientHeight]}; // @ts-ignore
         setCell(redirectCell(clamped(convertOrientPxToCX(rel, args, orientOf(gridSystem)), layout), args));
 
         //
@@ -48,7 +48,7 @@ export const makeDragEvents = async (newItem, {layout, dragging, currentCell}, {
         const rel : [number, number] = [(cbox.left + cbox.right)/2 - pbox.left, (cbox.top + cbox.bottom)/2 - pbox.top];
 
         // compute correct cell
-        const args = {item, list, items, layout: $updateLayout(newItem), size: [gridSystem?.clientWidth, gridSystem?.clientHeight]}; // @ts-ignore
+        const args = {item, items, layout: $updateLayout(newItem), size: [gridSystem?.clientWidth, gridSystem?.clientHeight]}; // @ts-ignore
         const cell = redirectCell(clamped(convertOrientPxToCX(rel, args, orientOf(gridSystem)), layout), args);
 
         // set cell position and animate

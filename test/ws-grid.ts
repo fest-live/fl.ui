@@ -47,28 +47,35 @@ async function createGridWithItem() {
     const { bindInteraction } = await import("../src/ui/grid/GridBind");
 
     //
-    const item = { cell: makeReactive([0, 0]) };
-    const items = [item];
+    const item0 = { id: "item0", cell: makeReactive([0, 0]) };
+    const item1 = { id: "item1", cell: makeReactive([0, 1]) };
+
+    //
+    const items = [item0, item1];
     const layout = makeReactive([4, 8]);
-    const withItem = (el)=>{
+    const withItem = (item, el)=>{
         if (el) {
             const args = { layout, items, item };
             el.addEventListener("dragstart", (ev)=>{ev.preventDefault();});
             bindInteraction(el, args);
         }
     };
+
+    //
     const oRef = orientRef();
     return H`<div data-mixin="ui-orientbox" style="inline-size: 100%; block-size: 100%; inset: 0; position: fixed; background-color: transparent;"  orient=${oRef}>
-        <div data-mixin="ui-gridbox" style="--layout-c: 4; --layout-r: 8;">
-            <div class="c2-surface" ref=${withItem} style="background-color: --c2-on-surface(0.0, var(--current)); padding: 1.5rem; color-scheme: dark; pointer-events: auto; border-radius: 1rem; user-select: none; inline-size: 6rem; block-size: 6rem;">
+        <div data-mixin="ui-gridbox" style="--layout-c: 4; --layout-r: 8;">${M(items, (item)=>{
+            return H`<div class="c2-surface" ref=${withItem.bind(null, item)} style="filter: drop-shadow(0 0 0.25rem #0008); background-color: --c2-on-surface(0.0, var(--current)); padding: 1.5rem; color-scheme: dark; pointer-events: auto; border-radius: 1rem; user-select: none; inline-size: 6rem; block-size: 6rem;" data-id=${item.id}>
                 <ui-icon class="c2-surface" icon="newspaper"></ui-icon>
-            </div>
+            </div>`
+        })}
         </div>
     </div>`;
 }
 
 //@ts-ignore
 import styles from "../src/scss/index.scss?inline";
+import { M } from "fest/lure";
 
 //
 async function main() {

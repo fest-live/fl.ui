@@ -1,22 +1,23 @@
-import { setStyleRule } from "fest/dom";
+import { E, Q, localStorageRef } from "fest/lure";
 
 //
 export type StyleTuple = [selector: string, sheet: object];
 export const updateThemeBase = async (originColor: string|null = null, $cssIsDark: boolean|null = null)=>{
-    if (originColor != null && localStorage.getItem("--tm-origin") != originColor) localStorage.setItem("--tm-origin", originColor);
-    if ($cssIsDark != null && (!!localStorage.getItem("--tm-scheme") != $cssIsDark)) localStorage.setItem("--tm-scheme", $cssIsDark as unknown as string);
+    const primaryRef = localStorageRef("--primary", originColor);
+    const wpThemeRef = localStorageRef("--wp-theme", $cssIsDark);
 
     //
-    setStyleRule(":host, :root, :scope, :where(*)", {
-        "--tm-origin": localStorage.getItem("--tm-origin") || "oklch(20% 0.01 180deg)",
-        "--tm-scheme": (localStorage.getItem("--tm-scheme") ? 1 : 0) || 0
-    });
-}
+    if (originColor != null && primaryRef.value != originColor) primaryRef.value = originColor;
+    if ($cssIsDark != null && (!!wpThemeRef.value != $cssIsDark)) wpThemeRef.value = $cssIsDark as unknown as string;
 
-//
-requestIdleCallback(()=>updateThemeBase(), {timeout: 100});
-addEventListener("storage", (event) => {
-    if (event.key == "--tm-origin" || event.key == "--tm-scheme") {
-        updateThemeBase();
-    }
-});
+    //
+    E(document.documentElement, {
+        style: {
+            "--primary": primaryRef,
+            "--wp-theme": wpThemeRef
+        }
+    })
+
+    //
+    return [primaryRef, wpThemeRef];
+}

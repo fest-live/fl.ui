@@ -128,7 +128,7 @@ const getClusterImageData = async (imgURL)=>{
     //
     const img = ctx?.getImageData?.(0, 0, offset.width, offset.height, {
         storageFormat: "float32",
-        pixelFormat: "rgba",
+        pixelFormat: "rgba-float32",
         colorSpace: "srgb"
     });
 

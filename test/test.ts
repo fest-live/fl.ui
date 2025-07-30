@@ -1,5 +1,3 @@
-// --- Асинхронные функции-компоненты ---
-
 import { loadInlineStyle } from "../../dom.ts/src/$mixin$/Style";
 import Icon from "../src/ui/icons/Icon"
 
@@ -13,35 +11,6 @@ async function createScrollBoxed() {
     return H`
     <div class="c2-surface" data-mixin="ov-scrollbar" style="clip-path: inset(0px round 0.5%); padding: 1rem; margin: 1rem; box-sizing: border-box; overflow: scroll; display: block; inline-size: 800px; block-size: 600px; border: none 0px transparent; outline: none 0px transparent;">
         <div class="c2-surface c2-dark" style="user-select: none; font-family: Helvetica, Calibri, Carlito; border-radius: 0.5rem; padding: 0.5rem; inline-size: 100px; block-size: 1800px; display: flex; place-content: center; place-items: center;">Black Dolphin</div>
-    </div>`;
-}
-
-async function createGridWithItem() {
-    const { makeReactive } = await import("fest/object");
-    const { H, orientRef, Q } = await import("fest/lure");
-    const { bindInteraction } = await import("../src/ui/grid/GridBind");
-
-    //
-    const { UIGridBox } = await import("../src/ui/grid/GridBox");
-    const { UIOrientBox } = await import("../src/ui/grid/OrientBox");
-    console.log(UIGridBox, UIOrientBox);
-
-    //
-    const item = { cell: makeReactive([0, 0]) };
-    const items = [item];
-    const layout = makeReactive([4, 8]);
-    const withItem = Q((el)=>{
-        if (el) {
-            const args = { layout, items, item };
-            el.addEventListener("dragstart", (ev)=>{ev.preventDefault();});
-            bindInteraction(el, args);
-        }
-    });
-    const oRef = orientRef();
-    return H`<div data-mixin="ui-orientbox" style="inline-size:800px; block-size:600px;" orient=${oRef}>
-        <div data-mixin="ui-gridbox" style="--layout-c: 4; --layout-r: 8;">
-            <div ref=${withItem} style="pointer-events: auto; border-radius: 1rem; user-select: none; background-color: black; inline-size: 6rem; block-size: 6rem;"></div>
-        </div>
     </div>`;
 }
 
@@ -123,7 +92,6 @@ async function main() {
     // Создание и добавление компонентов
     const [
         scrollBoxed,
-        gridWithItem,
         timeStatus,
         icon,
         slider,
@@ -131,7 +99,6 @@ async function main() {
         ctxMenu
     ] = await Promise.all([
         createScrollBoxed(),
-        createGridWithItem(),
         createTimeStatus(),
         createIcon(),
         createSlider(),
@@ -141,7 +108,6 @@ async function main() {
 
     container.append(
         scrollBoxed,
-        gridWithItem,
         timeStatus,
         icon,
         slider,

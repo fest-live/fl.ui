@@ -137,10 +137,9 @@
         }
 
         & > .ctx-menu-separator {
-            height: 0.0625rem;
+            block-size: 0.0625rem;
             background-color: --c2-on-surface(var(--background-tone-shift, 0), var(--current, transparent));
             opacity: 0.1;
         }
     }
-
 }

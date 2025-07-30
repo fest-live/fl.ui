@@ -4,7 +4,7 @@ import { updateThemeBase } from "./StyleRules.js";
 import { oklch, formatCss } from "culori";
 
 //
-export const colorScheme = async (blob) => {
+export const colorScheme = async (blob: Blob) => {
     const cols = await getDominantColors(blob);
     const c = cols?.[0] || [0,0,0];
 

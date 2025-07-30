@@ -13,7 +13,6 @@
 @mixin make-function($type, $current: 'current') {
     $f-args: "(--tone-shift <number>: 0, --#{$current} <color>: var(--#{$current}, inherit)) returns <color>";
     $f-name: "--c2-#{$type}";
-    $f-o-name: "--c2-on-#{$type}";
 
     /* */
     @#{"function"} #{$f-name}#{$f-args} {
@@ -29,15 +28,17 @@
     }
 
     /* */
+    $f-on-type: "on-#{$type}";
+    $f-o-name: "--c2-#{$f-on-type}";
     @#{"function"} #{$f-o-name}#{$f-args} {
-        @include generate-themed-nodes($current, ("on-#{$type}")); /* generate themed nodes */
+        @include generate-themed-nodes($current, ($f-on-type)); /* generate themed nodes */
 
         /* initial (default) value */
-        --on-#{$type}-tone-shift: var(--tone-shift, 0.0);
-        @include tone-shifting("on-#{$type}", "on-#{$type}-tone-shift");
-        @include apply-shade("on-#{$type}");
+        --#{$f-on-type}-tone-shift: var(--tone-shift, 0.0);
+        @include tone-shifting($f-on-type, "#{$f-on-type}-tone-shift");
+        @include apply-shade($f-on-type);
 
         /* */
-        result: var(--#{$current}-on-#{$type}, inherit);
+        result: var(--#{$current}-#{$f-on-type}, inherit);
     }
 }

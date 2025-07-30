@@ -6,13 +6,13 @@ console.log(Icon);
 
 //
 async function makeWallpaper() {
-    const { H, orientRef, Q } = await import("fest/lure");
+    const { H, orientRef } = await import("fest/lure");
     const oRef = orientRef();
     const CE = H`<canvas style="inline-size: 100%; block-size: 100%; inset: 0; position: fixed;" data-orient=${oRef} is="ui-canvas" data-src="./imgs/test.jpg"></canvas>`;
     return CE;
 }
 
-
+//
 async function createCtxMenu() {
     const { H } = await import("fest/lure");
     const { ctxMenuTrigger } = await import("../src/helpers/core/CtxMenu");
@@ -43,29 +43,26 @@ async function createCtxMenu() {
 //
 async function createGridWithItem() {
     const { makeReactive } = await import("fest/object");
-    const { H, orientRef, Q } = await import("fest/lure");
+    const { H, orientRef } = await import("fest/lure");
     const { bindInteraction } = await import("../src/ui/grid/GridBind");
-
-    //
-    const { UIGridBox } = await import("../src/ui/grid/GridBox");
-    const { UIOrientBox } = await import("../src/ui/grid/OrientBox");
-    console.log(UIGridBox, UIOrientBox);
 
     //
     const item = { cell: makeReactive([0, 0]) };
     const items = [item];
     const layout = makeReactive([4, 8]);
-    const withItem = Q((el)=>{
+    const withItem = (el)=>{
         if (el) {
             const args = { layout, items, item };
             el.addEventListener("dragstart", (ev)=>{ev.preventDefault();});
             bindInteraction(el, args);
         }
-    });
+    };
     const oRef = orientRef();
     return H`<div data-mixin="ui-orientbox" style="inline-size: 100%; block-size: 100%; inset: 0; position: fixed; background-color: transparent;"  orient=${oRef}>
         <div data-mixin="ui-gridbox" style="--layout-c: 4; --layout-r: 8;">
-            <div ref=${withItem} style="pointer-events: auto; border-radius: 1rem; user-select: none; background-color: black; inline-size: 6rem; block-size: 6rem;"></div>
+            <div class="c2-surface" ref=${withItem} style="background-color: --c2-on-surface(0.0, var(--current)); padding: 1.5rem; color-scheme: dark; pointer-events: auto; border-radius: 1rem; user-select: none; inline-size: 6rem; block-size: 6rem;">
+                <ui-icon class="c2-surface" icon="newspaper"></ui-icon>
+            </div>
         </div>
     </div>`;
 }
@@ -75,10 +72,11 @@ import styles from "../src/scss/index.scss?inline";
 
 //
 async function main() {
-    // Глобальные стили и CSS
     const { default: loadCSS } = await import("fest/dom");
-    const { colorScheme } = await import("../src/helpers/design/ImagePicker");
     await loadCSS(); loadInlineStyle(styles);
+
+    //
+    const { colorScheme } = await import("../src/helpers/design/ImagePicker");
     const container = document.querySelector("#app") || document.body;
 
     //
@@ -86,6 +84,11 @@ async function main() {
         const blob = await res.blob();
         colorScheme(blob);
     });
+
+    //
+    const { UIGridBox } = await import("../src/ui/grid/GridBox");
+    const { UIOrientBox } = await import("../src/ui/grid/OrientBox");
+    console.log(UIGridBox, UIOrientBox); // TODO: remove
 
     //
     const [

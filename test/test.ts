@@ -1,4 +1,4 @@
-import { loadInlineStyle } from "../../dom.ts/src/$mixin$/Style";
+import { loadInlineStyle } from "fest/dom";
 import Icon from "../src/ui/icons/Icon"
 
 console.log(Icon);

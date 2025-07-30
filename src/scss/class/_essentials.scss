@@ -16,63 +16,25 @@
     }
 
     //
-    .ctx-menu {
+    .round-decor {
+        & { --background-tone-shift: 0; };
+
         & {
-            position: fixed;
-            min-inline-size: 100px;
-            inline-size: max-content;
-            block-size: max-content;
-            z-index: 99999;
-            opacity: var(--opacity, 1);
-            transform: scale(var(--scale, 1)) translate(var(--translate-x, 0px), var(--translate-y, 0px));
-            pointer-events: auto;
-            font-size: 0.8em;
+            padding-block: 0.25rem;
+            border-radius: 0.25rem;
+            box-shadow: 0px 0px 0.333rem oklch(from #010101 l c h / 0.4);
+            background-color: --c2-surface(var(--background-tone-shift, 0), var(--current, transparent));
+            overflow: hidden;
         }
 
         //
-        &, * {
-            visibility: visible;
-            content-visibility: visible;
-        }
-
-        //
-        & > * {
-            background-color: var(--current-surface, transparent);
-            pointer-events: auto;
-            place-content: center;
-            place-items: center;
-            cursor: pointer;
-
-            &:hover {
-                --surface-tone-shift: 0.1;
-            }
-
-            & > span {
-                text-align: start;
-                justify-self: start;
-                user-select: none;
-                pointer-events: none;
-                padding-inline: 0.25rem;
-            }
-
-            & > ui-icon {
-                --ui-icon-size: 1.8rem;
-                --ui-icon-color: var(--current-on-surface, inherit);
-                padding: 0.5rem;
-                user-select: none;
-                pointer-events: none;
-            }
-        }
-
-        & > .ctx-menu-separator {
-            & {
-                height: 0.0625rem;
-                background-color: var(--current-on-surface, inherit);
-                opacity: 0.1;
-            }
+        &:empty {
+            padding: 0px;
+            display: none;
+            pointer-events: none;
+            visibility: collapse;
         }
     }
-
 
     //
     .time-format {
@@ -113,4 +75,72 @@
         @include m.display('inline flex', center, center);
         @include m.size(max-content, max-content);
     }
+
+
+    //
+    .ctx-menu {
+        & {
+            position: fixed;
+            min-inline-size: 100px;
+            inline-size: max-content;
+            block-size: max-content;
+            z-index: 99999;
+            opacity: var(--opacity, 1);
+            transform: scale(var(--scale, 1)) translate(var(--translate-x, 0px), var(--translate-y, 0px));
+            pointer-events: auto;
+            font-size: 0.8em;
+        }
+
+        //
+        &, * {
+            visibility: visible;
+            content-visibility: visible;
+        }
+
+        //
+        & > * {
+            transition-behavior: allow-discrete;
+            transition: --background-tone-shift 0.2s ease-in-out;
+            background-color: --c2-surface(var(--background-tone-shift, 0), var(--current, transparent));
+            pointer-events: auto;
+            place-content: center;
+            place-items: center;
+            cursor: pointer;
+
+            /* */
+            &:not(.ctx-menu-separator) {
+                padding: 0.125rem;
+            }
+
+            /* */
+            & { --background-tone-shift: 0; };
+            &:hover {
+                --background-tone-shift: 0.1;
+            }
+
+            & > span {
+                text-align: start;
+                justify-self: start;
+                user-select: none;
+                pointer-events: none;
+                padding-inline: 0.25rem;
+            }
+
+            & > ui-icon {
+                --ui-icon-size: 1.8rem;
+                --ui-icon-color: --c2-on-surface(var(--icon-color-tone-shift, 0), var(--current, transparent));
+                background-color: var(--ui-icon-color, currentColor);
+                padding: 0.5rem;
+                user-select: none;
+                pointer-events: none;
+            }
+        }
+
+        & > .ctx-menu-separator {
+            height: 0.0625rem;
+            background-color: --c2-on-surface(var(--background-tone-shift, 0), var(--current, transparent));
+            opacity: 0.1;
+        }
+    }
+
 }

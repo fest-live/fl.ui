@@ -7,7 +7,6 @@
 @use "./_decl/initials" as *;
 
 /* */
-@use "./_impl/function" as *;
 @use "./_impl/types" as *;
 @use "./_impl/usage" as *;
 
@@ -38,8 +37,8 @@
     .c2-is-secondary { --#{$current-name}  : var(--#{$secondary-name}, inherit); }
 
     /* Reset all properties */
-    .c2-light { color-scheme: light; @include detected-theme(); /*& { --detected-theme: 0; };*/ }
-    .c2-dark  { color-scheme: dark;  @include detected-theme(); /*& { --detected-theme: 1; };*/ }
+    .c2-light { color-scheme: light; @include detected-theme(); }
+    .c2-dark  { color-scheme: dark;  @include detected-theme(); }
     .c2-transparent {
         interpolate-size: allow-keywords;
         background-color: transparent;

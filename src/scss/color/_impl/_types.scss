@@ -11,7 +11,7 @@
 @use "../_lib/utils" as *;
 
 /* */
-@use "./function" as *;
+@use "../_css5/mfc" as *;
 
 /* */
 @mixin types-define($types...) {
@@ -23,6 +23,11 @@
     @each $type in $types {
         .c2-#{$type} {
             @include reset-all-properties();
+
+            /* Reject alt-themed children */
+            & *:not(.c2-surface, .c2-contrast, .c2-inverse):not(#{exclude($type, "surface", "contrast", "inverse")}):not(:has(.c2-surface > *, .c2-contrast > *, .c2-inverse > *)) {
+                @include reset-all-properties();
+            }
 
             /* Variables */
             & {
@@ -68,11 +73,6 @@
                 scrollbar-color: --c2-on-#{$type}(var(--scrollbar-tone-shift, 0.0), var(--#{$current-name}, transparent)) transparent;
                 color: --c2-on-#{$type}(var(--color-tone-shift, 0.0), var(--#{$current-name}, transparent));
                 caret-color: --c2-on-#{$type}(var(--caret-tone-shift, 0.0), var(--#{$current-name}, transparent));
-            }
-
-            /* Reject alt-themed children */
-            & *:not(.c2-surface, .c2-contrast, .c2-inverse):not(#{exclude($type, "surface", "contrast", "inverse")}):not(:has(.c2-surface > *, .c2-contrast > *, .c2-inverse > *)) {
-                @include reset-all-properties();
             }
 
             /* */

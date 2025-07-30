@@ -16,3 +16,28 @@
 @include property-themed($secondary-name, $tone-names);
 @include property-themed($trinary-name, $tone-names);
 @include property-themed($current-name, $tone-names);
+
+/* */
+@include property-value(--primary-tone-shift, 0.0);
+@include property-value(--trinary-tone-shift, 0.0);
+@include property-value(--secondary-tone-shift, 0.0);
+@include property-value(--current-tone-shift, 0.0);
+
+/* */
+@include property-value(--surface-tone-shift, 0.0);
+@include property-value(--on-surface-tone-shift, 0.0);
+@include property-value(--contrast-tone-shift, 0.0);
+@include property-value(--on-contrast-tone-shift, 0.0);
+@include property-value(--inverse-tone-shift, 0.0);
+@include property-value(--on-inverse-tone-shift, 0.0);
+
+/* */
+@include property-value(--background-tone-shift, 0.0);
+@include property-value(--color-tone-shift, 0.0);
+@include property-value(--ui-icon-tone-shift, 0.0);
+@include property-value(--accent-tone-shift, 0.0);
+@include property-value(--scrollbar-tone-shift, 0.0);
+@include property-value(--border-tone-shift, 0.0);
+@include property-value(--outline-tone-shift, 0.0);
+@include property-value(--text-decoration-tone-shift, 0.0);
+@include property-value(--text-emphasis-tone-shift, 0.0);

@@ -126,24 +126,6 @@
     }
 
     //
-    .round-decor {
-        & {
-            padding-block: 0.25rem;
-            border-radius: 0.25rem;
-            box-shadow: 0px 0px 0.333rem var(--color-border, #00000020);
-            overflow: hidden;
-        }
-
-        //
-        &:empty {
-            padding: 0px;
-            display: none;
-            pointer-events: none;
-            visibility: collapse;
-        }
-    }
-
-    //
     .ux-anchor {
         transform: scale(var(--scale, 1)) translate(var(--translate-x, 0px), var(--translate-y, 0px));
         @include ps-cursor;

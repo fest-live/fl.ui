@@ -13,14 +13,13 @@
     /* if > 0.5, try first variant, if <= 0.5, try secondary */
     /* if (d - 0.5) less than 0, rounds up to 0 (lights), more than 0, rounds up to 1 (darker) */
     --#{$affected}-choice-factor: clamp(0, round(up, calc(var(--#{$affected}-dep-shift, 0) - 0.5), 1), 1);
-    //--#{$affected}-choice-factor: clamp(0, calc(var(--#{$affected}-dep-shift, 0) - 0.5), 1);
 }
 
 /* Generate sub-shades */
 @mixin sub-shades($primary: "primary", $suffix: "-tm") { /* dark shades from 0 as light to 1 as dark... */
     --#{$primary}-light-shade:  oklch(from var(--#{$primary}#{$suffix}, #fefffe) calc(l * 0.06 + 0.94) calc(c * 0.01) h);
     --#{$primary}-dark-shade:   oklch(from var(--#{$primary}#{$suffix}, #101110) calc(l * 0.02 + 0.01) calc(c * 0.01) h);
-    --#{$primary}-accent-shade: var(--#{$primary}#{$suffix}, #101110); // oklch(from var(--#{$primary}#{$suffix}, #101110) calc(l * 0.5 + 0.4) calc(c * 0.9 + 0.1) h);
+    --#{$primary}-accent-shade: var(--#{$primary}#{$suffix}, #101110);
 }
 
 /* Apply shade */

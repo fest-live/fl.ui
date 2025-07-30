@@ -1,0 +1,43 @@
+@use "sass:list";
+
+/* */
+@use "../_decl/names" as *;
+@use "../_decl/constants" as *;
+
+/* */
+@use "../_lib/generation" as *;
+@use "../_lib/drv-shades" as *;
+
+/* */
+/* Generate function */
+@mixin make-function($type, $current: 'current') {
+    $f-args: "(--tone-shift <number>: 0, --#{$current} <color>: var(--#{$current}, inherit)) returns <color>";
+    $f-name: "--c2-#{$type}";
+    $f-o-name: "--c2-on-#{$type}";
+
+    /* */
+    @#{"function"} #{$f-name}#{$f-args} {
+        @include generate-themed-nodes($current, ($type)); /* generate themed nodes */
+
+        /* initial (default) value */
+        --#{$type}-tone-shift: var(--tone-shift, 0.0);
+        @include tone-shifting($type, "#{$type}-tone-shift");
+        @include apply-shade($type);
+
+        /* */
+        result: var(--#{$current}-#{$type}, inherit);
+    }
+
+    /* */
+    @#{"function"} #{$f-o-name}#{$f-args} {
+        @include generate-themed-nodes($current, ("on-#{$type}")); /* generate themed nodes */
+
+        /* initial (default) value */
+        --on-#{$type}-tone-shift: var(--tone-shift, 0.0);
+        @include tone-shifting("on-#{$type}", "on-#{$type}-tone-shift");
+        @include apply-shade("on-#{$type}");
+
+        /* */
+        result: var(--#{$current}-on-#{$type}, inherit);
+    }
+}

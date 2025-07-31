@@ -1,5 +1,6 @@
 import { H, Q, visibleRef } from "fest/lure";
 import { boundingBoxRef, makeInterruptTrigger, withInsetWithPointer } from "./Anchor";
+import { addEvent, removeEvent } from "fest/dom";
 
 //
 export const itemClickHandle = (ev, ctxMenuDesc: any)=>{
@@ -25,8 +26,8 @@ const getBoundVisibleRef = (menuElement: HTMLElement): any => {
 //
 export const bindMenuItemClickHandler = (menuElement: HTMLElement, menuDesc: any)=>{
     const handler = (ev)=>{ itemClickHandle(ev, menuDesc); };
-    menuElement?.addEventListener?.("click", handler);
-    return ()=>menuElement?.removeEventListener?.("click", handler);
+    addEvent(menuElement, "click", handler);
+    return ()=>removeEvent(menuElement, "click", handler);
 }
 
 //
@@ -86,8 +87,8 @@ export const ctxMenuTrigger = (triggerElement: HTMLElement, ctxMenuDesc: any, me
     }, [ "click", "pointerdown", "scroll" ]);
 
     //
-    triggerElement?.addEventListener?.("contextmenu", evHandler);
-    return ()=>{ untrigger?.(); triggerElement?.removeEventListener?.("contextmenu", evHandler); };
+    addEvent(triggerElement, "contextmenu", evHandler);
+    return ()=>{ untrigger?.(); removeEvent(triggerElement, "contextmenu", evHandler); };
 }
 
 // bit same as contextmenu, but different by anchor and trigger (from element drop-down)
@@ -103,6 +104,6 @@ export const dropMenuTrigger = (triggerElement: HTMLElement, ctxMenuDesc: any, m
     }, [ "click", "pointerdown", "scroll" ]);
 
     //
-    triggerElement?.addEventListener?.("click", evHandler);
-    return ()=>{ untrigger?.(); triggerElement?.removeEventListener?.("click", evHandler); };
+    addEvent(triggerElement, "click", evHandler);
+    return ()=>{ untrigger?.(); removeEvent(triggerElement, "click", evHandler); };
 }

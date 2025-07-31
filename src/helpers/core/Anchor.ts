@@ -1,5 +1,5 @@
 import { ref, makeReactive, booleanRef, stringRef, addToCallChain, WRef, numberRef } from "fest/object";
-import { handleStyleChange, observeContentBox } from "fest/dom";
+import { handleStyleChange, observeContentBox, addEvents, removeEvents, addEvent, removeEvent } from "fest/dom";
 import { bindWith } from "fest/lure";
 
 //
@@ -11,28 +11,32 @@ export const handleByPointer = (cb, root = ROOT)=>{
     let pointerId = -1;
     const rst = (ev)=>{ pointerId = -1; };
     const tgi = (ev)=>{ if (pointerId < 0) pointerId = ev.pointerId; if (pointerId == ev.pointerId) { cb?.(ev); } };
-    root.addEventListener("pointerup", rst);
-    root.addEventListener("pointercancel", rst);
-    root.addEventListener("pointermove", tgi);
+    addEvents(root, {
+        "pointerup"    : rst,
+        "pointercancel": rst,
+        "pointermove"  : tgi
+    });
     const wr = new WeakRef(root);
     return ()=>{
         const root = wr?.deref?.();
-        root?.removeEventListener?.("pointerup", rst);
-        root?.removeEventListener?.("pointercancel", rst);
-        root?.removeEventListener?.("pointermove", tgi);
+        removeEvents(root, {
+            "pointerup"    : rst,
+            "pointercancel": rst,
+            "pointermove"  : tgi
+        });
     }
 }
 
 //
 export const handleForFixPosition = (container, cb, root = window)=>{
     const ptu = (ev)=>cb?.(ev);
-    container?.addEventListener?.("scroll", ptu);
-    root?.addEventListener?.("resize", ptu);
+    addEvent(container, "scroll", ptu);
+    addEvent(root, "resize", ptu);
     const obs = observeContentBox(container, ptu);
     const wr  = new WeakRef(root), wc = new WeakRef(container);
     return ()=>{
-        wc?.deref?.()?.removeEventListener?.("scroll", ptu);
-        wr?.deref?.()?.removeEventListener?.("resize", ptu);
+        removeEvent(wc?.deref?.(), "scroll", ptu);
+        removeEvent(wr?.deref?.(), "resize", ptu);
         obs?.disconnect?.();
     }
 }
@@ -90,8 +94,8 @@ export function makeInterruptTrigger(
 ) {
     const wr = new WeakRef(ref);
     const close = typeof ref === "function" ? ref : (ev) => { (!(except?.contains?.(ev?.target) || ev?.target == (except?.element ?? except)) || !except) ? $set(wr, "value", false) : false; };
-    closeEvents.forEach(event => element?.addEventListener?.(event, close));
-    const ubs = ()=>closeEvents.forEach(event => element?.removeEventListener?.(event, close));
+    addEvents(element, Object.fromEntries(closeEvents.map(event => [event, close])));
+    const ubs = ()=>removeEvents(element, Object.fromEntries(closeEvents.map(event => [event, close])));
     addToCallChain(ref, Symbol.dispose, ubs);
     return ubs;
 }
@@ -122,11 +126,11 @@ export function makeClickOutsideTrigger(ref: RefBool, element: any, options: Tri
     }
 
     //
-    root?.addEventListener?.("pointerdown", onPointerDown);
-    closeEvents.forEach(event => root?.addEventListener?.(event, onDisposeEvent));
+    addEvent(root, "pointerdown", onPointerDown);
+    addEvents(root, Object.fromEntries(closeEvents.map(event => [event, onDisposeEvent])));
     if (element) {
-        element.addEventListener("mouseleave", onMouseLeave);
-        element.addEventListener("mouseenter", onMouseEnter);
+        addEvent(element, "mouseleave", onMouseLeave);
+        addEvent(element, "mouseenter", onMouseEnter);
     }
 
     //
@@ -134,12 +138,13 @@ export function makeClickOutsideTrigger(ref: RefBool, element: any, options: Tri
 
     //
     function destroy() {
-        const root = rw?.deref?.();  root.removeEventListener("pointerdown", onPointerDown);
-        closeEvents.forEach(event => root.removeEventListener(event, onDisposeEvent));
+        const root = rw?.deref?.();
+        removeEvent(root, "pointerdown", onPointerDown);
+        removeEvents(root, Object.fromEntries(closeEvents.map(event => [event, onDisposeEvent])));
         const element = we?.deref?.();
         if (element) {
-            element.removeEventListener("mouseleave", onMouseLeave);
-            element.removeEventListener("mouseenter", onMouseEnter);
+            removeEvent(element, "mouseleave", onMouseLeave);
+            removeEvent(element, "mouseenter", onMouseEnter);
         }
     }
 
@@ -182,8 +187,8 @@ export function boundingBoxRef(anchor: HTMLElement, options?: {
     }
 
     //
-      root.addEventListener("scroll", updateArea, true);
-    window.addEventListener("resize", updateArea);
+    addEvent(root, "scroll", updateArea, { capture: true });
+    addEvent(window, "resize", updateArea);
 
     //
     let resizeObs: ResizeObserver | undefined;
@@ -202,8 +207,8 @@ export function boundingBoxRef(anchor: HTMLElement, options?: {
     //
     const wr = new WeakRef(root); updateArea();
     function destroy() {
-        wr?.deref?.()?.removeEventListener?.("scroll", updateArea, true);
-        window       ?.removeEventListener?.("resize", updateArea);
+        removeEvent(wr?.deref?.(), "scroll", updateArea, { capture: true });
+        removeEvent(window, "resize", updateArea);
         resizeObs?.disconnect?.(); mutationObs?.disconnect?.();
     }
 

@@ -15,7 +15,7 @@
 
 //
 import { defineElement, H, property, Q, valueRef } from "fest/lure";
-import { preloadStyle } from "fest/dom";
+import { addEvent, preloadStyle } from "fest/dom";
 
 //
 import { assign } from "fest/object";
@@ -81,7 +81,7 @@ export class LongTextInput extends UIElement {
         self?.shadowRoot?.append(frame);
 
         // fix scrolling by horizontal
-        self.addEventListener("wheel", (ev)=>{
+        addEvent(self, "wheel", (ev)=>{
             // use vertical scroll to scroll horizontally
             if (ev?.deltaY !== 0) {
                 ev?.preventDefault?.();

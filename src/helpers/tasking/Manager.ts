@@ -1,4 +1,5 @@
 import { ITask } from "./Types";
+import { addEvent } from "fest/dom";
 
 //
 export const getBy = (tasks: ITask[] = [], taskId: ITask|string|any)=>{
@@ -23,11 +24,11 @@ export const navigationEnable = (tasks: ITask[], taskEnvAction?: (task?: ITask|n
     const initialHistoryCount = history?.length || 0;
 
     // prevent behaviour once...
-    addEventListener("hashchange", (ev)=>{
+    addEvent(window, "hashchange", (ev)=>{
         const fc = getBy(tasks, location.hash);
         if (fc) { fc.focus = true; } else { history.replaceState("", "", getFocused(tasks, false)?.taskId || ""); };
     }); history?.pushState?.("", "", location.hash = location.hash || "#");
-    addEventListener("popstate", (ev)=>{
+    addEvent(window, "popstate", (ev)=>{
         ev.preventDefault();
         ev.stopPropagation();
         ev.stopImmediatePropagation();

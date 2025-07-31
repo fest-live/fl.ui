@@ -1,4 +1,4 @@
-import { ROOT, agWrapEvent } from "fest/dom";
+import { ROOT, agWrapEvent, addEvents } from "fest/dom";
 
 //
 export class SwipeHandler {
@@ -79,10 +79,12 @@ export class SwipeHandler {
             })
 
             //
-            ROOT.addEventListener("pointerdown"  , takeAction   , {capture: true});
-            ROOT.addEventListener("pointermove"  , registerMove , {capture: true});
-            ROOT.addEventListener("pointerup"    , completeSwipe, {capture: true});
-            ROOT.addEventListener("pointercancel", completeSwipe, {capture: true});
+            addEvents(ROOT, {
+                "pointerdown"  : takeAction   ,
+                "pointermove"  : registerMove ,
+                "pointerup"    : completeSwipe,
+                "pointercancel": completeSwipe,
+            });
         }
     }
 }

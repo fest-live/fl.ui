@@ -1,4 +1,4 @@
-import { handleListeners, agWrapEvent, doBorderObserve, doContentObserve, ROOT } from "fest/dom";
+import { addEvents, agWrapEvent, doBorderObserve, doContentObserve, removeEvents, ROOT } from "fest/dom";
 
 //
 export const doObserve = (holder, parent)=>{
@@ -12,7 +12,7 @@ export const makeShiftTrigger = (callable, newItem?)=> agWrapEvent((evc)=>{
     const ev = evc?.detail || evc;
     newItem ??= ev?.target ?? newItem;
     if (!newItem.dataset.dragging) {
-        const n_coord: [number, number] = (ev.orient ? [...ev.orient] : [ev?.clientX || 0, ev?.clientY || 0]) as [number, number];
+        const n_coord: [number, number] = (ev.orient ? [...ev.orient] : [ev?.layerX || 0, ev?.layerY || 0]) as [number, number];
         if (ev?.pointerId >= 0) {
             (newItem as HTMLElement)?.setPointerCapture?.(ev?.pointerId);
         };
@@ -21,7 +21,7 @@ export const makeShiftTrigger = (callable, newItem?)=> agWrapEvent((evc)=>{
         const shifting = agWrapEvent((evc_l: any)=>{
             const ev_l = evc_l?.detail || evc_l;
             if (ev_l?.pointerId == ev?.pointerId) {
-                const coord: [number, number] = (ev_l.orient ? [...ev_l.orient] : [ev_l?.clientX || 0, ev_l?.clientY || 0]) as [number, number];
+                const coord: [number, number] = (ev_l.orient ? [...ev_l.orient] : [ev_l?.layerX || 0, ev_l?.layerY || 0]) as [number, number];
                 const shift: [number, number] = [coord[0] - n_coord[0], coord[1] - n_coord[1]];
                 if (Math.hypot(...shift) > 2) {
                     newItem?.style?.setProperty?.("will-change", "transform", "important");
@@ -50,10 +50,10 @@ export const makeShiftTrigger = (callable, newItem?)=> agWrapEvent((evc)=>{
         const unbind = agWrapEvent((evc_l)=>{
             const ev_l = evc_l?.detail || evc_l;
             if (ev_l?.pointerId == ev?.pointerId)
-                { handleListeners(ROOT, "removeEventListener", handler); }
+                { removeEvents(ROOT, handler); }
         });
 
         //
-        handleListeners(ROOT, "addEventListener", handler);
+        addEvents(ROOT, handler);
     }
 });

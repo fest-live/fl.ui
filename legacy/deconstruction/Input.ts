@@ -1,5 +1,5 @@
-import { ScrollBar } from "fest/ui";
-import { includeSelf } from "fest/dom";
+import { ScrollBar } from "../../src/ui/scrollbar/Scrollbar";
+import { addEvent, addEvents, includeSelf } from "fest/dom";
 
 //
 export const doButtonAction = (button, input: HTMLInputElement)=>{
@@ -30,26 +30,27 @@ export const doButtonAction = (button, input: HTMLInputElement)=>{
 //
 export const holdFocus = (input)=>{
     let pointerId = -1;
-    input?.addEventListener?.("pointerdown", (ev)=>{
+
+    addEvent(input, "pointerdown", (ev)=>{
         if (pointerId < 0) {
             input?.setPointerCapture?.(pointerId = ev?.pointerId);
         }
     });
 
-    input?.addEventListener?.("blur", (ev)=>{
+    addEvent(input, "blur", (ev)=>{
         if (pointerId >= 0) {
             input?.focus?.();
         }
     });
 
-    document?.addEventListener?.("pointerup", (ev)=>{
+    addEvent(document, "pointerup", (ev)=>{
         if (pointerId == ev?.pointerId) {
             input?.releasePointerCapture?.(pointerId);
             pointerId = -1;
         }
     });
 
-    document?.addEventListener?.("pointercancel", (ev)=>{
+    addEvent(document, "pointercancel", (ev)=>{
         if (pointerId == ev?.pointerId) {
             input?.releasePointerCapture?.(pointerId);
             pointerId = -1;
@@ -87,10 +88,10 @@ export const makeInput = (host?: HTMLElement, ROOT = document.documentElement)=>
     };
 
     //
-    ROOT?.addEventListener?.("click", enforceFocus);
-    ROOT?.addEventListener?.("select", enforceFocus);
-    ROOT?.addEventListener?.("selectionchange", enforceFocus);
-    ROOT?.addEventListener?.("selectstart", enforceFocus);
+    addEvent(ROOT, "click", enforceFocus);
+    addEvent(ROOT, "select", enforceFocus);
+    addEvent(ROOT, "selectionchange", enforceFocus);
+    addEvent(ROOT, "selectstart", enforceFocus);
 
     //
     {
@@ -106,7 +107,7 @@ export const makeInput = (host?: HTMLElement, ROOT = document.documentElement)=>
         }
 
         //
-        document.addEventListener("wheel", (ev)=>{
+        addEvent(document, "wheel", (ev)=>{
             const scrollable = scr_w?.deref?.();
             if (scrollable?.matches?.(":where(:hover, :active)")) {
                 ev.preventDefault();
@@ -142,9 +143,9 @@ export const makeInput = (host?: HTMLElement, ROOT = document.documentElement)=>
     }
 
     //
-    ROOT?.addEventListener?.("pointerup", whenCancel, {capture: true, passive: true});
-    ROOT?.addEventListener?.("pointercancel", whenCancel, {capture: true, passive: true});
-    ROOT?.addEventListener?.("selectionchange", ()=>{
+    addEvent(ROOT, "pointerup", whenCancel, {capture: true, passive: true});
+    addEvent(ROOT, "pointercancel", whenCancel, {capture: true, passive: true});
+    addEvent(ROOT, "selectionchange", ()=>{
         const box = weak?.deref?.()?.querySelector(".u2-input-box") as HTMLElement;
         const scrollPos = scp_w?.deref?.();
         if (scrollPos) {
@@ -172,13 +173,22 @@ export const makeInput = (host?: HTMLElement, ROOT = document.documentElement)=>
     const preventDrag = (ev)=>{ ev.preventDefault(); if (ev.dataTransfer) { ev.dataTransfer.dropEffect = "none"; } }
     {   //
         const box = host?.shadowRoot?.querySelector?.(".u2-input-box") as HTMLElement;
-        box?.addEventListener?.("scroll"   , preventScroll, {capture: true, passive: true});
-        box?.addEventListener?.("scrollend", preventScroll, {capture: true, passive: true});
-        box?.addEventListener?.("dragstart", preventDrag);
-        box?.addEventListener?.("focus", toFocus);
-        host?.addEventListener?.("dragstart", preventDrag);
-        host?.addEventListener?.("focus", toFocus);
-        input?.addEventListener?.("dragstart", preventDrag);
+        addEvents(box, {
+            "scroll"   : preventScroll,
+            "scrollend": preventScroll,
+            "dragstart": preventDrag
+        });
+        addEvents(box, {
+            "dragstart": preventDrag,
+            "focus"    : toFocus
+        });
+        addEvents(host, {
+            "dragstart": preventDrag,
+            "focus"    : toFocus
+        });
+        addEvents(input, {
+            "dragstart": preventDrag
+        });
     }
 }
 

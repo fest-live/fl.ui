@@ -1,4 +1,4 @@
-import { bindDraggable, handleStyleChange } from "fest/dom";
+import { addEvent, bindDraggable, handleStyleChange } from "fest/dom";
 import { makeShiftTrigger } from "../controllers/Trigger";
 import { bindCtrl, bindWith } from "fest/lure";
 import { computed, numberRef, conditional } from "fest/object";
@@ -146,11 +146,11 @@ export const clampedValueRef = (inp)=>{
 //
 export const dragSlider = (thumb, handler, input)=>{ // @ts-ignore
     const correctOffset = ($dragging)=>{ const drg = $dragging || dragging; try { drg[0].value = 0, drg[1].value = 0; } catch(e) {}; return [0, 0]; };
-    const customTrigger = (doGrab)=>handler?.addEventListener?.("pointerdown", makeShiftTrigger((ev)=>{ thumb?.setAttribute?.("data-dragging", "true"); correctOffset(dragging); doGrab?.(ev, handler)}, handler));
+    const customTrigger = (doGrab)=>addEvent(handler, "pointerdown", makeShiftTrigger((ev)=>{ thumb?.setAttribute?.("data-dragging", "true"); correctOffset(dragging); doGrab?.(ev, handler)}, handler));
 
     //
-    handler?.addEventListener?.("click", (ev)=>{ if (input?.type == "checkbox" || input?.type == "radio") { input?.click?.(); } });
-    handler?.addEventListener?.("pointerdown", (ev)=>{
+    addEvent(handler, "click", (ev)=>{ if (input?.type == "checkbox" || input?.type == "radio") { input?.click?.(); } });
+    addEvent(handler, "pointerdown", (ev)=>{
         if ((ev?.target?.element ?? ev?.target) != (thumb?.element ?? handler)) {
             correctOffset(dragging);
             setValueByPointer(input, (ev?.layerX || 0), handler);

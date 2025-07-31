@@ -1,5 +1,6 @@
 // @ts-ignore
 import { importCdn } from "fest/cdnImport";
+import { addEvent, addEvents, removeEvents } from "fest/dom";
 
 //
 export const setStyle = async (self, confirm: boolean = false, exact: number = 0, val: number = 0)=>{
@@ -126,14 +127,16 @@ export const makeSwitchBH = async (self?: HTMLElement)=>{
             ev?.release?.();
 
             // stop support these events
-            ROOT.removeEventListener("pointerup", stopMove);
-            ROOT.removeEventListener("pointercancel", stopMove);
-            ROOT.removeEventListener("pointermove", whenMove);
+            removeEvents(ROOT, {
+                "pointerup"   : stopMove,
+                "pointercancel": stopMove,
+                "pointermove": whenMove
+            });
         }
     });
 
     //
-    self?.addEventListener?.("pointerdown", agWrapEvent((ev: any)=>{
+    addEvent(self, "pointerdown", agWrapEvent((ev: any)=>{
         if (sws.pointerId < 0) {
             sws.pointerId = ev?.pointerId;
             ev?.capture?.();
@@ -143,9 +146,11 @@ export const makeSwitchBH = async (self?: HTMLElement)=>{
             doExaction(weak?.deref?.(), ev.orient[0], ev.orient[1], false, boundingBox, ev?.type);
 
             // make events temp available
-            ROOT.addEventListener("pointerup", stopMove);
-            ROOT.addEventListener("pointercancel", stopMove);
-            ROOT.addEventListener("pointermove", whenMove);
+            addEvents(ROOT, {
+                "pointerup"   : stopMove,
+                "pointercancel": stopMove,
+                "pointermove": whenMove
+            });
         }
     }));
 };

@@ -1,4 +1,4 @@
-import { agWrapEvent, blockClickTrigger, ROOT } from "fest/dom";
+import { addEvents, agWrapEvent, blockClickTrigger, ROOT } from "fest/dom";
 
 //
 export class LongHoverHandler {
@@ -44,11 +44,13 @@ export class LongHoverHandler {
         });
 
         //
-        ROOT.addEventListener("pointerover"  , initiate);
-        ROOT.addEventListener("pointerdown"  , initiate);
-        ROOT.addEventListener("pointerout"   , cancelEv);
-        ROOT.addEventListener("pointerup"    , cancelEv);
-        ROOT.addEventListener("pointercancel", cancelEv);
+        addEvents(ROOT, {
+            "pointerover"  : initiate,
+            "pointerdown"  : initiate,
+            "pointerout"   : cancelEv,
+            "pointerup"    : cancelEv,
+            "pointercancel": cancelEv
+        });
     }
 }
 

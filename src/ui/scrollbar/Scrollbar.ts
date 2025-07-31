@@ -1,6 +1,6 @@
 import {    subscribe, computed, numberRef } from "fest/object";
 import { E, scrollRef, sizeRef } from "fest/lure";
-import { getPadding, setProperty, makeRAFCycle, RAFBehavior, preloadStyle } from "fest/dom";
+import { getPadding, setProperty, makeRAFCycle, RAFBehavior, preloadStyle, addEvent, removeEvent, removeEvents, addEvents } from "fest/dom";
 
 // @ts-ignore
 import styles from "@ui/scrollbar/Scrollbar.scss?inline";
@@ -66,8 +66,8 @@ const scrollSize  = (source: HTMLElement, axis: number = 0)=>{ // @ts-ignore
     const percent = numberRef(compute());
     subscribe(content, ()=>(percent.value = compute()));
     subscribe(scroll,  ()=>(percent.value = compute()));
-    source?.addEventListener?.("input", ()=>(percent.value = compute()));
-    source?.addEventListener?.("change", ()=>(percent.value = compute()));
+    addEvent(source, "input", ()=>(percent.value = compute()));
+    addEvent(source, "change", ()=>(percent.value = compute()));
     return percent;
 }
 
@@ -144,14 +144,16 @@ const makeInteractive = (holder, content, scrollbar, axis = 0, status: any = {})
 
             // @ts-ignore
             (handler?.element ?? ev.target)?.releasePointerCapture?.(status.pointerId); status.pointerId = -1;
-            handler?.removeEventListener?.("pointerup", stopScroll);
-            handler?.removeEventListener?.("pointermove", moveScroll);
-            handler?.removeEventListener?.("pointercancel", stopScroll);
+            removeEvents(handler, {
+                "pointerup"    : stopScroll,
+                "pointermove"  : moveScroll,
+                "pointercancel": stopScroll
+            });
         }
     }
 
     //
-    handler?.addEventListener?.("pointerdown", (evc: any) => {
+    addEvent(handler, "pointerdown", (evc: any) => {
         const ev     = evc?.detail || evc;
         const status = status_w?.deref?.();
         if (self && status?.pointerId < 0) {
@@ -164,12 +166,11 @@ const makeInteractive = (holder, content, scrollbar, axis = 0, status: any = {})
             status.scroll = content_w?.deref?.()?.[["scrollLeft", "scrollTop"][axis]] || 0;
 
             //
-            handler?.removeEventListener?.("pointerup", stopScroll);
-            handler?.removeEventListener?.("pointermove", moveScroll);
-            handler?.removeEventListener?.("pointercancel", stopScroll);
-            handler?.addEventListener?.("pointerup", stopScroll);
-            handler?.addEventListener?.("pointermove", moveScroll);
-            handler?.addEventListener?.("pointercancel", stopScroll);
+            addEvents(handler, {
+                "pointerup"    : stopScroll,
+                "pointermove"  : moveScroll,
+                "pointercancel": stopScroll
+            });
         }
     });
 }

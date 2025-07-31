@@ -1,4 +1,5 @@
 import { placeWithCursor, placeWithElement } from "../deprecated/ps-anchor.js";
+import { addEvent, addEvents, removeEvents } from "fest/dom";
 
 //
 const hasClosest  = (el: HTMLElement, exact: HTMLElement) => { do { if (el === exact) { return true; }; el = el?.parentElement as HTMLElement; } while (el?.parentElement && el?.parentElement != exact); return (el === exact); }
@@ -21,11 +22,13 @@ export const closeContextMenu = ($ctxMenu: any, ev?, evt?: [any, any?]|null, ROO
     if (ctxMenu && ctxMenu.dataset.hidden == null) {
         ctxMenu.dataset.hidden = "";
         if (evt) {
-            ROOT.removeEventListener("m-dragstart", ...evt);
-            ROOT.removeEventListener("pointerdown", ...evt);
-            ROOT.removeEventListener("contextmenu", ...evt);
-            ROOT.removeEventListener("scroll", ...evt);
-            ROOT.removeEventListener("click", ...evt);
+            removeEvents(ROOT, {
+                "m-dragstart": evt,
+                "pointerdown": evt,
+                "contextmenu": evt,
+                "scroll"     : evt,
+                "click"      : evt,
+            });
         }
     };
 };
@@ -47,20 +50,24 @@ export const openContextMenu = ($ctxMenu: any, ev?, evt?: [any, any?]|null, togg
 
         //
         if (evt) {
-            ROOT.removeEventListener("m-dragstart", ...evt);
-            ROOT.removeEventListener("pointerdown", ...evt);
-            ROOT.removeEventListener("contextmenu", ...evt);
-            ROOT.removeEventListener("scroll", ...evt);
-            ROOT.removeEventListener("click", ...evt);
+            removeEvents(ROOT, {
+                "m-dragstart": evt,
+                "pointerdown": evt,
+                "contextmenu": evt,
+                "scroll"     : evt,
+                "click"      : evt,
+            });
         }
 
         //
         if (evt) {
-            ROOT.addEventListener("m-dragstart", ...evt);
-            ROOT.addEventListener("pointerdown", ...evt);
-            ROOT.addEventListener("contextmenu", ...evt);
-            ROOT.addEventListener("scroll", ...evt);
-            ROOT.addEventListener("click", ...evt);
+            addEvents(ROOT, {
+                "m-dragstart": evt,
+                "pointerdown": evt,
+                "contextmenu": evt,
+                "scroll"     : evt,
+                "click"      : evt,
+            });
         }
     } else
     if (ctxMenu && ctxMenu.dataset.hidden == null) {
@@ -74,7 +81,7 @@ export const openContextMenu = ($ctxMenu: any, ev?, evt?: [any, any?]|null, togg
 //
 export const makeCtxMenuOpenable = ($ctxMenu: any, ROOT = document.documentElement)=>{
     const evt: [any, any] = [ (ev)=>hideOnClick(ev, $ctxMenu), {} ];
-    (ROOT ??= document.documentElement)?.addEventListener?.("contextmenu", (ev)=>openContextMenu?.($ctxMenu, ev, evt, false, ()=>{}, ROOT));
+    addEvent(ROOT ??= document.documentElement, "contextmenu", (ev)=>openContextMenu?.($ctxMenu, ev, evt, false, ()=>{}, ROOT));
 };
 
 //

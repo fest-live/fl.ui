@@ -1,6 +1,6 @@
 import { electronAPI } from "./Config.js";
 import { formatCss, formatHex, oklch, parse } from "culori";
-import { fixedClientZoom } from "fest/dom";
+import { addEvent, fixedClientZoom } from "fest/dom";
 
 //
 const tacp = (color: string)=>{
@@ -101,11 +101,11 @@ export const dynamicTheme = (ROOT = document.documentElement)=>{
     }
 
     //
-    ROOT.addEventListener("u2-appear", ()=>requestIdleCallback(updater, {timeout: 100}));
-    ROOT.addEventListener("u2-hidden", ()=>requestIdleCallback(updater, {timeout: 100}));
-    ROOT.addEventListener("u2-theme-change", ()=>requestIdleCallback(updater, {timeout: 100}));
-    addEventListener("load", ()=>requestIdleCallback(updater, {timeout: 100}));
-    addEventListener("visibilitychange", ()=>requestIdleCallback(updater, {timeout: 100}));
+    addEvent(ROOT, "u2-appear", ()=>requestIdleCallback(updater, {timeout: 100}));
+    addEvent(ROOT, "u2-hidden", ()=>requestIdleCallback(updater, {timeout: 100}));
+    addEvent(ROOT, "u2-theme-change", ()=>requestIdleCallback(updater, {timeout: 100}));
+    addEvent(window, "load", ()=>requestIdleCallback(updater, {timeout: 100}));
+    addEvent(document, "visibilitychange", ()=>requestIdleCallback(updater, {timeout: 100}));
     setIdleInterval(updater, 500);
 }
 

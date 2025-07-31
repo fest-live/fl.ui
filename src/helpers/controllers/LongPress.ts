@@ -1,4 +1,4 @@
-import { blockClickTrigger } from "fest/dom";
+import { addEvents, blockClickTrigger } from "fest/dom";
 
 //
 export class LongPressHandler {
@@ -18,6 +18,7 @@ export class LongPressHandler {
 
     //
     longPress(options: any = {}, fx?: (ev: PointerEvent) => void) {
+        const ROOT = document.documentElement;
         const weakRef = new WeakRef(this.#holder);
         const actionState = this.initializeActionState();
 
@@ -33,10 +34,12 @@ export class LongPressHandler {
         const pointerUpListener   = (ev: PointerEvent) => this.onPointerUp(this.holding, ev);
 
         //
-        const ROOT = document.documentElement;
-        ROOT.addEventListener("pointerdown", pointerDownListener, { passive: false });
-        ROOT.addEventListener("pointermove", pointerMoveListener, { passive: true });
-        ROOT.addEventListener("pointerup", pointerUpListener, { passive: true });
+        addEvents(ROOT, {
+            "pointerdown": pointerDownListener,
+            "pointermove": pointerMoveListener,
+            "pointerup"  : pointerUpListener,
+            "pointercancel": pointerUpListener
+        });
     }
 
     //

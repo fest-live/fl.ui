@@ -1,5 +1,6 @@
-import   DragHandler from "../../src/interface/Draggable";
-import ResizeHandler from "../../src/interface/Resizable";
+import   DragHandler from "@interface/Draggable";
+import ResizeHandler from "@interface/Resizable";
+import { addEvent } from "fest/dom";
 
 //
 export const $control$ = Symbol("@control");
@@ -17,7 +18,7 @@ export const makeControl = async (frameElement: HTMLElement)=>{
         //const pn = (frameElement.offsetParent ?? frameElement.host ?? document.documentElement) as HTMLElement;
         //frameElement.style.setProperty("--shift-x", `${(pn.clientWidth  - Math.min(Math.max(frameElement.offsetWidth , 48*16), pn.clientWidth)) * 0.5}`, "");
         //frameElement.style.setProperty("--shift-y", `${(pn.clientHeight - Math.min(Math.max(frameElement.offsetHeight, 24*16), pn.clientHeight)) * 0.5}`, "");
-        frameElement.addEventListener("m-dragstart", (ev: any)=>{
+        addEvent(frameElement, "m-dragstart", (ev: any)=>{
             if (ev.detail.holding.propertyName == "drag") {
                 frameElement?.setAttribute?.("data-dragging", "");
                 frameElement?.style?.setProperty?.("will-change", "transform", "important");
@@ -25,7 +26,7 @@ export const makeControl = async (frameElement: HTMLElement)=>{
         });
 
         //
-        frameElement.addEventListener("m-dragend", (ev: any)=>{
+        addEvent(frameElement, "m-dragend", (ev: any)=>{
             if (ev.detail.holding.propertyName == "drag") {
                 const content = frameElement?.querySelector?.(".ui-content") as HTMLElement;
                 const phantom = frameElement?.shadowRoot?.querySelector?.(".ui-phantom") as HTMLCanvasElement;

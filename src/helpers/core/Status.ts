@@ -1,4 +1,4 @@
-import { setIdleInterval } from "fest/dom";
+import { addEvent, setIdleInterval } from "fest/dom";
 import { ref } from "fest/object";
 
 //
@@ -34,8 +34,8 @@ export const batteryStatusRef = ()=>{
     //
     changeBatteryStatus(); setIdleInterval(changeBatteryStatus, 1000);
     batteryStatus?.then?.((btr)=>{
-        btr.addEventListener("chargingchange", changeBatteryStatus);
-        btr.addEventListener("levelchange", changeBatteryStatus);
+        addEvent(btr, "chargingchange", changeBatteryStatus);
+        addEvent(btr, "levelchange", changeBatteryStatus);
         changeBatteryStatus();
     }); return rv;
 }
@@ -63,7 +63,7 @@ export const signalStatusRef = ()=>{
     }
 
     // @ts-ignore
-    navigator.connection?.addEventListener("change", changeSignal);
+    addEvent(navigator.connection, "change", changeSignal);
     setIdleInterval(changeSignal, 1000);
     changeSignal?.(); return rv;
 };

@@ -1,0 +1,80 @@
+@use "sass:math";
+@use "sass:list";
+
+//
+@use "./wavy" as wavy;
+
+//
+@layer ux-shapes {
+
+    //
+    .shaped {
+        --icon-size: 6rem; //100%;
+        aspect-ratio: 1 / 1;
+        inline-size: 6rem;
+        block-size: 6rem;
+        display: flex;
+        place-content: center;
+        place-items: center;
+
+        //
+        background-color: --c2-on-surface(0.0, var(--current));
+        padding: 1.5rem;
+        color-scheme: dark;
+        pointer-events: auto;
+        border-radius: 1.5rem;
+        user-select: none;
+        z-index: 1;
+        clip-path: var(--clip-path);
+
+        & > * {
+            inline-size: stretch;
+            block-size: stretch;
+        }
+
+        & > ui-icon {
+            background-color: --c2-on-surface(0.0, var(--current));
+        }
+    }
+
+    //
+    *[data-dragging] {
+        z-index: 100;
+    }
+
+    //
+    *[data-shape="wavy"]:not(:has(.shaped)), *[data-shape="wavy"]:not(.shaped) > *, *[data-shape="wavy"]:not(.shaped) .shaped {
+        & {
+            --clip-amplitude: 0.05;
+            --clip-freq: 8;
+            --clip-path: #{wavy.Integrate("wavy-step", 100)};
+            --corrector: 1.1;
+        }
+
+        //
+        & {
+            clip-path: var(--clip-path);
+            border-radius: calc(var(--icon-size, 100%) * 0.5);
+        }
+    }
+
+    //
+    *[data-shape="circle"]:not(:has(.shaped)), *[data-shape="circle"]:not(.shaped) > *, *[data-shape="circle"]:not(.shaped) .shaped {
+        --clip-path: inset(0px 0px round 50%);
+        border-radius: calc(var(--icon-size, 100%) * 0.5);
+    }
+
+    //
+    *[data-shape="tear"]:not(:has(.shaped)), *[data-shape="tear"]:not(.shaped) > *, *[data-shape="tear"]:not(.shaped) .shaped {
+        --clip-path: inset(0px 0px round 50% / 0.125);
+        border-radius: calc(var(--icon-size, 100%) * 0.5);
+        border-end-end-radius: calc(var(--icon-size, 100%) * 0.125);
+    }
+
+    //
+    *[data-shape="square"]:not(:has(.shaped)), *[data-shape="square"]:not(.shaped) > *, *[data-shape="square"]:not(.shaped) .shaped {
+        --clip-path: inset(0px 0px round 25%);
+        border-radius: calc(var(--icon-size, 100%) * 0.25);
+    }
+
+}

@@ -65,10 +65,11 @@ async function createGridWithItem() {
     const oRef = orientRef();
     return H`<div data-mixin="ui-orientbox" style="inline-size: 100%; block-size: 100%; inset: 0; position: fixed; background-color: transparent;"  orient=${oRef}>
         <div data-mixin="ui-gridbox" style="--layout-c: 4; --layout-r: 8;">${M(items, (item)=>{
-            return H`<div class="c2-surface" ref=${withItem.bind(null, item)} style="filter: drop-shadow(0 0 0.25rem #0008); background-color: --c2-on-surface(0.0, var(--current)); padding: 1.5rem; color-scheme: dark; pointer-events: auto; border-radius: 1rem; user-select: none; inline-size: 6rem; block-size: 6rem;" data-id=${item.id}>
-                <ui-icon class="c2-surface" icon="newspaper"></ui-icon>
-            </div>`
-        })}
+            return H`<div class="c2-surface layered-wrap" style="filter: drop-shadow(0 0 0.25rem #0008); color-scheme: dark; background-color: transparent; pointer-events: none;" ref=${withItem.bind(null, item)} data-id=${item.id}>
+                <div data-shape="wavy" class="shaped">
+                    <ui-icon style="z-index: 2; background-color: --c2-surface(0.0, var(--current));" icon="newspaper"></ui-icon>
+                </div>
+            </div>`})}
         </div>
     </div>`;
 }

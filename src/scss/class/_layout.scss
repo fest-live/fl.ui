@@ -130,4 +130,19 @@
         transform: scale(var(--scale, 1)) translate(var(--translate-x, 0px), var(--translate-y, 0px));
         @include ps-cursor;
     }
+
+    //
+    .layered-wrap {
+        display: inline grid;
+        inline-size: max-content;
+        block-size: max-content;
+        grid-template-columns: minmax(0px, 1fr);
+        grid-template-rows: minmax(0px, 1fr);
+        z-index: 1;
+
+        & > * {
+            grid-column: 1 / -1;
+            grid-row: 1 / -1;
+        }
+    }
 }

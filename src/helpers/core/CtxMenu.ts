@@ -1,6 +1,8 @@
-import { H, Q, visibleRef } from "fest/lure";
+import { visibleRef, H, Q } from "fest/lure";
+import { removeEvent, addEvent } from "fest/dom";
+
+//
 import { boundingBoxRef, makeInterruptTrigger, withInsetWithPointer } from "./Anchor";
-import { addEvent, removeEvent } from "fest/dom";
 
 //
 export const itemClickHandle = (ev, ctxMenuDesc: any)=>{

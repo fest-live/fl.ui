@@ -1,8 +1,11 @@
 import { addEvent, bindDraggable, handleStyleChange } from "fest/dom";
-import { makeShiftTrigger } from "../controllers/Trigger";
-import { bindCtrl, bindWith } from "fest/lure";
+import { bindWith, bindCtrl } from "fest/lure";
 import { computed, numberRef, conditional } from "fest/object";
 
+//
+import { makeShiftTrigger } from "../controllers/Trigger";
+
+//
 /* ***************************************************************************************** *
  * Here few version of value and coordinates                                                 *
  * #. [type]  : [components]:        , [relative_version], # commetary                       *

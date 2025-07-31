@@ -1,10 +1,11 @@
-import { ref, makeReactive, booleanRef, stringRef, addToCallChain, WRef, numberRef } from "fest/object";
+import { addToCallChain, numberRef, stringRef, booleanRef, WRef } from "fest/object";
 import { handleStyleChange, observeContentBox, addEvents, removeEvents, addEvent, removeEvent } from "fest/dom";
 import { bindWith } from "fest/lure";
 
 //
 const ROOT = document.documentElement;
 const SELECTOR = "ui-modal[type=\"contextmenu\"], ui-button, ui-taskbar, ui-navbar, ui-statusbar, button, label, input, ui-longtext, ui-focustext, ui-row-select, ui-row-button, .u2-input, .ui-input";
+const $set = (rv, key, val)=>{ if (rv?.deref?.() != null) { return (rv.deref()[key] = val); }; }
 
 //
 export const handleByPointer = (cb, root = ROOT)=>{
@@ -68,22 +69,23 @@ export const showAttributeRef = (attribute = "data-tooltip")=>{
 }
 
 //
-//! TODO: My final promise...
-//! - area out trigger (unflag)
-//! - area outer click/action trigger (unflag)
-//! - area dynamicly updated by events (getBoundingClientRect or some sort of)
+type RefBool = { value: boolean };
+type Area = {
+    left  : number;
+    top   : number;
+    right : number;
+    bottom: number;
+    width : number;
+    height: number;
+};
 
 //
-type RefBool = { value: boolean };
 interface TriggerOptions {
     root?: any;
     selector?: string;     // селектор, внутри которого клик не считается "dispose"
     closeEvents?: string[]; // дополнительные события для "dispose"
     mouseLeaveDelay?: number; // задержка для mouseleave
 }
-
-//
-const $set = (rv, key, val)=>{ if (rv?.deref?.() != null) { return (rv.deref()[key] = val); }; }
 
 //
 export function makeInterruptTrigger(
@@ -154,22 +156,11 @@ export function makeClickOutsideTrigger(ref: RefBool, element: any, options: Tri
 }
 
 //
-type Area = {
-    left  : number;
-    top   : number;
-    right : number;
-    bottom: number;
-    width : number;
-    height: number;
-};
-
-//
 export function boundingBoxRef(anchor: HTMLElement, options?: {
     root?: HTMLElement,
     observeResize?: boolean,
     observeMutations?: boolean,
 }) {
-    //const area: Area = makeReactive({ left: 0, top: 0, right: 0, bottom: 0, width: 0, height: 0 });
     const area = [
         numberRef(0), numberRef(0), numberRef(0), numberRef(0), numberRef(0), numberRef(0)
     ]

@@ -1,4 +1,4 @@
-import { addEvents, agWrapEvent, doBorderObserve, doContentObserve, removeEvents, ROOT } from "fest/dom";
+import { ROOT, addEvents, agWrapEvent, doBorderObserve, doContentObserve, removeEvents } from "fest/dom";
 
 //
 export const doObserve = (holder, parent)=>{

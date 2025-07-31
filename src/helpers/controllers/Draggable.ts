@@ -1,4 +1,4 @@
-import { setStyleProperty, getBoundingOrientRect, bindDraggable, contentBoxWidth, contentBoxHeight, borderBoxWidth, borderBoxHeight } from "fest/dom";
+import { setStyleProperty, getBoundingOrientRect, bindDraggable, contentBoxWidth, contentBoxHeight, borderBoxWidth, borderBoxHeight, ROOT } from "fest/dom";
 import { makeShiftTrigger, doObserve } from "./Trigger";
 
 //

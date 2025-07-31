@@ -1,11 +1,12 @@
-import { GLitElement, H, defineElement, property } from "fest/lure";
-import { preloadStyle } from "fest/dom";
-import initialize from "fest/dom";
+import { initialize, preloadStyle } from "fest/dom";
+import { defineElement, GLitElement, H, property } from "fest/lure";
 
+//
 // @ts-ignore
 import styles from "@scss/index.scss?inline"
 const styled = preloadStyle(styles);
 
+//
 // @ts-ignore
 @defineElement("ui-element")
 export class UIElement extends GLitElement() {

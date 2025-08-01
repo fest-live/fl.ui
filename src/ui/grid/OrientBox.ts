@@ -26,8 +26,6 @@ export class UIOrientBox extends DOMMixin {
 
         //
         const size = [self.clientWidth, self.clientHeight];
-
-        //
         const resizeObserver = new ResizeObserver((entries) => {
             for (const entry of entries) {
                 if (entry?.contentBoxSize) {

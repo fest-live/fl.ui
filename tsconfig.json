@@ -4,6 +4,7 @@
     "compilerOptions": {
         "outDir": "./dist/",
         "paths": {
+            "@phosphor-icons/core/assets/*": ["./node_modules/@phosphor-icons/core/assets/*"],
             "fonts/*": ["../shared/fonts/*"],
             "fest/*": ["../shared/fest/*"],
             "fest/cdnImport": ["../cdnImport.mjs"],

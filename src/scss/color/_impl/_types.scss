@@ -36,7 +36,7 @@
                 background-color: --c2-#{$type}(var(--background-tone-shift, 0.0), var(--#{$current-name}, transparent));
                 color: --c2-on-#{$type}(var(--color-tone-shift, 0.0), var(--#{$current-name}, transparent));
                 caret-color: --c2-on-#{$type}(var(--caret-tone-shift, 0.0), var(--#{$current-name}, transparent));
-                --ui-icon-color: --c2-on-#{$type}(var(--ui-icon-tone-shift, 0.0), var(--#{$current-name}, transparent));
+                --icon-color: --c2-on-#{$type}(var(--icon-tone-shift, 0.0), var(--#{$current-name}, transparent));
             }
 
             /* Variables */
@@ -58,6 +58,7 @@
                 --#{$type}-tone: 0.05;
                 background-color: --c2-on-#{$type}(var(--selection-tone-shift, 0.0), var(--#{$current-name}, transparent));
                 color: --c2-#{$type}(var(--selection-tone-shift, 0.0), var(--#{$current-name}, transparent));
+                --icon-color: --c2-#{$type}(var(--selection-tone-shift, 0.0), var(--#{$current-name}, transparent));
             }
 
             /* Blur */
@@ -73,12 +74,9 @@
                 scrollbar-color: --c2-on-#{$type}(var(--scrollbar-tone-shift, 0.0), var(--#{$current-name}, transparent)) transparent;
                 color: --c2-on-#{$type}(var(--color-tone-shift, 0.0), var(--#{$current-name}, transparent));
                 caret-color: --c2-on-#{$type}(var(--caret-tone-shift, 0.0), var(--#{$current-name}, transparent));
+                --icon-color: --c2-on-#{$type}(var(--icon-tone-shift, 0.0), var(--#{$current-name}, transparent));
             }
 
-            /* */
-            &:is(ui-icon), & ui-icon {
-                --ui-icon-color: --c2-on-#{$type}(var(--ui-icon-tone-shift, 0.0), var(--#{$current-name}, transparent));
-            }
 
             /* */
             &:is(ui-longtext), & ui-longtext {

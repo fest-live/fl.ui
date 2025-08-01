@@ -14,7 +14,7 @@
 
 /* Reset all properties */
 @mixin reset-all-properties() {
-    $properties: ("accent-color", "scrollbar-color", "color", "text-decoration-color", "text-emphasis-color");
+    $properties: ("accent-color", "scrollbar-color", "color", "text-decoration-color", "text-emphasis-color", "--icon-color");
     @each $property in $properties {
         #{$property}: inherit;
     }

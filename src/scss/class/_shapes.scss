@@ -18,6 +18,7 @@
         place-items: center;
 
         //
+        color: --c2-surface(0.0, var(--current));
         background-color: --c2-on-surface(0.0, var(--current));
         padding: 1.5rem;
         color-scheme: dark;
@@ -33,7 +34,7 @@
         }
 
         & > ui-icon {
-            background-color: --c2-on-surface(0.0, var(--current));
+            --icon-color: --c2-surface(0.0, var(--current));
         }
     }
 

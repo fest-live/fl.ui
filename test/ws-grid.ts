@@ -47,6 +47,12 @@ async function createGridWithItem() {
     const { bindInteraction } = await import("../src/ui/grid/GridBind");
 
     //
+    const genItem = (item)=>{
+        return H`<div style="" class="c2-surface layered-wrap shadow-wrap" ref=${withItem.bind(null, item)} data-id=${item.id}>
+            <div data-shape="square" class="shaped c2-surface"><ui-icon style="z-index: 2;" icon="newspaper"></ui-icon></div>
+        </div>`}
+
+    //
     const item0 = { id: "item0", cell: makeReactive([0, 0]) };
     const item1 = { id: "item1", cell: makeReactive([0, 1]) };
 
@@ -64,11 +70,7 @@ async function createGridWithItem() {
     //
     const oRef = orientRef();
     return H`<div data-mixin="ui-orientbox" style="inline-size: 100%; block-size: 100%; inset: 0; position: fixed; background-color: transparent;"  orient=${oRef}>
-        <div data-mixin="ui-gridbox" style="--layout-c: 4; --layout-r: 8;">${M(items, (item)=>{
-            return H`<div class="c2-surface layered-wrap shadow-wrap" ref=${withItem.bind(null, item)} data-id=${item.id}>
-                <div data-shape="square" class="shaped"><ui-icon style="z-index: 2; background-color: --c2-surface(0.0, var(--current));" icon="newspaper"></ui-icon></div>
-            </div>`})}
-        </div>
+        <div data-mixin="ui-gridbox" style="--layout-c: 4; --layout-r: 8; color-scheme: dark;">${M(items, genItem)}</div>
     </div>`;
 }
 

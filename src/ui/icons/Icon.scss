@@ -4,32 +4,35 @@
 @layer ui-icon {
     :host(ui-icon) {
         & {
-            --ui-icon-size: 2rem;
-            --ui-icon-color: --c2-on-surface(var(--ui-icon-tone-shift, 0.0), var(--current, currentColor));
+            --icon-size: 2rem;
+            --icon-color: currentColor;//--c2-on-surface(var(--icon-tone-shift, 0.0), var(--current, currentColor));
         }
 
         & { // mask image
             mask-image: linear-gradient(#0000, #0000);
-            mask-type: alpha;
-            mask-clip: content-box;
-            mask-origin: content-box;
-            mask-repeat: no-repeat;
-            mask-size: contain;
-            mask-position: center center;
+            mask-type: alpha !important;
+            mask-clip: content-box !important;
+            mask-origin: content-box !important;
+            mask-repeat: no-repeat !important;
+            mask-size: contain !important;
+            mask-position: center center !important;
         }
 
         & { //
             padding: 0.25rem;
             content-visibility: visible;
-            background-color: var(--ui-icon-color, currentColor);
+            background-color: var(--icon-color, currentColor) !important;
+            border: none 0px transparent !important;
+            outline: none 0px transparent !important;
+            box-shadow: none !important;
             box-sizing: border-box;
             user-select: none;
             pointer-events: none;
+            aspect-ratio: 1 / 1 !important;
         }
 
         & {
-            @include m.color(var(--ui-icon-color, currentColor));
-            @include m.size(var(--ui-icon-size), var(--ui-icon-size), '1 / 1');
+            @include m.size(var(--icon-size), var(--icon-size), '1 / 1');
             @include m.display(inline flex, center, center);
         }
     }

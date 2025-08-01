@@ -127,9 +127,9 @@
             }
 
             & > ui-icon {
-                --ui-icon-size: 1.8rem;
-                --ui-icon-color: --c2-on-surface(var(--icon-color-tone-shift, 0), var(--current, transparent));
-                background-color: var(--ui-icon-color, currentColor);
+                --icon-size: 1.8rem;
+                //--icon-color: --c2-on-surface(var(--icon-tone-shift, 0), var(--current, transparent));
+                background-color: var(--icon-color, currentColor);
                 padding: 0.5rem;
                 user-select: none;
                 pointer-events: none;

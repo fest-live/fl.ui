@@ -11,6 +11,8 @@
 @property --order { syntax: "<integer>"; initial-value: 1; inherits: true; };
 @property --content-inline-size { syntax: "<length-percentage>"; initial-value: 100%; inherits: true; };
 @property --content-block-size  { syntax: "<length-percentage>"; initial-value: 100%; inherits: true; };
+@property --icon-size { syntax: "<length>"; initial-value: 1rem; inherits: true; };
+@property --icon-color { syntax: "<color>"; initial-value: currentColor; inherits: true; };
 
 //
 @layer ux-classes {
@@ -149,7 +151,6 @@
     //
     .shadow-wrap {
         filter: drop-shadow(0 0 0.25rem #0008);
-        color-scheme: dark;
         background-color: transparent;
         pointer-events: none;
     }

@@ -49,6 +49,7 @@
         outline-color: oklch(from inherit l c h / 0);
         text-decoration-color: oklch(from inherit l c h / 0);
         text-emphasis-color: oklch(from inherit l c h / 0);
+        --icon-color: currentColor;
     }
 
     /* */

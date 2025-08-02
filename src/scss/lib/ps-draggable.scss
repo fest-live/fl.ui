@@ -1,7 +1,7 @@
 @mixin ps-draggable {
     & {
-        inset-inline-start: calc(var(--sp-x, 0px) + var(--rs-x, 0) * 0.5 + 50%);
-        inset-block-start : calc(var(--sp-y, 0px) + var(--rs-y, 0) * 0.5 + 50%);
+        inset-inline-start: var(--sp-x, 0px);
+        inset-block-start : var(--sp-y, 0px);
         transform-origin  : 0% 0%;
         inset-inline-end  : auto;
         inset-block-end   : auto;
@@ -12,7 +12,11 @@
         position: fixed;
 
         //
-        --translate-x: calc(var(--ds-x, 0px) - 50%) !important;
-        --translate-y: calc(var(--ds-y, 0px) - 50%) !important;
+        --shift-x: 0;
+        --shift-y: 0;
+        --drag-x: 0;
+        --drag-y: 0;
+        --translate-x: var(--ds-x, 0px);
+        --translate-y: var(--ds-y, 0px);
     };
 };

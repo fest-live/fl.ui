@@ -1,0 +1,356 @@
+@use "@scss/lib/ps-draggable" as *;
+@use "@scss/lib/ps-resizable" as *;
+@use "@scss/lib/ps-mechanic" as *;
+
+//
+@use "@scss/lib/ps-properties" as *;
+
+// Mixins
+@mixin reset-styles {
+    all: unset;
+    box-sizing: border-box;
+    margin: 0px;
+    padding: 0px;
+    border: 0px;
+    font-size: 100%;
+    font-weight: 400;
+    font-family: inherit;
+    vertical-align: baseline;
+    color: inherit;
+    text-align: start;
+    text-decoration: none;
+    text-transform: none;
+    letter-spacing: normal;
+    line-height: normal;
+    white-space: normal;
+    word-break: normal;
+    word-wrap: normal;
+    overflow-wrap: normal;
+    overflow-wrap: break-word;
+    user-select: none;
+    cursor: default;
+    pointer-events: none;
+    contain: strict;
+    container-type: size;
+    container-name: ui-window-frame;
+    background-color: transparent;
+}
+
+@mixin window-frame-variables {
+    --ui-window-frame-shadow: 0 4px 12px rgb(0 0 0 / 0.15), 0 1px 3px rgb(0 0 0 / 0.1);
+    --ui-window-frame-outline: #{"oklch(from --c2-on-surface(0.0, var(--current)) l c h / 0.1)"};
+    --ui-window-frame-surface: #{"oklch(from --c2-surface(0.0, var(--current)) l c h / 1)"};
+    --ui-window-frame-border-radius: 0.5rem;
+    --ui-window-frame-border-width: 1px;
+    --ui-window-frame-border-color: --c2-on-surface(0.0, var(--current));
+    --ui-window-frame-padding: 0px;
+    --ui-window-frame-margin: 0px;
+    --ui-window-frame-height: 100%;
+    --ui-window-frame-on-surface: #{"oklch(from --c2-on-surface(0.0, var(--current)) l c h / 1)"};
+    --ui-window-frame-on-surface-secondary: --c2-on-surface(0.0, var(--secondary));
+    --ui-window-frame-on-surface-tertiary: --c2-on-surface(0.0, var(--tertiary));
+    --ui-window-frame-on-surface-quaternary: --c2-on-surface(0.0, var(--quaternary));
+    --ui-window-frame-on-surface-quinary: --c2-on-surface(0.0, var(--quinary));
+    --ui-window-frame-titlebar-height: 32px;
+    --ui-window-frame-titlebar-padding: 0px;
+    --ui-window-frame-titlebar-margin: 0px;
+    --ui-window-frame-content-border-radius: 0.5rem;
+    --ui-window-frame-content-border-width: 1px;
+    --ui-window-frame-content-border-color: --c2-on-surface(0.0, var(--current));
+    --ui-window-frame-content-background-color: --c2-surface(0.1, var(--current));
+    --ui-window-frame-content-color: --c2-on-surface(0.0, var(--current));
+    --ui-window-frame-content-padding: 0px;
+    --ui-window-frame-content-margin: 0px;
+    --ui-window-frame-control-hover-bg: --c2-surface(0.1, var(--current));
+    --ui-window-frame-control-active-bg: --c2-surface(0.1, var(--current));
+    --ui-window-frame-control-close-hover-bg: --c2-on-surface(0.0, var(--secondary));
+    --ui-window-frame-control-close-hover-color: --c2-surface(0.0, var(--secondary));
+}
+
+@mixin window-frame-layout {
+    border-radius: var(--ui-window-frame-border-radius);
+    border-width: var(--ui-window-frame-border-width);
+    border-style: solid;
+    border-color: var(--ui-window-frame-border-color);
+    background-color: var(--ui-window-frame-surface);
+    color: var(--ui-window-frame-on-surface);
+    --icon-color: var(--ui-window-frame-on-surface);
+    padding: var(--ui-window-frame-padding);
+    margin: var(--ui-window-frame-margin);
+    block-size: var(--ui-window-frame-height);
+    box-shadow: var(--ui-window-frame-shadow);
+
+    display: grid;
+    grid-template-columns: minmax(0px, 1fr);
+    grid-template-rows: minmax(0px, 2rem) minmax(0px, 1fr);
+    grid-template-areas: "titlebar" "content";
+
+    align-items: center;
+    justify-content: space-between;
+    gap: 0px;
+    position: relative;
+    container-type: size;
+    container-name: ui-window-frame;
+    pointer-events: auto;
+
+    transform-origin: 50% 50%;
+    transform: translate(var(--translate-x, 0px), var(--translate-y, 0px));
+
+    --z-index-order: sibling-index();
+    z-index: calc(99 + var(--z-index-order));
+}
+
+@mixin content-styles {
+    grid-area: content;
+    contain: strict;
+    container-type: size;
+    container-name: ui-content;
+    overflow: hidden;
+    background-color: var(--ui-window-frame-content-background-color);
+    color: var(--ui-window-frame-content-color);
+    --icon-color: var(--ui-window-frame-content-color);
+    padding: var(--ui-window-frame-content-padding);
+    margin: var(--ui-window-frame-content-margin);
+    border-radius: var(--ui-window-frame-content-border-radius);
+    border-width: 0px;
+    border-style: solid;
+    border-color: transparent;
+    border-block-start: none;
+    block-size: stretch;
+    inline-size: stretch;
+}
+
+@mixin resize-handle-styles {
+    position: absolute !important;
+    cursor: nwse-resize;
+    block-size: 12px;
+    inline-size: 12px;
+    background-color: transparent;
+    inset: auto !important;
+    inset-inline-end: 0px !important;
+    inset-block-end: 0px !important;
+    border-radius: 0px;
+    border-width: 0px;
+    border-style: solid;
+    border-color: transparent;
+    pointer-events: auto !important;
+
+    background:
+        linear-gradient(135deg, transparent 30%, #{"oklch(from --c2-on-surface(0.0, var(--current)) l c h / 0.4)"} 30%, #{"oklch(from --c2-on-surface(0.0, var(--current)) l c h / 0.4)"} 40%, transparent 40%),
+        linear-gradient(135deg, transparent 50%, #{"oklch(from --c2-on-surface(0.0, var(--current)) l c h / 0.4)"} 50%, #{"oklch(from --c2-on-surface(0.0, var(--current)) l c h / 0.4)"} 60%, transparent 60%),
+        linear-gradient(135deg, transparent 70%, #{"oklch(from --c2-on-surface(0.0, var(--current)) l c h / 0.4)"} 70%, #{"oklch(from --c2-on-surface(0.0, var(--current)) l c h / 0.4)"} 80%, transparent 80%);
+
+}
+
+@mixin titlebar-layout {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0px;
+    container-type: size;
+    container-name: ui-titlebar;
+    contain: strict;
+    pointer-events: auto;
+    block-size: stretch;
+    inline-size: stretch;
+    background-color: transparent;
+}
+
+@mixin titlebar-handle-styles {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    flex-direction: row;
+    gap: 8px;
+    color: var(--ui-window-frame-on-surface);
+    container-type: size;
+    container-name: ui-titlebar-handle;
+    contain: strict;
+    pointer-events: auto !important;
+    padding-inline-start: 12px;
+    padding-inline-end: 12px;
+    flex: 1 1 0px;
+    min-inline-size: 0px;
+    block-size: 100%;
+}
+
+@mixin title-text-styles {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 2px;
+    pointer-events: none;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+    inline-size: auto;
+    block-size: stretch;
+    flex: 1 1 0px;
+    min-inline-size: 0px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--ui-window-frame-titlebar-color);
+}
+
+@mixin subtitle-text-styles {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    block-size: stretch;
+    padding: 0px;
+    gap: 4px;
+    pointer-events: none;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+    inline-size: auto;
+    font-size: 11px;
+    color: --c2-on-surface(0.0, var(--current));
+}
+
+@mixin app-icon-styles {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
+    aspect-ratio: 1 / 1;
+    pointer-events: none;
+    inline-size: 16px;
+    block-size: 16px;
+    color: var(--ui-window-frame-on-surface);
+    flex-shrink: 0;
+}
+
+@mixin controls-layout {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-end;
+    inline-size: 138px;
+    flex-shrink: 0;
+    padding: 0px;
+    gap: 0px;
+    pointer-events: none;
+    block-size: 100%;
+
+    ui-icon {
+        inline-size: 1rem;
+        block-size: 1rem;
+        aspect-ratio: 1 / 1;
+        color: var(--ui-window-frame-on-surface);
+        background-color: transparent;
+        border: none;
+        outline: none;
+        padding: 0px;
+        margin: 0px;
+        cursor: pointer;
+    }
+}
+
+@mixin control-button-base {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    block-size: 100%;
+    padding: 0px;
+    gap: 0px;
+    inline-size: 46px;
+    pointer-events: auto;
+    color: var(--ui-window-frame-on-surface);
+    --icon-color: var(--ui-window-frame-on-surface);
+    background-color: transparent;
+    transition: background-color 0.15s ease;
+    border: none;
+    outline: none;
+    flex-shrink: 0;
+
+    &:hover { background-color: var(--ui-window-frame-control-hover-bg); }
+    &:active { background-color: var(--ui-window-frame-control-active-bg); }
+}
+
+//
+@mixin close-button-styles {
+    & { background-color: --c2-on-surface(0.0, var(--secondary)); color: --c2-surface(0.0, var(--secondary)); ui-icon { --icon-color: --c2-surface(0.0, var(--secondary)); } }
+    &:hover  { background-color: --c2-on-surface(0.2, var(--secondary)); color: --c2-surface(0.0, var(--secondary)); ui-icon { --icon-color: --c2-surface(0.0, var(--secondary)); } }
+    &:active { background-color: --c2-on-surface(0.4, var(--secondary)); color: --c2-surface(0.0, var(--secondary)); ui-icon { --icon-color: --c2-surface(0.0, var(--secondary)); } }
+}
+
+//
+@layer ui-window-frame {
+
+    // Main styles
+    :host(ui-window-frame) {
+        // Reset all elements
+        &, & * {
+            @include reset-styles;
+        }
+
+        // Main layout
+        & {
+            @include window-frame-variables;
+            @include window-frame-layout;
+        }
+
+        // Include functionality
+        @include ps-draggable;
+        @include ps-resizable;
+        @include ps-mechanic;
+
+        // Content area
+        .ui-window-frame-content {
+            @include content-styles;
+        }
+
+        // Resize handle
+        .ui-window-frame-resize-handle {
+            @include resize-handle-styles;
+        }
+
+        // Titlebar
+        .ui-window-frame-titlebar {
+            @include titlebar-layout;
+
+            // Titlebar handle
+            .ui-window-frame-titlebar-handle {
+                @include titlebar-handle-styles;
+
+                // Title text
+                .ui-window-frame-titlebar-title,
+                .ui-window-frame-titlebar-title-text {
+                    @include title-text-styles;
+                }
+
+                // Subtitle text
+                .ui-window-frame-titlebar-title-text-sub {
+                    @include subtitle-text-styles;
+                }
+
+                // App icon
+                .ui-window-frame-titlebar-app-icon {
+                    @include app-icon-styles;
+                }
+            }
+
+            // Controls
+            .ui-window-frame-titlebar-controls {
+                @include controls-layout;
+
+                // Control buttons
+                .ui-window-frame-titlebar-control-close,
+                .ui-window-frame-titlebar-control-minimize,
+                .ui-window-frame-titlebar-control-maximize {
+                    @include control-button-base;
+                }
+
+                // Close button special styling
+                .ui-window-frame-titlebar-control-close {
+                    @include close-button-styles;
+                }
+            }
+        }
+    }
+
+}

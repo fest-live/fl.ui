@@ -74,6 +74,14 @@ async function createGridWithItem() {
     </div>`;
 }
 
+//
+async function createWindowFrame() {
+    const { H } = await import("fest/lure");
+    const { WindowFrame } = await import("../src/ui/window/WindowFrame");
+    console.log(WindowFrame);
+    return H`<ui-window-frame></ui-window-frame>`;
+}
+
 //@ts-ignore
 import styles from "../src/scss/index.scss?inline";
 import { M } from "fest/lure";
@@ -102,15 +110,17 @@ async function main() {
     const [
         wallpaper,
         scrollBoxed,
-        ctxMenu
+        ctxMenu,
+        windowFrame
     ] = await Promise.all([
         makeWallpaper(),
         createGridWithItem(),
-        createCtxMenu()
+        createCtxMenu(),
+        createWindowFrame()
     ]);
 
     //
-    container.append(wallpaper, scrollBoxed, ctxMenu);
+    container.append(wallpaper, scrollBoxed, ctxMenu, windowFrame);
 }
 
 //

@@ -2,11 +2,25 @@
 
 //
 @layer ux-classes {
-    :host, :root, :scope {
-        &, & * {
+    :root, :scope {
+        --scale: 1;
+        --translate-x: 0px;
+        --translate-y: 0px;
+    }
+
+    :host {
+        &, & :where(*) {
             --scale: 1;
             --translate-x: 0px;
             --translate-y: 0px;
+        }
+    }
+
+    //
+    ui-window-frame, :host(ui-window-frame) {
+        & {
+            --translate-x: var(--ds-x, 0px);
+            --translate-y: var(--ds-y, 0px);
         }
     }
 
@@ -84,7 +98,7 @@
             min-inline-size: 100px;
             inline-size: max-content;
             block-size: max-content;
-            z-index: 99999;
+            z-index: calc(99999 + var(--z-index, 0)) !important;
             opacity: var(--opacity, 1);
             transform: scale(var(--scale, 1)) translate(var(--translate-x, 0px), var(--translate-y, 0px));
             pointer-events: auto;

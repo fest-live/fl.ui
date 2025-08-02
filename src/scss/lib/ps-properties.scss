@@ -24,7 +24,7 @@
 @mixin limit-drag-coords  { @include xy-props('limit-drag' , '-x', '-y', '100%', '100%', '<length-percentage>'); }
 
 //
-@mixin   bound-size { @include pair-props('bound', '-inline-size', '-block-size', 100cqi, 100cqb, '<length-percentage>'); }
+@mixin   bound-size { @include pair-props('bound-', 'inline-size', 'block-size', '100cqi', '100cqb', '<length-percentage>'); }
 @mixin initial-size { @include pair-props('initial-', 'inline-size', 'block-size', '100%', '100%', '<length-percentage>'); }
 @mixin         size { @include pair-props('', 'inline-size', 'block-size', '100%', '100%', '<length-percentage>'); }
 

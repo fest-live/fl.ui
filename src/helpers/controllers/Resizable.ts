@@ -22,9 +22,8 @@ export class ResizeHandler {
 
     //
     limitResize(real, virtual, holder, container) {
-        const box        = getBoundingOrientRect(holder) || holder?.getBoundingClientRect?.();
-        const widthDiff  = cbw(container) - (bbw(holder) - (this.#resizing?.[0]?.value || 0) + ((box.left || 0) * fixedClientZoom(this.#holder)));
-        const heightDiff = cbh(container) - (bbh(holder) - (this.#resizing?.[1]?.value || 0) + ((box.top  || 0) * fixedClientZoom(this.#holder)));
+        const widthDiff  = cbw(holder) - (bbw(holder) - (this.#resizing?.[0]?.value || 0));
+        const heightDiff = cbh(holder) - (bbh(holder) - (this.#resizing?.[1]?.value || 0));
 
         // if relative of un-resized to edge corner max-size
         // discount of dragging offset!
@@ -48,7 +47,7 @@ export class ResizeHandler {
             const starting = [resizing?.[0]?.value || 0, resizing?.[1]?.value || 0];
             const holder = weak?.deref?.() as any;
             const parent = this.#parent;
-            //self_w?.deref?.()?.limitResize?.(starting, starting, holder, parent)
+            self_w?.deref?.()?.limitResize?.(starting, starting, holder, parent)
             return starting;
         };
 

@@ -39,7 +39,7 @@
 @mixin window-frame-variables {
     --ui-window-frame-shadow: 0 4px 12px rgb(0 0 0 / 0.15), 0 1px 3px rgb(0 0 0 / 0.1);
     --ui-window-frame-outline: #{"oklch(from --c2-on-surface(0.0, var(--current)) l c h / 0.1)"};
-    --ui-window-frame-surface: #{"oklch(from --c2-surface(0.0, var(--current)) l c h / 1)"};
+    --ui-window-frame-surface: #{"oklch(from --c2-surface(0.1, var(--current)) l c h / 1)"};
     --ui-window-frame-border-radius: 0.5rem;
     --ui-window-frame-border-width: 1px;
     --ui-window-frame-border-color: --c2-on-surface(0.0, var(--current));
@@ -57,7 +57,7 @@
     --ui-window-frame-content-border-radius: 0.5rem;
     --ui-window-frame-content-border-width: 1px;
     --ui-window-frame-content-border-color: --c2-on-surface(0.0, var(--current));
-    --ui-window-frame-content-background-color: --c2-surface(0.1, var(--current));
+    --ui-window-frame-content-background-color: --c2-surface(0.0, var(--current));
     --ui-window-frame-content-color: --c2-on-surface(0.0, var(--current));
     --ui-window-frame-content-padding: 0px;
     --ui-window-frame-content-margin: 0px;
@@ -118,6 +118,7 @@
     border-block-start: none;
     block-size: stretch;
     inline-size: stretch;
+    margin: 0.125rem;
 }
 
 @mixin resize-handle-styles {
@@ -237,8 +238,8 @@
     block-size: 100%;
 
     ui-icon {
-        inline-size: 1rem;
-        block-size: 1rem;
+        inline-size: auto;
+        block-size: stretch;
         aspect-ratio: 1 / 1;
         color: var(--ui-window-frame-on-surface);
         background-color: transparent;
@@ -254,28 +255,31 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    block-size: 100%;
-    padding: 0px;
+    block-size: stretch;
+    padding: 0.25rem;
     gap: 0px;
-    inline-size: 46px;
+    inline-size: auto;
     pointer-events: auto;
     color: var(--ui-window-frame-on-surface);
     --icon-color: var(--ui-window-frame-on-surface);
-    background-color: transparent;
+    background-color: --c2-surface(0.1, var(--current));
     transition: background-color 0.15s ease;
     border: none;
     outline: none;
     flex-shrink: 0;
+    aspect-ratio: 1 / 1;
+    margin: 0.25rem;
+    border-radius: 50%;
 
-    &:hover { background-color: var(--ui-window-frame-control-hover-bg); }
-    &:active { background-color: var(--ui-window-frame-control-active-bg); }
+    &:hover { background-color: --c2-surface(0.15, var(--current));; }
+    &:active { background-color: --c2-surface(0.15, var(--current));; }
 }
 
 //
 @mixin close-button-styles {
-    & { background-color: --c2-on-surface(0.0, var(--secondary)); color: --c2-surface(0.0, var(--secondary)); ui-icon { --icon-color: --c2-surface(0.0, var(--secondary)); } }
-    &:hover  { background-color: --c2-on-surface(0.2, var(--secondary)); color: --c2-surface(0.0, var(--secondary)); ui-icon { --icon-color: --c2-surface(0.0, var(--secondary)); } }
-    &:active { background-color: --c2-on-surface(0.4, var(--secondary)); color: --c2-surface(0.0, var(--secondary)); ui-icon { --icon-color: --c2-surface(0.0, var(--secondary)); } }
+    & { background-color: --c2-on-surface(-0.05, var(--primary)); color: --c2-surface(0.0, var(--primary)); ui-icon { --icon-color: --c2-surface(0.0, var(--primary)); } }
+    &:hover  { background-color: --c2-on-surface(-0.1, var(--primary)); color: --c2-surface(0.0, var(--primary)); ui-icon { --icon-color: --c2-surface(0.0, var(--primary)); } }
+    &:active { background-color: --c2-on-surface(-0.1, var(--primary)); color: --c2-surface(0.0, var(--primary)); ui-icon { --icon-color: --c2-surface(0.0, var(--primary)); } }
 }
 
 //

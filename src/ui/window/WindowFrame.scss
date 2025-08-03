@@ -30,9 +30,8 @@
     user-select: none;
     cursor: default;
     pointer-events: none;
-    contain: strict;
-    container-type: size;
-    container-name: ui-window-frame;
+    contain: none;
+    container-type: normal;
     background-color: transparent;
 }
 
@@ -98,6 +97,8 @@
 
     --z-index-order: sibling-index();
     z-index: calc(99 + var(--z-index-order));
+    padding: 0px;
+    margin: 0px;
 }
 
 @mixin content-styles {
@@ -130,17 +131,19 @@
     inset: auto !important;
     inset-inline-end: 0px !important;
     inset-block-end: 0px !important;
-    border-radius: 0px;
+    border-radius: 50%;
+    border-end-start-radius: 0.15rem;
+    border-start-end-radius: 0.15rem;
     border-width: 0px;
     border-style: solid;
     border-color: transparent;
     pointer-events: auto !important;
+    background-color: var(--ui-window-frame-on-surface);
+    opacity: 0.1;
+    transition: opacity 0.15s ease;
 
-    background:
-        linear-gradient(135deg, transparent 30%, #{"oklch(from --c2-on-surface(0.0, var(--current)) l c h / 0.4)"} 30%, #{"oklch(from --c2-on-surface(0.0, var(--current)) l c h / 0.4)"} 40%, transparent 40%),
-        linear-gradient(135deg, transparent 50%, #{"oklch(from --c2-on-surface(0.0, var(--current)) l c h / 0.4)"} 50%, #{"oklch(from --c2-on-surface(0.0, var(--current)) l c h / 0.4)"} 60%, transparent 60%),
-        linear-gradient(135deg, transparent 70%, #{"oklch(from --c2-on-surface(0.0, var(--current)) l c h / 0.4)"} 70%, #{"oklch(from --c2-on-surface(0.0, var(--current)) l c h / 0.4)"} 80%, transparent 80%);
-
+    &:hover { opacity: 0.2; }
+    &:active { opacity: 0.3; }
 }
 
 @mixin titlebar-layout {
@@ -160,7 +163,8 @@
 
 @mixin titlebar-handle-styles {
     display: flex;
-    align-items: center;
+    place-content: center;
+    place-items: center;
     justify-content: flex-start;
     flex-direction: row;
     gap: 8px;
@@ -173,7 +177,9 @@
     padding-inline-end: 12px;
     flex: 1 1 0px;
     min-inline-size: 0px;
-    block-size: 100%;
+    block-size: stretch;
+    flex-basis: stretch;
+    inline-size: stretch;
 }
 
 @mixin title-text-styles {
@@ -181,16 +187,18 @@
     flex-direction: column;
     align-items: flex-start;
     justify-content: center;
-    gap: 2px;
+    gap: 0px;
     pointer-events: none;
     text-overflow: ellipsis;
     overflow: hidden;
     white-space: nowrap;
-    inline-size: auto;
+    flex-basis: stretch;
+    inline-size: stretch;
     block-size: stretch;
-    flex: 1 1 0px;
+    flex-grow: 1;
+    flex-shrink: 1;
     min-inline-size: 0px;
-    font-size: 13px;
+    font-size: 0.75rem;
     font-weight: 500;
     color: var(--ui-window-frame-titlebar-color);
 }
@@ -202,40 +210,65 @@
     justify-content: flex-start;
     block-size: stretch;
     padding: 0px;
-    gap: 4px;
+    gap: 0px;
+    opacity: 0.5;
     pointer-events: none;
     text-overflow: ellipsis;
     overflow: hidden;
     white-space: nowrap;
-    inline-size: auto;
-    font-size: 11px;
+    font-size: 0.5rem;
     color: --c2-on-surface(0.0, var(--current));
+    inline-size: max-content;
+    flex-basis: max-content;
+    flex-shrink: 0;
+    place-content: center;
+    place-items: center;
 }
 
 @mixin app-icon-styles {
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 4px;
-    aspect-ratio: 1 / 1;
     pointer-events: none;
-    inline-size: 16px;
-    block-size: 16px;
-    color: var(--ui-window-frame-on-surface);
-    flex-shrink: 0;
+    flex-basis: max-content;
+    inline-size: max-content;
+    block-size: stretch;
+    min-inline-size: 1rem;
+    color: --c2-on-surface(0.0, var(--current));
+    --icon-color: --c2-on-surface(0.0, var(--current));
+    padding: 0px;
+    margin: 0px;
+    place-content: center;
+    place-items: center;
+
+    ui-icon {
+        block-size: stretch;
+        inline-size: auto;
+        aspect-ratio: 1 / 1;
+        color: inherit;
+        --icon-color: inherit;
+        background-color: transparent;
+        border: none;
+        outline: none;
+        padding: 0px;
+        margin: 0px;
+        margin-block: 0.5rem;
+    }
 }
 
 @mixin controls-layout {
     display: flex;
     flex-direction: row;
-    align-items: center;
-    justify-content: flex-end;
-    inline-size: 138px;
     flex-shrink: 0;
+    flex-basis: max-content;
     padding: 0px;
     gap: 0px;
     pointer-events: none;
-    block-size: 100%;
+    block-size: stretch;
+    inline-size: max-content;
+    place-content: center;
+    place-items: center;
+    justify-content: flex-end;
 
     ui-icon {
         inline-size: auto;
@@ -253,8 +286,8 @@
 
 @mixin control-button-base {
     display: flex;
-    align-items: center;
-    justify-content: center;
+    place-content: center;
+    place-items: center;
     block-size: stretch;
     padding: 0.25rem;
     gap: 0px;
@@ -356,5 +389,4 @@
             }
         }
     }
-
 }

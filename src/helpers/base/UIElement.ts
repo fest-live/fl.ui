@@ -11,10 +11,19 @@ const styled = preloadStyle(styles);
 @defineElement("ui-element")
 export class UIElement extends GLitElement() {
     @property({ source: "attr" }) theme: string = "default";
-     render() { return H`<slot></slot>`; }
 
     //
-     constructor() { super(); }
+    render() { return H`<slot></slot>`; }
+
+    //
+    constructor() { super(); }
+
+    //
+    onRender() {
+        super.onRender();
+    }
+
+    //
     onInitialize() {
         super.onInitialize();
         const self : any = this;

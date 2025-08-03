@@ -1,5 +1,5 @@
 import { defineElement, H, E, property } from "fest/lure";
-import { preloadStyle } from "fest/dom";
+import { preloadStyle, setStyleProperty } from "fest/dom";
 
 //
 import { UIElement } from "@helpers/base/UIElement";
@@ -68,6 +68,28 @@ export class WindowFrame extends UIElement {
         this.closeEl?.addEventListener("click", withDispatch("close"));
         this.minimizeEl?.addEventListener("click", withDispatch("minimize"));
         this.maximizeEl?.addEventListener("click", withDispatch("maximize"));
+
+        //
+        this.doCenter();
+    }
+
+    //
+    onRender() {
+        // @ts-ignore
+        super.onRender(); this.doCenter();
+        requestAnimationFrame(()=>{ this.doCenter(); });
+    }
+
+    //
+    doCenter () {
+        const holder: any = this;
+        const box = holder.getBoundingClientRect();
+        const parent = holder.parentElement;
+        const parentBox = parent?.getBoundingClientRect();
+        const cX = (parentBox?.width || 0) / 2 - (box?.width || 0) / 2;
+        const cY = (parentBox?.height || 0) / 2 - (box?.height || 0) / 2;
+        setStyleProperty(holder, "--shift-x", cX - (parentBox?.left || 0));
+        setStyleProperty(holder, "--shift-y", cY - (parentBox?.top || 0));
     }
 
     //

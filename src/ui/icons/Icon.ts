@@ -37,13 +37,14 @@ function capitalizeFirstLetter(str) {
 @defineElement('ui-icon')
 export class UILucideIcon extends UIElement {
     @property({ source: "attr" }) icon: any = "";
+    @property({ source: "attr" }) iconStyle: any = "duotone";
     @property({ source: "attr" }) width?: number;
     @property() protected iconElement?: SVGElement;
-    #options = { padding: 0, icon: "" };
+    #options = { padding: 0, icon: "", iconStyle: "duotone" };
 
     // also "display" may be "contents"
     public styles = ()  => styled.cloneNode(true);
-    public onRender() { this.icon = this.#options?.icon || this.icon; this.updateIcon(); subscribe([(this as any).getProperty("icon"), "value"], (icon)=>{ this.updateIcon(icon) }); }
+    public onRender() { this.icon = this.#options?.icon || this.icon; this.iconStyle = this.#options?.iconStyle || this.iconStyle; this.updateIcon(); subscribe([(this as any).getProperty("icon"), "value"], (icon)=>{ this.updateIcon(icon) }); }
     constructor(options = {icon: "", padding: ""}) { super(); Object.assign(this.#options, options); }
 
     //
@@ -51,7 +52,7 @@ export class UILucideIcon extends UIElement {
         if (icon ||= (this.icon?.value ?? (typeof this.icon == "string" ? this.icon : "")) || "") { // @ts-ignore
             const ICON = camelToKebab(icon || "");//capitalizeFirstLetter(kebabToCamel(icon || ""));
             const self = this as any;
-            loadAsImage(`./icons/duotone/${ICON}-duotone.svg`)?.then?.((url)=>{
+            loadAsImage(`./icons/${this?.iconStyle || "duotone"}/${ICON}-${this?.iconStyle || "duotone"}.svg`)?.then?.((url)=>{
                 if (!url) return;
                 const src  = `url(\"${url}\")`;
                 const fill = self;//self?.shadowRoot?.querySelector?.(".fill");

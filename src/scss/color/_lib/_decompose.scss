@@ -4,9 +4,8 @@
 
 /* Generate accent shades */
 @mixin accent-shades($primary: "primary") {
-    --#{$primary}-lighter: oklch(from var(--#{$primary}, #fefffe) calc(l * 0.6 + 0.4) calc(c * 0.9 + 0.1) h);
-    --#{$primary}-darker:  oklch(from var(--#{$primary}, #101110) calc(l * 0.6 + 0.1) calc(c * 0.9 + 0.1) h);
-    --#{$primary}-neutral: oklch(from var(--#{$primary}, #fefffe) calc(l * 0.4 + 0.4) calc(c * 0.6 + 0.1) h); /* neutral unused*/
+    --#{$primary}-lighter: oklch(from var(--#{$primary}, #fefffe) calc(l * 0.9 + 0.05) calc(c * 0.96 + 0.02) h);
+    --#{$primary}-darker:  oklch(from var(--#{$primary}, #101110) calc(l * 0.8 + 0.01) calc(c * 0.96 + 0.02) h);
 }
 
 /* Generate theme accents */

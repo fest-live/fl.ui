@@ -1,5 +1,7 @@
 import { H, M } from "fest/lure";
+import { loadInlineStyle } from "fest/dom";
 import "../src/scss/index.scss";
+import "./ctm-2.scss";
 
 //
 const tonesShift = [0, 0.025, 0.05, 0.075, 0.1, 0.125, 0.15, 0.175, 0.2];
@@ -9,8 +11,7 @@ function makeDecorativeBlocks(className, theme, colorScheme) {
     return H`
         <div class="color-row">
             ${M(tonesShift, (tone) => H`<div class="color-block" classList=${[className]} style=${{
-                "--contrast-tone-shift": `${tone}`,
-                "--surface-tone-shift": `${tone}`
+                "--background-tone-shift": `${tone}`
             }}>
             <span class="text-test">A</span>
             <span class="tone-label">${tone}</span>
@@ -35,3 +36,4 @@ const testTestTone = (name: string)=>H`
 //
 document.body.append(testTestTone("c2-surface"));
 document.body.append(testTestTone("c2-contrast"));
+//document.body.append(loadInlineStyle());

@@ -43,7 +43,90 @@
         }</script>
     </head>
     <body class="c2-contrast">
-        <div id="app" style="display: relative;"></div>
-        <script type="module" src="./test/ws-grid.ts"></script>
+
+        <style>
+            #choice-list {
+                position: fixed;
+                inset-inline-start: 50%;
+                inset-block-start: 50%;
+                transform: translate(-50%, -50%);
+                z-index: 1000;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                gap: 10px;
+            }
+
+            #choice-list button {
+                cursor: pointer;
+                box-sizing: border-box;
+                inline-size: 100%;
+                block-size: max-content;
+                display: block;
+                background-color: #f0f0f0;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                gap: 10px;
+                border: none;
+                padding: 1rem;
+                margin: 0;
+                font-size: 16px;
+                font-weight: 500;
+                color: #000000;
+                border-radius: 0.5rem;
+            }
+
+            #choice-list button:hover {
+                background-color: #e0e0e0;
+            }
+
+            #choice-list button:active {
+                background-color: #d0d0d0;
+            }
+        </style>
+
+        <div id="choice-list">
+            <button data-test="ws-grid"><span>Workspace Grid Test</span></button>
+            <button data-test="ctm-2"><span>Color System Test</span></button>
+            <button data-test="ui-test"><span>UI Test</span></button>
+        </div>
+
+        <div id="app"></div>
+
+        <script>
+            const choiceList = document.getElementById("choice-list");
+            choiceList.addEventListener("click", (event) => {
+                const button = event.target?.matches?.("button") ? event.target : event.target.closest?.("button");
+                const testName = button.dataset.test;
+                location.hash = "#" + testName;
+                event.preventDefault();
+                loadTest(testName);
+            }, { once: true });
+
+            function loadTest(testName) {
+                choiceList?.remove?.();
+                return import(`./test/${testName}.ts`).then?.((module) => {
+                    module?.default?.();
+                })?.catch?.((error) => {
+                    console.error(error);
+                    document.body.append(choiceList);
+                });
+            }
+
+            if (location.hash && location.hash.startsWith("#") && location.hash.length > 1) {
+                loadTest(location.hash?.slice?.(1));
+            }
+
+            addEventListener("hashchange", (event) => {
+                event.preventDefault();
+
+                // unload loaded scripts
+                location.reload();
+                loadTest(location.hash?.slice?.(1) || "");
+            });
+        </script>
     </body>
 </html>

@@ -148,17 +148,19 @@ export const clampedValueRef = (inp)=>{
 
 //
 export const dragSlider = (thumb, handler, input)=>{ // @ts-ignore
-    const correctOffset = ($dragging)=>{ const drg = $dragging || dragging; try { drg[0].value = 0, drg[1].value = 0; } catch(e) {}; return [0, 0]; };
-    const customTrigger = (doGrab)=>addEvent(handler, "pointerdown", makeShiftTrigger((ev)=>{ thumb?.setAttribute?.("data-dragging", "true"); correctOffset(dragging); doGrab?.(ev, handler)}, handler));
+    const correctOffset = ()=>{ try { dragging[0].value = 0, dragging[1].value = 0; } catch(e) {}; return [0, 0]; };
+    const customTrigger = (doGrab)=>addEvent(handler, "pointerdown", makeShiftTrigger((ev)=>{ thumb?.setAttribute?.("data-dragging", "true"); correctOffset(); doGrab(ev, handler) }, handler));
 
     //
     addEvent(handler, "click", (ev)=>{ if (input?.type == "checkbox" || input?.type == "radio") { input?.click?.(); } });
     addEvent(handler, "pointerdown", (ev)=>{
-        if ((ev?.target?.element ?? ev?.target) != (thumb?.element ?? handler)) {
-            correctOffset(dragging);
-            setValueByPointer(input, (ev?.layerX || 0), handler);
+        if (!(ev?.target?.matches?.(".ui-thumb") || ev?.target?.closest?.(".ui-thumb"))) {
+            if (ev?.target == (handler?.element ?? handler) || handler.contains(ev?.target)) {
+                //correctOffset();
+                setValueByPointer(input, (ev?.layerX || 0), handler);
+            }
         }
-    }); // "absolute"
+    });
 
     //
     const dragging = [ numberRef(0), numberRef(0) ];

@@ -95,7 +95,10 @@
     transform-origin: 50% 50%;
     transform: translate(var(--translate-x, 0px), var(--translate-y, 0px));
 
+    // z-index: 1 + sibling index
     --z-index-order: sibling-index();
+    // z-index: 1 + custom order (order property)
+    --z-index-order: var(--order, sibling-index());
     z-index: calc(99 + var(--z-index-order));
     padding: 0px;
     margin: 0px;

@@ -10,4 +10,6 @@ export interface ITask {
     set focus(activeStatus: boolean);
     get focus(): boolean;
     takeAction?(): boolean|void;
+    addSelfToList(list?: ITask[]|null, doFocus?: boolean): ITask;
+    removeFromList(): ITask;
 }

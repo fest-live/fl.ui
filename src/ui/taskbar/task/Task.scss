@@ -1,0 +1,21 @@
+@use "@scss/lib/ps-draggable" as *;
+@use "@scss/lib/ps-resizable" as *;
+@use "@scss/lib/ps-mechanic" as *;
+
+//
+@use "@scss/lib/ps-properties" as *;
+
+//
+:host {
+    @include reset-styles;
+
+    @include ps-draggable;
+    @include ps-resizable;
+    @include ps-mechanic;
+
+    @include ps-properties;
+
+    //
+    display: flex;
+    flex-direction: column;
+}

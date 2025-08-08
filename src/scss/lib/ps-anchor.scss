@@ -18,7 +18,7 @@
         --translate-y: round(nearest, min(0px, calc(100cqb - (100% + var(--client-y, 0) * 1px))), calc(1px / var(--pixel-ratio, 1))) !important;
     };
 
-    // from bottom side (without gap)
+    // from bottom side (without gap), by default
     @supports(position-anchor: --example) {
         position-anchor: var(--anchor-group);
         inset-inline-start: anchor(var(--anchor-group) start);

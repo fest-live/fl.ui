@@ -1,8 +1,9 @@
+import { makeReactive } from "fest/object";
 import { getBy, getFocused } from "./Manager";
 import { ITask } from "./Types";
 
 //
-export default class Task implements ITask {
+export class Task implements ITask {
     $active: boolean = false;
     $action: ()=>boolean|void;
     payload: any;
@@ -94,3 +95,9 @@ export default class Task implements ITask {
         return this;
     }
 };
+
+//
+export const makeTask = (...args: any[])=>{
+    // @ts-ignore
+    return makeReactive(new Task(...args));
+}

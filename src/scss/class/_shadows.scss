@@ -1,0 +1,127 @@
+@property --light-az { syntax: '<angle>'; inherits: true; initial-value: 225deg; }
+@property --light-alt { syntax: '<angle>'; inherits: true; initial-value: 55deg; }
+@property --soft-ang  { syntax: '<angle>'; inherits: true; initial-value: 18deg; }
+
+@property --umbra-density    { syntax: '<number>'; inherits: true; initial-value: 0.32; }
+@property --penumbra-density { syntax: '<number>'; inherits: true; initial-value: 0.18; }
+
+/* «высота» элемента над плоскостью */
+@property --elev { syntax: '<length>'; inherits: false; initial-value: 0px; }
+
+/* Альтернатива: источник как 3D-вектор (если не хотите вручную углы) */
+@property --lx { syntax: '<number>'; inherits: true; initial-value: -1; }
+@property --ly { syntax: '<number>'; inherits: true; initial-value: -1; }
+@property --lz { syntax: '<number>'; inherits: true; initial-value: 1.2; }
+
+
+
+/* */
+@keyframes lift {
+    from { --elev: 6px; }
+    to   { --elev: 32px; }
+}
+
+/* */
+@keyframes daylight {
+    0%   { --light-az: 210deg; --light-alt: 30deg; }
+    50%  { --light-az: 270deg; --light-alt: 70deg; }
+    100% { --light-az: 330deg; --light-alt: 30deg; }
+}
+
+
+
+
+
+/*
+.elev-drop {
+    --elev: 12px;
+    --cotA: calc(1 / max(0.001, tan(var(--light-alt))));
+    --L: calc(abs(var(--elev)) * var(--cotA));
+    --dx: calc(cos(var(--light-az)) * var(--L) * sign(var(--elev)));
+    --dy: calc(sin(var(--light-az)) * var(--L) * sign(var(--elev)));
+
+    --b1: calc(max(0.5px, abs(var(--elev)) * tan(var(--soft-ang)) * 0.8));
+    --b2: calc(var(--b1) * 2.0);
+    --b3: calc(var(--b1) * 3.2);
+
+    filter:
+        drop-shadow(calc(var(--dx) * 0.15) calc(var(--dy) * 0.15) var(--b1) rgb(0 0 0 / 0.20))
+        drop-shadow(var(--dx) var(--dy) var(--b2) rgb(0 0 0 / 0.12))
+        drop-shadow(var(--dx) var(--dy) var(--b3) rgb(0 0 0 / 0.07));
+}
+*/
+
+
+
+
+/* подключайте этот блок к любому «поднятому» элементу */
+.elev {
+    /* высота (может быть отрицательной; единицы — px для наглядности) */
+    --elev: 12px;
+
+    /* Можно анимировать: теперь это типизированное свойство */
+    transition: --elev .3s ease, box-shadow .3s ease, transform .3s ease;
+
+    /* опционально: ощущение глубины той же переменной */
+    transform: translateZ(var(--elev));
+
+    /* длина тени по плоскости: L = |elev| * cot(alt) */
+    --cotA: calc(1 / max(0.001, tan(var(--light-alt))));
+    --L: calc(abs(var(--elev)) * var(--cotA));
+
+    /* смещение тени по осям (учтём знак высоты через sign) */
+    --dx: calc(cos(var(--light-az)) * var(--L) * sign(var(--elev)));
+    --dy: calc(sin(var(--light-az)) * var(--L) * sign(var(--elev)));
+
+    /* мягкость: пропорциональна высоте и угловому размеру источника */
+    --blurC: calc(max(0.5px, abs(var(--elev)) * tan(var(--soft-ang))));   /* контактная */
+    --blurU: calc(var(--blurC) * 1.6);                                    /* умбра */
+    --blurP: calc(var(--blurC) * 2.8);                                    /* пенумбра */
+
+    /* spread: с ростом высоты тень «расходится» (отрицательный spread) */
+    --spreadC: calc(abs(var(--elev)) * 0.04);
+    --spreadU: calc(abs(var(--elev)) * 0.10);
+    --spreadP: calc(var(--spreadU) * 1.2);
+
+    /* плотность убывает с высотой (гладкая, без ступенек) */
+    --alphaC: calc(clamp(0.08, (var(--umbra-density) * 0.9) / (1 + abs(var(--elev)) * 0.30), 0.40));
+    --alphaU: calc(clamp(0.06, var(--umbra-density) / sqrt(1 + abs(var(--elev)) * 0.15), 0.35));
+    --alphaP: calc(clamp(0.04, var(--penumbra-density) / sqrt(1 + abs(var(--elev)) * 0.08), 0.25));
+
+    /* стек слоёв: контактная + умбра + пенумбра */
+    box-shadow:
+        calc(var(--dx) * 0.15) calc(var(--dy) * 0.15) var(--blurC) var(--spreadC) rgb(0 0 0 / var(--alphaC)),
+        var(--dx) var(--dy) var(--blurU) var(--spreadU) rgb(0 0 0 / var(--alphaU)),
+        var(--dx) var(--dy) var(--blurP) var(--spreadP) rgb(0 0 0 / var(--alphaP));
+}
+
+/* примеры состояний/анимаций */
+.elev:hover { --elev: 24px; }
+
+/* scene */
+.scene, :root {
+    /* куда «смотрит» свет: -x,-y, +z — пример «сверху-слева» */
+    --lx: -1;
+    --ly: -1;
+    --lz: 1.2;
+
+    /* азимут и высота из вектора */
+    --light-az: calc(atan2(var(--ly), var(--lx))); /* направление в плоскости XY */
+    --light-alt: calc(atan2(var(--lz), hypot(var(--lx), var(--ly))));
+
+    /* либо задаёте углы напрямую через :root/.scene
+    --light-az: 225deg; --light-alt: 55deg; либо используете вектор: */
+    --light-az: calc(atan2(var(--ly), var(--lx)));
+    --light-alt: calc(atan2(var(--lz), hypot(var(--lx), var(--ly))));
+
+    /* угловой размер источника (мягкость) */
+    --soft-ang: 18deg;
+
+    /* плотности для разных слоёв тени */
+    --umbra-density: 0.32;     /* основная тень */
+    --penumbra-density: 0.18;  /* полутень */
+}
+
+/* animations */
+.pulsing { animation: lift 1.6s ease-in-out infinite alternate; }
+.scene.sun-move { animation: daylight 8s linear infinite; }

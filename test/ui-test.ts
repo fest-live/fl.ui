@@ -1,12 +1,8 @@
 import { loadInlineStyle } from "fest/dom";
-import Icon from "../src/ui/icons/Icon"
-
-console.log(Icon);
 
 async function createScrollBoxed() {
     const { H } = await import("fest/lure");
-    const { OverlayScrollbarMixin } = await import("../src/ui/scrollframe/ScrollFrame");
-    console.log(OverlayScrollbarMixin);
+    const { OverlayScrollbarMixin } = await import("../src/ui/scrollframe/ScrollFrame"); //@ts-ignore
 
     return H`
     <div class="c2-surface" data-mixin="ov-scrollbar" style="clip-path: inset(0px round 0.5%); padding: 1rem; margin: 1rem; box-sizing: border-box; overflow: scroll; display: block; inline-size: 800px; block-size: 600px; border: none 0px transparent; outline: none 0px transparent;">
@@ -29,7 +25,6 @@ async function createIcon() {
 async function createSlider() {
     const { H } = await import("fest/lure");
     const { SliderInput } = await import("../src/ui/inputs/slider/Slider");
-    console.log(SliderInput);
 
     return H`<ui-slider style="inline-size: 100px; block-size: 1rem; border-radius: 0.5rem;">
         <input type="range" min="0" max="100" value="0">
@@ -66,7 +61,6 @@ async function createCtxMenu() {
 async function createLongText() {
     const { H } = await import("fest/lure");
     const { LongTextInput } = await import("../src/ui/inputs/text/Text");
-    console.log(LongTextInput);
 
     //value="Hello, world!"
     const longText = H`<ui-longtext class="c2-surface" style="inline-size: 200px; border-radius: 0.5rem;">

@@ -13,16 +13,19 @@
     contain: none;
     flex-grow: 1;
 }
+
 .color-title {
     font-weight: bold;
     margin-block-end: 8px;
     font-size: 1.1em;
     letter-spacing: 0.05em;
 }
+
 .color-row {
     display: flex;
     gap: 16px;
 }
+
 .color-block {
     inline-size: 60px;
     block-size: 60px;
@@ -32,10 +35,13 @@
     align-items: flex-end;
     justify-content: center;
     position: relative;
-    transition: transform 0.2s, box-shadow 0.2s;
+    transition:
+        transform 0.2s,
+        box-shadow 0.2s;
     border: 2px solid #fff4;
     overflow: hidden;
 }
+
 .color-block:hover {
     transform: scale(1.05);
     box-shadow: 0 4px 16px 0 #0003;
@@ -80,6 +86,7 @@
     color-scheme: light;
     --detected-theme: 1;
 }
+
 .dark {
     color-scheme: dark;
     --detected-theme: 0;

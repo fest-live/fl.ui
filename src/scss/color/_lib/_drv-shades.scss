@@ -32,6 +32,6 @@
     /* if 0.5 to 1*/
     --#{$primary}-#{$subset}-from-accent-to-dark: color-mix(in oklch, var(--#{$primary}-accent-shade) calc(clamp(0, (var(--#{$subset}-#{$dep-name}, 0) - 0) * 2, 1) * 100%), var(--#{$primary}-dark-shade));
 
-    /* resolve color, determinated by dependency */
+    /* resolve color, determined by dependency */
     --#{$primary}-#{$subset}: color-mix(in oklch, var(--#{$primary}-#{$subset}-from-light-to-accent) calc(var(--#{$subset}-choice-factor) * 100%), var(--#{$primary}-#{$subset}-from-accent-to-dark));
 }

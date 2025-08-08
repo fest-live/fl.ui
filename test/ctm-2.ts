@@ -1,7 +1,6 @@
 import { H, M } from "fest/lure";
-import { loadInlineStyle } from "fest/dom";
-import "../src/scss/index.scss";
 import "./ctm-2.scss";
+import "../src/scss/index.scss";
 
 //
 const tonesShift = [0, 0.025, 0.05, 0.075, 0.1, 0.125, 0.15, 0.175, 0.2];
@@ -36,4 +35,3 @@ const testTestTone = (name: string)=>H`
 //
 document.body.append(testTestTone("c2-surface"));
 document.body.append(testTestTone("c2-contrast"));
-//document.body.append(loadInlineStyle());

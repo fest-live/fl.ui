@@ -35,7 +35,7 @@ function capitalizeFirstLetter(str) {
 
 // @ts-ignore
 @defineElement('ui-icon')
-export class UILucideIcon extends UIElement {
+export class UIPhosphorIcon extends UIElement {
     @property({ source: "attr" }) icon: any = "";
     @property({ source: "attr" }) iconStyle: any = "duotone";
     @property({ source: "attr" }) width?: number;
@@ -75,4 +75,4 @@ export class UILucideIcon extends UIElement {
 }
 
 //
-export default UILucideIcon;
+export default UIPhosphorIcon;

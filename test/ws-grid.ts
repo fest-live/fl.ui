@@ -1,8 +1,4 @@
 import { loadInlineStyle } from "../../dom.ts/src/$mixin$/Style";
-import Icon from "../src/ui/icons/Icon"
-
-//
-console.log(Icon);
 
 //
 async function makeWallpaper() {
@@ -43,7 +39,7 @@ async function createCtxMenu() {
 //
 async function createGridWithItem() {
     const { makeReactive } = await import("fest/object");
-    const { H, orientRef } = await import("fest/lure");
+    const { H, orientRef, M } = await import("fest/lure");
     const { bindInteraction } = await import("../src/ui/grid/GridBind");
 
     //
@@ -78,13 +74,12 @@ async function createGridWithItem() {
 async function createWindowFrame() {
     const { H } = await import("fest/lure");
     const { WindowFrame } = await import("../src/ui/window/WindowFrame");
-    console.log(WindowFrame);
     return H`<ui-window-frame></ui-window-frame>`;
 }
 
+//
 //@ts-ignore
 import styles from "../src/scss/index.scss?inline";
-import { M } from "fest/lure";
 
 //
 async function main() {
@@ -100,11 +95,6 @@ async function main() {
         const blob = await res.blob();
         colorScheme(blob);
     });
-
-    //
-    const { UIGridBox } = await import("../src/ui/grid/GridBox");
-    const { UIOrientBox } = await import("../src/ui/grid/OrientBox");
-    console.log(UIGridBox, UIOrientBox); // TODO: remove
 
     //
     const [

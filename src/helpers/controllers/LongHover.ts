@@ -5,7 +5,7 @@ export class LongHoverHandler {
     #holder: HTMLElement;
 
     //
-    constructor(holder, options?, fx = (ev) => {ev.target.dispatchEvent(new CustomEvent("u2-longhover", {detail: ev?.detail || ev, bubbles: true}));}) {
+    constructor(holder, options?, fx = (ev) => {ev.target.dispatchEvent(new PointerEvent("long-hover", {...ev, bubbles: true}));}) {
         this.#holder = holder; holder["@control"] = this;
         if (!holder) { throw Error("Element is null..."); };
         if (options) { this.longHover(options, fx); };
@@ -13,14 +13,14 @@ export class LongHoverHandler {
 
     //
     defaultHandler(ev, weakRef: WeakRef<HTMLElement>) {
-        return weakRef?.deref()?.dispatchEvent?.(new CustomEvent("long-press", {detail: ev?.detail || ev, bubbles: true}));
+        return weakRef?.deref()?.dispatchEvent?.(new PointerEvent("long-hover", {...ev, bubbles: true}));
     }
 
     //
-    longHover(options, fx = (ev) => {ev.target.dispatchEvent(new CustomEvent("long-hover", {detail: ev?.detail || ev, bubbles: true}));}) {
+    longHover(options, fx = (ev) => {ev.target.dispatchEvent(new PointerEvent("long-hover", {...ev, bubbles: true}));}) {
         const action: any = { pointerId: -1, timer: null };
         const initiate = agWrapEvent((evc)=>{
-            const ev = evc?.detail || evc;
+            const ev = evc;
             if ((ev.target.matches(options.selector) || ev.target.closest(options.selector)) && action.pointerId < 0) {
                 action.pointerId = ev.pointerId;
                 action.timer = setTimeout(()=>{
@@ -33,7 +33,7 @@ export class LongHoverHandler {
 
         //
         const cancelEv = agWrapEvent((evc)=>{
-            const ev = evc?.detail || evc;
+            const ev = evc;
             if ((ev.target.matches(options.selector) || ev.target.closest(options.selector)) && action.pointerId == ev.pointerId) {
                 if (action.timer) { clearTimeout(action.timer); };
 

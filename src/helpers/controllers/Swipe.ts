@@ -19,7 +19,7 @@ export class SwipeHandler {
 
             //
             const registerMove = (evc) => {
-                const ev = evc?.detail ?? evc;
+                const ev = evc;
                 if (swipes?.has?.(ev.pointerId)) {
                     ev.stopPropagation();
                     const swipe = swipes?.get?.(ev.pointerId);
@@ -63,7 +63,7 @@ export class SwipeHandler {
 
             //
             const takeAction = agWrapEvent((evc) => {
-                const ev = evc?.detail ?? evc;
+                const ev = evc;
                 if (ev.target == options?.handler) {
                     swipes?.set(ev.pointerId, {
                         target: ev.target,

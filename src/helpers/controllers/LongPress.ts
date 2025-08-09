@@ -13,7 +13,7 @@ export class LongPressHandler {
 
     //
     defaultHandler(ev, weakRef: WeakRef<HTMLElement>) {
-        return weakRef?.deref()?.dispatchEvent?.(new CustomEvent("u2-longpress", {detail: ev?.detail || ev, bubbles: true}));
+        return weakRef?.deref()?.dispatchEvent?.(new PointerEvent("long-press", {...ev, bubbles: true}));
     }
 
     //

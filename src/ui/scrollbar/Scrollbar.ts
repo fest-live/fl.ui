@@ -115,7 +115,7 @@ const makeInteractive = (holder, content, scrollbar, axis = 0, status: any = {})
     const status_w   = asWeak(status);
     const content_w  = asWeak(content);
     const moveScroll = (evc) => {
-        const ev     = evc?.detail || evc;
+        const ev     = evc;
         const status = status_w?.deref?.();
         if (self && status?.pointerId == ev.pointerId) {
             evc?.stopPropagation?.(); evc?.preventDefault?.();
@@ -135,7 +135,7 @@ const makeInteractive = (holder, content, scrollbar, axis = 0, status: any = {})
     //
     const handler = scrollbar;
     const stopScroll = (evc) => {
-        const ev     = evc?.detail || evc;
+        const ev     = evc;
         const status = status_w?.deref?.();
         if (status && status?.pointerId == ev.pointerId) {
             evc?.stopPropagation?.();
@@ -154,7 +154,7 @@ const makeInteractive = (holder, content, scrollbar, axis = 0, status: any = {})
 
     //
     addEvent(handler, "pointerdown", (evc: any) => {
-        const ev     = evc?.detail || evc;
+        const ev     = evc;
         const status = status_w?.deref?.();
         if (self && status?.pointerId < 0) {
             evc?.stopPropagation?.();

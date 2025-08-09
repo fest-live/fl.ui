@@ -1,6 +1,12 @@
 import { loadInlineStyle } from "../../dom.ts/src/$mixin$/Style";
 
 //
+import "../src/ui/scrollframe/ScrollFrame";
+import "../src/ui/grid/GridBox";
+import "../src/ui/grid/OrientBox";
+import "../src/ui/icons/Icon";
+
+//
 async function makeWallpaper() {
     const { H, orientRef } = await import("fest/lure");
     const oRef = orientRef();

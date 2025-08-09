@@ -19,7 +19,7 @@ export const makeControl = async (frameElement: HTMLElement)=>{
         //frameElement.style.setProperty("--shift-x", `${(pn.clientWidth  - Math.min(Math.max(frameElement.offsetWidth , 48*16), pn.clientWidth)) * 0.5}`, "");
         //frameElement.style.setProperty("--shift-y", `${(pn.clientHeight - Math.min(Math.max(frameElement.offsetHeight, 24*16), pn.clientHeight)) * 0.5}`, "");
         addEvent(frameElement, "m-dragstart", (ev: any)=>{
-            if (ev.detail.holding.propertyName == "drag") {
+            if (ev.propertyName == "drag") {
                 frameElement?.setAttribute?.("data-dragging", "");
                 frameElement?.style?.setProperty?.("will-change", "transform", "important");
             }
@@ -27,7 +27,7 @@ export const makeControl = async (frameElement: HTMLElement)=>{
 
         //
         addEvent(frameElement, "m-dragend", (ev: any)=>{
-            if (ev.detail.holding.propertyName == "drag") {
+            if (ev.propertyName == "drag") {
                 const content = frameElement?.querySelector?.(".ui-content") as HTMLElement;
                 const phantom = frameElement?.shadowRoot?.querySelector?.(".ui-phantom") as HTMLCanvasElement;
 

@@ -5,6 +5,8 @@ import "../src/ui/scrollframe/ScrollFrame";
 import "../src/ui/grid/GridBox";
 import "../src/ui/grid/OrientBox";
 import "../src/ui/icons/Icon";
+import "../src/ui/taskbar/TaskBar";
+import "../src/ui/taskbar/Task";
 
 //
 async function makeWallpaper() {

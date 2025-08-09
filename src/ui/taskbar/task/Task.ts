@@ -15,10 +15,9 @@ export class Task extends UIElement {
     @property({ source: "attr" }) icon: string = "window";
 
     //
-    constructor() {
-        super();
-    }
+    constructor() { super(); }
 
+    //
     styles = () => styled?.cloneNode?.(true);
 
     //

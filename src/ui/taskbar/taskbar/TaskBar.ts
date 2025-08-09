@@ -10,10 +10,6 @@ export class TaskBar extends UIElement {
 
     //
     render() {
-        return H`
-            <div part="taskbar" class="taskbar">
-                <slot></slot>
-            </div>
-        `;
+        return H`<div part="taskbar" class="taskbar"><slot></slot></div>`;
     }
 }

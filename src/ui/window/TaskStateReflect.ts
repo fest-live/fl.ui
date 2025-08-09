@@ -1,12 +1,21 @@
 import { ITask } from "../../helpers/tasking/Types";
 import { propRef, subscribe } from "fest/object";
-import { handleHidden, handleAttribute, handleStyleChange, setStyleProperty } from "fest/dom";
+import { handleHidden, handleAttribute, handleStyleChange, setStyleProperty, addEvent } from "fest/dom";
 import { bindWith } from "fest/lure";
 
 //
 export class TaskStateReflect {
     task?: ITask|null;
     element?: HTMLElement|any|null;
+    listeners?: {
+        click?: any|null;
+        keydown?: any|null;
+        focus?: any|null;
+        blur?: any|null;
+        close?: any|null;
+        minimize?: any|null;
+        maximize?: any|null;
+    }|null;
     bindings?: {
         visible?: any|null;
         focus?: any|null;
@@ -36,11 +45,16 @@ export class TaskStateReflect {
         return this;
     }
 
+    //
     unbind() {
         if (this.bindings) {
             Object.values(this.bindings).forEach((binding)=>{ typeof binding == "function" ? binding() : binding?.unbind?.() });
             this.bindings?.orderSub?.();
             this.bindings = null;
+        }
+        if (this.listeners) {
+            Object.values(this.listeners).forEach((listener)=>{ typeof listener == "function" ? listener() : listener?.remove?.() });
+            this.listeners = null;
         }
         if (this.element) {
             handleHidden(this.element, this.task, false);
@@ -76,6 +90,20 @@ export class TaskStateReflect {
             this.bindings.orderSub = subscribe([this.task, "focus"], (_, prop)=>{ if (prop == "focus") {
                 setStyleProperty(this.element, "--order", this.task?.order);
             }});
+
+            // UI-events
+            this.listeners ??= {};
+            this.listeners.click = addEvent(this.element, "click", ()=>{ if (this.task) { this.task.focus = true; } });
+            this.listeners.keydown = addEvent(this.element, "keydown", (e)=>{ if (e.key == "Enter" && this.task) { this.task.focus = true; } });
+            this.listeners.focus = addEvent(this.element, "focus", (e)=>{ if (this.task) { this.task.focus = true; } });
+            this.listeners.blur = addEvent(this.element, "blur", (e)=>{ if (this.task) { this.task.focus = false; } });
+
+            // UI-actions
+            this.listeners.close = addEvent(this.element, "close", (e)=>{ if(this.task) { this.task.removeFromList(); } });
+            this.listeners.minimize = addEvent(this.element, "minimize", (e)=>{ if (this.task) { this.task.focus = false; this.task.active = false; } });
+
+            // TODO: under consideration
+            this.listeners.maximize = addEvent(this.element, "maximize", (e)=>{ if (this.task) { /*this.task.maximized = true;*/ } });
         }
         return this;
     }

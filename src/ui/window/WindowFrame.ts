@@ -1,10 +1,12 @@
 import { defineElement, H, E, property } from "fest/lure";
-import { preloadStyle, setStyleProperty } from "fest/dom";
+import { preloadStyle, handleAttribute, setStyleProperty } from "fest/dom";
 
 //
 import { UIElement } from "@helpers/base/UIElement";
 import { DragHandler } from "@helpers/controllers/Draggable";
 import { ResizeHandler } from "@helpers/controllers/Resizable";
+import { ITask } from "@helpers/tasking/Types";
+import { TaskStateReflect } from "@ui/window/TaskStateReflect";
 
 // @ts-ignore
 import styles from "@ui/window/WindowFrame.scss?inline"
@@ -43,11 +45,11 @@ export class WindowFrame extends UIElement {
     @property({ source: "query-shadow", name: ".ui-window-frame-titlebar-control-maximize" }) maximizeEl?: HTMLButtonElement;
 
     //
-    constructor() {
-        super();
-    }
+    task: ITask|null = null;
+    reflect?: TaskStateReflect|null;
 
     //
+    constructor() { super(); }
     onInitialize() {
         super.onInitialize();  // @ts-ignore
         new DragHandler(this as any, { handler: this.titlebarHandleEl });  // @ts-ignore
@@ -70,7 +72,18 @@ export class WindowFrame extends UIElement {
         this.maximizeEl?.addEventListener("click", withDispatch("maximize"));
 
         //
+        self.addEventListener("maximize", ()=>{ handleAttribute(self, "data-maximized", self.getAttribute("data-maximized") != null ? false : true); });
         this.doCenter();
+        this.bindWithTask();
+    }
+
+    //
+    bindWithTask(task: ITask|null = null) {
+        if (this.task != task) {
+            if (this.task && task) { this.reflect?.unbind(); this.reflect = null; this.task = null; }
+            if (this.task = task ?? this.task) { this.reflect ??= new TaskStateReflect(this.task, this as any); this.reflect?.bind(this as any); }
+        }
+        return this;
     }
 
     //
@@ -120,8 +133,7 @@ export class WindowFrame extends UIElement {
             </span>
         </div>
         <div class="ui-window-frame-content" part="content"><slot></slot></div>
-        <span class="ui-window-frame-resize-handle" part="resize-handle"></span>
-    `; }
+        <span class="ui-window-frame-resize-handle" part="resize-handle"></span>`; }
 }
 
 //

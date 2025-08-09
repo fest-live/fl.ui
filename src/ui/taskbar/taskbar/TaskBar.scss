@@ -1,83 +1,20 @@
 /* */
+@use "../_mixins.scss" as tb;
+
 :host(ui-taskbar) {
-    /* */
-    & {
-        /* baseline variables */
-        --taskbar-height: clamp(44px, 5svh, 56px);
-        --taskbar-padding-inline: clamp(8px, 2vw, 16px);
-        --taskbar-gap: clamp(6px, 1.2vw, 10px);
-        --task-size: clamp(32px, 4.2svh, 40px);
-        --task-radius: 10px;
-        --taskbar-bg: color-mix(in oklab, var(--c2-surface(0.0, var(--current)), #0b0b0c) 70%, transparent);
-        --taskbar-border: color-mix(in oklab, var(--c2-on-surface(0.0, var(--current)), #ffffff) 15%, transparent);
-        --taskbar-shadow: 0 -8px 24px -12px color-mix(in oklab, #000 65%, transparent);
+    & { @include tb.taskbar-variables; @include tb.taskbar-layout; }
 
-        /* structure */
-        position: fixed;
-        inset-block-end: env(safe-area-inset-bottom, 0px);
-        inset-inline: 0;
-        z-index: 1000;
-
-        /* */
-        display: flex;
-        flex-direction: row;
-        inline-size: 100%;
-        block-size: calc(var(--taskbar-height) + env(safe-area-inset-bottom, 0px));
-        align-items: center;
-        justify-content: flex-start;
-        gap: var(--taskbar-gap);
-        padding-inline: calc(var(--taskbar-padding-inline) + env(safe-area-inset-left, 0px) + env(safe-area-inset-right, 0px));
-        padding-block: 6px;
-
-        /* */
-        background: var(--taskbar-bg);
-        backdrop-filter: saturate(120%) blur(12px);
-        -webkit-backdrop-filter: saturate(120%) blur(12px);
-        border-block-start: 1px solid var(--taskbar-border);
-        box-shadow: var(--taskbar-shadow);
-
-        /* scroll handling for overflow of tasks */
-        overflow: hidden;
-        overflow-x: auto;
-        scroll-snap-type: x proximity;
-        scrollbar-width: none;
-        &::-webkit-scrollbar { display: none; }
-    }
-
-    /* Desktop-like (mouse/keyboard, larger screens) */
-    &[data-type="desktop"] {
-        flex-direction: row;
-        align-items: center;
-        justify-content: flex-start;
-    }
-
-    /* Mobile-like (touch-first, compact) */
-    &[data-type="mobile"] {
-        flex-direction: row;
-        justify-content: space-evenly;
-        gap: clamp(8px, 3vw, 18px);
-        padding-inline: clamp(10px, 4vw, 18px);
-    }
+    &[data-type="desktop"] { @include tb.taskbar-type-desktop; }
+    &[data-type="mobile"]  { @include tb.taskbar-type-mobile; }
 
     /* Responsive attribute-free fallback */
     @media (((hover: hover) or (pointer: fine)) and ((width >= 9in) or (orientation: landscape))) {
         &:not([data-type]) { @extend :host(ui-taskbar)[data-type="desktop"]; }
     }
-
-    /* Mobile-like (touch-first, compact) */
     @media not (((hover: hover) or (pointer: fine)) and ((width >= 9in) or (orientation: landscape))) {
         &:not([data-type]) { @extend :host(ui-taskbar)[data-type="mobile"]; }
     }
 
-    /* Children (tasks) layout expectations */
-    & > ::slotted(ui-task) {
-        scroll-snap-align: start;
-        inline-size: max-content;
-    }
-
-    /* */
-    & > ::slotted(ui-task[data-focus]) {
-        background: var(--c2-surface(0.0, var(--current)));
-        color: var(--c2-on-surface(0.0, var(--current)));
-    }
+    @include tb.taskbar-children;
+    @include tb.taskbar-focus-colors();
 }

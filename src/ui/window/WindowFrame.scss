@@ -1,40 +1,63 @@
 @use "@scss/lib/ps-draggable" as *;
 @use "@scss/lib/ps-resizable" as *;
 @use "@scss/lib/ps-mechanic" as *;
+@use "@scss/class/mixins.scss" as m;
 
 //
 @use "@scss/lib/ps-properties" as *;
 
-// Mixins
+// default styles
 @mixin reset-styles {
     all: unset;
-    box-sizing: border-box;
-    margin: 0px;
-    padding: 0px;
-    border: 0px;
-    font-size: 100%;
-    font-weight: 400;
-    font-family: inherit;
-    vertical-align: baseline;
-    color: inherit;
-    text-align: start;
-    text-decoration: none;
-    text-transform: none;
-    letter-spacing: normal;
-    line-height: normal;
-    white-space: normal;
-    word-break: normal;
-    word-wrap: normal;
-    overflow-wrap: normal;
-    overflow-wrap: break-word;
-    user-select: none;
-    cursor: default;
-    pointer-events: none;
-    contain: none;
-    container-type: normal;
-    background-color: transparent;
+
+    & {
+        box-sizing: border-box;
+        margin: 0px;
+        padding: 0px;
+        border: 0px;
+    }
+
+    & {
+        font-size: 100%;
+        font-weight: 400;
+        font-family: inherit;
+    }
+
+    & {
+        color: inherit;
+        background-color: transparent;
+    }
+
+    & {
+        text-align: start;
+        text-decoration: none;
+        text-transform: none;
+        letter-spacing: normal;
+        line-height: normal;
+        white-space: normal;
+        word-break: normal;
+        word-wrap: normal;
+        overflow-wrap: normal;
+        overflow-wrap: break-word;
+    }
+
+    & {
+        user-select: none;
+        cursor: default;
+        pointer-events: none;
+    }
+
+    & {
+        contain: none;
+        container-type: normal;
+    }
+
+    & {
+        vertical-align: baseline;
+    }
 }
 
+// variables
 @mixin window-frame-variables {
     --ui-window-frame-shadow: 0 4px 12px rgb(0 0 0 / 0.15), 0 1px 3px rgb(0 0 0 / 0.1);
     --ui-window-frame-outline: #{"oklch(from --c2-on-surface(0.0, var(--current)) l c h / 0.1)"};
@@ -66,259 +89,380 @@
     --ui-window-frame-control-close-hover-color: --c2-surface(0.0, var(--secondary));
 }
 
+// layout
 @mixin window-frame-layout {
-    border-radius: var(--ui-window-frame-border-radius);
-    border-width: var(--ui-window-frame-border-width);
-    border-style: solid;
-    border-color: var(--ui-window-frame-border-color);
-    background-color: var(--ui-window-frame-surface);
-    color: var(--ui-window-frame-on-surface);
-    --icon-color: var(--ui-window-frame-on-surface);
-    padding: var(--ui-window-frame-padding);
-    margin: var(--ui-window-frame-margin);
-    block-size: var(--ui-window-frame-height);
-    box-shadow: var(--ui-window-frame-shadow);
+    @include m.radius(var(--ui-window-frame-border-radius));
+    @include m.border(var(--ui-window-frame-border-width), solid, var(--ui-window-frame-border-color));
+    @include m.shadow(var(--ui-window-frame-shadow));
+    @include m.grid(minmax(0px, 1fr), minmax(0px, var(--ui-window-frame-titlebar-height)) minmax(0px, 1fr));
+    @include m.center(y);
+    @include m.container(ui-window-frame);
 
-    display: grid;
-    grid-template-columns: minmax(0px, 1fr);
-    grid-template-rows: minmax(0px, 2rem) minmax(0px, 1fr);
-    grid-template-areas: "titlebar" "content";
+    //
+    & {
+        background-color: var(--ui-window-frame-surface);
+        color: var(--ui-window-frame-on-surface);
+        --icon-color: var(--ui-window-frame-on-surface);
+    }
 
-    align-items: center;
-    justify-content: space-between;
-    gap: 0px;
-    position: relative;
-    container-type: size;
-    container-name: ui-window-frame;
-    pointer-events: auto;
+    & {
+        padding: var(--ui-window-frame-padding);
+        margin: var(--ui-window-frame-margin);
+    }
 
-    transform-origin: 50% 50%;
-    transform: translate(var(--translate-x, 0px), var(--translate-y, 0px));
+    & {
+        block-size: var(--ui-window-frame-height);
+    }
 
-    // z-index: 1 + sibling index
-    --z-index-order: sibling-index();
-    // z-index: 1 + custom order (order property)
-    --z-index-order: var(--order, sibling-index());
-    z-index: calc(99 + var(--z-index-order));
-    padding: 0px;
-    margin: 0px;
+    & {
+        position: relative;
+    }
+
+    & {
+        gap: 0px;
+        grid-template-areas: "titlebar" "content";
+    }
+
+    & {
+        pointer-events: auto;
+    }
+
+    & {
+        transform-origin: 50% 50%;
+        transform: translate(var(--translate-x, 0px), var(--translate-y, 0px));
+    }
+
+    & { // z-index: 1 + sibling index
+        --z-index-order: sibling-index(); // z-index: 1 + custom order (order property)
+        --z-index-order: var(--order, sibling-index());
+        z-index: calc(99 + var(--z-index-order));
+    }
 }
 
+// content
 @mixin content-styles {
-    grid-area: content;
-    contain: strict;
-    container-type: size;
-    container-name: ui-content;
-    overflow: hidden;
-    background-color: var(--ui-window-frame-content-background-color);
-    color: var(--ui-window-frame-content-color);
-    --icon-color: var(--ui-window-frame-content-color);
-    padding: var(--ui-window-frame-content-padding);
-    margin: var(--ui-window-frame-content-margin);
-    border-radius: var(--ui-window-frame-content-border-radius);
-    border-width: 0px;
-    border-style: solid;
-    border-color: transparent;
-    border-block-start: none;
-    block-size: stretch;
-    inline-size: stretch;
-    margin: 0.125rem;
+    @include m.container(ui-content);
+    @include m.radius(var(--ui-window-frame-content-border-radius));
+    @include m.border(0px, solid, transparent);
+
+    // grid-specific styles
+    & { grid-area: content; }
+    & { // border styles
+        border-block-start: none;
+    }
+
+    //
+    & {
+        padding: var(--ui-window-frame-content-padding);
+        margin: var(--ui-window-frame-content-margin, 0.125rem);
+    }
+
+    & {
+        overflow: hidden;
+        inline-size: stretch;
+        block-size: stretch;
+    }
+
+    & {
+        background-color: var(--ui-window-frame-content-background-color);
+        color: var(--ui-window-frame-content-color);
+        --icon-color: var(--ui-window-frame-content-color);
+    }
 }
 
+// resize handle
 @mixin resize-handle-styles {
-    position: absolute !important;
-    cursor: nwse-resize;
-    block-size: 12px;
-    inline-size: 12px;
-    background-color: transparent;
-    inset: auto !important;
-    inset-inline-end: 0px !important;
-    inset-block-end: 0px !important;
-    border-radius: 50%;
-    border-end-start-radius: 0.15rem;
-    border-start-end-radius: 0.15rem;
-    border-width: 0px;
-    border-style: solid;
-    border-color: transparent;
-    pointer-events: auto !important;
-    background-color: var(--ui-window-frame-on-surface);
-    opacity: 0.1;
-    transition: opacity 0.15s ease;
+    @include m.transition(opacity, $duration: m.$ui-duration-fast);
+
+    & {
+        inline-size: 12px;
+        block-size: 12px;
+    }
+
+    & {
+        cursor: nwse-resize;
+        pointer-events: auto !important;
+    }
+
+    & {
+        position: absolute !important;
+        inset: auto !important;
+        inset-inline-end: 0px !important;
+        inset-block-end: 0px !important;
+    }
+
+    & {
+        border-radius: 50%;
+        border-end-start-radius: 0.15rem;
+        border-start-end-radius: 0.15rem;
+        border-width: 0px;
+        border-style: solid;
+        border-color: transparent;
+    }
+
+    & {
+        color: transparent;
+        background-color: var(--ui-window-frame-on-surface);
+        opacity: 0.1;
+    }
 
     &:hover { opacity: 0.2; }
     &:active { opacity: 0.3; }
 }
 
+// titlebar
 @mixin titlebar-layout {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-    gap: 0px;
-    container-type: size;
-    container-name: ui-titlebar;
-    contain: strict;
-    pointer-events: auto;
-    block-size: stretch;
-    inline-size: stretch;
-    background-color: transparent;
+    @include m.container(ui-titlebar);
+    @include m.flex(row, space-between, center);
+
+    //
+    & { // sizing
+        inline-size: stretch;
+        block-size: stretch;
+    }
+
+    //
+    & { // other styles
+        gap: 0px;
+        pointer-events: auto;
+        background-color: transparent;
+    }
 }
 
+// titlebar handle
 @mixin titlebar-handle-styles {
-    display: flex;
-    place-content: center;
-    place-items: center;
-    justify-content: flex-start;
-    flex-direction: row;
-    gap: 8px;
-    color: var(--ui-window-frame-on-surface);
-    container-type: size;
-    container-name: ui-titlebar-handle;
-    contain: strict;
-    pointer-events: auto !important;
-    padding-inline-start: 12px;
-    padding-inline-end: 12px;
-    flex: 1 1 0px;
-    min-inline-size: 0px;
-    block-size: stretch;
-    flex-basis: stretch;
-    inline-size: stretch;
-}
+    @include m.flex(row, flex-start, center);
+    @include m.container(ui-titlebar-handle);
 
-@mixin title-text-styles {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    justify-content: center;
-    gap: 0px;
-    pointer-events: none;
-    text-overflow: ellipsis;
-    overflow: hidden;
-    white-space: nowrap;
-    flex-basis: stretch;
-    inline-size: stretch;
-    block-size: stretch;
-    flex-grow: 1;
-    flex-shrink: 1;
-    min-inline-size: 0px;
-    font-size: 0.75rem;
-    font-weight: 500;
-    color: var(--ui-window-frame-titlebar-color);
-}
-
-@mixin subtitle-text-styles {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    justify-content: flex-start;
-    block-size: stretch;
-    padding: 0px;
-    gap: 0px;
-    opacity: 0.5;
-    pointer-events: none;
-    text-overflow: ellipsis;
-    overflow: hidden;
-    white-space: nowrap;
-    font-size: 0.5rem;
-    color: --c2-on-surface(0.0, var(--current));
-    inline-size: max-content;
-    flex-basis: max-content;
-    flex-shrink: 0;
-    place-content: center;
-    place-items: center;
-}
-
-@mixin app-icon-styles {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    pointer-events: none;
-    flex-basis: max-content;
-    inline-size: max-content;
-    block-size: stretch;
-    min-inline-size: 1rem;
-    color: --c2-on-surface(0.0, var(--current));
-    --icon-color: --c2-on-surface(0.0, var(--current));
-    padding: 0px;
-    margin: 0px;
-    place-content: center;
-    place-items: center;
-
-    ui-icon {
-        block-size: stretch;
-        inline-size: auto;
-        aspect-ratio: 1 / 1;
-        color: inherit;
-        --icon-color: inherit;
-        background-color: transparent;
-        border: none;
-        outline: none;
-        padding: 0px;
-        margin: 0px;
-        margin-block: 0.5rem;
+    & { // interaction
+        pointer-events: auto !important;
     }
-}
 
-@mixin controls-layout {
-    display: flex;
-    flex-direction: row;
-    flex-shrink: 0;
-    flex-basis: max-content;
-    padding: 0px;
-    gap: 0px;
-    pointer-events: none;
-    block-size: stretch;
-    inline-size: max-content;
-    place-content: center;
-    place-items: center;
-    justify-content: flex-end;
-
-    ui-icon {
-        inline-size: auto;
+    & { // sizing
+        inline-size: stretch;
         block-size: stretch;
-        aspect-ratio: 1 / 1;
+        min-inline-size: 0px;
+    }
+
+    & { // colorization
         color: var(--ui-window-frame-on-surface);
-        background-color: transparent;
-        border: none;
-        outline: none;
-        padding: 0px;
-        margin: 0px;
-        cursor: pointer;
+    }
+
+    & { // spacing and paddings
+        padding-inline-start: 12px;
+        padding-inline-end: 12px;
+    }
+
+    & { // flex options
+        flex: 1 1 0px;
+        gap: 8px;
+        flex-basis: stretch;
     }
 }
 
-@mixin control-button-base {
-    display: flex;
-    place-content: center;
-    place-items: center;
-    block-size: stretch;
-    padding: 0.25rem;
-    gap: 0px;
-    inline-size: auto;
-    pointer-events: auto;
-    color: var(--ui-window-frame-on-surface);
-    --icon-color: var(--ui-window-frame-on-surface);
-    background-color: --c2-surface(0.1, var(--current));
-    transition: background-color 0.15s ease;
-    border: none;
-    outline: none;
-    flex-shrink: 0;
-    aspect-ratio: 1 / 1;
-    margin: 0.25rem;
-    border-radius: 50%;
+// title text
+@mixin title-text-styles {
+    @include m.text(m.$ui-font-title-size, 500, var(--ui-window-frame-titlebar-color));
+    @include m.flex(column, flex-start, center);
+    @include m.text-ellipsis();
 
-    &:hover { background-color: --c2-surface(0.15, var(--current));; }
-    &:active { background-color: --c2-surface(0.15, var(--current));; }
+    & {
+        place-content: center;
+        place-items: center;
+        justify-content: center;
+        align-items: flex-start;
+    }
+
+    & { // sizing
+        inline-size: stretch;
+        block-size: stretch;
+    }
+
+    & { // flex options
+        gap: 0px;
+        pointer-events: none;
+        flex: 1 1 0px;
+        min-inline-size: 0px;
+    }
 }
 
-//
+// subtitle text
+@mixin subtitle-text-styles {
+    @include m.flex(row, flex-start, center);
+    @include m.text-ellipsis();
+    @include m.text(m.$ui-font-subtitle-size, 400, #{"--c2-on-surface(0.0, var(--current))"});
+
+    & { // sizing
+        inline-size: max-content;
+        block-size: stretch;
+    }
+
+    & { // flex options
+        gap: 0px;
+        flex-basis: max-content;
+        flex-shrink: 0;
+        place-content: center;
+        place-items: center;
+    }
+
+    & { // spacing
+        padding: 0px;
+    }
+
+    & { // colorization or opacity
+        opacity: 0.5;
+    }
+
+    & { // interaction
+        pointer-events: none;
+    }
+}
+
+// app icon
+@mixin app-icon-styles {
+    @include m.flex(row, center, center);
+
+    & { // sizing
+        inline-size: max-content;
+        block-size: stretch;
+        min-inline-size: 1rem;
+    }
+
+    & { // flex options
+        flex-basis: max-content;
+        place-content: center;
+        place-items: center;
+    }
+
+    & { // colorization
+        color: --c2-on-surface(0.0, var(--current));
+        --icon-color: --c2-on-surface(0.0, var(--current));
+    }
+
+    & { // spacing
+        padding: 0px;
+        margin: 0px;
+    }
+
+    & { // pointer events
+        pointer-events: none;
+    }
+
+    ui-icon { // icon styles
+        & { // sizing
+            block-size: stretch;
+            inline-size: auto;
+            aspect-ratio: 1 / 1; // square
+        }
+
+        & { // colorization
+            color: inherit;
+            --icon-color: inherit;
+            background-color: transparent;
+        }
+
+        & { // spacing
+            border: none;
+            outline: none;
+            padding: 0px;
+            margin: 0px;
+            margin-block: 0.5rem;
+        }
+    }
+}
+
+// controls
+@mixin controls-layout {
+    @include m.flex(row, flex-end, center);
+
+    & {
+        flex-shrink: 0;
+        flex-basis: max-content;
+    }
+
+    & {
+        block-size: stretch;
+        inline-size: max-content;
+    }
+
+    & {
+        padding: 0px;
+        gap: 0px;
+    }
+
+    & {
+        pointer-events: none;
+    }
+
+    ui-icon {
+        & {
+            inline-size: auto;
+            block-size: stretch;
+            aspect-ratio: 1 / 1;
+        }
+
+        & {
+            color: var(--ui-window-frame-on-surface);
+            background-color: transparent;
+        }
+
+        & {
+            outline: none;
+            border: none;
+            padding: 0px;
+            margin: 0px;
+        }
+    }
+}
+
+// control button base
+@mixin control-button-base {
+    @include m.transition(background-color, $duration: m.$ui-duration-fast);
+
+    & {
+        block-size: stretch;
+        inline-size: auto;
+        aspect-ratio: 1 / 1;
+    }
+
+    & {
+        display: flex;
+        place-content: center;
+        place-items: center;
+        flex-shrink: 0;
+    }
+
+    & {
+        color: var(--ui-window-frame-on-surface);
+        --icon-color: var(--ui-window-frame-on-surface);
+        background-color: --c2-surface(0.1, var(--current));
+        outline: none;
+    }
+
+    & {
+        margin: #{m.$ui-spacing-xs};
+        padding: #{m.$ui-spacing-xs};
+        gap: 0px;
+    }
+
+    & {
+        border: none;
+        border-radius: 50%;
+    }
+
+    & { pointer-events: auto; }
+    &:hover { background-color: --c2-surface(0.15, var(--current)); }
+    &:active { background-color: --c2-surface(0.15, var(--current)); }
+}
+
+// close button
 @mixin close-button-styles {
     & { background-color: --c2-on-surface(-0.05, var(--primary)); color: --c2-surface(0.0, var(--primary)); ui-icon { --icon-color: --c2-surface(0.0, var(--primary)); } }
     &:hover  { background-color: --c2-on-surface(-0.1, var(--primary)); color: --c2-surface(0.0, var(--primary)); ui-icon { --icon-color: --c2-surface(0.0, var(--primary)); } }
     &:active { background-color: --c2-on-surface(-0.1, var(--primary)); color: --c2-surface(0.0, var(--primary)); ui-icon { --icon-color: --c2-surface(0.0, var(--primary)); } }
 }
 
-//
+// main styles
 @layer ui-window-frame {
 
     // Main styles
@@ -389,37 +533,51 @@
     }
 }
 
-// Include functionality
+// functionality
 :host(ui-window-frame:not([data-maximized])) {
     @include ps-draggable;
     @include ps-resizable;
     @include ps-mechanic;
 }
 
-//
+// maximized styles
 :host(ui-window-frame[data-maximized]) {
-    transition: inline-size 0.15s ease, block-size 0.15s ease;
-    inset: 0px; inline-size: stretch; block-size: stretch;
-    inset-inline-start: 0px;
-    inset-block-start: 0px;
-    inset-inline-end: 0px;
-    inset-block-end: 0px;
-    gap: 0px;
-    margin: 0px;
-    padding: 0px;
-    border: none;
-    outline: none;
-    border-radius: 0px;
-    border-width: 0px;
-    border-style: solid;
-    border-color: transparent;
-    box-shadow: none;
-    transform: none;
-    scale: var(--scale, 1);
-    opacity: var(--opacity, 1);
-    transform-origin: 50% 50%;
-    transform-style: flat;
-    transform-box: fill-box;
-    place-content: center;
-    place-items: center;
+    @include m.transition((inline-size, block-size), $duration: m.$ui-duration-fast);
+
+    & { // use variables for effects
+        scale: var(--scale, 1);
+        opacity: var(--opacity, 1);
+    }
+
+    & { // sizing
+        inline-size: stretch;
+        block-size: stretch;
+    }
+
+    & { // positioning
+        inset-inline-start: 0px;
+        inset-block-start: 0px;
+        inset-inline-end: 0px;
+        inset-block-end: 0px;
+    }
+
+    & { // border styles
+        border: none;
+        border-radius: 0px;
+        border-width: 0px;
+        border-style: solid;
+        border-color: transparent;
+    }
+
+    & { // outline styles
+        outline: none;
+        box-shadow: none;
+    }
+
+    & { // transform styles
+        transform: none;
+        transform-origin: 50% 50%;
+        transform-style: flat;
+        transform-box: fill-box;
+    }
 }

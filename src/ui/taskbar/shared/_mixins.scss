@@ -1,0 +1,181 @@
+@use "@scss/class/mixins.scss" as m;
+
+// Variables for taskbar theming and sizing
+@mixin taskbar-variables {
+    --taskbar-height: clamp(44px, 5svh, 56px);
+    --taskbar-padding-inline: clamp(8px, 2vw, 16px);
+    --taskbar-gap: clamp(6px, 1.2vw, 10px);
+    --task-size: clamp(32px, 4.2svh, 40px);
+    --task-radius: 10px;
+    --taskbar-bg: color-mix(in oklab, var(--c2-surface(0.0, var(--current)), #0b0b0c) 70%, transparent);
+    --taskbar-border: color-mix(in oklab, var(--c2-on-surface(0.0, var(--current)), #ffffff) 15%, transparent);
+    --taskbar-shadow: 0 -8px 24px -12px color-mix(in oklab, #000 65%, transparent);
+}
+
+// Base layout for taskbar
+@mixin taskbar-layout {
+    @include m.flex(row, flex-start, center);
+
+    //
+    & {
+        z-index: 1000;
+        position: fixed;
+        inset-block-end: env(safe-area-inset-bottom, 0px);
+        inset-inline: 0;
+    }
+
+    //
+    & {
+        inline-size: 100%;
+        block-size: calc(var(--taskbar-height) + env(safe-area-inset-bottom, 0px));
+    }
+
+    //
+    & {
+        gap: var(--taskbar-gap);
+    }
+
+    //
+    & {
+        border-block-start: 1px solid var(--taskbar-border);
+        padding-inline: calc(var(--taskbar-padding-inline) + env(safe-area-inset-left, 0px) + env(safe-area-inset-right, 0px));
+        padding-block: 6px;
+    }
+
+    //
+    & {
+        background: var(--taskbar-bg);
+        backdrop-filter: saturate(120%) blur(12px);
+        -webkit-backdrop-filter: saturate(120%) blur(12px);
+    }
+
+    //
+    & {
+        box-shadow: var(--taskbar-shadow);
+    }
+
+    //
+    & {
+        overflow: hidden;
+        overflow-x: auto;
+        scroll-snap-type: x proximity;
+        scrollbar-width: none;
+    }
+
+    //
+    &::-webkit-scrollbar { display: none; }
+}
+
+// Desktop specific adjustments
+@mixin taskbar-type-desktop {
+    & {
+        flex-direction: row;
+        align-items: center;
+        justify-content: flex-start;
+    }
+}
+
+// Mobile specific adjustments
+@mixin taskbar-type-mobile {
+    & {
+        flex-direction: row;
+        justify-content: space-evenly;
+        gap: clamp(8px, 3vw, 18px);
+        padding-inline: clamp(10px, 4vw, 18px);
+    }
+}
+
+// Slot children defaults
+@mixin taskbar-children {
+    & > ::slotted(ui-task) {
+        scroll-snap-align: start;
+        inline-size: max-content;
+    }
+}
+
+// Focused task colors parameterized by scheme
+@mixin taskbar-focus-colors($bg: var(--c2-surface(0.0, var(--current))), $fg: var(--c2-on-surface(0.0, var(--current)))) {
+    & > ::slotted(ui-task[data-focus]) { background: $bg; color: $fg; }
+}
+
+// Task base styles shared by any task-like button
+@mixin task-base {
+    --task-size: clamp(32px, 4.2svh, 40px);
+    --task-radius: 10px;
+    --task-border: color-mix(in oklab, var(--c2-on-surface(0.0, var(--current)), #ffffff) 10%, transparent);
+
+    & {
+        display: inline-grid;
+        grid-template-areas: "icon title";
+        grid-auto-flow: column;
+        grid-template-columns: minmax(var(--task-size), max-content) minmax(0px, 1fr);
+        grid-template-rows: minmax(0px, 1fr);
+        place-content: center;
+        place-items: center;
+        gap: 6px;
+    }
+
+    & {
+        padding: 4px 8px;
+        border-radius: var(--task-radius);
+        border: 1px solid var(--task-border);
+    }
+
+    & {
+        inline-size: max-content;
+        min-inline-size: calc(var(--task-size) * 1.4);
+        min-block-size: var(--task-size);
+    }
+
+    & {
+        color: var(--c2-on-surface(0.0, var(--current)));
+        background: color-mix(in oklab, var(--c2-surface(0.0, var(--current)), #0b0b0c) 12%, transparent);
+        backdrop-filter: blur(6px) saturate(120%);
+        -webkit-backdrop-filter: blur(6px) saturate(120%);
+    }
+
+    & {
+        box-shadow:
+            0 1px 0 color-mix(in oklab, #fff 6%, transparent) inset,
+        0 6px 14px -8px color-mix(in oklab, #000 50%, transparent);
+    }
+
+    & {
+        cursor: pointer;
+        transition: transform .18s ease, background-color .18s ease, box-shadow .18s ease, border-color .18s ease;
+    }
+}
+
+// Task states
+@mixin task-states {
+    &:focus-visible {
+        outline: 2px solid color-mix(in oklab, var(--c2-on-surface(0.0, var(--current)), #ffffff) 70%, transparent);
+        outline-offset: 2px;
+    }
+
+    &:hover { background: color-mix(in oklab, var(--c2-surface(0.0, var(--current)), #0b0b0c) 18%, transparent); }
+    &:active { transform: translateY(1px) scale(.98); }
+}
+
+// Task slots
+@mixin task-slots {
+    & > .task-icon {
+        & {
+            inline-size: var(--task-size);
+            block-size: var(--task-size);
+        }
+
+        & > ui-icon {
+            inline-size: stretch;
+            block-size: stretch;
+        }
+    }
+
+    & > .task-title {
+        & {
+            grid-area: title;
+            font: 500 12px/1.2 system-ui, ui-sans-serif;
+            opacity: .9;
+        }
+    }
+}

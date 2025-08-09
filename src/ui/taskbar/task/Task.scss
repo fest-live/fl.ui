@@ -1,6 +1,12 @@
-/* Web Component Styles */
+// Web Component Styles
+@use "../shared/_mixins.scss" as tb;
+
+//
 :host(ui-task) {
-    /* Interaction Reset */
+    //
+    & { @include tb.task-base; @include tb.task-slots; @include tb.task-states; }
+
+    //
     &, * {
         box-sizing: border-box;
         user-select: none;
@@ -8,75 +14,14 @@
         -webkit-user-drag: none;
         -webkit-tap-highlight-color: transparent;
     }
-
-    /* Structure */
-    & {
-        --task-size: clamp(32px, 4.2svh, 40px);
-        --task-radius: 10px;
-
-        /* Structure */
-        display: inline-grid;
-        grid-template-areas: "icon title";
-        grid-auto-flow: column;
-        grid-template-columns: minmax(var(--task-size), max-content) minmax(0px, 1fr);
-        grid-template-rows: minmax(0px, 1fr);
-
-        /* Structure */
-        place-content: center;
-        place-items: center;
-        inline-size: max-content;
-        min-inline-size: calc(var(--task-size) * 1.4);
-        min-block-size: var(--task-size);
-        padding: 4px 8px;
-        gap: 6px;
-
-        /* Appearance */
-        color: var(--c2-on-surface(0.0, var(--current)));
-        border-radius: var(--task-radius);
-        background: color-mix(in oklab, var(--c2-surface(0.0, var(--current)), #0b0b0c) 12%, transparent);
-        border: 1px solid color-mix(in oklab, var(--c2-on-surface(0.0, var(--current)), #ffffff) 10%, transparent);
-        box-shadow:
-            0 1px 0 color-mix(in oklab, #fff 6%, transparent) inset,
-            0 6px 14px -8px color-mix(in oklab, #000 50%, transparent);
-        backdrop-filter: blur(6px) saturate(120%);
-
-        /* Behavior */
-        cursor: pointer;
-        transition: transform .18s ease, background-color .18s ease, box-shadow .18s ease, border-color .18s ease;
-
-        /* Webkit-Specific or Prefixed Properties */
-        -webkit-backdrop-filter: blur(6px) saturate(120%);
-    }
-
-    /* Children */
-    & > .task-icon {
-        inline-size: var(--task-size); block-size: var(--task-size);
-        & > ui-icon { inline-size: stretch; block-size: stretch; }
-    }
-
-    /* Children */
-    & > .task-title {
-        grid-area: title;
-        font: 500 12px/1.2 system-ui, ui-sans-serif;
-        opacity: .9;
-    }
-
-    /* State */
-    &[data-focus] {
-        background: var(--c2-surface(0.0, var(--current)));
-    }
 }
 
-/* State */
+// Focused task styles
 :host(ui-task[data-focus]) {
-    background: color-mix(in oklab, var(--c2-on-surface(0.0, var(--current)), #ffffff) 18%, transparent);
-    border-color: color-mix(in oklab, var(--c2-on-surface(0.0, var(--current)), #ffffff) 40%, transparent);
-    box-shadow:
-        0 0 0 1px color-mix(in oklab, var(--c2-on-surface(0.0, var(--current)), #ffffff) 30%, transparent) inset,
-        0 10px 24px -14px color-mix(in oklab, var(--c2-on-surface(0.0, var(--current)), #ffffff) 60%, transparent);
-}
+    background: --c2-surface(0.0, var(--current));
+    border-color: --c2-on-surface(0.0, var(--current));
+    box-shadow: 0 0 0 1px --c2-on-surface(0.0, var(--current)) 30% inset, 0 10px 24px -14px --c2-on-surface(0.0, var(--current)) 60%;
 
-/* State */
-:host(ui-task:focus-visible) { outline: 2px solid color-mix(in oklab, var(--c2-on-surface(0.0, var(--current)), #ffffff) 70%, transparent); outline-offset: 2px; }
-:host(ui-task:hover) { background: color-mix(in oklab, var(--c2-surface(0.0, var(--current)), #0b0b0c) 18%, transparent); }
-:host(ui-task:active) { transform: translateY(1px) scale(.98); }
+    //
+    & { @include tb.task-states; }
+}

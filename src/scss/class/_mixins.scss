@@ -1,6 +1,76 @@
 @use "sass:meta";
 @use "sass:color";
 @use "sass:string";
+@use "sass:list";
+
+// UI design tokens (defaults; can be overridden by downstream files)
+$ui-radius-sm: 0.25rem !default;
+$ui-radius-md: 0.5rem !default;
+$ui-radius-lg: 0.75rem !default;
+$ui-border-width: 1px !default;
+$ui-duration-fast: 0.15s !default;
+$ui-duration-standard: 0.25s !default;
+$ui-ease-standard: ease !default;
+$ui-spacing-2xs: 0.125rem !default;
+$ui-spacing-xs: 0.25rem !default;
+$ui-spacing-sm: 0.5rem !default;
+$ui-spacing-md: 0.75rem !default;
+$ui-titlebar-height: 32px !default;
+$ui-font-title-size: 0.75rem !default;
+$ui-font-subtitle-size: 0.5rem !default;
+
+// Shadows
+$ui-shadow-soft: 0 1px 3px rgb(0 0 0 / 0.12), 0 1px 2px rgb(0 0 0 / 0.08) !default;
+$ui-shadow-elevated: 0 4px 12px rgb(0 0 0 / 0.15), 0 1px 3px rgb(0 0 0 / 0.1) !default;
+
+// Transition helpers
+@mixin transition($properties: all, $duration: $ui-duration-fast, $timing: $ui-ease-standard) {
+    $prop-list: if(meta.type-of($properties) == 'list', list.join($properties, ", "), $properties);
+    transition: #{$prop-list} #{$duration} #{$timing};
+}
+
+// Spacing helpers
+@mixin padding($value) { padding: #{$value}; }
+@mixin margin($value) { margin: #{$value}; }
+@mixin spacing($p: null, $m: null) {
+    @if $p != null { padding: #{$p}; }
+    @if $m != null { margin: #{$m}; }
+}
+
+// Border/radius/shadow helpers
+@mixin border($width: $ui-border-width, $style: solid, $color: currentColor) {
+    border-width: #{$width};
+    border-style: #{$style};
+    border-color: #{$color};
+}
+@mixin radius($r: $ui-radius-md) { border-radius: #{$r}; }
+@mixin shadow($value: $ui-shadow-soft) { box-shadow: #{$value}; }
+
+// Container helpers
+@mixin container($name: auto, $type: size, $contain: strict) {
+    container-type: #{$type};
+    @if $name != auto { container-name: #{$name}; }
+    contain: #{$contain};
+}
+
+// Text helpers
+@mixin text($size: inherit, $weight: 400, $color: inherit) {
+    font-size: #{$size};
+    font-weight: #{$weight};
+    color: #{$color};
+}
+@mixin text-ellipsis($nowrap: true) {
+    text-overflow: ellipsis;
+    overflow: hidden;
+    @if $nowrap { white-space: nowrap; }
+}
+
+// Alignment helpers
+@mixin center($axis: both) {
+    @if $axis == both { place-content: center; place-items: center; }
+    @else if $axis == x { justify-content: center; align-items: stretch; }
+    @else if $axis == y { align-items: center; justify-content: stretch; }
+}
 
 //
 @mixin hover($selector: "&") {
@@ -9,11 +79,11 @@
 }
 
 //
-@mixin tm-dep($property, $light, $dark, $fb: var(--tm-scheme)) {
-    & {#{$property}: color-mix(in oklch, #{$light} calc(100% * #{$fb}), #{$dark}); }
-    @supports(color: light-dark(white, black)) {
-        #{$property}: light-dark(#{$light}, #{$dark});
-    }
+// theme-dependent property setter
+// prefers CSS light-dark when available, otherwise uses color-mix with var(--tm-scheme)
+@mixin tm-dep($property, $light, $dark) {
+    & { #{$property}: color-mix(in oklch, #{$light} calc(100% * var(--tm-scheme)), #{$dark}); }
+    @supports(color: light-dark(white, black)) { #{$property}: light-dark(#{$light}, #{$dark}); }
 }
 
 //
@@ -54,10 +124,7 @@
 }
 
 //
-@mixin tm-dep($property, $light, $dark, $fb: var(--tm-scheme)) {
-    & { #{$property}: color-mix(in oklch, #{$light} calc(100% * #{var(--tm-scheme)}), #{$dark}); }
-    @supports(color: light-dark(white, black)) { #{$property}: light-dark(#{$light}, #{$dark}); }
-};
+// (removed duplicate tm-dep mixin) keep single canonical version above
 
 //
 $def-ff: 'InterVariable', 'Inter', 'Open Sans', 'Source Sans 3','Gill Sans Nova', Ubuntu, 'DejaVu Sans', Candara, Segoe, "Segoe UI", Optima, source-sans-pro, sans-serif;
@@ -195,3 +262,10 @@ $def-ff: 'InterVariable', 'Inter', 'Open Sans', 'Source Sans 3','Gill Sans Nova'
     & { clip-path: inset(0px 0px round #{$radius}); }
 }
 
+// utility to apply the same content both inside :host(...) and outside host using slotted child
+@mixin inside-outside($host, $child) {
+    // outside web component
+    #{$host} { #{$child} { @content; } }
+    // inside web component
+    :host(#{$host}) { ::slotted(#{$child}) { @content; } }
+}

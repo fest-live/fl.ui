@@ -1,8 +1,10 @@
 /* Taskbar wrapper */
 import UIElement from "@helpers/base/UIElement";
-import { H } from "fest/lure";
+import { H, defineElement } from "fest/lure";
 
 //
+// @ts-ignore
+@defineElement("ui-taskbar")
 export class TaskBar extends UIElement {
     constructor() {
         super();

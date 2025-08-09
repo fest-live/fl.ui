@@ -334,41 +334,6 @@
             @include window-frame-layout;
         }
 
-        // Include functionality
-        &:not([data-maximized]) {
-            @include ps-draggable;
-            @include ps-resizable;
-            @include ps-mechanic;
-        }
-
-        //
-        &[data-maximized] {
-            transition: inline-size 0.15s ease, block-size 0.15s ease;
-            inset: 0px; inline-size: stretch; block-size: stretch;
-            inset-inline-start: 0px;
-            inset-block-start: 0px;
-            inset-inline-end: 0px;
-            inset-block-end: 0px;
-            gap: 0px;
-            margin: 0px;
-            padding: 0px;
-            border: none;
-            outline: none;
-            border-radius: 0px;
-            border-width: 0px;
-            border-style: solid;
-            border-color: transparent;
-            box-shadow: none;
-            transform: none;
-            scale: var(--scale, 1);
-            opacity: var(--opacity, 1);
-            transform-origin: 50% 50%;
-            transform-style: flat;
-            transform-box: fill-box;
-            place-content: center;
-            place-items: center;
-        }
-
         // Content area
         .ui-window-frame-content {
             @include content-styles;
@@ -422,4 +387,39 @@
             }
         }
     }
+}
+
+// Include functionality
+:host(ui-window-frame:not([data-maximized])) {
+    @include ps-draggable;
+    @include ps-resizable;
+    @include ps-mechanic;
+}
+
+//
+:host(ui-window-frame[data-maximized]) {
+    transition: inline-size 0.15s ease, block-size 0.15s ease;
+    inset: 0px; inline-size: stretch; block-size: stretch;
+    inset-inline-start: 0px;
+    inset-block-start: 0px;
+    inset-inline-end: 0px;
+    inset-block-end: 0px;
+    gap: 0px;
+    margin: 0px;
+    padding: 0px;
+    border: none;
+    outline: none;
+    border-radius: 0px;
+    border-width: 0px;
+    border-style: solid;
+    border-color: transparent;
+    box-shadow: none;
+    transform: none;
+    scale: var(--scale, 1);
+    opacity: var(--opacity, 1);
+    transform-origin: 50% 50%;
+    transform-style: flat;
+    transform-box: fill-box;
+    place-content: center;
+    place-items: center;
 }

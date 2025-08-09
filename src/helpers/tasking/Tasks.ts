@@ -1,4 +1,4 @@
-import { makeReactive } from "fest/object";
+import { makeReactive, $triggerLess } from "fest/object";
 import { getBy, getFocused } from "./Manager";
 import { ITask } from "./Types";
 
@@ -74,7 +74,12 @@ export class Task implements ITask {
         if (this.active && index >= 0) {
             const last = this.list?.findLastIndex?.((t)=>t.active) ?? -1
             if (index < last || last < 0)
-                { this.list?.splice?.(index, 1); this.list?.push?.(this); }
+                {
+                    // avoid remove and add reactive element triggering
+                    this.list?.[$triggerLess]?.(()=>{
+                        this.list?.splice?.(index, 1); this.list?.push?.(this);
+                    })
+                }
 
             //
             this.takeAction();

@@ -1,7 +1,7 @@
 /* Taskbar Item (Task) */
 import UIElement from "@helpers/base/UIElement";
 import { preloadStyle } from "fest/dom";
-import { H, property } from "fest/lure";
+import { H, property, defineElement } from "fest/lure";
 
 // @ts-ignore
 import styles from "./Task.scss?inline";

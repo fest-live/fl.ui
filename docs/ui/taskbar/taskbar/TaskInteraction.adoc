@@ -1,0 +1,17 @@
+= TaskInteraction.ts
+:source_path: modules/fl.ui/src/ui/taskbar/taskbar/TaskInteraction.ts
+
+Auto-generated documentation.
+
+== Exports
+- classes: TaskInteraction
+
+=== TaskInteraction
+[mermaid]
+....
+classDiagram
+class TaskInteraction {
+  +if(task)
+  +if(!task?.focus)
+}
+....

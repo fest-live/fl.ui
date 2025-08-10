@@ -1,0 +1,7 @@
+= ImagePicker.ts
+:source_path: modules/fl.ui/src/helpers/design/ImagePicker.ts
+
+Auto-generated documentation.
+
+== Exports
+- consts: colorScheme

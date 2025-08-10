@@ -1,0 +1,19 @@
+= Mobile.ts
+:source_path: modules/fl.ui/src/ui/taskbar/appearance/Mobile.ts
+
+Auto-generated documentation.
+
+== Exports
+- classes: MobileTaskbar
+
+=== MobileTaskbar
+[mermaid]
+....
+classDiagram
+class MobileTaskbar {
+  +connect(element: HTMLElement|any|null = null)
+  +if(element)
+  +if(this.element)
+  +disconnect(element: HTMLElement|any|null = null)
+}
+....

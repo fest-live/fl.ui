@@ -1,0 +1,16 @@
+= Slider.ts
+:source_path: modules/fl.ui/src/ui/inputs/slider/Slider.ts
+
+Auto-generated documentation.
+
+== Exports
+- classes: SliderInput
+
+=== SliderInput
+[mermaid]
+....
+classDiagram
+class SliderInput {
+  +onInitialize()
+}
+....

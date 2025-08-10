@@ -1,0 +1,25 @@
+= LongPress.ts
+:source_path: modules/fl.ui/src/helpers/controllers/LongPress.ts
+
+Auto-generated documentation.
+
+== Exports
+- classes: LongPressHandler
+
+=== LongPressHandler
+[mermaid]
+....
+classDiagram
+class LongPressHandler {
+  +if(!holder)
+  +if(options)
+  +defaultHandler(ev, weakRef: WeakRef<HTMLElement>)
+  +initializeActionState()
+  +onPointerDown(self: any, ev: PointerEvent, weakRef: WeakRef<HTMLElement>)
+  +if(self.options.mouseImmediate && ev.pointerType === "mouse")
+  +onPointerMove(self: any, ev: PointerEvent)
+  +resetAction(actionState)
+  +onPointerUp(self: any, ev: PointerEvent)
+  +hasParent(current, parent)
+}
+....

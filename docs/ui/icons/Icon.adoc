@@ -1,0 +1,19 @@
+= Icon.ts
+:source_path: modules/fl.ui/src/ui/icons/Icon.ts
+
+Auto-generated documentation.
+
+== Exports
+- classes: UIPhosphorIcon
+
+=== UIPhosphorIcon
+[mermaid]
+....
+classDiagram
+class UIPhosphorIcon {
+  +onRender()
+  +updateIcon(icon?: any)
+  +firstUpdated()
+  +onInitialize()
+}
+....

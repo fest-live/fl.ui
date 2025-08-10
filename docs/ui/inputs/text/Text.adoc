@@ -1,0 +1,18 @@
+= Text.ts
+:source_path: modules/fl.ui/src/ui/inputs/text/Text.ts
+
+Auto-generated documentation.
+
+== Exports
+- classes: LongTextInput
+
+=== LongTextInput
+[mermaid]
+....
+classDiagram
+class LongTextInput {
+  +onInitialize()
+  +if(this.value == null)
+  +if(ev?.deltaY !== 0)
+}
+....

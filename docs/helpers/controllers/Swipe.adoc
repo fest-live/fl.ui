@@ -1,0 +1,20 @@
+= Swipe.ts
+:source_path: modules/fl.ui/src/helpers/controllers/Swipe.ts
+
+Auto-generated documentation.
+
+== Exports
+- classes: SwipeHandler
+
+=== SwipeHandler
+[mermaid]
+....
+classDiagram
+class SwipeHandler {
+  +if(!holder)
+  +if(options)
+  +swipe(options)
+  +if(options?.handler)
+  +if(ev.target == options?.handler)
+}
+....

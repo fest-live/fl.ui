@@ -1,0 +1,7 @@
+= Status.ts
+:source_path: modules/fl.ui/src/helpers/core/Status.ts
+
+Auto-generated documentation.
+
+== Exports
+- consts: batteryStatusRef, timeStatusRef, signalStatusRef

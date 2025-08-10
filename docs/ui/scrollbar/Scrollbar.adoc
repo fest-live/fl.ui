@@ -1,0 +1,10 @@
+= Scrollbar.ts
+:source_path: modules/fl.ui/src/ui/scrollbar/Scrollbar.ts
+
+Auto-generated documentation.
+
+== Exports
+- classes: ScrollBar
+- interfaces: ScrollBarStatus
+
+=== ScrollBar

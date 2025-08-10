@@ -1,0 +1,16 @@
+= TaskBar.ts
+:source_path: modules/fl.ui/src/ui/taskbar/taskbar/TaskBar.ts
+
+Auto-generated documentation.
+
+== Exports
+- classes: TaskBar
+
+=== TaskBar
+[mermaid]
+....
+classDiagram
+class TaskBar {
+  +render()
+}
+....

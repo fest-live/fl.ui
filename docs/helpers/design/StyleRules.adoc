@@ -1,0 +1,8 @@
+= StyleRules.ts
+:source_path: modules/fl.ui/src/helpers/design/StyleRules.ts
+
+Auto-generated documentation.
+
+== Exports
+- consts: updateThemeBase
+- types: StyleTuple

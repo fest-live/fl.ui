@@ -1,0 +1,7 @@
+= KMean.ts
+:source_path: modules/fl.ui/src/helpers/design/KMean.ts
+
+Auto-generated documentation.
+
+== Exports
+- consts: getDominantColors

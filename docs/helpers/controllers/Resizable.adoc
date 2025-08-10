@@ -1,0 +1,18 @@
+= Resizable.ts
+:source_path: modules/fl.ui/src/helpers/controllers/Resizable.ts
+
+Auto-generated documentation.
+
+== Exports
+- classes: ResizeHandler
+
+=== ResizeHandler
+[mermaid]
+....
+classDiagram
+class ResizeHandler {
+  +if(!holder)
+  +limitResize(real, virtual, holder, container)
+  +resizable(options)
+}
+....

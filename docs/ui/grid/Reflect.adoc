@@ -1,0 +1,7 @@
+= Reflect.ts
+:source_path: modules/fl.ui/src/ui/grid/Reflect.ts
+
+Auto-generated documentation.
+
+== Exports
+- consts: reflectCell

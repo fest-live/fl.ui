@@ -1,0 +1,19 @@
+= Desktop.ts
+:source_path: modules/fl.ui/src/ui/taskbar/appearance/Desktop.ts
+
+Auto-generated documentation.
+
+== Exports
+- classes: DesktopTaskbar
+
+=== DesktopTaskbar
+[mermaid]
+....
+classDiagram
+class DesktopTaskbar {
+  +connect(element: HTMLElement|any|null = null)
+  +if(element)
+  +if(this.element)
+  +disconnect(element: HTMLElement|any|null = null)
+}
+....

@@ -1,0 +1,9 @@
+= TaskIndication.ts
+:source_path: modules/fl.ui/src/ui/taskbar/task/TaskIndication.ts
+
+Auto-generated documentation.
+
+== Exports
+- classes: TaskIndication
+
+=== TaskIndication

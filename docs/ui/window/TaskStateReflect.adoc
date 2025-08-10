@@ -1,0 +1,24 @@
+= TaskStateReflect.ts
+:source_path: modules/fl.ui/src/ui/window/TaskStateReflect.ts
+
+Auto-generated documentation.
+
+== Exports
+- classes: TaskStateReflect
+
+=== TaskStateReflect
+[mermaid]
+....
+classDiagram
+class TaskStateReflect {
+  +update(task: ITask|null = null, element: HTMLElement|any|null = null)
+  +if(this.task !== task)
+  +if(this.element !== element)
+  +if(this.bindings)
+  +unbind()
+  +if(this.listeners)
+  +if(this.element)
+  +bind(element: HTMLElement|any|null = null)
+  +if(element)
+}
+....

@@ -1,0 +1,16 @@
+= Task.ts
+:source_path: modules/fl.ui/src/ui/taskbar/task/Task.ts
+
+Auto-generated documentation.
+
+== Exports
+- classes: Task
+
+=== Task
+[mermaid]
+....
+classDiagram
+class Task {
+  +render()
+}
+....

@@ -1,0 +1,26 @@
+= ScrollFrame.ts
+:source_path: modules/fl.ui/src/ui/scrollframe/ScrollFrame.ts
+
+Auto-generated documentation.
+
+== Exports
+- classes: ScrollBoxed, OverlayScrollbarMixin
+
+=== ScrollBoxed
+[mermaid]
+....
+classDiagram
+class ScrollBoxed {
+  +onInitialize()
+  +bindWith(content: any)
+}
+....
+
+=== OverlayScrollbarMixin
+[mermaid]
+....
+classDiagram
+class OverlayScrollbarMixin {
+  +connect(ws)
+}
+....

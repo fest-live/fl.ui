@@ -1,0 +1,19 @@
+= LongHover.ts
+:source_path: modules/fl.ui/src/helpers/controllers/LongHover.ts
+
+Auto-generated documentation.
+
+== Exports
+- classes: LongHoverHandler
+
+=== LongHoverHandler
+[mermaid]
+....
+classDiagram
+class LongHoverHandler {
+  +if(!holder)
+  +if(options)
+  +defaultHandler(ev, weakRef: WeakRef<HTMLElement>)
+  +if(action.timer)
+}
+....

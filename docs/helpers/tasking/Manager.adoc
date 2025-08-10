@@ -1,0 +1,7 @@
+= Manager.ts
+:source_path: modules/fl.ui/src/helpers/tasking/Manager.ts
+
+Auto-generated documentation.
+
+== Exports
+- consts: getBy, historyBack, getFocused, navigationEnable

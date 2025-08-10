@@ -1,0 +1,27 @@
+= Tasks.ts
+:source_path: modules/fl.ui/src/helpers/tasking/Tasks.ts
+
+Auto-generated documentation.
+
+== Exports
+- classes: Task
+- consts: makeTask
+
+=== Task
+[mermaid]
+....
+classDiagram
+class Task {
+  +if(location.hash != this.taskId)
+  +if(has != this)
+  +if(!has)
+  +if(doFocus)
+  +if(task?.taskId == this.taskId)
+  +if(index >= 0)
+  +if(task != null &&task?.$active != activeStatus)
+  +if(activeStatus != this.active)
+  +if(this.active && index >= 0)
+  +if(index < last || last < 0)
+  +removeFromList()
+}
+....

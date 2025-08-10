@@ -1,0 +1,7 @@
+= DynamicEngine.ts
+:source_path: modules/fl.ui/src/helpers/design/DynamicEngine.ts
+
+Auto-generated documentation.
+
+== Exports
+- consts: pickBgColor, makeContrast, pickFromCenter, dynamicNativeFrame, dynamicBgColors, dynamicTheme

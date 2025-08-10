@@ -1,0 +1,7 @@
+= Trigger.ts
+:source_path: modules/fl.ui/src/helpers/controllers/Trigger.ts
+
+Auto-generated documentation.
+
+== Exports
+- consts: doObserve, makeShiftTrigger

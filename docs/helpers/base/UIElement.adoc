@@ -1,0 +1,18 @@
+= UIElement.ts
+:source_path: modules/fl.ui/src/helpers/base/UIElement.ts
+
+Auto-generated documentation.
+
+== Exports
+- classes: UIElement
+
+=== UIElement
+[mermaid]
+....
+classDiagram
+class UIElement {
+  +render()
+  +onRender()
+  +onInitialize()
+}
+....

@@ -1,0 +1,8 @@
+= Types.ts
+:source_path: modules/fl.ui/src/helpers/tasking/Types.ts
+
+Auto-generated documentation.
+
+== Exports
+- interfaces: ITask
+- types: FX

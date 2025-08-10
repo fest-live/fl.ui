@@ -1,0 +1,7 @@
+= InputExt.ts
+:source_path: modules/fl.ui/src/helpers/core/InputExt.ts
+
+Auto-generated documentation.
+
+== Exports
+- consts: boolDepIconRef, indicationRef, getInputValues, clampedValueRef, dragSlider

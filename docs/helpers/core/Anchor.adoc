@@ -1,0 +1,13 @@
+= Anchor.ts
+:source_path: modules/fl.ui/src/helpers/core/Anchor.ts
+
+Auto-generated documentation.
+
+== Exports
+- functions: makeInterruptTrigger(except: any = null,
+    ref: RefBool|Function = booleanRef(false), makeClickOutsideTrigger(ref: RefBool, element: any, options: TriggerOptions = {}), boundingBoxRef(anchor: HTMLElement, options?: {
+    root?: HTMLElement,
+    observeResize?: boolean,
+    observeMutations?: boolean,
+})
+- consts: handleByPointer, handleForFixPosition, pointerRef, visibleBySelectorRef, showAttributeRef, withInsetWithPointer

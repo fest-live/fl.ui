@@ -1,0 +1,17 @@
+= Draggable.ts
+:source_path: modules/fl.ui/src/helpers/controllers/Draggable.ts
+
+Auto-generated documentation.
+
+== Exports
+- classes: DragHandler
+
+=== DragHandler
+[mermaid]
+....
+classDiagram
+class DragHandler {
+  +if(!holder)
+  +draggable(options: DragHandlerOptions)
+}
+....

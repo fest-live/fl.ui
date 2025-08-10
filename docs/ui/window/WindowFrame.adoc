@@ -1,0 +1,22 @@
+= WindowFrame.ts
+:source_path: modules/fl.ui/src/ui/window/WindowFrame.ts
+
+Auto-generated documentation.
+
+== Exports
+- classes: WindowFrame
+
+=== WindowFrame
+[mermaid]
+....
+classDiagram
+class WindowFrame {
+  +onInitialize()
+  +bindWithTask(task: ITask|null = null)
+  +if(this.task != task)
+  +if(this.task && task)
+  +if(this.task = task ?? this.task)
+  +onRender()
+  +doCenter()
+}
+....

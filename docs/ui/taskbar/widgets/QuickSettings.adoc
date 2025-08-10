@@ -1,0 +1,6 @@
+= QuickSettings.ts
+:source_path: modules/fl.ui/src/ui/taskbar/widgets/QuickSettings.ts
+
+Auto-generated documentation.
+
+== Exports

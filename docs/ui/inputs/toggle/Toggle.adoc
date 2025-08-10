@@ -1,0 +1,6 @@
+= Toggle.ts
+:source_path: modules/fl.ui/src/ui/inputs/toggle/Toggle.ts
+
+Auto-generated documentation.
+
+== Exports

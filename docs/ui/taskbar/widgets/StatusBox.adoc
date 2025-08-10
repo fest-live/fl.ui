@@ -1,0 +1,6 @@
+= StatusBox.ts
+:source_path: modules/fl.ui/src/ui/taskbar/widgets/StatusBox.ts
+
+Auto-generated documentation.
+
+== Exports

@@ -1,0 +1,6 @@
+= Switch.ts
+:source_path: modules/fl.ui/src/ui/skins/switch/Switch.ts
+
+Auto-generated documentation.
+
+== Exports

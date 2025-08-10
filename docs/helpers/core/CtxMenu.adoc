@@ -1,0 +1,8 @@
+= CtxMenu.ts
+:source_path: modules/fl.ui/src/helpers/core/CtxMenu.ts
+
+Auto-generated documentation.
+
+== Exports
+- consts: itemClickHandle, bindMenuItemClickHandler, makeMenuHandler, ctxMenuTrigger, dropMenuTrigger
+- interfaces: RefBool, MenuItem, CtxMenuDesc

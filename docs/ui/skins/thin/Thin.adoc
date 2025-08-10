@@ -1,0 +1,16 @@
+= Thin.ts
+:source_path: modules/fl.ui/src/ui/skins/thin/Thin.ts
+
+Auto-generated documentation.
+
+== Exports
+- classes: ThinSlider
+
+=== ThinSlider
+[mermaid]
+....
+classDiagram
+class ThinSlider {
+  +connect(self)
+}
+....

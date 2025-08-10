@@ -25,71 +25,91 @@ $ui-shadow-elevated: 0 4px 12px rgb(0 0 0 / 0.15), 0 1px 3px rgb(0 0 0 / 0.1) !d
 
 // Transition helpers
 @mixin transition($properties: all, $duration: $ui-duration-fast, $timing: $ui-ease-standard) {
-    $prop-list: if(meta.type-of($properties) == 'list', list.join($properties, ", "), $properties);
-    transition: #{$prop-list} #{$duration} #{$timing};
+    & {
+        $prop-list: if(meta.type-of($properties) == 'list', list.join($properties, ", "), $properties);
+        transition: #{$prop-list} #{$duration} #{$timing};
+    }
 }
 
 // Spacing helpers
-@mixin padding($value) { padding: #{$value}; }
-@mixin margin($value) { margin: #{$value}; }
+@mixin padding($value) { & { padding: #{$value}; } }
+@mixin margin($value) { & { margin: #{$value}; } }
 @mixin spacing($p: null, $m: null) {
-    @if $p != null { padding: #{$p}; }
-    @if $m != null { margin: #{$m}; }
+    & {
+        @if $p != null { padding: #{$p}; }
+        @if $m != null { margin: #{$m}; }
+    }
 }
 
 // Border/radius/shadow helpers
 @mixin border($width: $ui-border-width, $style: solid, $color: currentColor) {
-    border-width: #{$width};
-    border-style: #{$style};
-    border-color: #{$color};
+    & {
+        border-width: #{$width};
+        border-style: #{$style};
+        border-color: #{$color};
+    }
 }
-@mixin radius($r: $ui-radius-md) { border-radius: #{$r}; }
-@mixin shadow($value: $ui-shadow-soft) { box-shadow: #{$value}; }
+@mixin radius($r: $ui-radius-md) { & { border-radius: #{$r}; } }
+@mixin shadow($value: $ui-shadow-soft) { & { box-shadow: #{$value}; } }
 
 // Container helpers
 @mixin container($name: auto, $type: size, $contain: strict) {
-    container-type: #{$type};
-    @if $name != auto { container-name: #{$name}; }
-    contain: #{$contain};
+    & {
+        container-type: #{$type};
+        @if $name != auto { container-name: #{$name}; }
+        contain: #{$contain};
+    }
 }
 
 // Text helpers
 @mixin text($size: inherit, $weight: 400, $color: inherit) {
-    font-size: #{$size};
-    font-weight: #{$weight};
-    color: #{$color};
+    & {
+        font-size: #{$size};
+        font-weight: #{$weight};
+        color: #{$color};
+    }
 }
 @mixin text-ellipsis($nowrap: true) {
-    text-overflow: ellipsis;
-    overflow: hidden;
-    @if $nowrap { white-space: nowrap; }
+    & {
+        text-overflow: ellipsis;
+        overflow: hidden;
+        @if $nowrap { white-space: nowrap; }
+    }
 }
 
 // Alignment helpers
-@mixin center($axis: both) {
-    @if $axis == both { place-content: center; place-items: center; }
-    @else if $axis == x { justify-content: center; align-items: stretch; }
-    @else if $axis == y { align-items: center; justify-content: stretch; }
+@mixin center($axis: 'both') {
+    & {
+        @if $axis == 'both' { place-content: center; place-items: center; }
+        @else if $axis == 'x' { justify-content: center; align-items: stretch; }
+        @else if $axis == 'y' { align-items: center; justify-content: stretch; }
+    }
 }
 
 //
 @mixin hover($selector: "&") {
-    @media screen and ((hover: hover) or (pointer: fine))   { #{$selector}:hover { @content; } }
-    @media screen and ((hover: none) and (pointer: coarse)) { #{$selector}:action { @content; } }
+    & {
+        @media screen and ((hover: hover) or (pointer: fine))   { #{$selector}:hover { @content; } }
+        @media screen and ((hover: none) and (pointer: coarse)) { #{$selector}:action { @content; } }
+    }
 }
 
 //
 // theme-dependent property setter
 // prefers CSS light-dark when available, otherwise uses color-mix with var(--tm-scheme)
 @mixin tm-dep($property, $light, $dark) {
-    & { #{$property}: color-mix(in oklch, #{$light} calc(100% * var(--tm-scheme)), #{$dark}); }
-    @supports(color: light-dark(white, black)) { #{$property}: light-dark(#{$light}, #{$dark}); }
+    & {
+        #{$property}: color-mix(in oklch, #{$light} calc(100% * var(--tm-scheme)), #{$dark});
+        @supports(color: light-dark(white, black)) { #{$property}: light-dark(#{$light}, #{$dark}); }
+    }
 }
 
 //
 @mixin inverse {
-    @include tm-dep("--tm-cr", var(--tm-cr-dark), var(--tm-cr-light));
-    & { --tm-ac: #{tm-lo(var(--tm-origin, currentColor), 80%) };}
+    & {
+        @include tm-dep("--tm-cr", var(--tm-cr-dark), var(--tm-cr-light));
+        --tm-ac: #{tm-lo(var(--tm-origin, currentColor), 80%) };
+    }
 }
 
 //
@@ -129,13 +149,15 @@ $ui-shadow-elevated: 0 4px 12px rgb(0 0 0 / 0.15), 0 1px 3px rgb(0 0 0 / 0.1) !d
 //
 $def-ff: 'InterVariable', 'Inter', 'Open Sans', 'Source Sans 3','Gill Sans Nova', Ubuntu, 'DejaVu Sans', Candara, Segoe, "Segoe UI", Optima, source-sans-pro, sans-serif;
 @mixin typography($fs, $ff: $def-ff) {
-    font-size: $fs;
-    font-family: $ff;
+    & {
+        font-size: $fs;
+        font-family: $ff;
+    }
 }
 
 //
-@function tm-hi($base, $percent) { @return color-mix(in oklch, #{$base} calc(100% - #{$percent}), var(--tm-hi, white)); }
-@function tm-lo($base, $percent) { @return color-mix(in oklch, #{$base} calc(100% - #{$percent}), var(--tm-lo, black)); }
+@function tm-hi($base, $percent) { @return color-mix(in oklch, #{$base} calc(100% - #{$percent}), var(--tm-hi, white)); };
+@function tm-lo($base, $percent) { @return color-mix(in oklch, #{$base} calc(100% - #{$percent}), var(--tm-lo, black)); };
 
 //
 @mixin size($inline: 100%, $block: 100%, $aspect-ratio: auto) {

@@ -11,7 +11,7 @@ const styled = preloadStyle(styles);
 //
 // @ts-ignore
 @defineElement("ui-taskbar")
-export class TaskBar extends UIElement {
+export class UITaskBar extends UIElement {
     constructor() {
         super();
     }

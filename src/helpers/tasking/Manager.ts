@@ -3,7 +3,7 @@ import { addEvent } from "fest/dom";
 
 //
 export const getBy = (tasks: ITask[] = [], taskId: ITask|string|any)=>{
-    return tasks.find((t)=>(taskId == t || (typeof t.taskId == "string" && t.taskId == (typeof taskId == "string" ? taskId : t.taskId))));
+    return tasks.find((t)=>(taskId == t || (typeof t.taskId == "string" && t.taskId == (typeof taskId == "string" ? taskId : null))));
 }
 
 //

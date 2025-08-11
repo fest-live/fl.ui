@@ -10,12 +10,14 @@ const styled = preloadStyle(styles);
 //
 // @ts-ignore
 @defineElement("ui-task")
-export class Task extends UIElement {
-    @property({ source: "attr" }) title: string = "";
-    @property({ source: "attr" }) icon: string = "window";
+export class UITask extends UIElement {
+    @property({ source: "attr" }) public title?: string = "";
+    @property({ source: "attr" }) public icon?: string = "window";
 
     //
-    constructor() { super(); }
+    constructor() {
+        super();
+    }
 
     //
     styles = () => styled?.cloneNode?.(true);

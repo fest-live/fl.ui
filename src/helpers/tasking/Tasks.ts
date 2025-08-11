@@ -1,6 +1,13 @@
 import { makeReactive, $triggerLess } from "fest/object";
 import { getBy, getFocused } from "./Manager";
 import { ITask } from "./Types";
+import { ITaskOptions } from "./Types";
+
+//
+const _LOG_ = (a: any)=>{
+    console.log(a);
+    return a;
+}
 
 //
 export class Task implements ITask {
@@ -11,9 +18,11 @@ export class Task implements ITask {
     list?: ITask[]|null;
 
     //
-    constructor(taskId: string, list?: ITask[]|null, payload: any = {}, action?: any) {
+    constructor(taskId: string, list?: ITask[]|null, state: ITaskOptions|null = null, payload: any = {}, action?: any) {
         this.taskId = taskId;
         this.list = list;
+
+        Object.assign(this, state);
         this.payload = payload;
         this.$action = action ?? (()=>{
             if (location.hash != this.taskId) {
@@ -30,7 +39,7 @@ export class Task implements ITask {
         //
         const has = getBy(list, this);
         if (has != this) {
-            if (!has) { list?.push(this); } else { Object.assign(has, this); }
+            if (!has) { list?.push(makeTask(this) as any); } else { Object.assign(has, this); }
         }
 
         //
@@ -39,13 +48,14 @@ export class Task implements ITask {
         //
         if (doFocus) { this.focus = true; }
         history.pushState("", "", /*location.hash =*/ getFocused(list, false)?.taskId || "");
+        document.dispatchEvent(new CustomEvent("task-focus", { detail: this, bubbles: true, composed: true, cancelable: true }));
 
         //
         return this;
     };
 
     //
-    get active(): boolean { return this.$active; }
+    get active(): boolean { return !!this.$active; }
     get order(): number { return this.list?.findIndex?.((t)=>(t == this || (typeof t.taskId == "string" && t.taskId == this.taskId))) ?? -1; }
     get focus(): boolean {
         if (!this.taskId) return false;
@@ -56,33 +66,34 @@ export class Task implements ITask {
 
     //
     set active(activeStatus: boolean) {
-        const index = this.order;
-        if (index >= 0) {
-            const task = this.list?.[index];
-            if (task != null &&task?.$active != activeStatus) {
-                task.$active = activeStatus;
-            }
+        if (this != null && this?.$active != activeStatus) {
+            this.$active = activeStatus;
         }
     }
 
     //
     set focus(activeStatus: boolean) {
-        if (activeStatus != this.active) { this.active = activeStatus; }
+        if (activeStatus && (activeStatus != this.focus)) {
+            const index = this.order;
+            if (!this.focus && index >= 0) {
+                const last = this.list?.findLastIndex?.((t)=>t.focus) ?? -1;
+                if (index < last || last < 0)
+                    {
+                        // avoid remove and add reactive element triggering
+                        if (this.list) for (const task of this.list) {
+                            if (task != this && task?.taskId != this.taskId) {
+                                task.focus = false;
+                            }
+                        }
+                        this.list?.[$triggerLess]?.(()=>{
+                            this.list?.splice?.(index, 1); this.list?.push?.(makeTask(this) as any);
+                        })
+                        document.dispatchEvent(new CustomEvent("task-focus", { detail: this, bubbles: true, composed: true, cancelable: true }));
+                    }
 
-        //
-        const index = this.order;
-        if (this.active && index >= 0) {
-            const last = this.list?.findLastIndex?.((t)=>t.active) ?? -1
-            if (index < last || last < 0)
-                {
-                    // avoid remove and add reactive element triggering
-                    this.list?.[$triggerLess]?.(()=>{
-                        this.list?.splice?.(index, 1); this.list?.push?.(this);
-                    })
-                }
-
-            //
-            this.takeAction();
+                //
+                this.takeAction();
+            }
         }
     }
 
@@ -94,7 +105,7 @@ export class Task implements ITask {
     //
     removeFromList() {
         if (!this.list) return this;
-        const index = this.order;
+        const index = this.list.indexOf(getBy(this.list, this) ?? makeTask(this as any) as any) ?? -1;
         if (index >= 0) { this.list.splice(index, 1); }
         this.list = null;
         return this;
@@ -102,7 +113,15 @@ export class Task implements ITask {
 };
 
 //
-export const makeTask = (...args: any[])=>{
-    // @ts-ignore
-    return makeReactive(new Task(...args));
+export const makeTask = (taskId: string|Task, list?: ITask[]|null, state: ITaskOptions|null = null, payload: any = {}, action?: any)=>{
+    if (taskId instanceof Task) return makeReactive(taskId);
+    const task = new Task(taskId, list, state, payload, action);
+    return makeReactive(task);
+}
+
+//
+export const makeTasks = (createCb: any)=>{
+    const tasks = makeReactive([]);
+    const result = createCb(tasks);
+    return tasks;
 }

@@ -2,7 +2,7 @@ import { loadInlineStyle } from "fest/dom";
 
 async function createScrollBoxed() {
     const { H } = await import("fest/lure");
-    const { OverlayScrollbarMixin } = await import("../src/ui/scrollframe/ScrollFrame"); //@ts-ignore
+    const { OverlayScrollbarMixin } = await import("../src/ui/components/scrollframe/ScrollFrame"); //@ts-ignore
 
     return H`
     <div class="c2-surface" data-mixin="ov-scrollbar" style="clip-path: inset(0px round 0.5%); padding: 1rem; margin: 1rem; box-sizing: border-box; overflow: scroll; display: block; inline-size: 800px; block-size: 600px; border: none 0px transparent; outline: none 0px transparent;">

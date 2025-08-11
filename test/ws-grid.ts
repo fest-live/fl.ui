@@ -1,4 +1,10 @@
-import { loadInlineStyle } from "../../dom.ts/src/$mixin$/Style";
+//@ts-ignore
+import styles from "../src/scss/index.scss?inline";
+import { TaskStateReflect } from "../src/ui/workspace/window/TaskStateReflect";
+import { UITask } from "../src/ui/navigation/taskbar/task/Task";
+import { colorScheme } from "../src/helpers/design/ImagePicker";
+import { loadInlineStyle, default as loadCSS } from "fest/dom";
+import { makeReactive } from "fest/object";
 
 //
 import "../src/ui/workspace/grid/GridBox";
@@ -8,6 +14,9 @@ import "../src/ui/components/icons/Icon";
 import "../src/ui/navigation/taskbar/bar/TaskBar";
 import "../src/ui/navigation/taskbar/task/Task";
 import "../src/ui/workspace/statusbar/StatusBar";
+import { TaskIndication } from "../src/ui/navigation/taskbar/task/TaskIndication";
+import { TaskInteraction } from "../src/ui/navigation/taskbar/bar/TaskInteraction";
+import { makeTask, makeTasks, Task } from "../src/helpers/tasking/Tasks";
 
 //
 async function makeWallpaper() {
@@ -80,23 +89,44 @@ async function createGridWithItem() {
 }
 
 //
+const tasks = makeTasks((list)=>[
+    makeTask("#task0", list, {active: true}, { title: "Task 0", icon: "app-window" }),
+    makeTask("#task1", list, {active: true}, { title: "Task 1", icon: "glasses" }),
+    makeTask("#task2", list, {active: true}, { title: "Task 2", icon: "newspaper" }),
+]);
+
+//
 async function createWindowFrame() {
-    const { H } = await import("fest/lure");
+    const { H, orientRef, M } = await import("fest/lure");
     const { WindowFrame } = await import("../src/ui/workspace/window/WindowFrame");
-    return H`<ui-window-frame></ui-window-frame>`;
+    const oRef = orientRef();
+    return H`<div data-mixin="ui-orientbox" style="inline-size: 100%; block-size: 100%; inset: 0; position: fixed; background-color: transparent;">
+        ${M(tasks, task=>{
+            const frame = H`<ui-window-frame></ui-window-frame>`;
+            new TaskStateReflect(frame, task);
+            return frame;
+        })}
+    </div>`;
 }
 
 //
-//@ts-ignore
-import styles from "../src/scss/index.scss?inline";
+async function createTaskBar() {
+    const { H, M } = await import("fest/lure");
+    const { UITaskBar } = await import("../src/ui/navigation/taskbar/bar/TaskBar");
+    const taskbar = H`<ui-taskbar>${M(tasks, task=>{
+        const taskEl = H`<ui-task></ui-task>`;
+        new TaskIndication(taskEl, task);
+        return taskEl;
+    })}</ui-taskbar>`;
+    new TaskInteraction(taskbar, tasks);
+    return taskbar;
+}
 
 //
 async function main() {
-    const { default: loadCSS } = await import("fest/dom");
     await loadCSS(); loadInlineStyle(styles);
 
     //
-    const { colorScheme } = await import("../src/helpers/design/ImagePicker");
     const container = document.querySelector("#app") || document.body;
 
     //
@@ -110,16 +140,18 @@ async function main() {
         wallpaper,
         scrollBoxed,
         ctxMenu,
-        windowFrame
+        windowFrame,
+        taskBar
     ] = await Promise.all([
         makeWallpaper(),
         createGridWithItem(),
         createCtxMenu(),
-        createWindowFrame()
+        createWindowFrame(),
+        createTaskBar()
     ]);
 
     //
-    container.append(wallpaper, scrollBoxed, ctxMenu, windowFrame);
+    container.append(wallpaper, scrollBoxed, ctxMenu, windowFrame, taskBar);
 }
 
 //

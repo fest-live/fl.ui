@@ -9,7 +9,7 @@ export class TaskIndication {
     taskEl: HTMLElement|any;
 
     //
-    constructor(task: ITask|null = null, taskEl: HTMLElement|any = null) {
+    constructor(taskEl: HTMLElement|any = null, task: ITask|null = null) {
         this.task = task || null;
         this.bindIndication(taskEl);
     }

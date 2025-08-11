@@ -4,19 +4,19 @@ import { Q } from "fest/lure";
 
 //
 export class TaskInteraction {
-    list: ITask[] = [];
+    list: ITask[]|any = [];
     taskbar: HTMLElement|any;
 
     //
-    constructor(list: ITask[] = [], taskbar: HTMLElement|any = null) {
-        this.list = list || [];
+    constructor(taskbar: HTMLElement|any = null, list: ITask[]|any = []) {
+        this.list = list;
         this.bindInteraction(taskbar);
     }
 
     //
-    bindInteraction(taskbar: HTMLElement|any): TaskInteraction {
-        if (!taskbar) return this;
-        this.taskbar = taskbar;
+    bindInteraction(taskbar: HTMLElement|any = null): TaskInteraction {
+        if (taskbar) this.taskbar = taskbar;
+        if (!this.taskbar) return this;
         this.taskbar?.addEventListener?.("click", (ev)=>{
             ev.preventDefault();
             ev.stopPropagation();

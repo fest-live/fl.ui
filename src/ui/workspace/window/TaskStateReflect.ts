@@ -1,4 +1,4 @@
-import { ITask } from "../../helpers/tasking/Types";
+import { ITask } from "@helpers/tasking/Types";
 import { propRef, subscribe } from "fest/object";
 import { handleHidden, handleAttribute, handleStyleChange, setStyleProperty, addEvent } from "fest/dom";
 import { bindWith } from "fest/lure";
@@ -26,22 +26,14 @@ export class TaskStateReflect {
     }|null;
 
     //
-    constructor(task: ITask|null = null, element: HTMLElement|any|null = null) {
-        this.update(task, element);
+    constructor(element: HTMLElement|any|null = null, task: ITask|null = null) {
+        this.update(element, task);
     }
 
     //
-    update(task: ITask|null = null, element: HTMLElement|any|null = null) {
+    update(element: HTMLElement|any|null = null, task: ITask|null = null) {
         if (this.task !== task) { this.task = task; }
-        if (this.element !== element) { this.element = element; }
-        if (this.bindings) { this.unbind();  }
-        this.bindings = {
-            visible: bindWith(this.element, "data-hidden", propRef(this.task, "active"), handleHidden),
-            focus: bindWith(this.element, "data-focus", propRef(this.task, "focus"), handleAttribute),
-            title: bindWith(this.element, "data-title", propRef(this.task, "title"), handleAttribute),
-            icon: bindWith(this.element, "data-icon", propRef(this.task, "icon"), handleAttribute),
-            order: bindWith(this.element, "--order", propRef(this.task, "order"), handleStyleChange),
-        };
+        this.bind(element);
         return this;
     }
 
@@ -67,39 +59,35 @@ export class TaskStateReflect {
 
     //
     bind(element: HTMLElement|any|null = null) {
-        if (element) { this.update(this.task, element); }
+        if (this.element !== element) { this.element = element; }
+        if (this.bindings) { this.unbind();  }
+
+        //
         if (this.element) {
             this.bindings ??= {};
 
-            const visibleRef = propRef(this.task, "active")
+            const visibleRef = propRef(this.task, "active");
             this.bindings.visible = bindWith(this.element, "data-hidden", visibleRef, handleHidden);
 
-            const focusRef = propRef(this.task, "focus")
-            this.bindings.focus = bindWith(this.element, "data-focus", focusRef, handleAttribute);
-
             const titleRef = propRef(this.task, "title")
-            this.bindings.title = bindWith(this.element, "data-title", titleRef, handleAttribute);
+            this.bindings.title = bindWith(this.element, "title", titleRef, handleAttribute);
 
             const iconRef = propRef(this.task, "icon")
-            this.bindings.icon = bindWith(this.element, "data-icon", iconRef, handleAttribute);
+            this.bindings.icon = bindWith(this.element, "icon", iconRef, handleAttribute);
 
-            const orderRef = propRef(this.task, "order")
-            this.bindings.order = bindWith(this.element, "--order", orderRef, handleStyleChange);
-
-            // crutch for not working order property
-            this.bindings.orderSub = subscribe([this.task, "focus"], (_, prop)=>{ if (prop == "focus") {
-                setStyleProperty(this.element, "--order", this.task?.order);
-            }});
+            //
+            setStyleProperty(this.element, "--order", this.task?.order);
+            document.addEventListener("task-focus", (e)=>{ setStyleProperty(this.element, "--order", this.task?.order); });
 
             // UI-events
             this.listeners ??= {};
-            this.listeners.click = addEvent(this.element, "click", ()=>{ if (this.task) { this.task.focus = true; } });
+            this.listeners.click = addEvent(this.element, "pointerdown", ()=>{ if (this.task) { this.task.focus = true; } });
             this.listeners.keydown = addEvent(this.element, "keydown", (e)=>{ if (e.key == "Enter" && this.task) { this.task.focus = true; } });
             this.listeners.focus = addEvent(this.element, "focus", (e)=>{ if (this.task) { this.task.focus = true; } });
             this.listeners.blur = addEvent(this.element, "blur", (e)=>{ if (this.task) { this.task.focus = false; } });
 
             // UI-actions
-            this.listeners.close = addEvent(this.element, "close", (e)=>{ if(this.task) { this.task.removeFromList(); } });
+            this.listeners.close = addEvent(this.element, "close", (e)=>{ if (this.task) { this.task.removeFromList(); } });
             this.listeners.minimize = addEvent(this.element, "minimize", (e)=>{ if (this.task) { this.task.focus = false; this.task.active = false; } });
 
             // TODO: under consideration

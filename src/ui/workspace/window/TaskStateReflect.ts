@@ -69,10 +69,10 @@ export class TaskStateReflect {
             const visibleRef = propRef(this.task, "active");
             this.bindings.visible = bindWith(this.element, "data-hidden", visibleRef, handleHidden);
 
-            const titleRef = propRef(this.task, "title")
+            const titleRef = propRef(this.task?.payload, "title");
             this.bindings.title = bindWith(this.element, "title", titleRef, handleAttribute);
 
-            const iconRef = propRef(this.task, "icon")
+            const iconRef = propRef(this.task?.payload, "icon");
             this.bindings.icon = bindWith(this.element, "icon", iconRef, handleAttribute);
 
             //
@@ -87,7 +87,10 @@ export class TaskStateReflect {
             this.listeners.blur = addEvent(this.element, "blur", (e)=>{ if (this.task) { this.task.focus = false; } });
 
             // UI-actions
-            this.listeners.close = addEvent(this.element, "close", (e)=>{ if (this.task) { this.task.removeFromList(); } });
+            this.listeners.close = addEvent(this.element, "close", (e)=>{ if (this.task) {
+                this.element.addEventListener("u2-hidden", ()=>{ this.task?.removeFromList(); }, {once: true});
+                this.element.setAttribute("data-hidden", "");
+            } });
             this.listeners.minimize = addEvent(this.element, "minimize", (e)=>{ if (this.task) { this.task.focus = false; this.task.active = false; } });
 
             // TODO: under consideration

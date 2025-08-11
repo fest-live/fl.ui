@@ -103,6 +103,7 @@
         background-color: var(--ui-window-frame-surface);
         color: var(--ui-window-frame-on-surface);
         --icon-color: var(--ui-window-frame-on-surface);
+        opacity: var(--opacity, 1);
     }
 
     & {
@@ -129,7 +130,7 @@
 
     & {
         transform-origin: 50% 50%;
-        transform: translate(var(--translate-x, 0px), var(--translate-y, 0px));
+        transform: translate(var(--translate-x, 0px), var(--translate-y, 0px)) scale(var(--scale, 1));
     }
 
     & { // z-index: 1 + sibling index
@@ -544,6 +545,13 @@
 :host(ui-window-frame[data-maximized]) {
     @include m.transition((inline-size, block-size), $duration: m.$ui-duration-fast);
 
+    & { // transform styles
+        transform: none;
+        transform-origin: 50% 50%;
+        transform-style: flat;
+        transform-box: fill-box;
+    }
+
     & { // use variables for effects
         scale: var(--scale, 1);
         opacity: var(--opacity, 1);
@@ -572,12 +580,5 @@
     & { // outline styles
         outline: none;
         box-shadow: none;
-    }
-
-    & { // transform styles
-        transform: none;
-        transform-origin: 50% 50%;
-        transform-style: flat;
-        transform-box: fill-box;
     }
 }

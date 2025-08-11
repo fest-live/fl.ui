@@ -39,6 +39,11 @@
     /* Reset all properties */
     .c2-light { color-scheme: light; @include detected-theme(); }
     .c2-dark  { color-scheme: dark;  @include detected-theme(); }
+
+    /* */
+    @include types-define("surface", "contrast", "inverse");
+
+    /* */
     .c2-transparent {
         interpolate-size: allow-keywords;
         background-color: transparent;
@@ -51,7 +56,4 @@
         text-emphasis-color: oklch(from inherit l c h / 0);
         --icon-color: currentColor;
     }
-
-    /* */
-    @include types-define("surface", "contrast", "inverse");
 }

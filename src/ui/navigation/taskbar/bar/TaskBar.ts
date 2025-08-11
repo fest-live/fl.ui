@@ -18,5 +18,5 @@ export class UITaskBar extends UIElement {
 
     //
     styles = () => styled?.cloneNode?.(true);
-    render() { return H`<div part="taskbar" class="taskbar"><slot></slot></div>`; }
+    render = function () { return H`<div part="taskbar" class="taskbar"><slot></slot></div>`; }
 }

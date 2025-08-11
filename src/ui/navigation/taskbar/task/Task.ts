@@ -11,8 +11,8 @@ const styled = preloadStyle(styles);
 // @ts-ignore
 @defineElement("ui-task")
 export class UITask extends UIElement {
-    @property({ source: "attr" }) public title?: string = "";
-    @property({ source: "attr" }) public icon?: string = "window";
+    @property({ source: "attr" }) public title?: string = "Task";
+    @property({ source: "attr" }) public icon?: string = "github";
 
     //
     constructor() {
@@ -21,10 +21,10 @@ export class UITask extends UIElement {
 
     //
     styles = () => styled?.cloneNode?.(true);
-    render() {
+    render = function () {
         return H`
-            <div part="icon" class="task-icon"><ui-icon part="icon" icon="${this.icon}"></ui-icon></div>
-            <div part="title" class="task-title">${this.title}</div>
+            <div part="icon" class="task-icon c2-contrast c2-transparent"><ui-icon class="c2-contrast c2-transparent" part="icon" icon="${this.icon}"></ui-icon></div>
+            <div part="title" class="task-title c2-contrast c2-transparent">${this.title}</div>
         `;
     }
 }

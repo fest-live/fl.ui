@@ -24,9 +24,9 @@ export class TaskInteraction {
 
             //
             const taskEl = Q("ui-task", ev?.target, 0, "parent");
-            const task = this.list?.find((t)=>(t?.taskId == (taskEl?.getAttribute?.("task-id") || "")) ?? null) ?? null;
+            const task = this.list?.find((t)=>(t?.taskId == (taskEl?.getAttribute?.("data-id") || "")) ?? null) ?? null;
             if (task) {
-                if (!task?.focus) { task.focus = true; } else { task.active = false; };
+                if (!task?.focus) { task.active = true; task.focus = true; } else { task.active = false; };
             } else {
                 this.list?.forEach?.((t)=>{if (t?.focus) { t.focus = false; }});
             }

@@ -44,7 +44,7 @@
 
     //
     & {
-        background: var(--taskbar-bg);
+        background-color: transparent;
         backdrop-filter: saturate(120%) blur(12px);
         -webkit-backdrop-filter: saturate(120%) blur(12px);
     }
@@ -102,6 +102,8 @@
 @mixin task-base {
     --task-size: clamp(32px, 4.2svh, 40px);
     --task-radius: 10px;
+    --task-bg: color-mix(in oklab, var(--c2-surface(0.0, var(--current)), #0b0b0c) 12%, transparent);
+    --task-fg: var(--c2-on-surface(0.0, var(--current)));
     --task-border: color-mix(in oklab, var(--c2-on-surface(0.0, var(--current)), #ffffff) 10%, transparent);
 
     & {
@@ -128,8 +130,9 @@
     }
 
     & {
-        color: var(--c2-on-surface(0.0, var(--current)));
-        background: color-mix(in oklab, var(--c2-surface(0.0, var(--current)), #0b0b0c) 12%, transparent);
+        color: var(--task-fg);
+        --icon-color: var(--task-fg);
+        background: var(--task-bg);
         backdrop-filter: blur(6px) saturate(120%);
         -webkit-backdrop-filter: blur(6px) saturate(120%);
     }
@@ -166,8 +169,10 @@
         }
 
         & > ui-icon {
-            inline-size: stretch;
+            inline-size: auto;
             block-size: stretch;
+            aspect-ratio: 1 / 1;
+            color: var(--icon-color);
         }
     }
 

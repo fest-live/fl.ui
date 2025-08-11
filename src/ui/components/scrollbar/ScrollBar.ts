@@ -3,7 +3,7 @@ import { E, scrollRef, sizeRef } from "fest/lure";
 import { getPadding, setProperty, makeRAFCycle, RAFBehavior, preloadStyle, addEvent, removeEvent, removeEvents, addEvents } from "fest/dom";
 
 // @ts-ignore
-import styles from "@ui/scrollbar/Scrollbar.scss?inline";
+import styles from "./ScrollBar.scss?inline";
 const styled  = preloadStyle(styles);
 
 //

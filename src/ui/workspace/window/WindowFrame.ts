@@ -6,10 +6,10 @@ import { UIElement } from "@helpers/base/UIElement";
 import { DragHandler } from "@helpers/controllers/Draggable";
 import { ResizeHandler } from "@helpers/controllers/Resizable";
 import { ITask } from "@helpers/tasking/Types";
-import { TaskStateReflect } from "@ui/window/TaskStateReflect";
+import { TaskStateReflect } from "./TaskStateReflect";
 
 // @ts-ignore
-import styles from "@ui/window/WindowFrame.scss?inline"
+import styles from "./WindowFrame.scss?inline"
 const styled  = preloadStyle(styles);
 
 // @ts-ignore

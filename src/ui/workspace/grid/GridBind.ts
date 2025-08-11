@@ -3,8 +3,8 @@ import { E } from "fest/lure";
 
 //
 import { RAFBehavior } from "fest/dom";
-import { makeDragEvents } from "@ui/grid/Dragging";
-import { reflectCell } from "@ui/grid/Reflect";
+import { makeDragEvents } from "./Dragging";
+import { reflectCell } from "./Reflect";
 
 // shifting - reactive basis
 export const ROOT = document.documentElement;

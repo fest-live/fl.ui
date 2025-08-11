@@ -9,8 +9,12 @@ import styles from "./scss/index.scss?inline";
 preloadStyle(styles);
 
 //
-export * from "./ui/scrollframe/ScrollFrame"
-export * from "./ui/grid/GridBox"
-export * from "./ui/grid/OrientBox"
-export * from "./ui/inputs/slider/Slider"
-export * from "./ui/inputs/text/Text"
+export * from "./ui/workspace/statusbar/StatusBar";
+export * from "./ui/workspace/grid/GridBox";
+export * from "./ui/workspace/grid/OrientBox";
+export * from "./ui/navigation/appearance/Desktop";
+export * from "./ui/navigation/appearance/Mobile";
+export * from "./ui/navigation/taskbar/bar/TaskBar";
+export * from "./ui/navigation/taskbar/task/Task";
+export * from "./ui/components/icons/Icon";
+export * from "./ui/components/scrollframe/ScrollFrame";

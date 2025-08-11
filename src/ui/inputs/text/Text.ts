@@ -22,7 +22,7 @@ import { assign } from "fest/object";
 import { UIElement } from "@helpers/base/UIElement";
 
 // @ts-ignore
-import styles from "@ui/inputs/text/Text.scss?inline"
+import styles from "./Text.scss?inline"
 const styled  = preloadStyle(styles);
 
 // @ts-ignore

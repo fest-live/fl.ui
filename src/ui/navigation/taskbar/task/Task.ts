@@ -19,8 +19,6 @@ export class Task extends UIElement {
 
     //
     styles = () => styled?.cloneNode?.(true);
-
-    //
     render() {
         return H`
             <div part="icon" class="task-icon"><ui-icon part="icon" icon="${this.icon}"></ui-icon></div>

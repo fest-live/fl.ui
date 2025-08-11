@@ -177,9 +177,10 @@ $def-ff: 'InterVariable', 'Inter', 'Open Sans', 'Source Sans 3','Gill Sans Nova'
 }
 
 //
-@mixin display($type: inline-block, $items: center, $content: center) {
+@mixin display($type: inline-block, $direction: row, $items: center, $content: center) {
     & {
         display: #{$type};
+        flex-direction: #{$direction};
         place-items: #{$items};
         place-content: #{$content};
         box-sizing: border-box;

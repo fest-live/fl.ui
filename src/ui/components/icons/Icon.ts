@@ -4,7 +4,7 @@ import { subscribe } from "fest/object";
 import { UIElement } from "@helpers/base/UIElement";
 
 // @ts-ignore
-import styles from "@ui/icons/Icon.scss?inline";
+import styles from "./Icon.scss?inline";
 const styled  = preloadStyle(styles);
 
 //

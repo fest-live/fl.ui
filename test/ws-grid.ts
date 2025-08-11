@@ -1,12 +1,13 @@
 import { loadInlineStyle } from "../../dom.ts/src/$mixin$/Style";
 
 //
-import "../src/ui/scrollframe/ScrollFrame";
-import "../src/ui/grid/GridBox";
-import "../src/ui/grid/OrientBox";
-import "../src/ui/icons/Icon";
-import "../src/ui/taskbar/taskbar/TaskBar";
-import "../src/ui/taskbar/task/Task";
+import "../src/ui/workspace/grid/GridBox";
+import "../src/ui/workspace/grid/OrientBox";
+import "../src/ui/components/scrollframe/ScrollFrame";
+import "../src/ui/components/icons/Icon";
+import "../src/ui/navigation/taskbar/bar/TaskBar";
+import "../src/ui/navigation/taskbar/task/Task";
+import "../src/ui/workspace/statusbar/StatusBar";
 
 //
 async function makeWallpaper() {
@@ -48,7 +49,7 @@ async function createCtxMenu() {
 async function createGridWithItem() {
     const { makeReactive } = await import("fest/object");
     const { H, orientRef, M } = await import("fest/lure");
-    const { bindInteraction } = await import("../src/ui/grid/GridBind");
+    const { bindInteraction } = await import("../src/ui/workspace/grid/GridBind");
 
     //
     const genItem = (item)=>{
@@ -81,7 +82,7 @@ async function createGridWithItem() {
 //
 async function createWindowFrame() {
     const { H } = await import("fest/lure");
-    const { WindowFrame } = await import("../src/ui/window/WindowFrame");
+    const { WindowFrame } = await import("../src/ui/workspace/window/WindowFrame");
     return H`<ui-window-frame></ui-window-frame>`;
 }
 

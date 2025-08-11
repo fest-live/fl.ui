@@ -23,7 +23,7 @@ import { dragSlider, getInputValues } from "@helpers/core/InputExt";
 import { UIElement } from "@helpers/base/UIElement";
 
 // @ts-ignore
-import styles from "@ui/inputs/slider/Slider.scss?inline"
+import styles from "./Slider.scss?inline"
 const styled  = preloadStyle(styles);
 
 // @ts-ignore

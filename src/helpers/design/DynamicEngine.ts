@@ -1,6 +1,7 @@
 import { electronAPI } from "./Config.js";
 import { formatCss, formatHex, oklch, parse } from "culori";
 import { addEvent, fixedClientZoom } from "fest/dom";
+import { stringRef } from "fest/object";
 
 //
 const tacp = (color: string)=>{
@@ -43,11 +44,7 @@ export const pickBgColor = (x, y, holder: HTMLElement | null = null)=>{
 
     //
     if (opaque?.[0]?.element instanceof HTMLElement) {
-        const color: string = formatCss(opaque?.[0]?.color) || "transparent"; //|| baseColor;
-        if (holder?.style?.getPropertyValue?.("--tm-adapt") != color) {
-            holder?.style?.setProperty?.("--tm-adapt", color, "");
-        }
-        return color;
+        return formatCss(opaque?.[0]?.color) || "transparent";
     }
 
     //
@@ -107,6 +104,44 @@ export const dynamicTheme = (ROOT = document.documentElement)=>{
     addEvent(window, "load", ()=>requestIdleCallback(updater, {timeout: 100}));
     addEvent(document, "visibilitychange", ()=>requestIdleCallback(updater, {timeout: 100}));
     setIdleInterval(updater, 500);
+}
+
+//
+export const currentColorFromPointRef = (x, y, ROOT = document.documentElement, timeout = 500)=>{
+    const color = pickBgColor(x, y, ROOT);
+    const rfc = stringRef(color);
+    const updater = ()=>{
+        const color = pickBgColor(x, y, ROOT);
+        rfc.value = color;
+    }
+
+    //
+    addEvent(ROOT, "u2-appear", ()=>requestIdleCallback(updater, {timeout: 100}));
+    addEvent(ROOT, "u2-hidden", ()=>requestIdleCallback(updater, {timeout: 100}));
+    addEvent(ROOT, "u2-theme-change", ()=>requestIdleCallback(updater, {timeout: 100}));
+    addEvent(window, "load", ()=>requestIdleCallback(updater, {timeout: 100}));
+    addEvent(document, "visibilitychange", ()=>requestIdleCallback(updater, {timeout: 100}));
+    setIdleInterval(updater, timeout);
+    return rfc;
+}
+
+//
+export const currentColorFromCenterRef = (element: HTMLElement, ROOT = document.documentElement, timeout = 500)=>{
+    const color = pickFromCenter(element);
+    const rfc = stringRef(color);
+    const updater = ()=>{
+        const color = pickFromCenter(element);
+        rfc.value = color;
+    }
+
+    //
+    addEvent(ROOT, "u2-appear", ()=>requestIdleCallback(updater, {timeout: 100}));
+    addEvent(ROOT, "u2-hidden", ()=>requestIdleCallback(updater, {timeout: 100}));
+    addEvent(ROOT, "u2-theme-change", ()=>requestIdleCallback(updater, {timeout: 100}));
+    addEvent(window, "load", ()=>requestIdleCallback(updater, {timeout: 100}));
+    addEvent(document, "visibilitychange", ()=>requestIdleCallback(updater, {timeout: 100}));
+    setIdleInterval(updater, timeout);
+    return rfc;
 }
 
 //

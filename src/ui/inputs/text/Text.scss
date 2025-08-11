@@ -10,6 +10,11 @@
             --ui-text-color: --c2-on-surface(var(--ui-text-tone-shift, 0.0), var(--current, currentColor));
             --ui-text-font-size: 0.9rem;
             --ui-text-font-family: "InterVariable", "Inter", Helvetica, Calibri, Carlito;
+            --ui-text-border-width: 0.0625rem;
+            --ui-text-radius: 0.5rem;
+            --ui-text-border-radius: 0.5rem;
+            --ui-text-border-width: 0.0625rem;
+            --ui-text-border-color: --c2-on-surface(var(--ui-text-tone-shift, 0.0), var(--current, currentColor));
         }
 
         //
@@ -34,12 +39,8 @@
             grid-template-rows: minmax(0px, 1fr);
             position: relative;
             overflow: hidden;
-            border-radius: 0.5rem;
             contain: none;
         }
-
-        //
-        @include m.round-corner(0.5rem);
 
         //
         &, * {
@@ -48,6 +49,15 @@
             interpolate-size: allow-keywords;
             user-select: none;
             pointer-events: none;
+        }
+
+        //
+        & {
+            @include m.round-corner(var(--ui-text-radius, 0.5rem));
+            border-radius: var(--ui-text-border-radius, 0.5rem);
+            border-width: var(--ui-text-border-width, 0.0625rem);
+            border-color: var(--ui-text-border-color, --c2-on-surface(var(--ui-text-tone-shift, 0.0), var(--current, currentColor)));
+            border-style: solid;
         }
 
         //

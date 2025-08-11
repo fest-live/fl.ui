@@ -1,20 +1,32 @@
-/* */
-@use "../_mixins.scss" as tb;
+/* Taskbar */
+@use "../../shared/_mixins.scss" as tb;
+@use "@scss/class/mixins.scss" as m;
 
+//
+@include m.inside-outside('ui-taskbar', 'ui-taskbar > *') {
+    background-color: transparent;
+    color: --c2-on-contrast(0.0, var(--current));
+    color-scheme: dark;
+}
+
+//
 :host(ui-taskbar) {
     & { @include tb.taskbar-variables; @include tb.taskbar-layout; }
 
+    //
     &[data-type="desktop"] { @include tb.taskbar-type-desktop; }
     &[data-type="mobile"]  { @include tb.taskbar-type-mobile; }
 
     /* Responsive attribute-free fallback */
+    /* Activated by JS Reactivity
     @media (((hover: hover) or (pointer: fine)) and ((width >= 9in) or (orientation: landscape))) {
         &:not([data-type]) { @extend :host(ui-taskbar)[data-type="desktop"]; }
     }
     @media not (((hover: hover) or (pointer: fine)) and ((width >= 9in) or (orientation: landscape))) {
         &:not([data-type]) { @extend :host(ui-taskbar)[data-type="mobile"]; }
-    }
+    }*/
 
+    //
     @include tb.taskbar-children;
     @include tb.taskbar-focus-colors();
 }

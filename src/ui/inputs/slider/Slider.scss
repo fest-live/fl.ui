@@ -96,17 +96,6 @@
 
                 //
                 & {
-                    &:not([data-dragging]) {
-                        transition: --translate-x 0.1s ease-in-out;
-                    }
-
-                    //
-                    &[data-dragging] {
-                        transition: none;
-                        //pointer-events: none;
-                    }
-
-                    //
                     --size-w: calc(100cqi - var(--ui-slider-thumb-size, 0px) - var(--ui-slider-track-size, 0px) * 2);
                     --shift-x: calc(var(--value, 0) * var(--size-w, 100cqi));
                     --translate-x: calc(clamp(0px, calc(var(--drag-x, 0) * 1px + var(--shift-x, 0px)), var(--size-w, 100cqi)) - var(--ui-slider-thumb-size, 0px) / 2);
@@ -116,6 +105,17 @@
                     transform: translate(var(--translate-x, 0px), -50%);
                     border-radius: 50%;
                     pointer-events: auto;
+                }
+
+                //
+                &:not([data-dragging]) {
+                    transition: --translate-x 0.1s ease-in-out;
+                }
+
+                //
+                &[data-dragging] {
+                    transition: none;
+                    pointer-events: none;
                 }
             }
         }

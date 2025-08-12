@@ -149,23 +149,34 @@ export const clampedValueRef = (inp)=>{
 //
 export const dragSlider = (thumb, handler, input)=>{ // @ts-ignore
     const correctOffset = ()=>{ try { dragging[0].value = 0, dragging[1].value = 0; } catch(e) {}; return [0, 0]; };
-    const customTrigger = (doGrab)=>addEvent(handler, "pointerdown", makeShiftTrigger((ev)=>{ thumb?.setAttribute?.("data-dragging", "true"); correctOffset(); doGrab(ev, handler) }, handler));
+    const customTrigger = (doGrab)=>{
+        const ub = addEvent(handler, "pointerdown", makeShiftTrigger((ev)=>{ thumb?.setAttribute?.("data-dragging", "true"); correctOffset(); doGrab(ev, handler) }, handler));
+        listening.push(ub);
+        return ub;
+    };
 
     //
-    addEvent(handler, "click", (ev)=>{ if (input?.type == "checkbox" || input?.type == "radio") { input?.click?.(); } });
-    addEvent(handler, "pointerdown", (ev)=>{
-        if (!(ev?.target?.matches?.(".ui-thumb") || ev?.target?.closest?.(".ui-thumb"))) {
-            if (ev?.target == (handler?.element ?? handler) || handler.contains(ev?.target)) {
-                //correctOffset();
-                setValueByPointer(input, (ev?.layerX || 0), handler);
+    const listening = [
+        addEvent(handler, "click", (ev)=>{ if (input?.type == "checkbox" || input?.type == "radio") { input?.click?.(); } }),
+        addEvent(handler, "pointerdown", (ev)=>{
+            if (!(ev?.target?.matches?.(".ui-thumb") || ev?.target?.closest?.(".ui-thumb"))) {
+                if (ev?.target == (handler?.element ?? handler) || handler.contains(ev?.target)) {
+                    //correctOffset();
+                    setValueByPointer(input, (ev?.layerX || 0), handler);
+                }
             }
-        }
-    });
+        })
+    ];
 
     //
     const dragging = [ numberRef(0), numberRef(0) ];
     bindWith?.(handler, "--drag-x", dragging?.[0], handleStyleChange);
     bindWith?.(handler, "--relate", computed(dragging?.[0], (v)=>convertPointerToValueShift(input, dragging, handler)), handleStyleChange); // "relative"
     bindWith?.(handler, "--value", clampedValueRef(input), handleStyleChange); // from [0, 1]
-    return bindDraggable(customTrigger, (dragging)=>{ thumb?.removeAttribute?.("data-dragging"); resolveDragging(input, dragging, handler); }, dragging, correctOffset);
+    const obj = bindDraggable(customTrigger, (dragging)=>{ thumb?.removeAttribute?.("data-dragging"); resolveDragging(input, dragging, handler); }, dragging, correctOffset);
+    //addToCallChain(obj, Symbol.dispose, ()=>listening.forEach(ub=>ub?.()));
+    return ()=>{
+        listening.forEach(ub=>ub?.());
+        obj?.dispose?.();
+    };
 };

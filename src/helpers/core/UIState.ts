@@ -1,5 +1,6 @@
 import { JSOX } from "jsox";
-import { safe } from "fest/object";
+import { addEvent, setIdleInterval } from "fest/dom";
+import { safe, addToCallChain } from "fest/object";
 
 //
 export const unwrap = (items: any)=>{ return safe(items); }
@@ -66,22 +67,21 @@ export const makeUIState = (storageKey, initialCb, unpackCb, packCb = unwrap, ke
     }
 
     //
-    document.addEventListener("visibilitychange", (ev)=>{
-        if (document.visibilityState === "hidden") {
-            saveInStorage(ev);
-        }
-    });
+    setIdleInterval(saveInStorage, saveInterval);
 
     //
-    setInterval(()=>saveInStorage(), saveInterval);
-    addEventListener("beforeunload", (ev)=>saveInStorage(ev));
-    addEventListener("pagehide", (ev)=>saveInStorage(ev));
-    addEventListener("storage", (ev)=>{
-        if (ev.storageArea == localStorage && ev.key == storageKey) {
-            reloadInto(state, unpackCb(JSOX.parse(ev?.newValue || JSOX.stringify(packCb(mergeByKey(state, key))))));
-        }
-    });
+    const listening = [
+        addEvent(document, "visibilitychange", (ev)=>{ if (document.visibilityState === "hidden") { saveInStorage(ev); } }),
+        addEvent(window, "beforeunload", (ev)=>saveInStorage(ev)),
+        addEvent(window, "pagehide", (ev)=>saveInStorage(ev)),
+        addEvent(window, "storage", (ev)=>{
+            if (ev.storageArea == localStorage && ev.key == storageKey) {
+                reloadInto(state, unpackCb(JSOX.parse(ev?.newValue || JSOX.stringify(packCb(mergeByKey(state, key))))));
+            }
+        })
+    ];
 
     //
+    addToCallChain(state, Symbol.dispose, ()=>listening.forEach(ub=>ub?.()));
     return state;
 }

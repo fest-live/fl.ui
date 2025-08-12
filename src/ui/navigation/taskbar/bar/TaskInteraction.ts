@@ -24,7 +24,7 @@ export class TaskInteraction {
 
             //
             const taskEl = Q("ui-task", ev?.target, 0, "parent");
-            const task = this.list?.find((t)=>(t?.taskId == (taskEl?.getAttribute?.("data-id") || "")) ?? null) ?? null;
+            const task = this.list?.find((t)=>(t?.taskId == (taskEl?.getAttribute?.("data-id") || ""))) ?? null;
             if (task) {
                 if (!task?.focus) { task.active = true; task.focus = true; } else { task.active = false; };
             } else {

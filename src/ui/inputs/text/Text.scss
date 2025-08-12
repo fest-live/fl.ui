@@ -51,9 +51,12 @@
             pointer-events: none;
         }
 
-        //
         & {
             @include m.round-corner(var(--ui-text-radius, 0.5rem));
+        }
+
+        //
+        & {
             border-radius: var(--ui-text-border-radius, 0.5rem);
             border-width: var(--ui-text-border-width, 0.0625rem);
             border-color: var(--ui-text-border-color, --c2-on-surface(var(--ui-text-tone-shift, 0.0), var(--current, currentColor)));

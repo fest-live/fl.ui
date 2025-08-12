@@ -1,5 +1,5 @@
 import { visibleRef, H, Q } from "fest/lure";
-import { removeEvent, addEvent } from "fest/dom";
+import { addEvent } from "fest/dom";
 
 //
 import { boundingBoxRef, makeInterruptTrigger, withInsetWithPointer } from "./Anchor";
@@ -48,8 +48,8 @@ const getBoundVisibleRef = (menuElement: HTMLElement): RefBool|null => {
 //
 export const bindMenuItemClickHandler = (menuElement: HTMLElement, menuDesc: CtxMenuDesc)=>{
     const handler = (ev: MouseEvent)=>{ itemClickHandle(ev, menuDesc); };
-    addEvent(menuElement, "click", handler);
-    return ()=>removeEvent(menuElement, "click", handler);
+    const listening = addEvent(menuElement, "click", handler);
+    return ()=>listening?.();
 }
 
 //
@@ -77,11 +77,11 @@ export const makeMenuHandler = (triggerElement: HTMLElement, placement: any, ctx
                 const items = section?.map?.((item, iIdx)=>H`<li data-id=${item?.id||""}><ui-icon icon=${item?.icon||""}></ui-icon><span>${item?.label||""}</span></li>`);
                 const separator = (section?.length > 1 && sIdx != ((ctxMenuDesc?.items?.length || 0) - 1)) ? H`<li class="ctx-menu-separator"></li>` : null;
                 return [ ...items, separator ];
-            })?.flat()?.filter?.((E)=>!!E)||[]));
+            })?.flat?.()?.filter?.((E)=>!!E)||[]));
 
             //
-            const where     = withInsetWithPointer?.(menuElement, placement?.(ev, initiator));
-            const unbind    = bindMenuItemClickHandler(menuElement, ctxMenuDesc);
+            const where  = withInsetWithPointer?.(menuElement, placement?.(ev, initiator));
+            const unbind = bindMenuItemClickHandler(menuElement, ctxMenuDesc);
 
             //
             if (ctxMenuDesc) ctxMenuDesc.openedWith = {
@@ -109,8 +109,8 @@ export const ctxMenuTrigger = (triggerElement: HTMLElement, ctxMenuDesc: CtxMenu
     }, [ "click", "pointerdown", "scroll" ]);
 
     //
-    addEvent(triggerElement, "contextmenu", evHandler);
-    return ()=>{ untrigger?.(); removeEvent(triggerElement, "contextmenu", evHandler); };
+    const listening = addEvent(triggerElement, "contextmenu", evHandler);
+    return ()=>{ untrigger?.(); listening?.(); };
 }
 
 // bit same as contextmenu, but different by anchor and trigger (from element drop-down)
@@ -126,6 +126,6 @@ export const dropMenuTrigger = (triggerElement: HTMLElement, ctxMenuDesc: CtxMen
     }, [ "click", "pointerdown", "scroll" ]);
 
     //
-    addEvent(triggerElement, "click", evHandler);
-    return ()=>{ untrigger?.(); removeEvent(triggerElement, "click", evHandler); };
+    const listening = addEvent(triggerElement, "click", evHandler);
+    return ()=>{ untrigger?.(); listening?.(); };
 }

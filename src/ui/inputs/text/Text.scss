@@ -13,7 +13,6 @@
             --ui-text-border-width: 0.0625rem;
             --ui-text-radius: 0.5rem;
             --ui-text-border-radius: 0.5rem;
-            --ui-text-border-width: 0.0625rem;
             --ui-text-border-color: --c2-on-surface(var(--ui-text-tone-shift, 0.0), var(--current, currentColor));
         }
 
@@ -80,7 +79,6 @@
             font-family: var(--ui-text-font-family, inherit);
             inline-size: 100%;
             block-size: 100%;
-            background-color: transparent;
             overflow: hidden;
         }
 
@@ -97,7 +95,6 @@
             justify-items: start;
             user-select: none;
             pointer-events: none;
-            user-select: none;
             border: none;
             outline: none;
             padding: 0;
@@ -147,8 +144,6 @@
             user-select: auto;
             pointer-events: auto;
             background-color: transparent;
-            border: none;
-            outline: none;
             padding: 0.25rem;
             padding-inline: 0.5rem;
             padding-block-end: 0.333rem;

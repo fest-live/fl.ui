@@ -18,3 +18,4 @@ export * from "./ui/navigation/taskbar/bar/TaskBar";
 export * from "./ui/navigation/taskbar/task/Task";
 export * from "./ui/components/icons/Icon";
 export * from "./ui/components/scrollframe/ScrollFrame";
+export * from "./ui/services/file-manager/FileManager";

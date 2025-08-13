@@ -26,14 +26,20 @@ async function createSlider() {
     const { H } = await import("fest/lure");
     const { SliderInput } = await import("../src/ui/inputs/slider/Slider");
 
-    return H`<ui-slider style="inline-size: 100px; block-size: 1rem; border-radius: 0.5rem;">
-        <input type="range" min="0" max="100" value="0">
-    </ui-slider>`;
+    return H`<div style="display: inline-flex; gap: 1rem; align-items: center;">
+        <ui-slider variant="slider" style="inline-size: 160px; block-size: 1rem; border-radius: 0.5rem;">
+            <input type="range" min="0" max="100" value="35">
+        </ui-slider>
+        <ui-slider variant="switch" style="inline-size: 64px; block-size: 1.25rem; border-radius: 9999px;">
+            <input type="checkbox" checked>
+        </ui-slider>
+    </div>`;
 }
 
 async function createCtxMenu() {
     const { H } = await import("fest/lure");
     const { ctxMenuTrigger } = await import("../src/helpers/core/CtxMenu");
+    const { UIPhosphorIcon } = await import("../src/ui/components/icons/Icon");
     const ctxMenuDesc = {
         openedWith: null,
         items: [

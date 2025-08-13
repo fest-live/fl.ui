@@ -39,6 +39,7 @@ export class SliderInput extends UIElement {
     @property({ source: "query-shadow", name: ".ui-box" }) handle?: HTMLElement;
     @property({ source: "property", from: "input[type=\"radio\"]:checked, input:where([type=\"checkbox\"], [type=\"number\"], [type=\"range\"]), input" }) name?: string;
     @property({ source: "property", from: "input[type=\"radio\"]:checked, input:where([type=\"checkbox\"], [type=\"number\"], [type=\"range\"])", name: "value" }) value?: string;
+    @property({ source: "attr", name: "variant" }) variant?: string;
 
     //
     static formAssociated = true;
@@ -52,9 +53,9 @@ export class SliderInput extends UIElement {
     //
     styles = () => styled.cloneNode(true);
     render = ()=> H`
-<div class="ui-box" part="box">
-    <div class="ui-track" part="track"></div>
-    <div class="ui-thumb" part="thumb"></div>
+<div class="ui-box c2-surface" part="box">
+    <div class="ui-track c2-surface" part="track"></div>
+    <div class="ui-thumb c2-surface" part="thumb"></div>
 </div>
 <slot></slot>
 `;
@@ -62,6 +63,12 @@ export class SliderInput extends UIElement {
     //
     onInitialize() {
         super.onInitialize();
+        // prefer sensible default variant if not specified
+        const host = this as unknown as HTMLElement;
+        if (!host.getAttribute("variant")) {
+            const inputType = this.input?.type;
+            host.setAttribute("variant", inputType === "checkbox" ? "switch" : "slider");
+        }
         dragSlider(this.thumb, this.handle, this.input); // @ts-ignore
         assign([this.internals_, "ariaValueMax"], computed(attrRef(this.input, "max"), (v)=>getInputValues(this.input)?.[2]??v)); // @ts-ignore
         assign([this.internals_, "ariaValueMin"], computed(attrRef(this.input, "min"), (v)=>getInputValues(this.input)?.[1]??v)); // @ts-ignore

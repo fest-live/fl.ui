@@ -7,10 +7,13 @@
 // radius
 @property --ui-slider-track-radius { syntax: "<percentage> | <length>"; inherits: true; initial-value: 0.0625rem; }
 @property --ui-slider-thumb-radius { syntax: "<percentage> | <length>"; inherits: true; initial-value: 0.5rem; }
+// gap between thumb edge and track end caps (horizontal)
+@property --ui-slider-gap { syntax: "<length>"; inherits: true; initial-value: 0rem; }
 
 // colors
 @property --ui-slider-track-color { syntax: "<color>"; inherits: true; initial-value: #111; }
 @property --ui-slider-thumb-color { syntax: "<color>"; inherits: true; initial-value: #222; }
+@property --ui-slider-active-color { syntax: "<color>"; inherits: true; initial-value: #4c9fff; }
 
 //
 @layer ui-slider {
@@ -34,14 +37,15 @@
             --ui-slider-thumb-radius: 0.5rem;
 
             // colors
-            --ui-slider-track-color: light-dark(#111, #e0e0e0);
-            --ui-slider-thumb-color: light-dark(#222, #f0f0f0);
+            --ui-slider-thumb-color: --c2-on-surface(-0.1, var(--current));
+            --ui-slider-track-color: --c2-on-surface(0.0, var(--current));
+            --ui-slider-active-color: --c2-on-surface(-1.0, var(--current));
         }
 
         //
         & {
             @include m.display('inline-flex', center, center);
-            @include m.size(100px, 1rem);
+            @include m.size(16rem, 1rem);
             @include m.interaction(none);
         }
 
@@ -57,32 +61,35 @@
         & {
             min-inline-size: max-content;
             min-block-size: max-content;
-            max-inline-size: -webkit-fill-available;
-            max-block-size: -webkit-fill-available;
-            max-inline-size: -moz-available;
-            max-block-size: -moz-available;
-            max-inline-size: available;
-            max-block-size: available;
+            max-inline-size: stretch;
+            max-block-size: stretch;
         }
 
         //
         .ui-box {
             @include m.position(relative);
-            @include m.size(calc(100% - var(--ui-slider-thumb-size) - var(--ui-slider-track-size) * 2));
+            @include m.size(100%);
             @include m.display(flex, center, center);
 
             //
             .ui-track {
                 @include m.position(absolute);
-                @include m.size(100%, var(--ui-slider-track-size));
+                @include m.size(calc(100% - var(--ui-slider-thumb-size)), var(--ui-slider-track-size));
                 @include m.round-corner(var(--ui-slider-track-radius));
                 @include m.color(var(--ui-slider-track-color));
                 @include m.interaction(auto);
 
                 //
                 & {
+                    inset-inline-start: 50%;
                     inset-block-start: 50%;
-                    transform: translateY(-50%);
+                    transform: translate(-50%, -50%);
+                    /* active fill */
+                    background-image: linear-gradient(
+                        to right,
+                        var(--ui-slider-active-color) calc(100% * var(--value, 0)),
+                        var(--ui-slider-track-color) 0
+                    );
                 }
             }
 
@@ -96,15 +103,18 @@
 
                 //
                 & {
-                    --size-w: calc(100cqi - var(--ui-slider-thumb-size, 0px) - var(--ui-slider-track-size, 0px) * 2);
-                    --shift-x: calc(var(--value, 0) * var(--size-w, 100cqi));
-                    --translate-x: calc(clamp(0px, calc(var(--drag-x, 0) * 1px + var(--shift-x, 0px)), var(--size-w, 100cqi)) - var(--ui-slider-thumb-size, 0px) / 2);
+                    --travel-x: calc(100cqi - var(--ui-slider-thumb-size, 0px) * 2 - var(--ui-slider-gap, 0px) * 2);
+                    --shift-x: calc(var(--value, 0) * var(--travel-x, 100cqi));
+                    --translate-x: calc(clamp(0px, calc(var(--drag-x, 0) * 1px + var(--shift-x, 0px)), var(--travel-x, 100cqi)) + var(--ui-slider-thumb-size, 0px) / 2);
 
                     //
+                    inset: auto;
+                    inset-inline-start: 0px;
                     inset-block-start: 50%;
-                    transform: translate(var(--translate-x, 0px), -50%);
+                    transform: translate(calc(var(--translate-x, 0px) + var(--ui-slider-gap, 0px)), -50%);
                     border-radius: 50%;
                     pointer-events: auto;
+                    box-shadow: 0 1px 2px rgb(0 0 0 / 0.15), 0 1px 1px rgb(0 0 0 / 0.08);
                 }
 
                 //
@@ -120,10 +130,38 @@
             }
         }
 
+        /* variants declared at root scope */
+
         //
         ::slotted(*) {
             @include m.position(absolute);
             @include m.display(none);
+        }
+    }
+
+    /* variants */
+    :host(ui-slider[variant="switch"]) {
+        & {
+            --ui-slider-track-size: 1.25rem;
+            --ui-slider-thumb-size: 1rem;
+            --ui-slider-track-radius: calc(var(--ui-slider-track-size) / 2);
+            --ui-slider-thumb-radius: 50%;
+            --ui-slider-track-color: --c2-on-surface(0.0, var(--current));
+            --ui-slider-active-color: --c2-on-surface(-1.0, var(--current));
+            --ui-slider-gap: calc((var(--ui-slider-track-size) - var(--ui-slider-thumb-size)) / 2); // small horizontal gap for switch variant
+        }
+        .ui-thumb { @include m.shadow(); }
+    }
+
+    :host(ui-slider[variant="slider"]) {
+        & {
+            --ui-slider-track-size: 0.0625rem;
+            --ui-slider-thumb-size: 0.75rem;
+            --ui-slider-track-radius: 9999px;
+            --ui-slider-thumb-radius: 50%;
+            --ui-slider-track-color: --c2-on-surface(0.0, var(--current));
+            --ui-slider-active-color: --c2-on-surface(-1.0, var(--current));
+            --ui-slider-gap: calc((var(--ui-slider-track-size) - var(--ui-slider-thumb-size)) / 2);
         }
     }
 }

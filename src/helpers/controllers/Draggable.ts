@@ -39,6 +39,9 @@ export class DragHandler {
         const dragResolve = (dragging)   => {
             const holder = weak?.deref?.() as any;
             holder?.style?.removeProperty?.("will-change");
+            requestAnimationFrame(()=>{
+                holder?.removeAttribute?.("data-dragging");
+            });
 
             //
             const box = getBoundingOrientRect(holder) || holder?.getBoundingClientRect?.();
@@ -52,7 +55,11 @@ export class DragHandler {
 
         //
         E(this.#holder, { style: { "--drag-x": dragging[0], "--drag-y": dragging[1] } });
-        return bindDraggable(binding, dragResolve, dragging, ()=>[0, 0]);
+        return bindDraggable(binding, dragResolve, dragging, ()=>{
+            const holder = weak?.deref?.() as any;
+            holder?.setAttribute?.("data-dragging", "");
+            return [0, 0];
+        });
     }
 }
 

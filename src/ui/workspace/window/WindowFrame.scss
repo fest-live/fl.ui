@@ -8,7 +8,7 @@
 
 // default styles
 @mixin reset-styles {
-    all: unset;
+    & { all: unset; }
 
     & {
         box-sizing: border-box;
@@ -82,7 +82,7 @@
     --ui-window-frame-content-background-color: --c2-surface(0.0, var(--current));
     --ui-window-frame-content-color: --c2-on-surface(0.0, var(--current));
     --ui-window-frame-content-padding: 0px;
-    --ui-window-frame-content-margin: 0px;
+    --ui-window-frame-content-margin: 0.125rem;
     --ui-window-frame-control-hover-bg: --c2-surface(0.1, var(--current));
     --ui-window-frame-control-active-bg: --c2-surface(0.1, var(--current));
     --ui-window-frame-control-close-hover-bg: --c2-on-surface(0.0, var(--secondary));
@@ -109,6 +109,7 @@
     & {
         padding: var(--ui-window-frame-padding);
         margin: var(--ui-window-frame-margin);
+        display: grid !important;
     }
 
     & {
@@ -130,13 +131,16 @@
 
     & {
         transform-origin: 50% 50%;
-        transform: translate(var(--translate-x, 0px), var(--translate-y, 0px)) scale(var(--scale, 1));
+        transform-style: flat;
+        transform-box: fill-box;
+        transform: translate3d(var(--translate-x, 0px), var(--translate-y, 0px), 0px) scale3d(var(--scale, 1), var(--scale, 1), 1);
     }
 
     & { // z-index: 1 + sibling index
         --z-index-order: sibling-index(); // z-index: 1 + custom order (order property)
         --z-index-order: var(--order, sibling-index());
-        z-index: calc(99 + var(--z-index-order));
+        --z-index: calc(99 + var(--z-index-order, 0));
+        z-index: var(--z-index, 99);
     }
 }
 
@@ -220,6 +224,7 @@
     & { // sizing
         inline-size: stretch;
         block-size: stretch;
+        max-block-size: 2rem;
     }
 
     //
@@ -384,6 +389,7 @@
     & {
         block-size: stretch;
         inline-size: max-content;
+        max-block-size: 2rem;
     }
 
     & {
@@ -541,9 +547,14 @@
     @include ps-mechanic;
 }
 
+//
+:host(ui-window-frame:not([data-resizing]):not([data-dragging]):not([data-maximized]):not([data-hidden])) {
+    @include m.transition(('inline-size', 'block-size'), $duration: m.$ui-duration-fast);
+}
+
 // maximized styles
 :host(ui-window-frame[data-maximized]) {
-    @include m.transition((inline-size, block-size), $duration: m.$ui-duration-fast);
+    @include m.transition(('inline-size', 'block-size'), $duration: m.$ui-duration-fast);
 
     & { // transform styles
         transform: none;

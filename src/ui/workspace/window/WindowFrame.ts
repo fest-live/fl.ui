@@ -73,7 +73,10 @@ export class WindowFrame extends UIElement {
 
         //
         self.addEventListener("maximize", ()=>{ handleAttribute(self, "data-maximized", self.getAttribute("data-maximized") != null ? false : true); });
-        this.doCenter();
+        self.setAttribute("data-dragging", "");
+
+        //
+        //this.doCenter();
         this.bindWithTask();
     }
 
@@ -89,7 +92,7 @@ export class WindowFrame extends UIElement {
     //
     onRender() {
         // @ts-ignore
-        super.onRender(); this.doCenter();
+        super.onRender(); //this.doCenter();
         requestAnimationFrame(()=>{ this.doCenter(); });
     }
 
@@ -103,6 +106,7 @@ export class WindowFrame extends UIElement {
         const cY = (parentBox?.height || 0) / 2 - (box?.height || 0) / 2;
         setStyleProperty(holder, "--shift-x", cX - (parentBox?.left || 0));
         setStyleProperty(holder, "--shift-y", cY - (parentBox?.top || 0));
+        holder.removeAttribute("data-dragging");
     }
 
     //

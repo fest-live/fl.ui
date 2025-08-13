@@ -41,6 +41,9 @@ export class ResizeHandler {
         const dragResolve = (dragging) => {
             const holder = weak?.deref?.() as any;
             holder?.style?.removeProperty?.("will-change");
+            requestAnimationFrame(()=>{
+                holder?.removeAttribute?.("data-resizing");
+            });
         };
         const binding  = (grabAction)=>handler.addEventListener("pointerdown", makeShiftTrigger((ev)=>grabAction(ev, this.#holder), this.#holder));
         const initDrag = ()=>{
@@ -48,6 +51,7 @@ export class ResizeHandler {
             const holder = weak?.deref?.() as any;
             const parent = this.#parent;
             self_w?.deref?.()?.limitResize?.(starting, starting, holder, parent)
+            holder?.setAttribute?.("data-resizing", "");
             return starting;
         };
 

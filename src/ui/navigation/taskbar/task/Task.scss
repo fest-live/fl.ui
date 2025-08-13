@@ -20,7 +20,7 @@
 :host(ui-task[data-focus]) {
     background: --c2-surface(0.0, var(--current));
     border-color: --c2-on-surface(0.0, var(--current));
-    box-shadow: 0 0 0 1px --c2-on-surface(0.0, var(--current)) 30% inset, 0 10px 24px -14px --c2-on-surface(0.0, var(--current)) 60%;
+    //box-shadow: 0 0 0 1px --c2-on-surface(0.0, var(--current)) 30% inset, 0 10px 24px -14px --c2-on-surface(0.0, var(--current)) 60%;
 
     //
     & { @include tb.task-states; }

@@ -93,7 +93,7 @@
 @mixin window-frame-layout {
     @include m.radius(var(--ui-window-frame-border-radius));
     @include m.border(var(--ui-window-frame-border-width), solid, var(--ui-window-frame-border-color));
-    @include m.shadow(var(--ui-window-frame-shadow));
+    //@include m.shadow(var(--ui-window-frame-shadow));
     @include m.grid(minmax(0px, 1fr), minmax(0px, var(--ui-window-frame-titlebar-height)) minmax(0px, 1fr));
     @include m.center(y);
     @include m.container(ui-window-frame);
@@ -137,10 +137,9 @@
     }
 
     & { // z-index: 1 + sibling index
-        --z-index-order: sibling-index(); // z-index: 1 + custom order (order property)
-        --z-index-order: var(--order, sibling-index());
-        --z-index: calc(99 + var(--z-index-order, 0));
-        z-index: var(--z-index, 99);
+        --z-index-order: var(--order, sibling-index()); // z-index: 1 + custom order (order property)
+        --z-index: var(--z-index-order, sibling-index());
+        z-index: calc(99 + var(--z-index, 0)) !important;
     }
 }
 

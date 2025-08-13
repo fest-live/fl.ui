@@ -32,6 +32,7 @@
 @property --scroll-coef { syntax: "<number>"; initial-value: 1; inherits: true; }
 @property --scroll-size { syntax: "<number>"; initial-value: 0; inherits: true; }
 @property --content-size { syntax: "<number>"; initial-value: 0; inherits: true; }
+@property --z-index { syntax: "<number>"; initial-value: 0; inherits: true; }
 
 //
 @include pointer-coords;

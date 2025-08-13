@@ -2,23 +2,37 @@
 @property --light-alt { syntax: '<angle>'; inherits: true; initial-value: 55deg; }
 @property --soft-ang  { syntax: '<angle>'; inherits: true; initial-value: 18deg; }
 
+@property --parallax-k { syntax: '<number>'; inherits: true; initial-value: 0.01; }
+@property --parallax-ref { syntax: '<length>'; inherits: true; initial-value: 600px; } // нормализация px->[-1..1]
+@property --az-span      { syntax: '<angle>';  inherits: true; initial-value: 12deg; } // макс. отклонение азимута
+@property --alt-span     { syntax: '<angle>';  inherits: true; initial-value: 6deg; }  // макс. отклонение высоты
+
 @property --umbra-density    { syntax: '<number>'; inherits: true; initial-value: 0.32; }
 @property --penumbra-density { syntax: '<number>'; inherits: true; initial-value: 0.18; }
 
 /* «высота» элемента над плоскостью */
-@property --elev { syntax: '<length>'; inherits: false; initial-value: 0px; }
+@property --elev { syntax: '<number>'; inherits: false; initial-value: 0; }
 
 /* Альтернатива: источник как 3D-вектор (если не хотите вручную углы) */
 @property --lx { syntax: '<number>'; inherits: true; initial-value: -1; }
 @property --ly { syntax: '<number>'; inherits: true; initial-value: -1; }
 @property --lz { syntax: '<number>'; inherits: true; initial-value: 1.2; }
 
+/* shadow properties */
+@property --z-index { syntax: '<number>'; inherits: true; initial-value: 0; }
+@property --dx { syntax: '<number>'; inherits: true; initial-value: 0; }
+@property --dy { syntax: '<number>'; inherits: true; initial-value: 0; }
+@property --spreadC { syntax: '<number>'; inherits: true; initial-value: 0; }
+@property --spreadU { syntax: '<number>'; inherits: true; initial-value: 0; }
+@property --spreadP { syntax: '<number>'; inherits: true; initial-value: 0; }
+@property --alphaC { syntax: '<number>'; inherits: true; initial-value: 0; }
+@property --alphaU { syntax: '<number>'; inherits: true; initial-value: 0; }
+@property --alphaP { syntax: '<number>'; inherits: true; initial-value: 0; }
 
-
-/* */
+/* animations */
 @keyframes lift {
-    from { --elev: 6px; }
-    to   { --elev: 32px; }
+    from { --elev: 6; }
+    to   { --elev: 32; }
 }
 
 /* */
@@ -51,19 +65,27 @@
 }
 */
 
-
-
-
 /* подключайте этот блок к любому «поднятому» элементу */
-.elev {
+.elev, ui-window-frame, .shadow-wrap, .ctx-menu {
+    --relate-x: calc(var(--drag-x, 0) + var(--shift-x, 0) - (100cqi / 2px));
+    --relate-y: calc(var(--drag-y, 0) + var(--shift-y, 0) - (100cqb / 2px));
+
+    /* нормализованные relate -> [-1..1] */
+    --relNX: calc(clamp(-1, (var(--relate-x, 0) / var(--parallax-ref)), 1));
+    --relNY: calc(clamp(-1, (var(--relate-y, 0) / var(--parallax-ref)), 1));
+
+    /* итоговые углы света с «покачиванием» */
+    --light-az:  calc(var(--az-base)  + var(--relNX) * var(--az-span));
+    --light-alt: calc(var(--alt-base) + var(--relNY) * var(--alt-span));
+
     /* высота (может быть отрицательной; единицы — px для наглядности) */
-    --elev: 12px;
+    --elev: calc((var(--z-index, 0) + 2) * 2);
 
     /* Можно анимировать: теперь это типизированное свойство */
-    transition: --elev .3s ease, box-shadow .3s ease, transform .3s ease;
+    //transition: --elev .3s ease, box-shadow .3s ease, transform .3s ease;
 
     /* опционально: ощущение глубины той же переменной */
-    transform: translateZ(var(--elev));
+    //transform: translateZ(var(--elev));
 
     /* длина тени по плоскости: L = |elev| * cot(alt) */
     --cotA: calc(1 / max(0.001, tan(var(--light-alt))));
@@ -73,10 +95,14 @@
     --dx: calc(cos(var(--light-az)) * var(--L) * sign(var(--elev)));
     --dy: calc(sin(var(--light-az)) * var(--L) * sign(var(--elev)));
 
+    /* */
+    --sx: calc((var(--dx) + var(--relate-x) * var(--parallax-k)) * 1px);
+    --sy: calc((var(--dy) + var(--relate-y) * var(--parallax-k)) * 1px);
+
     /* мягкость: пропорциональна высоте и угловому размеру источника */
-    --blurC: calc(max(0.5px, abs(var(--elev)) * tan(var(--soft-ang))));   /* контактная */
-    --blurU: calc(var(--blurC) * 1.6);                                    /* умбра */
-    --blurP: calc(var(--blurC) * 2.8);                                    /* пенумбра */
+    --blurC: calc(max(0.5, abs(var(--elev)) * tan(var(--soft-ang))));   /* контактная */
+    --blurU: calc(var(--blurC) * 1.6);                              /* умбра */
+    --blurP: calc(var(--blurC) * 2.8);                              /* пенумбра */
 
     /* spread: с ростом высоты тень «расходится» (отрицательный spread) */
     --spreadC: calc(abs(var(--elev)) * 0.04);
@@ -89,33 +115,30 @@
     --alphaP: calc(clamp(0.04, var(--penumbra-density) / sqrt(1 + abs(var(--elev)) * 0.08), 0.25));
 
     /* стек слоёв: контактная + умбра + пенумбра */
-    box-shadow:
-        calc(var(--dx) * 0.15) calc(var(--dy) * 0.15) var(--blurC) var(--spreadC) rgb(0 0 0 / var(--alphaC)),
-        var(--dx) var(--dy) var(--blurU) var(--spreadU) rgb(0 0 0 / var(--alphaU)),
-        var(--dx) var(--dy) var(--blurP) var(--spreadP) rgb(0 0 0 / var(--alphaP));
+    filter:
+        drop-shadow(calc(var(--sx) * 0.15) calc(var(--sy) * 0.15) calc(var(--blurC) * 1px) #{"rgb(0 0 0 / var(--alphaC))"})
+        drop-shadow(var(--sx) var(--sy) calc(var(--blurU) * 1px) #{"rgb(0 0 0 / var(--alphaU))"})
+        drop-shadow(var(--sx) var(--sy) calc(var(--blurP) * 1px) #{"rgb(0 0 0 / var(--alphaP))"})
+        !important;
 }
-
-/* примеры состояний/анимаций */
-.elev:hover { --elev: 24px; }
 
 /* scene */
 .scene, :root {
     /* куда «смотрит» свет: -x,-y, +z — пример «сверху-слева» */
-    --lx: -1;
-    --ly: -1;
-    --lz: 1.2;
+    --lx: -0.01;
+    --ly: -0.01;
+    --lz: 8;
+
+    /* базовые углы из вектора */
+    --az-base:  calc(atan2(var(--ly), var(--lx)));
+    --alt-base: calc(atan2(var(--lz), hypot(var(--lx), var(--ly))));
 
     /* азимут и высота из вектора */
     --light-az: calc(atan2(var(--ly), var(--lx))); /* направление в плоскости XY */
     --light-alt: calc(atan2(var(--lz), hypot(var(--lx), var(--ly))));
 
-    /* либо задаёте углы напрямую через :root/.scene
-    --light-az: 225deg; --light-alt: 55deg; либо используете вектор: */
-    --light-az: calc(atan2(var(--ly), var(--lx)));
-    --light-alt: calc(atan2(var(--lz), hypot(var(--lx), var(--ly))));
-
     /* угловой размер источника (мягкость) */
-    --soft-ang: 18deg;
+    --soft-ang: 12deg;
 
     /* плотности для разных слоёв тени */
     --umbra-density: 0.32;     /* основная тень */

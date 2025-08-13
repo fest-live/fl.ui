@@ -40,7 +40,7 @@
 
     //
     *[data-dragging] {
-        z-index: calc(100 + var(--z-index, 0));
+        z-index: calc(100 + var(--z-index, 0)) !important;
     }
 
     //

@@ -1,7 +1,16 @@
 @mixin ps-centered {
     & {
-        inset-inline-start: max(50%, 0px);
-        inset-block-start: max(50%, 0px);
+        //
+        --shift-x: calc(50% / 1px); // 50%
+        --shift-y: calc(50% / 1px); // 50%
+
+        //
+        --drag-x: 0; //calc(-50% / 1px); // -50%
+        --drag-y: 0; //calc(-50% / 1px); // -50%
+
+        //
+        inset-inline-start: max(calc(var(--shift-x) * 1px), 0px);
+        inset-block-start: max(calc(var(--shift-y) * 1px), 0px);
         inset-inline-end: auto;
         inset-block-end: auto;
         writing-mode: horizontal-tb;
@@ -12,8 +21,8 @@
         transform:
             scale3d(var(--scale, 1), var(--scale, 1), var(--scale, 1))
             translate3d(
-                round(nearest, -50%, calc(1px / var(--pixel-ratio, 1))),
-                round(nearest, -50%, calc(1px / var(--pixel-ratio, 1)))
+                round(nearest, calc(/*var(--drag-x) * 1px)*/ -50%), calc(1px / var(--pixel-ratio, 1))),
+                round(nearest, calc(/*var(--drag-y) * 1px)*/ -50%), calc(1px / var(--pixel-ratio, 1)))
             , 0%);
         transform-origin: 0% 0%;
 

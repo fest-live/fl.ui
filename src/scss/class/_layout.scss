@@ -1,5 +1,6 @@
 @use "@scss/class/mixins.scss" as m;
 @use "@scss/lib/ps-cursor.scss" as *;
+@use "@scss/class/shadows.scss" as *;
 
 //
 @property --value  { syntax: "<number>"; initial-value: 0; inherits: true; };
@@ -140,18 +141,14 @@
         block-size: max-content;
         grid-template-columns: minmax(0px, 1fr);
         grid-template-rows: minmax(0px, 1fr);
-        z-index: 1;
+        z-index: calc(var(--z-index, 0) + 1);
+        overflow: visible;
+
+        & { background-color: transparent; }
 
         & > * {
             grid-column: 1 / -1;
             grid-row: 1 / -1;
         }
-    }
-
-    //
-    .shadow-wrap {
-        filter: drop-shadow(0 0 0.25rem #0008);
-        background-color: transparent;
-        pointer-events: none;
     }
 }

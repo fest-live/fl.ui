@@ -56,7 +56,7 @@ export class UIFileManager extends UIElement {
     @property({ source: "inline-size" }) inlineSize?: number;
 
     // refs/state
-    #entries = makeReactive([] as FileEntryItem[]);
+    #entries = makeReactive<FileEntryItem[]>([]);
     #loading = ref(false);
     #error = ref("");
     #fsRoot: any = null;
@@ -162,7 +162,7 @@ export class UIFileManager extends UIElement {
             this.navigate(next);
         } else {
             const detail = { path: (this.path || "/user/") + item.name, item };
-            this.dispatchEvent(new CustomEvent("open", { detail, bubbles: true, composed: true }));
+            (this as any).dispatchEvent?.(new CustomEvent("open", { detail, bubbles: true, composed: true }));
         }
     };
 
@@ -178,28 +178,28 @@ export class UIFileManager extends UIElement {
         }
     };
 
-    render() {
+    render = function() {
         const entries = this.#entries;
         const loading = this.#loading;
         const error = this.#error;
         const sidebarVisible = this.showSidebar;
 
         return H`
-            <div part="root" class="fm-root ${sidebarVisible ? "with-sidebar" : "no-sidebar"}">
+            <div part="root" class="fm-root" data-with-sidebar=${sidebarVisible}>
                 <div part="toolbar" class="fm-toolbar">
                     <button class="btn" title="Up" on:click=${() => this.goUp()}><ui-icon icon="arrow-up"/></button>
                     <button class="btn" title="Refresh" on:click=${() => this.loadPath(this.path)}><ui-icon icon="arrow-clockwise"/></button>
                     <ui-longtext name="address" value=${this.path}></ui-longtext>
                 </div>
 
-                ${sidebarVisible ? H`<aside part="sidebar" class="fm-sidebar">
+                ${H`<aside visible=${sidebarVisible} part="sidebar" class="fm-sidebar">
                     <div class="sec">
                         <div class="sec-title">Places</div>
                         <button class="link" on:click=${() => this.navigate("/user/")}>/user</button>
                         <button class="link" on:click=${() => this.navigate("/user/temp/")}>/user/temp</button>
                         <button class="link" on:click=${() => this.navigate("/user/pictures/")}>/user/pictures</button>
                     </div>
-                </aside>` : null}
+                </aside>`}
 
                 <div part="content" class="fm-content">
                     ${loading?.value ? H`<div class="status">Loading…</div>` : null}
@@ -215,7 +215,7 @@ export class UIFileManager extends UIElement {
                         <div class="fm-grid-rows">
                             ${M(entries, (item: FileEntryItem) => H`
                                 <div class="row" on:click=${(ev: MouseEvent) => this.onRowClick(item, ev)} on:dblclick=${(ev: MouseEvent) => this.onRowDblClick(item, ev)}>
-                                    <div class="c icon">${item.kind === "directory" ? H`<ui-icon icon="folder"/>` : H`<ui-icon icon=${iconFor(item)} />`}</div>
+                                    <div class="c icon">${H`<ui-icon icon=${iconFor(item)} />`}</div>
                                     <div class="c name" title=${item.name}>${item.name}</div>
                                     <div class="c type">${item.kind === "directory" ? "directory" : (item.type || "")}</div>
                                     <div class="c size">${item.size != null ? (item.size as number).toLocaleString() : ""}</div>
@@ -231,5 +231,3 @@ export class UIFileManager extends UIElement {
 }
 
 export default UIFileManager;
-
-

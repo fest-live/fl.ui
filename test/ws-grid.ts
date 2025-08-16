@@ -62,8 +62,8 @@ async function createGridWithItem() {
 
     //
     const genItem = (item)=>{
-        return H`<div style="" class="c2-surface layered-wrap shadow-wrap" ref=${withItem.bind(null, item)} data-id=${item.id}>
-            <div data-shape="square" class="shaped c2-surface"><ui-icon style="z-index: 2;" icon="newspaper"></ui-icon></div>
+        return H`<div class="c2-surface layered-wrap shadow-wrap ui-ws-item" ref=${withItem.bind(null, item)} data-id=${item.id}>
+            <div data-shape="square" class="shaped c2-surface" style="color-scheme: light;"><span><ui-icon style="z-index: 2;" icon="cross"></ui-icon></span></div>
         </div>`}
 
     //

@@ -65,8 +65,8 @@
 }
 */
 
-/* подключайте этот блок к любому «поднятому» элементу */
-.elev, ui-window-frame, .shadow-wrap, .ctx-menu {
+
+@mixin shadow-drop() {
     --relate-x: calc(var(--drag-x, 0) + var(--shift-x, 0) - (100cqi / 2px));
     --relate-y: calc(var(--drag-y, 0) + var(--shift-y, 0) - (100cqb / 2px));
 
@@ -120,6 +120,14 @@
         drop-shadow(var(--sx) var(--sy) calc(var(--blurU) * 1px) #{"rgb(0 0 0 / var(--alphaU))"})
         drop-shadow(var(--sx) var(--sy) calc(var(--blurP) * 1px) #{"rgb(0 0 0 / var(--alphaP))"})
         !important;
+}
+
+
+
+/* подключайте этот блок к любому «поднятому» элементу */
+.elev, ui-window-frame, .shadow-wrap, .ctx-menu, .ui-frame {
+    filter: drop-shadow(0px 0px calc(0.125rem + var(--z-index, 0) * 0.125rem) #00000040);
+    //@include shadow-drop;
 }
 
 /* scene */

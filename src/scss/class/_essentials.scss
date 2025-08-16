@@ -155,4 +155,30 @@
             opacity: 0.1;
         }
     }
+
+    //
+    .ui-ws-item {
+        & {
+            --shadow-color: oklch(from --c2-surface(0.0, var(--current)) l c h / 0.4);
+            cursor: pointer;
+            user-select: none;
+            pointer-events: auto;
+        }
+
+        //
+        & span {
+            pointer-events: none;
+            aspect-ratio: 1 / 1;
+            inline-size: max-content;
+            block-size: max-content;
+            display: inline;
+            filter: drop-shadow(0px 0px 0.125rem var(--shadow-color));
+        }
+
+        //
+        &:active {
+            will-change: transform;
+            cursor: grabbing;
+        }
+    }
 }

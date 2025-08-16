@@ -4,6 +4,8 @@
 //
 @use "./wavy" as wavy;
 
+@property --background-tone-shift { syntax: "<number>"; initial-value: 0.0; inherits: true; };
+
 //
 @layer ux-shapes {
 
@@ -18,8 +20,8 @@
         place-items: center;
 
         //
-        color: --c2-surface(0.0, var(--current));
-        background-color: --c2-on-surface(0.0, var(--current));
+        color: --c2-on-surface(0.0, var(--current));
+        background-color: --c2-surface(var(--background-tone-shift, 0.0), var(--current));
         padding: 1.25rem;
         color-scheme: dark;
         pointer-events: auto;
@@ -27,14 +29,23 @@
         user-select: none;
         z-index: 1;
         clip-path: var(--clip-path);
+        --background-tone-shift: 0.0;
+        transition-behavior: allow-discrete;
+        transition: --background-tone-shift 0.2s ease-in-out, --icon-color 0.2s ease-in-out;
 
-        & > * {
+        & span {
             inline-size: stretch;
             block-size: stretch;
         }
 
-        & > ui-icon {
-            --icon-color: --c2-surface(0.0, var(--current));
+        & ui-icon {
+            inline-size: stretch;
+            block-size: stretch;
+        }
+
+        &:hover {
+            --background-tone-shift: 0.1;
+            --icon-color: --c2-on-surface(0.0, var(--current));
         }
     }
 

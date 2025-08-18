@@ -288,9 +288,44 @@ $def-ff: 'InterVariable', 'Inter', 'Open Sans', 'Source Sans 3','Gill Sans Nova'
 }
 
 // utility to apply the same content both inside :host(...) and outside host using slotted child
-@mixin inside-outside($host, $child) {
+@mixin host-related($host, $child) {
     // outside web component
-    #{$host} { #{$child} { @content; } }
+    #{$host} { & > #{$child} { @content; } }
     // inside web component
     :host(#{$host}) { ::slotted(#{$child}) { @content; } }
 }
+
+//
+@mixin host-context($host, $relative: null) {
+    @if $relative == null {
+        #{$host} { @content; }
+        :host(#{$host}) { @content; }
+    } @else {
+        #{$relative} { #{$host} { @content; } }
+        :host(#{$host}):host-context(#{$relative}) { @content; }
+    }
+}
+
+//
+@mixin inline-stretch { & { inline-size: 100%; inline-size: -webkit-fill-available; inline-size: stretch; } }
+
+//
+@mixin block-stretch { & { block-size: 100%; block-size: -webkit-fill-available; block-size: stretch; } }
+
+//
+@mixin content-inline-size { & { padding-inline: limit-by-size(calc(var(--content-inline-size, 100%) * 0.5), 100%); } }
+
+//
+@mixin content-block-size { & { padding-block: limit-by-size(calc(var(--content-block-size, 100%) * 0.5), 100%); } }
+
+//
+@mixin ux-anchor { & { transform: scale(var(--scale, 1)) translate(var(--translate-x, 0px), var(--translate-y, 0px)); } }
+
+//
+@mixin grid-layered {
+    & { grid-template-columns: minmax(0px, 1fr); grid-template-rows: minmax(0px, 1fr); }
+    & > * { grid-column: 1 / -1; grid-row: 1 / -1; }
+}
+
+//
+@mixin grid-rows-3c { & { grid-template-columns: minmax(0px, max-content) minmax(0px, 1fr) minmax(0px, max-content); } }

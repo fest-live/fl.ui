@@ -17,31 +17,27 @@
 
 //
 @layer ux-classes {
-    //
-    .grid-rows > *, :host(.grid-rows) > ::slotted(*) { @include m.grid-row; }
-    .grid-rows, :host(.grid-rows) {
-        @include m.grid-flow(column);
-        @include m.place();
+    @include m.host-related(".grid-rows", "*") { @include m.grid-row; }
+    @include m.host-context(".grid-rows") {
+        @include m.display(inline-grid, column, center, center);
+        @include m.size(auto, auto);
 
         //
         & {
             grid-auto-rows: minmax(0px, max-content);
-            grid-template-columns: minmax(0px, max-content) minmax(0px, 1fr)  minmax(0px, max-content);
+            grid-template-columns: minmax(0px, max-content) minmax(0px, 1fr) minmax(0px, max-content);
             margin: 0px;
             padding: 0px;
             list-style-type: none;
             list-style-position: inside;
         }
-
-        //
-        & { @include m.size(max-content, max-content); }
     }
 
     //
-    .grid-columns > *, :host(.grid-columns) > ::slotted(*) { @include m.grid-column; }
-    .grid-columns, :host(.grid-columns) {
-        @include m.grid-flow(row);
-        @include m.place();
+    @include m.host-related(".grid-columns", "*") { @include m.grid-column; }
+    @include m.host-context(".grid-columns") {
+        @include m.display(inline-grid, row, center, center);
+        @include m.size(auto, auto);
 
         //
         & {
@@ -55,100 +51,73 @@
     }
 
     //
-    .flex-columns > *, :host(.flex-columns) > ::slotted(*) { @include m.flex-column; }
-    .flex-columns, :host(.flex-columns) {
-        @include m.flex-flow(row);
-        @include m.place();
+    @include m.host-related(".flex-columns", "*") { @include m.flex-column; }
+    @include m.host-context(".flex-columns") {
+        @include m.display(inline-flex, column, center, center);
+        @include m.size(max-content, max-content);
     }
 
     //
-    .grid-layered, :host(.grid-layered) {
-        & {
-            grid-template-columns: minmax(0px, 1fr);
-            grid-template-rows: minmax(0px, 1fr);
-        }
+    @include m.host-related(".grid-layered", "*") { @include m.grid-layered; }
+    @include m.host-context(".grid-layered") {
+        @include m.grid-layered;
+        @include m.display(inline-grid, column, center, center);
+        @include m.size(max-content, max-content);
+    }
 
+    //
+    @include m.host-related(".grid-layered", "*") { @include m.grid-layered; }
+    @include m.host-context(".grid-layered") {
         //
-        & {
-            @include m.display();
-            @include m.size(max-content, max-content);
-        }
-    }
-
-    //
-    .grid-layered > *, :host(.grid-layered) > ::slotted(*) {
         --order: m.sibling-index();
 
         //
-        order: var(--order, auto);
-        z-index: var(--order, 0);
-        grid-column: 1 / -1;
-        grid-row   : 1 / -1;
+        & { order: var(--order, auto); z-index: var(--order, 0); grid-column: 1 / -1; grid-row: 1 / -1; }
 
         //
         @include m.size(auto, auto);
     }
 
     //
-    .grid-rows-3c, :host(.grid-rows-3c) { // hovewer, would be 'grid-columns-count' variable...
-        grid-template-columns: minmax(0px, max-content) minmax(0px, 1fr) minmax(0px, max-content);
-    }
-
-    //
-    .grid-rows-3c > *:last-child, :host(.grid-rows-3c) > ::slotted(*:last-child) { grid-column: var(--order, 1) / 3 span; }
-    .grid-rows-3c > *, :host(.grid-rows-3c) > ::slotted(*) {
-        --order: m.sibling-index();
-        grid-column: var(--order, 1) / var(--order, 1) span;
+    @include m.host-related(".grid-rows-3c", "*") { @include m.grid-rows-3c; }
+    @include m.host-context(".grid-rows-3c") {
+        //
+        & { grid-template-columns: minmax(0px, max-content) minmax(0px, 1fr) minmax(0px, max-content); }
 
         //
         @include m.size(auto, auto);
     }
 
     //
-    .stretch-inline {
-        inline-size: 100%;
-        inline-size: -webkit-fill-available;
-        inline-size: stretch;
+    @include m.host-related(".grid-rows-3c", "> *:last-child") { grid-column: var(--order, 1) / 3 span; }
+    @include m.host-context(".grid-rows-3c") {
+        //
+        --order: m.sibling-index();
+
+        //
+        & { grid-column: var(--order, 1) / var(--order, 1) span; }
+
+        //
+        @include m.size(auto, auto);
     }
 
     //
-    .stretch-block {
-        block-size: 100%;
-        block-size: -webkit-fill-available;
-        block-size: stretch;
-    }
+    @include m.host-context(".stretch-inline") { @include m.inline-stretch; }
+    @include m.host-context(".stretch-block") { @include m.block-stretch; }
 
     // requires `box-sizing: border-box`
-    .content-inline-size {
-        padding-inline: limit-by-size(calc(var(--content-inline-size, 100%) * 0.5), 100%);
-    }
+    @include m.host-context(".content-inline-size") { @include m.content-inline-size; }
 
     // requires `box-sizing: border-box`
-    .content-block-size {
-        padding-block: limit-by-size(calc(var(--content-block-size, 100%) * 0.5), 100%);
-    }
+    @include m.host-context(".content-block-size") { @include m.content-block-size; }
 
     //
-    .ux-anchor {
-        transform: scale(var(--scale, 1)) translate(var(--translate-x, 0px), var(--translate-y, 0px));
-        @include ps-cursor;
-    }
+    @include m.host-context(".ux-anchor") { @include m.ux-anchor; }
+    @include m.host-context(".ux-anchor") { @include ps-cursor; }
 
     //
-    .layered-wrap {
-        display: inline grid;
-        inline-size: max-content;
-        block-size: max-content;
-        grid-template-columns: minmax(0px, 1fr);
-        grid-template-rows: minmax(0px, 1fr);
-        z-index: calc(var(--z-index, 0) + 1);
-        overflow: visible;
-
-        & { background-color: transparent; }
-
-        & > * {
-            grid-column: 1 / -1;
-            grid-row: 1 / -1;
-        }
+    @include m.host-context(".layered-wrap") {
+        & { background-color: transparent; display: inline grid; inline-size: max-content; block-size: max-content; grid-template-columns: minmax(0px, 1fr); grid-template-rows: minmax(0px, 1fr); z-index: calc(var(--z-index, 0) + 1); overflow: visible; }
+        & > * { grid-column: 1 / -1; grid-row: 1 / -1; }
     }
 }

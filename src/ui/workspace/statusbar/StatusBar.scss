@@ -1,16 +1,15 @@
 @use "@scss/class/mixins.scss" as m;
 
 //
-@include m.inside-outside('ui-statusbar', 'ui-statusbar > *') {
+@include m.host-related('ui-statusbar', '*') {
     background-color: transparent;
 }
 
 //
-:host(ui-statusbar) {
-    & {
-        @include m.display(flex, row, center, space-between);
-    }
+@include m.host-context('ui-statusbar') {
+    @include m.display(flex, row, center, space-between);
 
+    //
     & {
         //
         color: --c2-on-contrast(0.0, var(--current));

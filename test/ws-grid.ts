@@ -17,6 +17,7 @@ import "../src/ui/workspace/statusbar/StatusBar";
 import { TaskIndication } from "../src/ui/navigation/taskbar/task/TaskIndication";
 import { TaskInteraction } from "../src/ui/navigation/taskbar/bar/TaskInteraction";
 import { makeTask, makeTasks, Task } from "../src/helpers/tasking/Tasks";
+import { H } from "fest/lure";
 
 //
 async function makeWallpaper() {
@@ -90,7 +91,7 @@ async function createGridWithItem() {
 
 //
 const tasks = makeTasks((list)=>[
-    makeTask("#task0", list, {active: true}, makeReactive({ title: "Task 0", icon: "app-window" })),
+    makeTask("#task0", list, {active: true, render: ()=>H`<ui-file-manager></ui-file-manager>`}, makeReactive({ title: "Task 0", icon: "app-window" })),
     makeTask("#task1", list, {active: true}, makeReactive({ title: "Task 1", icon: "folder" })),
     makeTask("#task2", list, {active: true}, makeReactive({ title: "Task 2", icon: "newspaper" })),
 ]);
@@ -99,10 +100,16 @@ const tasks = makeTasks((list)=>[
 async function createWindowFrame() {
     const { H, orientRef, M } = await import("fest/lure");
     const { WindowFrame } = await import("../src/ui/workspace/window/WindowFrame");
+    const { FileManager } = await import("../src/ui/services/file-manager/FileManager");
+    const { SliderInput } = await import("../src/ui/inputs/slider/Slider");
+    const { LongTextInput } = await import("../src/ui/inputs/text/Text");
+
+    //
     const oRef = orientRef();
     return H`<div data-mixin="ui-orientbox" style="inline-size: 100%; block-size: 100%; inset: 0; position: fixed; background-color: transparent;">
         ${M(tasks, task=>{
             const frame = H`<ui-window-frame></ui-window-frame>`;
+            if (task?.render) { frame.append(task?.render?.()); }
             new TaskStateReflect(frame, task);
             return frame;
         })}

@@ -9,6 +9,7 @@ export interface ITask {
     get active(): boolean;
     set focus(activeStatus: boolean);
     get focus(): boolean;
+    render?(): any;
     takeAction?(): boolean|void;
     addSelfToList(list?: ITask[]|null, doFocus?: boolean): ITask;
     removeFromList(): ITask;
@@ -22,4 +23,5 @@ export interface ITaskOptions {
     icon?: string;
     payload?: any;
     action?: any;
+    render?: any;
 }

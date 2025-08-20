@@ -89,7 +89,7 @@
     }
 
     //
-    @include m.host-related(".grid-rows-3c", "> *:last-child") { grid-column: var(--order, 1) / 3 span; }
+    @include m.host-related(".grid-rows-3c", "*:last-child") { grid-column: var(--order, 1) / 3 span; }
     @include m.host-context(".grid-rows-3c") {
         //
         --order: m.sibling-index();

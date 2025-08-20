@@ -4,12 +4,6 @@ import { ITask } from "./Types";
 import { ITaskOptions } from "./Types";
 
 //
-const _LOG_ = (a: any)=>{
-    console.log(a);
-    return a;
-}
-
-//
 export class Task implements ITask {
     $active: boolean = false;
     $action: ()=>boolean|void;
@@ -47,12 +41,12 @@ export class Task implements ITask {
 
         //
         if (doFocus) { this.focus = true; }
-        history.pushState("", "", /*location.hash =*/ getFocused(list, false)?.taskId || "");
+        history.pushState("", "", getFocused(list, false)?.taskId || "");
         document.dispatchEvent(new CustomEvent("task-focus", { detail: this, bubbles: true, composed: true, cancelable: true }));
 
         //
         return this;
-    };
+    }
 
     //
     get active(): boolean { return !!this.$active; }
@@ -110,7 +104,7 @@ export class Task implements ITask {
         this.list = null;
         return this;
     }
-};
+}
 
 //
 export const makeTask = (taskId: string|Task, list?: ITask[]|null, state: ITaskOptions|null = null, payload: any = {}, action?: any)=>{

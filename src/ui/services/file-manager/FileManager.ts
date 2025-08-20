@@ -1,4 +1,4 @@
-import { E, H, defineElement, property, M, Q } from "fest/lure";
+import { H, defineElement, property, M, Q } from "fest/lure";
 import { makeReactive, ref } from "fest/object";
 import { addEvent, preloadStyle } from "fest/dom";
 
@@ -7,7 +7,6 @@ import {
     openDirectory,
     getDir,
     getMimeTypeByFilename,
-    readFile,
     downloadFile
 } from "fest/lure";
 
@@ -41,13 +40,14 @@ const iconByMime = (mime: string | undefined, def = "file") => {
     return def;
 };
 
-const iconFor = (item: FileEntryItem) => item.kind === "directory" ? "folder" : iconByMime(item.type);
+//
+const iconFor = (item: FileEntryItem) => item?.kind === "directory" ? "folder" : iconByMime(item?.type);
 
 // @ts-ignore
 @defineElement("ui-file-manager")
-export class UIFileManager extends UIElement {
+export class FileManager extends UIElement {
     // path to show; starts from /user
-    @property({ source: "attr", name: "path" }) path: string = "/user/";
+    @property({ source: "attr", name: "path" }) path?: string = "/user/";
 
     // explicit sidebar control; if not provided, auto by container size
     @property({ source: "attr", name: "sidebar" }) sidebar?: any = "auto";
@@ -146,7 +146,7 @@ export class UIFileManager extends UIElement {
                 items.push({ name, kind, type, size, lastModified, handle });
             }
             // sort: directories first, then files by name
-            items.sort((a, b) => (a.kind === b.kind ? a.name.localeCompare(b.name) : (a.kind === "directory" ? -1 : 1)));
+            items.sort((a, b) => (a?.kind === b?.kind ? a?.name?.localeCompare?.(b?.name) : (a?.kind === "directory" ? -1 : 1)));
             this.#entries.splice(0, this.#entries.length, ...items);
         } catch (e: any) {
             this.#error.value = e?.message || String(e || "");
@@ -157,21 +157,21 @@ export class UIFileManager extends UIElement {
 
     private onRowClick = (item: FileEntryItem, ev: MouseEvent) => {
         ev.preventDefault();
-        if (item.kind === "directory") {
-            const next = (this.path.endsWith("/") ? this.path : this.path + "/") + item.name + "/";
+        if (item?.kind === "directory") {
+            const next = (this.path?.endsWith?.("/") ? this.path : this.path + "/") + item?.name + "/";
             this.navigate(next);
         } else {
-            const detail = { path: (this.path || "/user/") + item.name, item };
+            const detail = { path: (this.path || "/user/") + item?.name, item };
             (this as any).dispatchEvent?.(new CustomEvent("open", { detail, bubbles: true, composed: true }));
         }
     };
 
     private onRowDblClick = (item: FileEntryItem, ev: MouseEvent) => {
         ev.preventDefault();
-        if (item.kind === "file") {
+        if (item?.kind === "file") {
             // attempt to download the file
             Promise.try(async () => {
-                const fh = await this.#dirProxy?.getFileHandle?.(item.name, { create: false });
+                const fh = await this.#dirProxy?.getFileHandle?.(item?.name, { create: false });
                 const file = await fh?.getFile?.();
                 if (file) await downloadFile(file);
             }).catch(console.warn);
@@ -184,12 +184,13 @@ export class UIFileManager extends UIElement {
         const error = this.#error;
         const sidebarVisible = this.showSidebar;
 
+        //
         return H`
             <div part="root" class="fm-root" data-with-sidebar=${sidebarVisible}>
                 <div part="toolbar" class="fm-toolbar">
                     <button class="btn" title="Up" on:click=${() => this.goUp()}><ui-icon icon="arrow-up"/></button>
                     <button class="btn" title="Refresh" on:click=${() => this.loadPath(this.path)}><ui-icon icon="arrow-clockwise"/></button>
-                    <ui-longtext name="address" value=${this.path}></ui-longtext>
+                    <ui-longtext value=${this.path} class="address" style="inline-size: stretch; border: none 0px transparent; outline: none 0px transparent;" name="address"></ui-longtext>
                 </div>
 
                 ${H`<aside visible=${sidebarVisible} part="sidebar" class="fm-sidebar">
@@ -216,10 +217,10 @@ export class UIFileManager extends UIElement {
                             ${M(entries, (item: FileEntryItem) => H`
                                 <div class="row" on:click=${(ev: MouseEvent) => this.onRowClick(item, ev)} on:dblclick=${(ev: MouseEvent) => this.onRowDblClick(item, ev)}>
                                     <div class="c icon">${H`<ui-icon icon=${iconFor(item)} />`}</div>
-                                    <div class="c name" title=${item.name}>${item.name}</div>
-                                    <div class="c type">${item.kind === "directory" ? "directory" : (item.type || "")}</div>
-                                    <div class="c size">${item.size != null ? (item.size as number).toLocaleString() : ""}</div>
-                                    <div class="c date">${item.lastModified ? new Date(item.lastModified).toLocaleString() : ""}</div>
+                                    <div class="c name" title=${item?.name}>${item?.name}</div>
+                                    <div class="c type">${item?.kind === "directory" ? "directory" : (item?.type || "")}</div>
+                                    <div class="c size">${item?.size != null ? (item?.size as number).toLocaleString() : ""}</div>
+                                    <div class="c date">${item?.lastModified ? new Date(item?.lastModified).toLocaleString() : ""}</div>
                                 </div>
                             `)}
                         </div>
@@ -230,4 +231,5 @@ export class UIFileManager extends UIElement {
     }
 }
 
-export default UIFileManager;
+//
+export default FileManager;

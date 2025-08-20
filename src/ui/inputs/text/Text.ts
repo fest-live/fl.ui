@@ -30,8 +30,8 @@ const styled  = preloadStyle(styles);
 export class LongTextInput extends UIElement {
     @property({ source: "query", name: "input" }) input?: HTMLInputElement;
     @property({ source: "query-shadow", name: ".box-layer" }) box?: HTMLElement;
-    @property({ source: "attr", from: "input[type=\"text\"], input[type=\"number\"], input" }) name?: string;
-    @property({ source: "value", from: "input[type=\"text\"], input[type=\"number\"], input", name: "value" }) value?: string = "";
+    @property({ source: "attr", from: "input[type=\"text\"], input[type=\"number\"], input" }) name?: string = "";
+    @property({ source: "value", from: "input[type=\"text\"], input[type=\"number\"], input" }) value?: string = "";
 
     //
     static formAssociated = true;
@@ -50,9 +50,8 @@ export class LongTextInput extends UIElement {
 
     //
     onInitialize() {
-        if (this.value == null) { this.value = ""; }
         super.onInitialize(); // @ts-ignore
-        assign([this.internals_, "ariaValueText"], valueRef(this.input)); // @ts-ignore
+        assign([this.internals_, "ariaValueText"], this.value); // @ts-ignore
         assign([this.internals_, "ariaOrientation"], "horizontal"); // @ts-ignore
         assign([this.internals_, "ariaLive"], "polite"); // @ts-ignore
         assign([this.internals_, "ariaRelevant"], "additions"); // @ts-ignore
@@ -98,7 +97,7 @@ export class LongTextInput extends UIElement {
                 const newInput = document.createElement("input");
                 newInput.type  = "text";
                 newInput.value = self?.value || "";
-                newInput.name  = self?.name  || "";
+                newInput.name  = self?.name || "";
                 newInput.placeholder = self?.placeholder || "";
                 newInput.disabled = self?.disabled || false;
                 newInput.readOnly = self?.readOnly || false;

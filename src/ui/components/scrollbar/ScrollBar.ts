@@ -1,6 +1,6 @@
 import {    subscribe, computed, numberRef } from "fest/object";
-import { E, scrollRef, sizeRef } from "fest/lure";
-import { getPadding, setProperty, makeRAFCycle, RAFBehavior, preloadStyle, addEvent, removeEvent, removeEvents, addEvents } from "fest/dom";
+import { bindWith, E, scrollRef, sizeRef } from "fest/lure";
+import { getPadding, setProperty, makeRAFCycle, RAFBehavior, preloadStyle, addEvent, removeEvent, removeEvents, addEvents, handleStyleChange } from "fest/dom";
 
 // @ts-ignore
 import styles from "./ScrollBar.scss?inline";
@@ -58,16 +58,17 @@ const _LOG_ = (a)=>{
 }
 
 //
-const scrollSize  = (source: HTMLElement, axis: number = 0)=>{ // @ts-ignore
+const scrollSize  = (source: HTMLElement, axis: number = 0, inputChange?: any|null)=>{ // @ts-ignore
     const target  = asWeak(source);
     const scroll  = scrollRef(source, (["inline", "block"] as ["inline", "block"])[axis]);
-    const content = sizeRef(source, (["inline", "block"] as ["inline", "block"])[axis], "content-box");
+    const content =   sizeRef(source, (["inline", "block"] as ["inline", "block"])[axis], "content-box");
     const compute = ()=>((target?.deref?.()?.[['scrollWidth', 'scrollHeight'][axis] || 'scrollWidth'] - 1) || 1);
     const percent = numberRef(compute());
     subscribe(content, ()=>(percent.value = compute()));
     subscribe(scroll,  ()=>(percent.value = compute()));
-    addEvent(source, "input", ()=>(percent.value = compute()));
-    addEvent(source, "change", ()=>(percent.value = compute()));
+    addEvent(inputChange || source, "input" , ()=>(percent.value = compute()));
+    addEvent(inputChange || source, "change", ()=>(percent.value = compute()));
+    requestAnimationFrame(()=>(percent.value = compute()));
     return percent;
 }
 
@@ -111,7 +112,7 @@ try { CSS.registerProperty({ name: "--max-offset", syntax: "<length-percentage>"
 try { CSS.registerProperty({ name: "--max-size", syntax: "<length-percentage>", inherits: true, initialValue: "0px" }); } catch(e) {};
 
 //
-const makeInteractive = (holder, content, scrollbar, axis = 0, status: any = {})=>{
+const makeInteractive = (holder, content, scrollbar, axis = 0, status: any = {}, inputChange?: any|null) =>{
     const status_w   = asWeak(status);
     const content_w  = asWeak(content);
     const moveScroll = (evc) => {
@@ -181,13 +182,15 @@ export class ScrollBar {
     content: HTMLDivElement;
     status: ScrollBarStatus;
     holder: HTMLElement;
+    inputChange: any;
 
     //
-    constructor({holder, scrollbar, content}, axis = 0) {
+    constructor({holder, scrollbar, content, inputChange}, axis = 0) {
         this.scrollbar   = scrollbar;
         this.holder      = holder;
         this.content     = content;
         this.status      = { delta: 0, scroll: 0, point: 0, pointerId: -1 };
+        this.inputChange = inputChange;
 
         //
         const currAxis   = axisConfig[axis]; // @ts-ignore
@@ -203,9 +206,10 @@ export class ScrollBar {
         //
         setProperty(this.scrollbar, "visibility", "collapse");
         setProperty(this.scrollbar?.querySelector?.("*"), "pointer-events", "none");
-        makeInteractive(this.holder, this.content, this.scrollbar, axis, this.status);
+        makeInteractive(this.holder, this.content, this.scrollbar, axis, this.status, this.inputChange);
 
         //
-        E(this.scrollbar, { style: { "--scroll-size": computed(scrollSize(this.content, axis), (v)=>`${v||1}px`, RAFBehavior()) } });
+        //E(this.scrollbar, { style: { "--scroll-size": computed(scrollSize(this.content, axis, this.inputChange), (v)=>`${v||1}px`, RAFBehavior()) } });
+        bindWith(this.scrollbar, "--scroll-size", computed(scrollSize(this.content, axis, this.inputChange), (v)=>`${v||1}px`, RAFBehavior()), handleStyleChange);
     }
 }

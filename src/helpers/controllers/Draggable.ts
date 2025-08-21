@@ -1,4 +1,4 @@
-import { setStyleProperty, getBoundingOrientRect, bindDraggable, contentBoxWidth, contentBoxHeight, borderBoxWidth, borderBoxHeight, ROOT } from "fest/dom";
+import { setStyleProperty, getBoundingOrientRect, bindDraggable, contentBoxWidth, contentBoxHeight, borderBoxWidth, borderBoxHeight, ROOT, RAFBehavior } from "fest/dom";
 import { makeShiftTrigger, doObserve } from "./Trigger";
 
 //
@@ -24,7 +24,7 @@ export class DragHandler {
     //
     constructor(holder, options: DragHandlerOptions) {
         if (!holder) { throw Error("Element is null..."); }
-        doObserve(this.#holder = holder, this.#parent); this.#dragging = [numberRef(0), numberRef(0)];
+        doObserve(this.#holder = holder, this.#parent); this.#dragging = [numberRef(0, RAFBehavior()), numberRef(0, RAFBehavior())];
         if (options) this.draggable(options);
     }
 
@@ -58,6 +58,9 @@ export class DragHandler {
         return bindDraggable(binding, dragResolve, dragging, ()=>{
             const holder = weak?.deref?.() as any;
             holder?.setAttribute?.("data-dragging", "");
+            holder?.style?.setProperty("--drag-x", "0");
+            holder?.style?.setProperty("--drag-y", "0");
+            holder?.style?.setProperty("will-change", "transform");
             return [0, 0];
         });
     }

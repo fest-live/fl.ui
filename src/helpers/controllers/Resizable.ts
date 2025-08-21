@@ -1,4 +1,4 @@
-import { fixedClientZoom, getBoundingOrientRect, bindDraggable, clamp, bbh, bbw, cbh, cbw, ROOT, type InteractStatus } from "fest/dom";
+import { fixedClientZoom, getBoundingOrientRect, bindDraggable, clamp, bbh, bbw, cbh, cbw, ROOT, type InteractStatus, RAFBehavior } from "fest/dom";
 import { makeShiftTrigger, doObserve } from "./Trigger";
 
 //
@@ -16,7 +16,7 @@ export class ResizeHandler {
     //
     constructor(holder, options?: any) {
         if (!holder) { throw Error("Element is null..."); }
-        doObserve(this.#holder = holder, this.#parent); this.#resizing = [numberRef(0), numberRef(0)];
+        doObserve(this.#holder = holder, this.#parent); this.#resizing = [numberRef(0, RAFBehavior()), numberRef(0, RAFBehavior())];
         if (options) this.resizable(options);
     }
 
@@ -41,6 +41,8 @@ export class ResizeHandler {
         const dragResolve = (dragging) => {
             const holder = weak?.deref?.() as any;
             holder?.style?.removeProperty?.("will-change");
+            //holder?.style?.setProperty("--resize-x", "0");
+            //holder?.style?.setProperty("--resize-y", "0");
             requestAnimationFrame(()=>{
                 holder?.removeAttribute?.("data-resizing");
             });

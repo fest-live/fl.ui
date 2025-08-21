@@ -33,6 +33,7 @@
 @property --scroll-size { syntax: "<number>"; initial-value: 0; inherits: true; }
 @property --content-size { syntax: "<number>"; initial-value: 0; inherits: true; }
 @property --z-index { syntax: "<number>"; initial-value: 0; inherits: true; }
+@property --max-size { syntax: "<length-percentage>"; initial-value: 0px; inherits: true; };
 
 //
 @include pointer-coords;

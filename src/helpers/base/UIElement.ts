@@ -24,6 +24,11 @@ export class UIElement extends GLitElement() {
     }
 
     //
+    connectedCallback() {
+        super.connectedCallback();
+    }
+
+    //
     onInitialize() {
         super.onInitialize();
         const self : any = this;

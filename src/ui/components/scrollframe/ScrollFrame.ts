@@ -21,10 +21,10 @@ export class ScrollBoxed extends UIElement {
     }
 
     //
-    bindWith(content: any) {
+    bindWith(content: any, inputChange?: any|null) {
         requestAnimationFrame(()=>{ // @ts-ignore
-            this.#x = new ScrollBar({holder: this, scrollbar: Q(".ui-scrollbar[axis=\"x\"]", this.shadowRoot), content}, 0); // @ts-ignore
-            this.#y = new ScrollBar({holder: this, scrollbar: Q(".ui-scrollbar[axis=\"y\"]", this.shadowRoot), content}, 1); // @ts-ignore
+            this.#x = new ScrollBar({holder: this, scrollbar: Q(".ui-scrollbar[axis=\"x\"]", this.shadowRoot), content, inputChange}, 0); // @ts-ignore
+            this.#y = new ScrollBar({holder: this, scrollbar: Q(".ui-scrollbar[axis=\"y\"]", this.shadowRoot), content, inputChange}, 1); // @ts-ignore
         });
         const name = "--rand-" + Math.random().toString(36).slice(2); // @ts-ignore
         this.style.positionAnchor = name, content.style.anchorName = name;

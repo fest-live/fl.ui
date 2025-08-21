@@ -46,8 +46,11 @@ const iconFor = (item: FileEntryItem) => item?.kind === "directory" ? "folder" :
 // @ts-ignore
 @defineElement("ui-file-manager")
 export class FileManager extends UIElement {
+    @property({ source: "query-shadow", name: ".fm-grid-rows" }) gridRowsEl?: HTMLElement;
+    @property({ source: "query-shadow", name: ".fm-grid" }) gridEl?: HTMLElement;
+
     // path to show; starts from /user
-    @property({ source: "attr", name: "path" }) path?: string = "/user/";
+    @property({ source: "attr", name: "path" }) path = "/user/";
 
     // explicit sidebar control; if not provided, auto by container size
     @property({ source: "attr", name: "sidebar" }) sidebar?: any = "auto";
@@ -74,12 +77,25 @@ export class FileManager extends UIElement {
             this.#fsRoot = await navigator?.storage?.getDirectory?.();
             this.navigate(this.path || "/user/");
         });
+
+        //
+        const weak: any = new WeakRef(this);
+        requestAnimationFrame(()=>{
+            const self = weak?.deref?.();
+            const frame: any = document.createElement("ui-scrollframe");
+            frame.style.zIndex = 99;
+
+            //
+            const rows = Q(".fm-grid-container", self?.shadowRoot), grid = Q(".fm-grid", self?.shadowRoot);
+            frame.bindWith(rows, rows);
+            grid?.append(frame);
+        });
     }
 
     onRender() {
         super.onRender();
         // handle address field submit
-        const weak = new WeakRef(this);
+        const weak: any = new WeakRef(this);
         const onEnter = (ev: KeyboardEvent) => {
             if (ev.key === "Enter") {
                 const self = weak.deref() as any;
@@ -107,8 +123,8 @@ export class FileManager extends UIElement {
             return;
         }
 
-        this.path = clean;
-        await this.loadPath(clean);
+        this.path = clean || this.path;
+        await this.loadPath(this.path);
     }
 
     async goUp() {
@@ -178,6 +194,7 @@ export class FileManager extends UIElement {
         }
     };
 
+    //
     render = function() {
         const entries = this.#entries;
         const loading = this.#loading;
@@ -190,7 +207,9 @@ export class FileManager extends UIElement {
                 <div part="toolbar" class="fm-toolbar">
                     <button class="btn" title="Up" on:click=${() => this.goUp()}><ui-icon icon="arrow-up"/></button>
                     <button class="btn" title="Refresh" on:click=${() => this.loadPath(this.path)}><ui-icon icon="arrow-clockwise"/></button>
-                    <ui-longtext value=${this.path} class="address" style="inline-size: stretch; border: none 0px transparent; outline: none 0px transparent;" name="address"></ui-longtext>
+                    <ui-longtext class="address c2-surface" style="background-color: --c2-surface(0.04, var(--current, transparent)); inline-size: stretch; border: none 0px transparent; outline: none 0px transparent;" name="address">
+                        <input type="text" value=${this.path} name="address" />
+                    </ui-longtext>
                 </div>
 
                 ${H`<aside visible=${sidebarVisible} part="sidebar" class="fm-sidebar">
@@ -205,24 +224,24 @@ export class FileManager extends UIElement {
                 <div part="content" class="fm-content">
                     ${loading?.value ? H`<div class="status">Loading…</div>` : null}
                     ${error?.value ? H`<div class="status error">${error.value}</div>` : null}
-                    <div class="fm-grid">
-                        <div class="fm-grid-header">
-                            <div class="c icon">Type</div>
-                            <div class="c name">Name</div>
-                            <div class="c type">MIME</div>
-                            <div class="c size">Size</div>
-                            <div class="c date">Modified</div>
-                        </div>
-                        <div class="fm-grid-rows">
-                            ${M(entries, (item: FileEntryItem) => H`
+                    <div class="fm-grid-container">
+                        <div class="fm-grid" part="grid">
+                            <div class="fm-grid-header">
+                                <div class="c icon">Type</div>
+                                <div class="c name">Name</div>
+                                <div class="c type">MIME</div>
+                                <div class="c size">Size</div>
+                                <div class="c date">Modified</div>
+                            </div>
+                            <div class="fm-grid-rows">${M(entries, (item: FileEntryItem) => H`
                                 <div class="row" on:click=${(ev: MouseEvent) => this.onRowClick(item, ev)} on:dblclick=${(ev: MouseEvent) => this.onRowDblClick(item, ev)}>
                                     <div class="c icon">${H`<ui-icon icon=${iconFor(item)} />`}</div>
                                     <div class="c name" title=${item?.name}>${item?.name}</div>
                                     <div class="c type">${item?.kind === "directory" ? "directory" : (item?.type || "")}</div>
                                     <div class="c size">${item?.size != null ? (item?.size as number).toLocaleString() : ""}</div>
                                     <div class="c date">${item?.lastModified ? new Date(item?.lastModified).toLocaleString() : ""}</div>
-                                </div>
-                            `)}
+                                </div>`)}
+                            </div>
                         </div>
                     </div>
                 </div>

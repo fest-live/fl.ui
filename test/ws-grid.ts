@@ -103,6 +103,8 @@ async function createWindowFrame() {
     const { FileManager } = await import("../src/ui/services/file-manager/FileManager");
     const { SliderInput } = await import("../src/ui/inputs/slider/Slider");
     const { LongTextInput } = await import("../src/ui/inputs/text/Text");
+    const { ScrollBoxed } = await import("../src/ui/components/scrollframe/ScrollFrame");
+    console.log(LongTextInput, ScrollBoxed);
 
     //
     const oRef = orientRef();

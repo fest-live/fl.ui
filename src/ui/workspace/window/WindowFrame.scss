@@ -150,7 +150,7 @@
     @include m.border(0px, solid, transparent);
 
     // grid-specific styles
-    & { grid-area: content; }
+    & { grid-area: content; display: flex; flex-direction: column; gap: 0.5rem; place-content: stretch; place-items: stretch; }
     & { // border styles
         border-block-start: none;
     }
@@ -168,7 +168,7 @@
     }
 
     & {
-        background-color: var(--ui-window-frame-content-background-color);
+        background-color: transparent;//var(--ui-window-frame-content-background-color);
         color: var(--ui-window-frame-content-color);
         --icon-color: var(--ui-window-frame-content-color);
     }
@@ -476,6 +476,19 @@
         // Reset all elements
         &, & * {
             @include reset-styles;
+        }
+
+        //
+        slot {
+            display: contents !important;
+            pointer-events: none !important;
+            background-color: transparent !important;
+            color: inherit !important;
+            box-shadow: none !important;
+            border-width: 0px !important;
+            border-style: none !important;
+            border-color: transparent !important;
+            outline: none !important;
         }
 
         // Main layout

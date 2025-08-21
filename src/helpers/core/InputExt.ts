@@ -1,4 +1,4 @@
-import { addEvent, bindDraggable, handleStyleChange } from "fest/dom";
+import { addEvent, bindDraggable, handleStyleChange, RAFBehavior } from "fest/dom";
 import { bindWith, bindCtrl } from "fest/lure";
 import { computed, numberRef, conditional } from "fest/object";
 
@@ -169,7 +169,7 @@ export const dragSlider = (thumb, handler, input)=>{ // @ts-ignore
     ];
 
     //
-    const dragging = [ numberRef(0), numberRef(0) ];
+    const dragging = [ numberRef(0, RAFBehavior()), numberRef(0, RAFBehavior()) ];
     bindWith?.(handler, "--drag-x", dragging?.[0], handleStyleChange);
     bindWith?.(handler, "--relate", computed(dragging?.[0], (v)=>convertPointerToValueShift(input, dragging, handler)), handleStyleChange); // "relative"
     bindWith?.(handler, "--value", clampedValueRef(input), handleStyleChange); // from [0, 1]

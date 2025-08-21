@@ -30,8 +30,12 @@ const styled  = preloadStyle(styles);
 export class LongTextInput extends UIElement {
     @property({ source: "query", name: "input" }) input?: HTMLInputElement;
     @property({ source: "query-shadow", name: ".box-layer" }) box?: HTMLElement;
-    @property({ source: "attr", from: "input[type=\"text\"], input[type=\"number\"], input" }) name?: string = "";
-    @property({ source: "value", from: "input[type=\"text\"], input[type=\"number\"], input" }) value?: string = "";
+    @property({ source: "attr" }) name?: string = "";
+    @property({ source: "property" }) value?: string|null = null;
+    @property({ source: "attr" }) placeholder?: string = "";
+    @property({ source: "attr" }) disabled?: boolean = false;
+    @property({ source: "attr" }) readOnly?: boolean = false;
+    @property({ source: "attr" }) required?: boolean = false;
 
     //
     static formAssociated = true;
@@ -44,9 +48,7 @@ export class LongTextInput extends UIElement {
 
     //
     styles = () => styled.cloneNode(true);
-    render = ()=> H`
-<div class="box-layer" part="box-layer"><slot></slot></div>
-`;
+    render = ()=> H`<div class="box-layer" part="box-layer"><slot></slot></div>`;
 
     //
     onInitialize() {
@@ -60,11 +62,10 @@ export class LongTextInput extends UIElement {
         //
         const self: any = this;
         const frame: any = document.createElement("ui-scrollframe"); // @ts-ignore
+        frame.style.zIndex = 99;
         const box = self?.box || Q(".box-layer", self?.shadowRoot);
-        frame?.bindWith?.(box);
-
-        //
-        bindWith(this.input, "value", this.value, handleProperty);
+        frame?.bindWith?.(box, Q("input", self));
+        self.style.display = "grid";
 
         //
         box.style.scrollbarGutter = "auto";
@@ -98,14 +99,20 @@ export class LongTextInput extends UIElement {
         requestAnimationFrame(()=>{
             if (!self?.querySelector?.("input")) {
                 const newInput = document.createElement("input");
-                newInput.type  = "text";
-                newInput.value = self?.value || "";
-                newInput.name  = self?.name || "";
-                newInput.placeholder = self?.placeholder || "";
-                newInput.disabled = self?.disabled || false;
-                newInput.readOnly = self?.readOnly || false;
-                newInput.required = self?.required || false;
                 self.append(newInput);
+            }
+            {
+                const newInput = Q("input", self);
+                newInput.type  = "text";
+                newInput.value ||= self.value;
+
+                //
+                bindWith(newInput, "value", self.getProperty("value"), handleProperty, null, true);
+                bindWith(newInput, "name", self.getProperty("name"), handleProperty);
+                bindWith(newInput, "placeholder", self.getProperty("placeholder"), handleProperty);
+                bindWith(newInput, "disabled", self.getProperty("disabled"), handleProperty);
+                bindWith(newInput, "readOnly", self.getProperty("readOnly"), handleProperty);
+                bindWith(newInput, "required", self.getProperty("required"), handleProperty);
             }
         });
     }

@@ -14,8 +14,8 @@
  */
 
 //
-import { defineElement, H, property, Q, valueRef } from "fest/lure";
-import { addEvent, preloadStyle } from "fest/dom";
+import { bindWith, defineElement, H, property, Q, valueRef } from "fest/lure";
+import { addEvent, handleProperty, preloadStyle } from "fest/dom";
 
 //
 import { assign } from "fest/object";
@@ -62,6 +62,9 @@ export class LongTextInput extends UIElement {
         const frame: any = document.createElement("ui-scrollframe"); // @ts-ignore
         const box = self?.box || Q(".box-layer", self?.shadowRoot);
         frame?.bindWith?.(box);
+
+        //
+        bindWith(this.input, "value", this.value, handleProperty);
 
         //
         box.style.scrollbarGutter = "auto";

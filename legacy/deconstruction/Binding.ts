@@ -1,6 +1,6 @@
 export const onInteration = (ev, args = [], DOC = document.documentElement)=>{
     if (ev?.target?.matches("[data-popup]")) {
-        (ev?.target?.getRootNode()?.host ?? ev?.target)?.dispatchEvent?.(new CustomEvent("u2-action", {
+        (ev?.target?.getRootNode({ composed: true })?.host ?? ev?.target)?.dispatchEvent?.(new CustomEvent("u2-action", {
             bubbles: true,
             cancelable: true,
             detail: {
@@ -14,7 +14,7 @@ export const onInteration = (ev, args = [], DOC = document.documentElement)=>{
 
     //
     if (ev?.target?.matches("[data-action]")) {
-        (ev?.target?.getRootNode()?.host ?? ev?.target)?.dispatchEvent?.(new CustomEvent("u2-action", {
+        (ev?.target?.getRootNode({ composed: true })?.host ?? ev?.target)?.dispatchEvent?.(new CustomEvent("u2-action", {
             bubbles: true,
             cancelable: true,
             detail:{

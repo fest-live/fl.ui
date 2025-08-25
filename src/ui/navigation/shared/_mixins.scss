@@ -21,25 +21,28 @@
         z-index: 1000;
         position: fixed;
         inset-block-end: env(safe-area-inset-bottom, 0px);
-        inset-inline: 0;
+        inset-inline-start: 50%;
+        transform: translateX(-50%);
+        overflow: hidden;
+        overflow-x: scroll;
+        border-radius: 0.5rem;
+        scrollbar-width: none;
+        scrollbar-color: transparent transparent;
+        scrollbar-gutter: stable;
+        padding: 0px;
+        border: 0px none transparent;
     }
 
     //
     & {
-        inline-size: 100%;
+        min-inline-size: 0px;
+        inline-size: max-content;
         block-size: calc(var(--taskbar-height) + env(safe-area-inset-bottom, 0px));
     }
 
     //
     & {
         gap: var(--taskbar-gap);
-    }
-
-    //
-    & {
-        border-block-start: 1px solid var(--taskbar-border);
-        padding-inline: calc(var(--taskbar-padding-inline) + env(safe-area-inset-left, 0px) + env(safe-area-inset-right, 0px));
-        padding-block: 6px;
     }
 
     //
@@ -58,12 +61,21 @@
     & {
         overflow: hidden;
         overflow-x: auto;
-        scroll-snap-type: x proximity;
         scrollbar-width: none;
+        scrollbar-color: transparent transparent;
     }
 
     //
-    &::-webkit-scrollbar { display: none; }
+    &::-webkit-scrollbar {
+        display: none;
+        width: 0;
+        height: 0;
+    }
+
+    //
+    & {
+        scroll-snap-type: x proximity;
+    }
 }
 
 // Desktop specific adjustments
@@ -107,26 +119,36 @@
     --task-border: color-mix(in oklab, var(--c2-on-surface(0.0, var(--current)), #ffffff) 10%, transparent);
 
     & {
-        display: inline-grid;
+        display: inline-grid !important;
         grid-template-areas: "icon title";
         grid-auto-flow: column;
-        grid-template-columns: minmax(var(--task-size), max-content) minmax(0px, 1fr);
+        grid-template-columns: minmax(0px, 1fr);
         grid-template-rows: minmax(0px, 1fr);
-        place-content: center;
-        place-items: center;
-        gap: 6px;
+        place-content: center !important;
+        place-items: center !important;
+        gap: 0px;
+        margin: 0px;
+        padding: 0px;
+        overflow: hidden;
+        scrollbar-width: none;
+        scrollbar-color: transparent transparent;
+        scrollbar-gutter: stable;
+        box-sizing: border-box;
+        //gap: 6px;
     }
 
     & {
-        padding: 4px 8px;
-        border-radius: var(--task-radius);
-        border: 1px solid var(--task-border);
+        border-radius: 0px;//var(--task-radius);
+        border: 0px none transparent;
+        border-block-end-width: 0.25rem;
+        border-block-end-style: solid;
+        border-block-end-color: transparent;
+        padding-block-start: 0.25rem;
     }
 
     & {
-        inline-size: max-content;
-        min-inline-size: calc(var(--task-size) * 1.4);
-        min-block-size: var(--task-size);
+        inline-size: calc(var(--task-size) * 1.4);
+        block-size: stretch; //var(--task-size);
     }
 
     & {
@@ -164,6 +186,7 @@
 @mixin task-slots {
     & > .task-icon {
         & {
+            padding: 0.25rem;
             inline-size: var(--task-size);
             block-size: var(--task-size);
         }
@@ -181,6 +204,7 @@
             grid-area: title;
             font: 500 12px/1.2 system-ui, ui-sans-serif;
             opacity: .9;
+            display: none;
         }
     }
 }

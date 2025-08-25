@@ -91,9 +91,9 @@ async function createGridWithItem() {
 
 //
 const tasks = makeTasks((list)=>[
-    makeTask("#task0", list, {active: true, render: ()=>H`<ui-file-manager></ui-file-manager>`}, makeReactive({ title: "Task 0", icon: "app-window" })),
-    makeTask("#task1", list, {active: true}, makeReactive({ title: "Task 1", icon: "folder" })),
-    makeTask("#task2", list, {active: true}, makeReactive({ title: "Task 2", icon: "newspaper" })),
+    makeTask("#task1", list, {active: true}, makeReactive({ title: "Task 1", icon: "app-window" })),
+    makeTask("#task0", list, {active: true}, makeReactive({ title: "Task 2", icon: "newspaper" })),
+    makeTask("#task2", list, {active: true, render: ()=>H`<ui-file-manager></ui-file-manager>`}, makeReactive({ title: "Task 0", icon: "folder" }))
 ]);
 
 //
@@ -124,8 +124,8 @@ async function createTaskBar() {
     const { UITaskBar } = await import("../src/ui/navigation/taskbar/bar/TaskBar");
     const { UITask } = await import("../src/ui/navigation/taskbar/task/Task");
     const { TaskIndication } = await import("../src/ui/navigation/taskbar/task/TaskIndication");
-    const taskbar = H`<ui-taskbar class="c2-surface" style="color-scheme: dark;">${M(tasks, task=>{
-        const taskEl = H`<ui-task class="c2-surface c2-transparent" style="color-scheme: dark;"></ui-task>`;
+    const taskbar = H`<ui-taskbar class="c2-surface">${M(tasks, task=>{
+        const taskEl = H`<ui-task class="c2-surface"></ui-task>`;
         new TaskIndication(taskEl, task);
         return taskEl;
     })}</ui-taskbar>`;

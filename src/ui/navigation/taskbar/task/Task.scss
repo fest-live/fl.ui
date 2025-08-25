@@ -4,24 +4,51 @@
 //
 :host(ui-task) {
     //
-    & { @include tb.task-base; @include tb.task-slots; @include tb.task-states; }
-
-    //
     &, * {
         box-sizing: border-box;
         user-select: none;
         touch-action: manipulation;
         -webkit-user-drag: none;
         -webkit-tap-highlight-color: transparent;
+        gap: 0px;
+        margin: 0px;
+        padding: 0px;
+        border: 0px none transparent;
+    }
+
+    //
+    & { @include tb.task-base; @include tb.task-slots; @include tb.task-states; }
+
+    & {
+        user-select: none;
+        pointer-events: auto;
+        box-shadow: none;
+        filter: none;
+    }
+
+    & > * {
+        pointer-events: none;
     }
 }
 
-// Focused task styles
-:host(ui-task[data-focus]) {
-    background: --c2-surface(0.0, var(--current));
-    border-color: --c2-on-surface(0.0, var(--current));
-    //box-shadow: 0 0 0 1px --c2-on-surface(0.0, var(--current)) 30% inset, 0 10px 24px -14px --c2-on-surface(0.0, var(--current)) 60%;
+//
+:host(ui-task:hover) {
+    & {
+        --background-tone-shift: 0.1;
+        background-color: --c2-surface(var(--background-tone-shift, 0.0), var(--current));
+    }
 
-    //
+    & { @include tb.task-states; }
+}
+
+//
+:host(ui-task[data-focus]) {
+    border-block-end-color: --c2-on-surface(0.0, var(--current)) !important;
+    & { @include tb.task-states; }
+}
+
+//
+:host(ui-task:not([data-active])) {
+    opacity: 0.6;
     & { @include tb.task-states; }
 }

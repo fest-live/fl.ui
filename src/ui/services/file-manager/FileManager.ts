@@ -69,6 +69,7 @@ export class FileManager extends UIElement {
 
     constructor() { super(); }
 
+    //
     onInitialize() {
         super.onInitialize();
         // initialize OPFS root
@@ -92,6 +93,7 @@ export class FileManager extends UIElement {
         });
     }
 
+    //
     onRender() {
         super.onRender();
         // handle address field submit
@@ -107,6 +109,7 @@ export class FileManager extends UIElement {
         addEvent(this, "keydown", onEnter);
     }
 
+    //
     get showSidebar(): boolean {
         const force = String(this.sidebar ?? "auto").toLowerCase();
         if (force === "true" || force === "1") return true;
@@ -115,6 +118,7 @@ export class FileManager extends UIElement {
         return width >= 720; // container-query based threshold
     }
 
+    //
     async navigate(toPath: string) {
         const clean = getDir(toPath);
         if (!clean?.startsWith?.("/user")) {
@@ -127,6 +131,7 @@ export class FileManager extends UIElement {
         await this.loadPath(this.path);
     }
 
+    //
     async goUp() {
         const parts = (this.path || "/user/")
             .replace(/\/+$/g, "")
@@ -137,6 +142,7 @@ export class FileManager extends UIElement {
         return this.navigate(up);
     }
 
+    //
     async loadPath(path: string) {
         try {
             this.#loading.value = true;
@@ -171,6 +177,7 @@ export class FileManager extends UIElement {
         }
     }
 
+    //
     private onRowClick = (item: FileEntryItem, ev: MouseEvent) => {
         ev.preventDefault();
         if (item?.kind === "directory") {
@@ -182,6 +189,7 @@ export class FileManager extends UIElement {
         }
     };
 
+    //
     private onRowDblClick = (item: FileEntryItem, ev: MouseEvent) => {
         ev.preventDefault();
         if (item?.kind === "file") {

@@ -17,13 +17,13 @@ import "../src/ui/workspace/statusbar/StatusBar";
 import { TaskIndication } from "../src/ui/navigation/taskbar/task/TaskIndication";
 import { TaskInteraction } from "../src/ui/navigation/taskbar/bar/TaskInteraction";
 import { makeTask, makeTasks, Task } from "../src/helpers/tasking/Tasks";
-import { H } from "fest/lure";
+import { H, Q, dropFile } from "fest/lure";
 
 //
 async function makeWallpaper() {
     const { H, orientRef } = await import("fest/lure");
     const oRef = orientRef();
-    const CE = H`<canvas style="inline-size: 100%; block-size: 100%; inset: 0; position: fixed;" data-orient=${oRef} is="ui-canvas" data-src="./imgs/test.jpg"></canvas>`;
+    const CE = H`<canvas style="inline-size: 100%; block-size: 100%; inset: 0; position: fixed; pointer-events: none;" data-orient=${oRef} is="ui-canvas" data-src="./imgs/test.jpg"></canvas>`;
     return CE;
 }
 
@@ -84,7 +84,7 @@ async function createGridWithItem() {
 
     //
     const oRef = orientRef();
-    return H`<div data-mixin="ui-orientbox" style="inline-size: 100%; block-size: 100%; inset: 0; position: fixed; background-color: transparent;"  orient=${oRef}>
+    return H`<div data-mixin="ui-orientbox" style="pointer-events: none; inline-size: 100%; block-size: 100%; inset: 0; position: fixed; background-color: transparent;"  orient=${oRef}>
         <div data-mixin="ui-gridbox" style="--layout-c: 4; --layout-r: 8; color-scheme: dark;">${M(items, genItem)}</div>
     </div>`;
 }
@@ -163,6 +163,21 @@ async function main() {
 
     //
     container.append(wallpaper, scrollBoxed, ctxMenu, windowFrame, taskBar);
+
+    //
+    Q("#app", document.documentElement)?.addEventListener?.("dragover", (event: any)=>{
+        if (event?.target?.matches?.("#app") || event?.target?.querySelector?.("#app")) {
+            event.preventDefault();
+        }
+    });
+    Q("#app", document.documentElement)?.addEventListener?.("drop", (event: any)=>{
+        if (event?.target?.matches?.("#app") || event?.target?.querySelector?.("#app")) {
+            event.preventDefault();
+            const file = event.dataTransfer.files[0];
+            console.log(file);
+            if (file) { dropFile(file, "/user/images/"); }
+        }
+    });
 }
 
 //

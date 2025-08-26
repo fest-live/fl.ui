@@ -17,6 +17,7 @@
 
 //
 @layer ux-classes {
+    @include m.host-related(".grid-rows", "::slotted(*)") { @include m.grid-row; }
     @include m.host-related(".grid-rows", "*") { @include m.grid-row; }
     @include m.host-context(".grid-rows") {
         @include m.display(inline-grid, column, center, center);
@@ -34,6 +35,7 @@
     }
 
     //
+    @include m.host-related(".grid-columns", "::slotted(*)") { @include m.grid-column; }
     @include m.host-related(".grid-columns", "*") { @include m.grid-column; }
     @include m.host-context(".grid-columns") {
         @include m.display(inline-grid, row, center, center);
@@ -51,6 +53,16 @@
     }
 
     //
+    /*
+    @include m.host-related(".flex-rows", "::slotted(*)") { @include m.flex-row; }
+    @include m.host-related(".flex-rows", "*") { @include m.flex-row; }
+    @include m.host-context(".flex-rows") {
+        @include m.display(inline-flex, row, center, center);
+        @include m.size(max-content, max-content);
+    }*/
+
+    //
+    @include m.host-related(".flex-columns", "::slotted(*)") { @include m.flex-column; }
     @include m.host-related(".flex-columns", "*") { @include m.flex-column; }
     @include m.host-context(".flex-columns") {
         @include m.display(inline-flex, column, center, center);
@@ -58,6 +70,7 @@
     }
 
     //
+    @include m.host-related(".grid-layered", "::slotted(*)") { @include m.grid-layered; }
     @include m.host-related(".grid-layered", "*") { @include m.grid-layered; }
     @include m.host-context(".grid-layered") {
         @include m.grid-layered;
@@ -66,19 +79,7 @@
     }
 
     //
-    @include m.host-related(".grid-layered", "*") { @include m.grid-layered; }
-    @include m.host-context(".grid-layered") {
-        //
-        --order: m.sibling-index();
-
-        //
-        & { order: var(--order, auto); z-index: var(--order, 0); grid-column: 1 / -1; grid-row: 1 / -1; }
-
-        //
-        @include m.size(auto, auto);
-    }
-
-    //
+    @include m.host-related(".grid-rows-3c", "::slotted(*)") { @include m.grid-rows-3c; }
     @include m.host-related(".grid-rows-3c", "*") { @include m.grid-rows-3c; }
     @include m.host-context(".grid-rows-3c") {
         //
@@ -89,6 +90,7 @@
     }
 
     //
+    @include m.host-related(".grid-rows-3c", "::slotted(*:last-child)") { grid-column: var(--order, 1) / 3 span; }
     @include m.host-related(".grid-rows-3c", "*:last-child") { grid-column: var(--order, 1) / 3 span; }
     @include m.host-context(".grid-rows-3c") {
         //

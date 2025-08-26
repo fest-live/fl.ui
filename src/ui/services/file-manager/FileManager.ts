@@ -1,4 +1,4 @@
-import { H, defineElement, property, M, Q } from "fest/lure";
+import { H, defineElement, property, M, Q, E } from "fest/lure";
 import { makeReactive, ref } from "fest/object";
 import { addEvent, preloadStyle } from "fest/dom";
 
@@ -107,6 +107,18 @@ export class FileManager extends UIElement {
             }
         };
         addEvent(this, "keydown", onEnter);
+
+        //
+        const self: any = this;
+        return E(self, {}, M(this.#entries, (item: FileEntryItem) => {
+            return H`<div class="row c2-surface" on:click=${(ev: MouseEvent) => self.onRowClick?.(item, ev)} on:dblclick=${(ev: MouseEvent) => self.onRowDblClick?.(item, ev)}>
+                <div style="text-overflow: ellipsis; overflow: hidden;" class="c icon">${H`<ui-icon icon=${iconFor(item)} />`}</div>
+                <div style="text-overflow: ellipsis; overflow: hidden; inline-size: stretch;" class="c name" title=${item?.name}>${item?.name}</div>
+                <div style="text-overflow: ellipsis; overflow: hidden;" class="c type">${item?.kind === "directory" ? "directory" : (item?.type || "")}</div>
+                <div style="text-overflow: ellipsis; overflow: hidden;" class="c size">${item?.size != null ? (item?.size as number).toLocaleString() : ""}</div>
+                <div style="text-overflow: ellipsis; overflow: hidden;" class="c date">${item?.lastModified ? new Date(item?.lastModified).toLocaleString() : ""}</div>
+            </div>`;
+        }));
     }
 
     //
@@ -144,14 +156,18 @@ export class FileManager extends UIElement {
 
     //
     async loadPath(path: string) {
+        const self: any = this;
+        this.#entries.splice(0, this.#entries.length);
         try {
             this.#loading.value = true;
             this.#error.value = "";
             const rel = path; // openDirectory can consume absolute-like parts (it filters Booleans)
             this.#dirProxy = openDirectory(this.#fsRoot, rel, { create: false });
-            const map = await this.#dirProxy?.getMap?.();
+            //const map = await this.#dirProxy?.getMap?.();
             const items: FileEntryItem[] = [];
-            for (const [name, handle] of (map?.entries?.() ?? [])) {
+            await this.#dirProxy;
+            for (const [name, $handle] of (await this.#dirProxy?.entries?.() ?? [])) {
+                const handle = await $handle;
                 const kind: EntryKind = handle?.kind || (name?.endsWith?.("/") ? "directory" : "file");
                 let type: string | undefined;
                 let size: number | undefined;
@@ -165,11 +181,16 @@ export class FileManager extends UIElement {
                         type = f?.type || type;
                     } catch {}
                 }
-                items.push({ name, kind, type, size, lastModified, handle });
+
+                //items.push({ name, kind, type, size, lastModified, handle });
+                //this.#entries.push({ name, kind, type, size, lastModified, handle });
+                const item = { name, kind, type, size, lastModified, handle };
+                const up = { onRowClick: () => self.onRowClick(item), onRowDblClick: () => self.onRowDblClick(item) };
+                this.#entries.push(item);
             }
             // sort: directories first, then files by name
-            items.sort((a, b) => (a?.kind === b?.kind ? a?.name?.localeCompare?.(b?.name) : (a?.kind === "directory" ? -1 : 1)));
-            this.#entries.splice(0, this.#entries.length, ...items);
+            //items.sort((a, b) => (a?.kind === b?.kind ? a?.name?.localeCompare?.(b?.name) : (a?.kind === "directory" ? -1 : 1)));
+            //this.#entries.splice(0, this.#entries.length, ...items);
         } catch (e: any) {
             this.#error.value = e?.message || String(e || "");
         } finally {
@@ -235,21 +256,13 @@ export class FileManager extends UIElement {
                     <div class="fm-grid-container">
                         <div class="fm-grid" part="grid">
                             <div class="fm-grid-header">
-                                <div class="c icon">Type</div>
-                                <div class="c name">Name</div>
-                                <div class="c type">MIME</div>
-                                <div class="c size">Size</div>
-                                <div class="c date">Modified</div>
+                                <div class="c icon" style="overflow: hidden;"></div>
+                                <div class="c name" style="overflow: hidden; inline-size: stretch;">Name</div>
+                                <div class="c type" style="overflow: hidden;">Type</div>
+                                <div class="c size" style="overflow: hidden;">Size</div>
+                                <div class="c date" style="overflow: hidden;">Modified</div>
                             </div>
-                            <div class="fm-grid-rows">${M(entries, (item: FileEntryItem) => H`
-                                <div class="row" on:click=${(ev: MouseEvent) => this.onRowClick(item, ev)} on:dblclick=${(ev: MouseEvent) => this.onRowDblClick(item, ev)}>
-                                    <div class="c icon">${H`<ui-icon icon=${iconFor(item)} />`}</div>
-                                    <div class="c name" title=${item?.name}>${item?.name}</div>
-                                    <div class="c type">${item?.kind === "directory" ? "directory" : (item?.type || "")}</div>
-                                    <div class="c size">${item?.size != null ? (item?.size as number).toLocaleString() : ""}</div>
-                                    <div class="c date">${item?.lastModified ? new Date(item?.lastModified).toLocaleString() : ""}</div>
-                                </div>`)}
-                            </div>
+                            <div class="fm-grid-rows"><slot></slot></div>
                         </div>
                     </div>
                 </div>

@@ -59,7 +59,7 @@ export class Task implements ITask {
     set active(activeStatus: boolean) {
         if (this != null && this?.$active != activeStatus) {
             this.$active = activeStatus;
-            document.dispatchEvent(new CustomEvent("task-focus", { detail: this, bubbles: true, composed: true, cancelable: true }));
+            document.dispatchEvent(new CustomEvent("task-focus", { detail: getFocused(this.list ?? [], false), bubbles: true, composed: true, cancelable: true }));
         }
     }
 
@@ -80,7 +80,7 @@ export class Task implements ITask {
                         this.list?.[$triggerLess]?.(()=>{
                             this.list?.splice?.(index, 1); this.list?.push?.(makeTask(this) as any);
                         })
-                        document.dispatchEvent(new CustomEvent("task-focus", { detail: this, bubbles: true, composed: true, cancelable: true }));
+                        document.dispatchEvent(new CustomEvent("task-focus", { detail: getFocused(this.list ?? [], false), bubbles: true, composed: true, cancelable: true }));
                     }
 
                 //
@@ -99,7 +99,8 @@ export class Task implements ITask {
         if (!this.list) return this;
         const index = this.list.indexOf(getBy(this.list, this) ?? makeTask(this as any) as any) ?? -1;
         if (index >= 0) { this.list.splice(index, 1); }
-        this.list = null;
+        const list = this.list; this.list = null;
+        document.dispatchEvent(new CustomEvent("task-focus", { detail: getFocused(list ?? [], false), bubbles: true, composed: true, cancelable: true }));
         return this;
     }
 }

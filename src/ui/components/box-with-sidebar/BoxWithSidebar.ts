@@ -1,0 +1,53 @@
+import { defineElement, Q, H } from "fest/lure"
+import { preloadStyle } from "fest/dom"
+import { booleanRef } from "fest/object"
+import { UIElement } from "@helpers/base/UIElement"
+import { makeClickOutsideTrigger } from "@helpers/core/Anchor";
+
+/*
+ * Used for mobile applications
+ * In desktop or widescreen sidebar can be statically visible
+ * In mobile applications sidebar is hidden by default and can be opened by clicking on the button
+ *
+ * <ui-box-with-sidebar>
+ *   <div slot="bar">
+ *     <button class="open-sidebar" on:click=${()=>{this.sidebarOpened.value = true;}}></button>
+ *     <slot name="bar"></slot>
+ *   </div>
+ *   <div class="sidebar" visibility="${this.sidebarOpened}"><slot name="sidebar"></slot></div>
+ *   <div class="content"><slot></slot></div>
+ * </ui-box-with-sidebar>
+ */
+
+// @ts-ignore
+import styles from "./BoxWithSidebar.scss?inline"
+import { subscribe } from "fest/object";
+const styled = preloadStyle(styles);
+
+// @ts-ignore
+@defineElement("ui-box-with-sidebar")
+export class BoxWithSidebar extends UIElement {
+    sidebarOpened = booleanRef(false); //@ts-ignore
+
+    //
+    constructor() { super(); }
+    onInitialize() { super.onInitialize?.(); }
+    onRender() {
+        const self: any = this;
+        makeClickOutsideTrigger(self.sidebarOpened, Q(".sidebar", self), {closeEvents: ["click", "pointerdown", "contextmenu", "scroll", "keydown"], mouseLeaveDelay: 0});
+
+        // debug triggering
+        subscribe(self.sidebarOpened, (opened) => {
+            if (opened) {
+                console.log("sidebar closed");
+            } else {
+                console.log("sidebar opened");
+            }
+        });
+    }
+
+    //
+    styles = () => styled?.cloneNode?.(true);
+    render = function() { return H`<div class="bar c2-surface"><button class="open-sidebar" on:click=${()=>{this.sidebarOpened.value = true;}}></button><slot name="bar"></slot></div><div class="sidebar c2-surface" data-visible="${this.sidebarOpened}"><slot name="sidebar"></slot></div><div class="content c2-surface"><slot></slot></div>`;
+    }
+}

@@ -1,6 +1,6 @@
 import { defineElement, Q, H } from "fest/lure"
 import { preloadStyle } from "fest/dom"
-import { booleanRef } from "fest/object"
+import { booleanRef, conditional } from "fest/object"
 import { UIElement } from "@helpers/base/UIElement"
 import { makeClickOutsideTrigger } from "@helpers/core/Anchor";
 
@@ -34,20 +34,20 @@ export class BoxWithSidebar extends UIElement {
     onInitialize() { super.onInitialize?.(); }
     onRender() {
         const self: any = this;
-        makeClickOutsideTrigger(self.sidebarOpened, Q(".sidebar", self), {closeEvents: ["click", "pointerdown", "contextmenu", "scroll", "keydown"], mouseLeaveDelay: 0});
+        makeClickOutsideTrigger(self.sidebarOpened, Q("button", self?.shadowRoot), Q(".sidebar", self?.shadowRoot));
 
         // debug triggering
         subscribe(self.sidebarOpened, (opened) => {
             if (opened) {
-                console.log("sidebar closed");
-            } else {
                 console.log("sidebar opened");
+            } else {
+                console.log("sidebar closed");
             }
         });
     }
 
     //
     styles = () => styled?.cloneNode?.(true);
-    render = function() { return H`<div class="bar c2-surface"><button class="open-sidebar" on:click=${()=>{this.sidebarOpened.value = true;}}></button><slot name="bar"></slot></div><div class="sidebar c2-surface" data-visible="${this.sidebarOpened}"><slot name="sidebar"></slot></div><div class="content c2-surface"><slot></slot></div>`;
+    render = function() { return H`<div class="bar c2-surface"><button class="open-sidebar c2-surface" on:click=${()=>{this.sidebarOpened.value = !this.sidebarOpened.value;}}><ui-icon icon="${conditional(this.sidebarOpened, 'text-outdent', 'list')}"></ui-icon></button><slot name="bar"></slot></div><div class="sidebar c2-surface" data-visible=${this.sidebarOpened}><slot name="sidebar"></slot></div><div class="content c2-surface"><slot></slot></div>`;
     }
 }

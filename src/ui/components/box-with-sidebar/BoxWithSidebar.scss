@@ -3,7 +3,7 @@
         & {
             display: grid;
             grid-template-columns: [sidebar-col] minmax(0px, max-content) [content-col] minmax(0px, 1fr);
-            grid-template-rows: [bar-row] minmax(0px, max-content) [content-row] minmax(0px, 1fr);
+            grid-template-rows: [bar-row] minmax(3rem, max-content) [content-row] minmax(0px, 1fr);
             inline-size: stretch;
             block-size: stretch;
             position: relative;
@@ -16,12 +16,25 @@
             flex-direction: row;
             gap: 0.125rem;
             inline-size: stretch;
-            block-size: max-content;
+            block-size: stretch;
             grid-column: 1 / -1; // span with contents, overlays by sidebar
             grid-row: bar-row;
             z-index: 3;
             background-color: transparent;
+            color: --c2-on-surface(0.0, var(--current, currentColor));
             overflow: hidden;
+
+            button {
+                aspect-ratio: 1 / 1;
+                block-size: stretch;
+                inline-size: max-content;
+                color: --c2-on-surface(0.0, var(--current, currentColor));
+            }
+
+            ui-icon {
+                color: --c2-on-surface(0.0, var(--current, currentColor));
+                --icon-color: --c2-on-surface(0.0, var(--current, currentColor));
+            }
         }
 
         // sidebar
@@ -31,6 +44,7 @@
                 flex-direction: column;
                 gap: 0.125rem;
                 inline-size: max-content;
+                min-inline-size: 6rem;
                 block-size: stretch;
                 grid-column: sidebar-col;
                 grid-row: content-row;
@@ -40,7 +54,7 @@
                 overflow: hidden;
             }
 
-            &[data-visible="true"] {
+            &[data-visible] {
                 transform: translateX(0px);
             }
         }

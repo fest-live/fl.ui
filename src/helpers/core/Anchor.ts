@@ -1,5 +1,5 @@
 import { addToCallChain, numberRef, stringRef, booleanRef, WRef } from "fest/object";
-import { handleStyleChange, observeContentBox, addEvent, addEvents, removeEvents } from "fest/dom";
+import { handleStyleChange, observeContentBox, addEvent, addEvents, containsOrSelf, removeEvents } from "fest/dom";
 import { bindWith } from "fest/lure";
 
 //
@@ -99,28 +99,67 @@ export function makeInterruptTrigger(
 }
 
 //
-export function makeClickOutsideTrigger(ref: RefBool, element: any, options: TriggerOptions = {}) {
+function deepContains(container: Node, target: Node): boolean {
+    let node: Node | null = target;
+
+    while (node) {
+        if (node === container) return true;
+
+        //
+        const anyNode = node as any;
+        if (anyNode.assignedSlot) {
+            node = anyNode.assignedSlot as Node;
+            continue;
+        }
+
+        //
+        if (node.parentNode) {
+            node = node.parentNode;
+            continue;
+        }
+
+        //
+        const root = (node as any).getRootNode?.();
+        if (root && (root as ShadowRoot).host) {
+            node = (root as ShadowRoot).host;
+        } else {
+            node = null;
+        }
+    }
+
+    return false;
+}
+
+//
+function isInside(target: Event | Node, container: Element): boolean {
+    if ('composedPath' in (target as Event) && typeof (target as Event).composedPath === 'function') {
+        return (target as Event).composedPath().includes(container);
+    }
+
+    //
+    const node = (target as any).target ? (target as any).target as Node : target as Node;
+    return node ? deepContains(container, node) : false;
+}
+
+//
+export function makeClickOutsideTrigger(ref: RefBool, except: any = null, element: any, options: TriggerOptions = {}) {
     const {
         root = document.documentElement,
-        closeEvents = ["scroll", "click"],
+        closeEvents = ["scroll", "click", "pointerdown"],
         mouseLeaveDelay = 100
     } = options;
 
     //
     let mouseLeaveTimer: any = null;
-    function isOutside(target: any) {
-        if (element && (element?.contains?.(target?.element ?? target) || element?.querySelector?.(target?.selector || ""))) return false;
-        return true;
-    }
 
     //
     const wr = new WeakRef(ref);
     function onMouseLeave() { mouseLeaveTimer = setTimeout(() => { $set(wr, "value", false); }, mouseLeaveDelay); }
     function onMouseEnter() { if (mouseLeaveTimer) clearTimeout(mouseLeaveTimer); }
-    function onDisposeEvent() { $set(wr, "value", false); }
+    function onDisposeEvent(ev: Event) { if (!isInside(ev, element?.element ?? element) && !isInside(ev, except?.element ?? except)) $set(wr, "value", false); }
     function onPointerDown(ev: Event) {
-        const t = ev.target as HTMLElement;
-        if (isOutside(t)) $set(wr, "value", false);
+        const t = ev;
+        if (!isInside(t, element?.element ?? element) && !isInside(t, except?.element ?? except)) $set(wr, "value", false);
     }
 
     //
@@ -129,7 +168,7 @@ export function makeClickOutsideTrigger(ref: RefBool, element: any, options: Tri
         addEvent(root, "pointerdown", onPointerDown)
     ];
     if (element) {
-        listening.push(addEvent(element, "mouseleave", onMouseLeave), addEvent(element, "mouseenter", onMouseEnter));
+        //listening.push(addEvent(element, "mouseleave", onMouseLeave), addEvent(element, "mouseenter", onMouseEnter));
     }
 
     //

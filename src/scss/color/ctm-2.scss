@@ -19,6 +19,9 @@
 /* */
 @use "./ctm-2-props" as *;
 
+/* */
+@use "./_css5/mfc" as *;
+
 /* Enable components in DOM */
 @layer ux-ctm {
     /* */

@@ -22,21 +22,26 @@ export class TabbedBox extends UIElement {
         const self: any = this;
         E(self, {}, M(self.tabs.keys(), (tabName) => {
             //
-            const $internal = self.createTab(tabName);
+            const $internal = self?.createTab?.(tabName);
+            if (!$internal) return;
+
             $internal?.input?.addEventListener("change", () => self.openTab(tabName));
             $internal?.button?.addEventListener("click", () => self.openTab(tabName));
             if ($internal?.button) $internal.button.slot = "tabs";
 
             //
-            const $content = self.tabs.get(tabName);
-            $content.setAttribute("data-name", tabName);
-            $content?.addEventListener("focus", () => self.openTab(tabName));
-            $content?.addEventListener("focusin", () => self.openTab(tabName));
+            const $content = self?.tabs?.get?.(tabName) ?? Q(`[data-name="${tabName}"]`, self);
+            if (!$content) return;
+
+            //
+            $content?.setAttribute?.("data-name", tabName);
+            $content?.addEventListener?.("focus", () => self.openTab(tabName));
+            $content?.addEventListener?.("focusin", () => self.openTab(tabName));
             if ($content) $content.slot = "content";
 
             //
-            bindWith($content, "data-hidden", $internal.opened, handleHidden);
-            subscribe($internal.opened, () => self.openTab(tabName));
+            bindWith($content, "data-hidden", $internal?.opened, handleHidden);
+            subscribe($internal?.opened, () => self.openTab(tabName));
 
             //
             const fragment = document.createDocumentFragment();
@@ -47,6 +52,7 @@ export class TabbedBox extends UIElement {
 
     //
     createTab(tabName: string) {
+        if (!tabName) return;
         const self: any = this;
         const radio = H`<input type="radio" name="tabbed-box-tabs" value="${tabName}">`;
         const tabButton = H`<div class="ui-tabbed-box-tab">${radio}</div>`;
@@ -58,6 +64,7 @@ export class TabbedBox extends UIElement {
 
     //
     openTab(tabName: string) {
+        if (!tabName) return;
         const self: any = this;
         Q(`input[value="${tabName}"]`, self)?.click?.();
     }

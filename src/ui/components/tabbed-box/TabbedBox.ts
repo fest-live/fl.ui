@@ -64,8 +64,8 @@ export class TabbedBox extends UIElement {
 
     //
     styles = () => styled?.cloneNode?.(true);
-    render = function() { return H`<div class="ui-tabbed-box">
-    <div class="ui-tabbed-box-tabs"><slot name="tabs"></slot></div>
-    <div class="ui-tabbed-box-content"><slot name="content"></slot></div>
-</div>`}
+    render = function() { return H`
+        <div class="ui-tabbed-box-tabs"><slot name="tabs"></slot></div>
+        <div class="ui-tabbed-box-content"><slot name="content"></slot></div>
+    `}
 }

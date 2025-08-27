@@ -1,0 +1,62 @@
+@layer box-with-sidebar {
+    :host {
+        & {
+            display: grid;
+            grid-template-columns: [sidebar-col] minmax(0px, max-content) [content-col] minmax(0px, 1fr);
+            grid-template-rows: [bar-row] minmax(0px, max-content) [content-row] minmax(0px, 1fr);
+            inline-size: stretch;
+            block-size: stretch;
+            position: relative;
+            background-color: transparent;
+        }
+
+        // bar
+        .bar {
+            display: flex;
+            flex-direction: row;
+            gap: 0.125rem;
+            inline-size: stretch;
+            block-size: max-content;
+            grid-column: 1 / -1; // span with contents, overlays by sidebar
+            grid-row: bar-row;
+            z-index: 3;
+            background-color: transparent;
+            overflow: hidden;
+        }
+
+        // sidebar
+        .sidebar {
+            & {
+                display: flex;
+                flex-direction: column;
+                gap: 0.125rem;
+                inline-size: max-content;
+                block-size: stretch;
+                grid-column: sidebar-col;
+                grid-row: content-row;
+                transform: translateX(-100%);
+                transition: transform 0.3s ease-in-out;
+                z-index: 2;
+                overflow: hidden;
+            }
+
+            &[data-visible="true"] {
+                transform: translateX(0px);
+            }
+        }
+
+        // content box
+        .content {
+            display: flex;
+            flex-direction: column;
+            gap: 0.125rem;
+            inline-size: stretch;
+            block-size: stretch;
+            grid-column: 1 / -1; // span with contents, overlays by sidebar, bar, etc.
+            grid-row: content-row;
+            z-index: 1;
+            border-radius: 0.25rem;
+            overflow: hidden;
+        }
+    }
+}

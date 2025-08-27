@@ -1,0 +1,61 @@
+@layer tabbed-box {
+    :host {
+        & {
+            display: grid;
+            grid-template-columns: minmax(0px, 1fr);
+            grid-template-rows: minmax(0px, max-content) minmax(0px, 1fr);
+            grid-template-areas: "tabs" "content";
+            inline-size: stretch;
+            block-size: stretch;
+            gap: 0.125rem;
+            background-color: transparent;
+        }
+
+        // tabs box or group
+        .ui-tabbed-box-tabs {
+            & {
+                display: flex;
+                flex-direction: row;
+                grid-area: tabs;
+                gap: 0.125rem;
+                overflow-y: hidden;
+                overflow-x: auto;
+                inline-size: stretch;
+                block-size: max-content;
+                background-color: transparent;
+            }
+
+            // elements or items
+            &::slotted([slot="tabs"]) {
+                display: flex;
+                flex-direction: row;
+                inline-size: max-content;
+                gap: 0.125rem;
+                border-radius: 0.25rem;
+                overflow: hidden;
+            }
+        }
+
+        // tabs content box (wrapper)
+        .ui-tabbed-box-content {
+            & {
+                grid-area: content;
+                display: flex;
+                flex-direction: column;
+                gap: 0.125rem;
+                border-radius: 0.25rem;
+                overflow: hidden;
+
+                //
+                inline-size: stretch;
+                block-size: stretch;
+            }
+
+            // elements or items
+            &::slotted([slot="content"]) {
+                inline-size: stretch;
+                block-size: stretch;
+            }
+        }
+    }
+}

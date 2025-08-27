@@ -13,9 +13,11 @@ loadInlineStyle(styles);
 
 //
 export * from "./ui/workspace/window/WindowFrame";
+export * from "./ui/workspace/window/TaskStateReflect";
 export * from "./ui/workspace/statusbar/StatusBar";
 export * from "./ui/workspace/grid/GridBox";
 export * from "./ui/workspace/grid/OrientBox";
+export * from "./ui/workspace/grid/GridBind";
 
 //
 export * from "./ui/components/icons/Icon";
@@ -24,6 +26,10 @@ export * from "./ui/components/scrollframe/ScrollFrame";
 //
 export * from "./ui/components/tabbed-box/TabbedBox";
 export * from "./ui/components/box-with-sidebar/BoxWithSidebar";
+
+//
+export * from "./ui/inputs/slider/Slider";
+export * from "./ui/inputs/text/Text";
 
 //
 export * from "./ui/services/file-manager/FileManager";
@@ -45,6 +51,11 @@ export * from "./helpers/controllers/Resizable";
 
 //
 export * from "./helpers/core/Anchor";
+export * from "./helpers/core/CtxMenu";
+export * from "./helpers/core/Status";
+export * from "./helpers/core/UIState";
+
+//
 export * from "./helpers/tasking/Tasks";
 export * from "./helpers/tasking/Manager";
 

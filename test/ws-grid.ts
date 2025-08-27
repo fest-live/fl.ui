@@ -1,22 +1,8 @@
-//@ts-ignore
-import styles from "../src/scss/index.scss?inline";
-import { TaskStateReflect } from "../src/ui/workspace/window/TaskStateReflect";
-import { UITask } from "../src/ui/navigation/taskbar/task/Task";
-import { colorScheme } from "../src/helpers/design/ImagePicker";
-import { loadInlineStyle, default as loadCSS } from "fest/dom";
-import { makeReactive } from "fest/object";
+import { TaskStateReflect, colorScheme, TaskInteraction, makeTask, makeTasks } from "fest/fl-ui";
 
 //
-import "../src/ui/workspace/grid/GridBox";
-import "../src/ui/workspace/grid/OrientBox";
-import "../src/ui/components/scrollframe/ScrollFrame";
-import "../src/ui/components/icons/Icon";
-import "../src/ui/navigation/taskbar/bar/TaskBar";
-import "../src/ui/navigation/taskbar/task/Task";
-import "../src/ui/workspace/statusbar/StatusBar";
-import { TaskIndication } from "../src/ui/navigation/taskbar/task/TaskIndication";
-import { TaskInteraction } from "../src/ui/navigation/taskbar/bar/TaskInteraction";
-import { makeTask, makeTasks, Task } from "../src/helpers/tasking/Tasks";
+import { default as loadCSS } from "fest/dom";
+import { makeReactive } from "fest/object";
 import { H, Q, dropFile } from "fest/lure";
 
 //
@@ -30,7 +16,7 @@ async function makeWallpaper() {
 //
 async function createCtxMenu() {
     const { H } = await import("fest/lure");
-    const { ctxMenuTrigger } = await import("../src/helpers/core/CtxMenu");
+    const { ctxMenuTrigger } = await import("fest/fl-ui");
     const ctxMenuDesc = {
         openedWith: null,
         items: [
@@ -59,7 +45,7 @@ async function createCtxMenu() {
 async function createGridWithItem() {
     const { makeReactive } = await import("fest/object");
     const { H, orientRef, M } = await import("fest/lure");
-    const { bindInteraction } = await import("../src/ui/workspace/grid/GridBind");
+    const { bindInteraction } = await import("fest/fl-ui");
 
     //
     const genItem = (item)=>{
@@ -99,11 +85,7 @@ const tasks = makeTasks((list)=>[
 //
 async function createWindowFrame() {
     const { H, orientRef, M } = await import("fest/lure");
-    const { WindowFrame } = await import("../src/ui/workspace/window/WindowFrame");
-    const { FileManager } = await import("../src/ui/services/file-manager/FileManager");
-    const { SliderInput } = await import("../src/ui/inputs/slider/Slider");
-    const { LongTextInput } = await import("../src/ui/inputs/text/Text");
-    const { ScrollBoxed } = await import("../src/ui/components/scrollframe/ScrollFrame");
+    const { WindowFrame, FileManager, SliderInput, LongTextInput, ScrollBoxed } = await import("fest/fl-ui");
     console.log(LongTextInput, ScrollBoxed);
 
     //
@@ -121,9 +103,7 @@ async function createWindowFrame() {
 //
 async function createTaskBar() {
     const { H, M } = await import("fest/lure");
-    const { UITaskBar } = await import("../src/ui/navigation/taskbar/bar/TaskBar");
-    const { UITask } = await import("../src/ui/navigation/taskbar/task/Task");
-    const { TaskIndication } = await import("../src/ui/navigation/taskbar/task/TaskIndication");
+    const { UITaskBar, UITask, TaskIndication } = await import("fest/fl-ui");
     const taskbar = H`<ui-taskbar class="c2-surface">${M(tasks, task=>{
         const taskEl = H`<ui-task class="c2-surface"></ui-task>`;
         new TaskIndication(taskEl, task);
@@ -135,7 +115,7 @@ async function createTaskBar() {
 
 //
 async function main() {
-    await loadCSS(); loadInlineStyle(styles);
+    await loadCSS();
 
     //
     const container = document.querySelector("#app") || document.body;

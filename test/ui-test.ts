@@ -2,7 +2,7 @@ import { loadInlineStyle } from "fest/dom";
 
 async function createScrollBoxed() {
     const { H } = await import("fest/lure");
-    const { OverlayScrollbarMixin } = await import("../src/ui/components/scrollframe/ScrollFrame"); //@ts-ignore
+    const { OverlayScrollbarMixin } = await import("fest/fl-ui"); //@ts-ignore
 
     return H`
     <div class="c2-surface" data-mixin="ov-scrollbar" style="clip-path: inset(0px round 0.5%); padding: 1rem; margin: 1rem; box-sizing: border-box; overflow: scroll; display: block; inline-size: 800px; block-size: 600px; border: none 0px transparent; outline: none 0px transparent;">
@@ -12,7 +12,7 @@ async function createScrollBoxed() {
 
 async function createTimeStatus() {
     const { H } = await import("fest/lure");
-    const { timeStatusRef } = await import("../src/helpers/core/Status");
+    const { timeStatusRef } = await import("fest/fl-ui");
     const tref = timeStatusRef();
     return H`<div class="time-format">${tref}</div>`;
 }
@@ -24,7 +24,7 @@ async function createIcon() {
 
 async function createSlider() {
     const { H } = await import("fest/lure");
-    const { SliderInput } = await import("../src/ui/inputs/slider/Slider");
+    const { SliderInput } = await import("fest/fl-ui");
 
     return H`<div style="display: inline-flex; gap: 1rem; align-items: center;">
         <ui-slider variant="slider" style="inline-size: 160px; block-size: 1rem; border-radius: 0.5rem;">
@@ -38,8 +38,8 @@ async function createSlider() {
 
 async function createCtxMenu() {
     const { H } = await import("fest/lure");
-    const { ctxMenuTrigger } = await import("../src/helpers/core/CtxMenu");
-    const { UIPhosphorIcon } = await import("../src/ui/components/icons/Icon");
+    const { ctxMenuTrigger } = await import("fest/fl-ui");
+    const { UIPhosphorIcon } = await import("fest/fl-ui");
     const ctxMenuDesc = {
         openedWith: null,
         items: [
@@ -66,7 +66,7 @@ async function createCtxMenu() {
 
 async function createLongText() {
     const { H } = await import("fest/lure");
-    const { LongTextInput } = await import("../src/ui/inputs/text/Text");
+    const { LongTextInput } = await import("fest/fl-ui");
 
     //value="Hello, world!"
     const longText = H`<ui-longtext class="c2-surface" style="inline-size: 200px; border-radius: 0.5rem;">
@@ -76,20 +76,11 @@ async function createLongText() {
     return longText;
 }
 
-// --- Асинхронная инициализация ---
-
-//@ts-ignore
-import styles from "../src/scss/index.scss?inline";
-
-//
 async function main() {
-    // Глобальные стили и CSS
     const { default: loadCSS } = await import("fest/dom");
     await loadCSS();
-    loadInlineStyle(styles);
     const container = document.querySelector("#app") || document.body;
 
-    // Создание и добавление компонентов
     const [
         scrollBoxed,
         timeStatus,

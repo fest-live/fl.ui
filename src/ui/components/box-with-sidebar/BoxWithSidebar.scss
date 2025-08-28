@@ -71,7 +71,7 @@
                 flex-direction: column;
                 gap: 0.125rem;
                 inline-size: max-content;
-                min-inline-size: 6rem;
+                min-inline-size: 4rem;
                 block-size: stretch;
                 grid-column: sidebar-col;
                 grid-row: 1 / -1;
@@ -79,6 +79,8 @@
                 transition: transform 0.3s ease-in-out;
                 z-index: 2;
                 overflow: hidden;
+                border-radius: 0.25rem;
+                padding: 0px;
             }
 
             ::slotted([slot="sidebar"]) {
@@ -89,6 +91,7 @@
                 place-items: center;
                 line-height: normal;
                 align-content: start;
+                padding: 0.25rem;
             }
 
             &[data-visible] {
@@ -108,6 +111,15 @@
             z-index: 1;
             overflow: hidden;
             background-color: transparent;
+
+            //
+            ::slotted(*) {
+                inline-size: stretch;
+                block-size: stretch;
+                flex-grow: 1;
+                place-content: center;
+                place-items: center;
+            }
         }
     }
 }

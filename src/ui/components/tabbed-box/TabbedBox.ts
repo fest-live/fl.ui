@@ -4,58 +4,77 @@ import { UIElement } from "@helpers/base/UIElement"
 
 // @ts-ignore
 import styles from "./TabbedBox.scss?inline"
-import { subscribe } from "fest/object";
+import { observableByMap, subscribe, $trigger } from "fest/object";
 const styled = preloadStyle(styles);
 
 // @ts-ignore
 @defineElement("ui-tabbed-box")
 export class TabbedBox extends UIElement {
-    public tabs: Map<string, HTMLElement|string|any> = new Map();
+    //public tabs?: Map<string, HTMLElement|string|any>;
 
     // internal built tabs
     #tabs: Map<string, {button: UIElement, content: UIElement, input: UIElement, opened: any}> = new Map();
 
     //
     constructor() { super(); }
-    onInitialize() { super.onInitialize?.(); }
-    onRender() {
+    onInitialize() {
         const self: any = this;
-        E(self, {}, M(self.tabs.keys(), (tabName) => {
+        super.onInitialize?.();
+        self.renderTabs();
+    }
+
+    //
+    setTabs(tabs: Map<string, HTMLElement|string|any>) {
+        const self: any = this;
+        self.tabs = tabs;
+    }
+
+    //
+    renderTabs() {
+        const self: any = this;
+        if (!self.tabs) return;
+
+        //
+        E(self, {}, M([...(self.tabs?.keys() ?? [])], (tabName) => {
             //
             const $internal = self?.createTab?.(tabName);
             if (!$internal) return;
 
-            $internal?.input?.addEventListener("change", () => self.openTab(tabName));
-            $internal?.button?.addEventListener("click", () => self.openTab(tabName));
+            //
+            $internal?.input?.addEventListener("change", (ev) => self.openTab(tabName, ev));
+            $internal?.button?.addEventListener("click", (ev) => self.openTab(tabName, ev));
             if ($internal?.button) $internal.button.slot = "tabs";
 
             //
-            const $content = self?.tabs?.get?.(tabName) ?? Q(`[data-name="${tabName}"]`, self);
+            const $content = self?.tabs?.get?.(tabName) ?? Q(`[data-name="${tabName}"]`, self?.shadowRoot);
             if (!$content) return;
 
             //
             $content?.setAttribute?.("data-name", tabName);
             $content?.addEventListener?.("focus", () => self.openTab(tabName));
             $content?.addEventListener?.("focusin", () => self.openTab(tabName));
-            if ($content) $content.slot = "content";
+            //if ($content) $content.slot = "content";
 
             //
             bindWith($content, "data-hidden", $internal?.opened, handleHidden);
-            subscribe($internal?.opened, () => self.openTab(tabName));
 
             //
-            const fragment = document.createDocumentFragment();
-            fragment.append($internal.button, $content);
-            return fragment;
+            return $content;
         }));
+    }
+
+    //
+    onRender() {
+        const self: any = this;
+        self.renderTabs();
     }
 
     //
     createTab(tabName: string) {
         if (!tabName) return;
         const self: any = this;
-        const radio = H`<input type="radio" name="tabbed-box-tabs" value="${tabName}">`;
-        const tabButton = H`<div class="ui-tabbed-box-tab">${radio}</div>`;
+        const radio = H`<input type="radio" class="ui-tabbed-box-handle" name="ui-tabbed-box-handle" value="${tabName}">`;
+        const tabButton = H`<div class="ui-tabbed-box-tab">${tabName}${radio}</div>`;
         const tabContent = Q(`[data-name="${tabName}"]`, self);
         const $internal = {button: tabButton, content: tabContent, input: radio, opened: checkedRef(radio)};
         this.#tabs.set(tabName, $internal); //@ts-ignore
@@ -63,16 +82,25 @@ export class TabbedBox extends UIElement {
     }
 
     //
-    openTab(tabName: string) {
+    openTab(tabName: string, ev?: any) {
         if (!tabName) return;
         const self: any = this;
-        Q(`input[value="${tabName}"]`, self)?.click?.();
+        const qr = Q(`input[value="${tabName}"]`, self?.shadowRoot);
+        if (!qr?.element) return;
+        if (!ev?.target?.matches?.("input")) { qr?.click?.(); } // avoid recursion
+
+        //
+        const opened = this.#tabs.get(tabName)?.opened;
+        if (opened) {
+            opened.value = qr.checked;
+            //opened?.[$trigger]?.();
+        }
     }
 
     //
     styles = () => styled?.cloneNode?.(true);
     render = function() { return H`
-        <div class="ui-tabbed-box-tabs"><slot name="tabs"></slot></div>
-        <div class="ui-tabbed-box-content"><slot name="content"></slot></div>
+        <div class="ui-tabbed-box-tabs">${M(observableByMap(this.#tabs) ?? [], ([tabName, $tab]) => $tab?.button)}</div>
+        <div class="ui-tabbed-box-content"><slot></slot></div>
     `}
 }

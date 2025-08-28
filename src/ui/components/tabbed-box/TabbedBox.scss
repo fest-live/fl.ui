@@ -23,16 +23,47 @@
                 inline-size: stretch;
                 block-size: max-content;
                 background-color: transparent;
+                pointer-events: none;
             }
 
             // elements or items
-            &::slotted([slot="tabs"]) {
+            & .ui-tabbed-box-tab {
+                line-height: normal;
                 display: flex;
                 flex-direction: row;
                 inline-size: max-content;
+                min-inline-size: 3rem;
                 gap: 0.125rem;
                 border-radius: 0.25rem;
                 overflow: hidden;
+                block-size: max-content;
+                min-block-size: 2rem;
+                background-color: --c2-surface(0.0, var(--current, currentColor));
+                pointer-events: auto;
+                cursor: pointer;
+                user-select: none;
+                place-content: center;
+                place-items: center;
+                padding: 0.25rem;
+            }
+
+            & .ui-tabbed-box-handle {
+                pointer-events: auto;
+                visibility: collapse;
+                content-visibility: hidden;
+                inline-size: 0px;
+                block-size: 0px;
+                appearance: none;
+                border: none;
+                background-color: transparent;
+                padding: 0px;
+                margin: 0px;
+                outline: none;
+                color: transparent;
+                opacity: 0;
+                z-index: -1;
+                user-select: none;
+                -webkit-tap-highlight-color: transparent;
             }
         }
 
@@ -52,9 +83,11 @@
             }
 
             // elements or items
-            &::slotted([slot="content"]) {
+            ::slotted(*) {
                 inline-size: stretch;
                 block-size: stretch;
+                line-height: normal;
+                padding: 0.25rem;
             }
         }
     }

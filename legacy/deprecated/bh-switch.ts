@@ -1,6 +1,6 @@
 // @ts-ignore
 import { importCdn } from "fest/cdnImport";
-import { addEvent, addEvents, removeEvents } from "fest/dom";
+import { addEvent, addEvents, removeEvents, setChecked } from "fest/dom";
 
 //
 export const setStyle = async (self, confirm: boolean = false, exact: number = 0, val: number = 0)=>{
@@ -57,7 +57,7 @@ export const makeSwitchBH = async (self?: HTMLElement)=>{
         if (evType != "pointerdown") {
             if (TYPE == "checkbox") {
                 const checkbox = self.querySelector?.("input[type=\"checkbox\"]") as unknown as HTMLInputElement;
-                checkbox?.click?.();
+                setChecked(checkbox, checkbox?.checked);
                 setStyle(self, true, checkbox?.checked ? 1 : 0, checkbox?.checked ? 1 : 0);
             }
         }
@@ -78,7 +78,9 @@ export const makeSwitchBH = async (self?: HTMLElement)=>{
 
                 //
                 setStyle(self, confirm || evType == "change", exact, (evType == "pointermove") ? val : (self.style?.getPropertyValue?.("--value") ?? val))?.finally?.(()=>{
-                    if (!radio?.[exact]?.checked && confirm) { radio?.[exact]?.click?.(); };
+                    if (!radio?.[exact]?.checked && confirm) {
+                        setChecked(radio?.[exact], radio?.[exact]?.checked);
+                    }
                 });
             }
         }
@@ -165,12 +167,16 @@ export const onItemSelect = (ev?: any, self?: any)=>{
         //
         if (ownRadio && (ownRadio?.name == ev?.target?.name || ev == null)) {
             // fix if was in internal DOM
-            self.checked = (ownRadio?.checked /*= ev.target == ownRadio*/);
+            if (ownRadio?.checked != self?.checked) {
+                setChecked(ownRadio, self?.checked);
+            }
         }
 
         //
         if (ownCheckbox && ownCheckbox?.name == ev?.target?.name && ev?.target == ownCheckbox || ev == null) {
-            self.checked = ownCheckbox?.checked;
+            if (ownCheckbox?.checked != self?.checked) {
+                setChecked(ownCheckbox, self?.checked);
+            }
         }
 
         //

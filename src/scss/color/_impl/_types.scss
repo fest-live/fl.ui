@@ -29,6 +29,20 @@
                 @include reset-all-properties();
             }
 
+            /* Inherit from parent */
+            &::before, &::after, &::placeholder, &::marker,
+            & > *::before, & > *::after, & > *::placeholder, & > *::marker {
+                @include reset-all-properties();
+            }
+
+            /* Selection styles */
+            :where(&::selection), & > :where(*::selection) {
+                --#{$type}-tone: 0.05;
+                background-color: --c2-on-#{$type}(var(--selection-tone-shift, 0.0), var(--#{$current-name}, transparent));
+                color: --c2-#{$type}(var(--selection-tone-shift, 0.0), var(--#{$current-name}, transparent));
+                --icon-color: --c2-#{$type}(var(--selection-tone-shift, 0.0), var(--#{$current-name}, transparent));
+            }
+
             /* Variables */
             & {
                 accent-color: --c2-on-#{$type}(var(--accent-tone-shift, 0.0), var(--#{$current-name}, transparent));
@@ -45,20 +59,6 @@
                 outline-color: oklch(from --c2-on-#{$type}(var(--outline-tone-shift, 0.0), var(--#{$current-name}, transparent)) l c h / 0);
                 text-decoration-color: oklch(from --c2-on-#{$type}(var(--text-decoration-tone-shift, 0.0), var(--#{$current-name}, transparent)) l c h / 0);
                 text-emphasis-color: oklch(from --c2-on-#{$type}(var(--text-emphasis-tone-shift, 0.0), var(--#{$current-name}, transparent)) l c h / 0);
-            }
-
-            /* Inherit from parent */
-            &::before, &::after, &::placeholder, &::marker,
-            & *::before, & *::after, & *::placeholder, & *::marker {
-                @include reset-all-properties();
-            }
-
-            /* Selection styles */
-            &::selection, & *::selection {
-                --#{$type}-tone: 0.05;
-                background-color: --c2-on-#{$type}(var(--selection-tone-shift, 0.0), var(--#{$current-name}, transparent));
-                color: --c2-#{$type}(var(--selection-tone-shift, 0.0), var(--#{$current-name}, transparent));
-                --icon-color: --c2-#{$type}(var(--selection-tone-shift, 0.0), var(--#{$current-name}, transparent));
             }
 
             /* Blur */

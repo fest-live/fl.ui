@@ -1,5 +1,5 @@
 import { placeWithCursor, placeWithElement } from "../deprecated/ps-anchor.js";
-import { addEvent, addEvents, removeEvents } from "fest/dom";
+import { addEvent, addEvents, removeEvents, setChecked } from "fest/dom";
 
 //
 const hasClosest  = (el: HTMLElement, exact: HTMLElement) => { do { if (el === exact) { return true; }; el = el?.parentElement as HTMLElement; } while (el?.parentElement && el?.parentElement != exact); return (el === exact); }
@@ -120,7 +120,7 @@ export const openDropMenu = (button: any, ev?: any, $menu?: any)=>{
         clone?.style?.removeProperty("display");
         clone?.addEventListener?.("click", (ev)=>{
             const input: any = el?.matches?.("input") ? el : el?.querySelector?.("input");
-            if (input) { input?.click?.(); } else
+            if (input) { setChecked(input, input?.checked); } else
             if (field) {
                 field.value = el?.dataset?.value || el?.value || "";
                 field?.dispatchEvent?.(new Event("change", { bubbles: true }));

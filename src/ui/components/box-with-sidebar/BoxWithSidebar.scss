@@ -83,6 +83,10 @@
                 padding: 0px;
             }
 
+            @starting-style {
+                transform: translateX(-100%);
+            }
+
             ::slotted([slot="sidebar"]) {
                 inline-size: stretch;
                 block-size: stretch;

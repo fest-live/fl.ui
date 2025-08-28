@@ -1,5 +1,5 @@
 import { defineElement, checkedRef, Q, H, E, M, bindWith } from "fest/lure"
-import { handleHidden, preloadStyle } from "fest/dom"
+import { handleHidden, preloadStyle, setChecked } from "fest/dom"
 import { UIElement } from "@helpers/base/UIElement"
 
 // @ts-ignore
@@ -46,7 +46,7 @@ export class TabbedBox extends UIElement {
             if ($internal?.button) $internal.button.slot = "tabs";
 
             //
-            const $content = self?.tabs?.get?.(tabName) ?? Q(`[data-name="${tabName}"]`, self?.shadowRoot);
+            const $content = self?.tabs?.get?.(tabName) ?? Q(`[data-name="${tabName}"]`, self);
             if (!$content) return;
 
             //
@@ -73,8 +73,8 @@ export class TabbedBox extends UIElement {
     createTab(tabName: string) {
         if (!tabName) return;
         const self: any = this;
-        const radio = H`<input type="radio" class="ui-tabbed-box-handle" name="ui-tabbed-box-handle" value="${tabName}">`;
-        const tabButton = H`<div class="ui-tabbed-box-tab">${tabName}${radio}</div>`;
+        const radio = H`<input type="radio" class="ui-tabbed-box-handle" name="tab-handle" value="${tabName}">`;
+        const tabButton = H`<label class="ui-tabbed-box-tab">${tabName}${radio}</label>`;
         const tabContent = Q(`[data-name="${tabName}"]`, self);
         const $internal = {button: tabButton, content: tabContent, input: radio, opened: checkedRef(radio)};
         this.#tabs.set(tabName, $internal); //@ts-ignore
@@ -87,20 +87,20 @@ export class TabbedBox extends UIElement {
         const self: any = this;
         const qr = Q(`input[value="${tabName}"]`, self?.shadowRoot);
         if (!qr?.element) return;
-        if (!ev?.target?.matches?.("input")) { qr?.click?.(); } // avoid recursion
+        if (!ev?.target?.matches?.("input")) { setChecked(qr, true); } // avoid recursion
 
         //
+        this.#tabs.entries().forEach(([$tabName, tab]) => {
+            if (tabName != $tabName) { tab.opened.value = /*(tab?.input as any)?.checked ??*/ false; }
+        });
         const opened = this.#tabs.get(tabName)?.opened;
-        if (opened) {
-            opened.value = qr.checked;
-            //opened?.[$trigger]?.();
-        }
+        if (opened) { opened.value = qr?.checked || false; }
     }
 
     //
     styles = () => styled?.cloneNode?.(true);
     render = function() { return H`
-        <div class="ui-tabbed-box-tabs">${M(observableByMap(this.#tabs) ?? [], ([tabName, $tab]) => $tab?.button)}</div>
+        <form class="ui-tabbed-box-tabs">${M(observableByMap(this.#tabs) ?? [], ([tabName, $tab]) => $tab?.button)}</form>
         <div class="ui-tabbed-box-content"><slot></slot></div>
     `}
 }

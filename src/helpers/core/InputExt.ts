@@ -1,4 +1,4 @@
-import { addEvent, bindDraggable, handleStyleChange, RAFBehavior } from "fest/dom";
+import { addEvent, bindDraggable, handleStyleChange, RAFBehavior, setChecked } from "fest/dom";
 import { bindWith, bindCtrl } from "fest/lure";
 import { computed, numberRef, conditional } from "fest/object";
 
@@ -86,10 +86,10 @@ const setValue = (input, value)=>{
     if (input?.type == "number" || input?.type == "range")
         { if (value != input.valueAsNumber) { input.valueAsNumber = value; input?.dispatchEvent?.(new Event("change", { bubbles: true })); } } else
     if (input?.type == "checkbox")
-        { if (value && input.chacked != value) { input?.click?.(); } } else
+        { setChecked(input, value); } else
     if (input?.type == "radio") {
         const all = [...input?.parentNode?.querySelectorAll?.('input[type="radio"]')];
-        if (value != 0) { all[Math.max(Math.min(Math.round(value), max), min)]?.click?.(); }
+        if (value != 0) { setChecked(all[Math.max(Math.min(Math.round(value), max), min)], value); }
     }
 }
 
@@ -157,7 +157,9 @@ export const dragSlider = (thumb, handler, input)=>{ // @ts-ignore
 
     //
     const listening = [
-        addEvent(handler, "click", (ev)=>{ if (input?.type == "checkbox" || input?.type == "radio") { input?.click?.(); } }),
+        addEvent(handler, "click", (ev)=>{
+            if (input?.type == "checkbox" || input?.type == "radio") { setChecked(input, input?.checked, ev); }
+        }),
         addEvent(handler, "pointerdown", (ev)=>{
             if (!(ev?.target?.matches?.(".ui-thumb") || ev?.target?.closest?.(".ui-thumb"))) {
                 if (ev?.target == (handler?.element ?? handler) || handler.contains(ev?.target)) {

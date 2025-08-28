@@ -22,12 +22,6 @@ export class WindowFrame extends UIElement {
     @property({ source: "attr", name: "subtitle" }) subtitle?: string = "WINDOW_FRAME_SUBTITLE";
 
     /* Public Attributes */
-    @property({ source: "attr", name: "content" }) content?: string = "";
-    @property({ source: "attr", name: "titlebar" }) titlebar?: string = "";
-    @property({ source: "attr", name: "titlebar-handle" }) titlebarHandle?: string = "";
-    @property({ source: "attr", name: "titlebar-app-icon" }) titlebarAppIcon?: string = "";
-
-    /* Customization */
     @property({ source: "attr", name: "close-icon" }) closeIcon?: string = "x";
     @property({ source: "attr", name: "minimize-icon" }) minimizeIcon?: string = "minus";
     @property({ source: "attr", name: "maximize-icon" }) maximizeIcon?: string = "corners-out";
@@ -36,8 +30,8 @@ export class WindowFrame extends UIElement {
     @property({ source: "query-shadow", name: ".ui-window-frame-content" }) contentEl?: HTMLElement;
     @property({ source: "query-shadow", name: ".ui-window-frame-titlebar" }) titlebarEl?: HTMLElement;
     @property({ source: "query-shadow", name: ".ui-window-frame-titlebar-handle" }) titlebarHandleEl?: HTMLElement;
-    @property({ source: "query-shadow", name: ".ui-window-frame-resize-handle" }) resizeHandleEl?: HTMLElement;
     @property({ source: "query-shadow", name: ".ui-window-frame-titlebar-app-icon" }) appIconEl?: HTMLSpanElement;
+    @property({ source: "query-shadow", name: ".ui-window-frame-resize-handle" }) resizeHandleEl?: HTMLElement;
     @property({ source: "query-shadow", name: ".ui-window-frame-titlebar-title-text" }) titleTextEl?: HTMLSpanElement;
     @property({ source: "query-shadow", name: ".ui-window-frame-titlebar-title-text-sub" }) titleTextSubEl?: HTMLSpanElement;
     @property({ source: "query-shadow", name: ".ui-window-frame-titlebar-control-close" }) closeEl?: HTMLButtonElement;

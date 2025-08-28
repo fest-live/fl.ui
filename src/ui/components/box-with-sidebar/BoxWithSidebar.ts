@@ -48,6 +48,8 @@ export class BoxWithSidebar extends UIElement {
 
     //
     styles = () => styled?.cloneNode?.(true);
-    render = function() { return H`<div class="bar c2-surface"><button class="open-sidebar c2-surface" on:click=${()=>{this.sidebarOpened.value = !this.sidebarOpened.value;}}><ui-icon icon="${conditional(this.sidebarOpened, 'text-outdent', 'list')}"></ui-icon></button><slot name="bar"></slot></div><div class="sidebar c2-surface" data-visible=${this.sidebarOpened}><slot name="sidebar"></slot></div><div class="content c2-surface"><slot></slot></div>`;
+    render = function() { return H`<div class="bar c2-surface"><button class="open-sidebar c2-surface" on:click=${()=>{this.sidebarOpened.value = !this.sidebarOpened.value;}}><ui-icon icon="${conditional(this.sidebarOpened, 'text-outdent', 'list')}"></ui-icon></button><slot name="bar"></slot></div>
+    <div class="content-box"><div class="sidebar c2-surface" data-visible=${this.sidebarOpened}><slot name="sidebar"></slot></div><div class="content c2-surface"><slot></slot></div></div>
+    `;
     }
 }

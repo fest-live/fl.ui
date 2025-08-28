@@ -7,7 +7,8 @@
 
         .fm-root {
             display: grid;
-            grid-template-rows: auto 1fr;
+            grid-template-columns: minmax(0px, max-content) minmax(0px, 1fr);
+            grid-template-rows: auto minmax(0px, 1fr);
             gap: 0.5rem;
             inline-size: stretch;
             block-size: stretch;
@@ -47,9 +48,25 @@
             padding: 0.5rem;
             border-radius: 0.5rem;
             background: --c2-surface(0.02, var(--current, transparent));
+            line-height: normal;
+            justify-content: start;
+            justify-items: start;
+            text-align: start;
 
-            .sec { display: grid; gap: 0.25rem; }
-            .sec-title { font-weight: 600; opacity: 0.8; padding-block: 0.25rem; }
+            .sec {
+                display: grid;
+                gap: 0.25rem;
+                place-content: start;
+                place-items: start;
+                justify-content: start;
+                justify-items: start;
+            }
+            .sec-title {
+                font-weight: 600;
+                opacity: 0.8;
+                padding-block: 0.25rem;
+                place-self: start;
+            }
             .link {
                 text-align: start;
                 appearance: none;
@@ -58,6 +75,7 @@
                 padding: 0.25rem 0.375rem;
                 border-radius: 0.375rem;
                 cursor: pointer;
+                line-height: normal;
             }
             .link:hover { background: --c2-surface(0.06, var(--current, transparent)); }
         }
@@ -170,6 +188,7 @@
             letter-spacing: -0.05em;
             overflow: hidden;
             gap: 0.25rem;
+            flex-wrap: nowrap;
 
             .c { min-inline-size: 0; }
             .name {
@@ -202,17 +221,16 @@
                     minmax(0px, 1fr)
                     minmax(10ch, max-content);
             }
-            .c.size, .c.date { display: none; }
+            ::slotted(.c.size), ::slotted(.c.date), ::slotted(.size), ::slotted(.date),
+            .c.size, .c.date, .size, .date { display: none !important; }
         }
 
         @container (inline-size < 520px) {
             .fm-root[data-with-sidebar="true"] { grid-template-columns: 1fr; }
-            .fm-sidebar { display: none; }
+            .fm-sidebar { display: none !important; }
             .fm-grid { grid-template-columns: minmax(2rem, max-content) minmax(0px, 1fr); }
-            .c.type { display: none; }
-            .c.size, .c.date { display: none; }
-            ::slotted(.row) .type, .row .type { display: none; }
-            ::slotted(.row) .size, .row .size, ::slotted(.row) .date, .row .date { display: none; }
+            ::slotted(.c.type), ::slotted(.c.size), ::slotted(.c.date), ::slotted(.type), ::slotted(.size), ::slotted(.date),
+            .c.type, .c.size, .c.date, .type, .size, .date { display: none !important; }
         }
     }
 }

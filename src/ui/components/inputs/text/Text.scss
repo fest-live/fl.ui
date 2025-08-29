@@ -1,0 +1,218 @@
+@use "@ui/scss/classes/mixins" as m;
+
+//
+@layer ui-text {
+    :host(ui-longtext) {
+        //
+        & {
+            --background-tone-shift: 0.1;
+            --ui-text-background-color: --c2-surface(var(--background-tone-shift, 0.0), var(--current, transparent));
+            --ui-text-color: --c2-on-surface(var(--ui-text-tone-shift, 0.0), var(--current, currentColor));
+            --ui-text-font-size: 0.9rem;
+            --ui-text-font-family: "InterVariable", "Inter", Helvetica, Calibri, Carlito;
+            --ui-text-border-width: 0.0625rem;
+            --ui-text-radius: 0.5rem;
+            --ui-text-border-radius: 0.5rem;
+            --ui-text-border-color: --c2-on-surface(var(--ui-text-tone-shift, 0.0), var(--current, currentColor));
+        }
+
+        //
+        & {
+            max-inline-size: none;
+            max-block-size: none;
+            inline-size: stretch;
+            block-size: stretch;
+            display: grid !important;
+            place-content: stretch;
+            place-items: stretch;
+            text-align: start;
+            pointer-events: none;
+            user-select: none;
+            background-color: var(--ui-text-background-color, transparent);
+            border: none 0px transparent;
+            outline: none 0px transparent;
+            padding: 0;
+            margin: 0;
+            font-size: var(--ui-text-font-size, 1rem);
+            grid-template-columns: minmax(0px, 1fr) !important;
+            grid-template-rows: minmax(0px, 1fr) !important;
+            position: relative;
+            overflow: hidden;
+            container-type: size;
+            contain: none;
+            line-height: 0;
+        }
+
+        //
+        &, *, ::slotted(*) {
+            box-sizing: border-box;
+            transition-behavior: allow-discrete;
+            interpolate-size: allow-keywords;
+            border: none 0px transparent;
+            outline: none 0px transparent;
+            padding: 0px;
+            margin: 0px;
+            white-space: nowrap;
+            text-spacing-trim: normal;
+            text-wrap: nowrap;
+            word-break: keep-all;
+        }
+
+        slot {
+            display: contents !important;
+            pointer-events: none !important;
+            background-color: transparent !important;
+            color: inherit !important;
+            box-shadow: none !important;
+            border-width: 0px !important;
+            border-style: none !important;
+            border-color: transparent !important;
+            outline: none !important;
+            contain: none !important;
+            container-type: normal !important;
+            white-space: nowrap !important;
+            text-spacing-trim: normal !important;
+            text-wrap: nowrap !important;
+            word-break: keep-all !important;
+            padding: 0px !important;
+            margin: 0px !important;
+        }
+
+        //
+        &, * {
+            box-sizing: border-box;
+            transition-behavior: allow-discrete;
+            interpolate-size: allow-keywords;
+            user-select: none;
+            pointer-events: none;
+        }
+
+        & {
+            @include m.round-corner(var(--ui-text-radius, 0.5rem));
+        }
+
+        //
+        & {
+            border-radius: var(--ui-text-border-radius, 0.5rem);
+            border-width: var(--ui-text-border-width, 0.0625rem);
+            border-color: var(--ui-text-border-color, --c2-on-surface(var(--ui-text-tone-shift, 0.0), var(--current, currentColor)));
+            border-style: solid;
+        }
+
+        //
+        & > * {
+            grid-column: 1 / -1;
+            grid-row: 1 / -1;
+            justify-content: start;
+            text-align: start;
+            user-select: none;
+            pointer-events: none;
+            background-color: transparent;
+            border: none 0px transparent;
+            outline: none 0px transparent;
+            padding: 0px;
+            margin: 0px;
+            font-size: var(--ui-text-font-size, 1rem);
+            font-family: var(--ui-text-font-family, inherit);
+            inline-size: 100%;
+            block-size: 100%;
+            max-inline-size: none;
+            max-block-size: none;
+            overflow: hidden;
+        }
+
+        //
+        .box-layer {
+            font-size: 0rem;
+            line-height: 0;
+            grid-column: 1 / -1;
+            grid-row: 1 / -1;
+            inline-size: stretch;
+            block-size: 100cqb;
+            max-inline-size: none;
+            max-block-size: none;
+            display: block;
+            flex-direction: row;
+            text-align: start;
+            place-content: stretch;
+            place-items: stretch;
+            justify-content: start;
+            justify-items: start;
+            user-select: none;
+            pointer-events: none;
+            border: none 0px transparent !important;
+            outline: none 0px transparent !important;
+            padding: 0px !important;
+            //padding-block-end: 0.25rem;
+            margin: 0px !important;
+            font-family: var(--ui-text-font-family, inherit);
+            overflow: visible;
+            overflow-inline: scroll;
+            overflow-block: visible;
+            contain: none;
+            background-color: transparent;
+            position: relative;
+            white-space: nowrap;
+            text-spacing-trim: normal;
+            text-wrap: nowrap;
+            word-break: keep-all;
+            scrollbar-width: none;
+            scrollbar-color: transparent transparent;
+
+            // prevent input from being cut off visually
+            clip-path: inset(0px 0.125rem round 0.125rem);
+
+            // smoothly crop input in left and right edges...
+            mask-image: linear-gradient(
+                to right,
+                transparent 0rem,
+                transparent 0.125rem,
+                black 0.5rem,
+                black calc(100% - 0.5rem),
+                transparent calc(100% - 0.125rem),
+                transparent 100%
+            );
+            mask-size: 100% 100%;
+            mask-repeat: no-repeat;
+            mask-position: center center;
+            mask-mode: alpha;
+            mask-origin: content-box;
+            mask-clip: padding-box;
+        }
+
+        //
+        ::slotted(input) {
+            font-size: var(--ui-text-font-size, 1rem);
+            display: inline-block;
+            min-inline-size: -webkit-fill-available;
+            min-inline-size: 100%;
+            min-block-size: 100cqb;
+            inline-size: max-content;
+            block-size: max-content;
+            max-inline-size: none;
+            max-block-size: none;
+            place-self: stretch;
+            place-content: stretch;
+            place-items: stretch;
+            text-align: start;
+            justify-self: start;
+            justify-content: start;
+            user-select: auto;
+            pointer-events: auto;
+            background-color: transparent;
+            padding: 0.25rem 0.5rem 0.333rem 0.5rem;
+            margin: 0;
+            field-sizing: content;
+            font-family: var(--ui-text-font-family, inherit);
+            border: none 0px transparent;
+            outline: none 0px transparent;
+            box-sizing: border-box;
+            overflow: visible;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            text-spacing-trim: normal;
+            text-wrap: nowrap;
+            word-break: keep-all;
+        }
+    }
+}

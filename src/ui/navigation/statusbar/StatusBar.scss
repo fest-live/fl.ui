@@ -1,0 +1,68 @@
+@use "@ui/scss/classes/mixins" as m;
+
+//
+@include m.host-related('ui-statusbar', '*') {
+    background-color: transparent;
+}
+
+//
+@include m.host-context('ui-statusbar') {
+    @include m.display(flex, row, center, space-between);
+
+    //
+    & {
+        //
+        color: --c2-on-contrast(0.0, var(--current));
+
+        // in general, depends what in background!
+        // overrides by JS-reactivity!
+        color-scheme: dark;
+    }
+
+    //
+    .left { // should be max-content
+        @include m.display(flex, row, center, start);
+
+        & {
+            min-inline-size: 0px;
+            max-inline-size: max-content;
+        }
+
+        & {
+            flex: 1 1 0%;
+            flex-basis: max-content;
+        }
+    }
+
+    //
+    .right { // should be max-content
+        @include m.display(flex, row, center, end);
+
+        & {
+            min-inline-size: 0px;
+            max-inline-size: max-content;
+        }
+
+        & {
+            flex: 1 1 0%;
+            flex-basis: max-content;
+            flex-grow: 1;
+            flex-shrink: 1;
+        }
+    }
+
+    //
+    .center { // should be stretch
+        @include m.display(flex, row, center, center);
+
+        & {
+            min-inline-size: 0px;
+            max-inline-size: stretch;
+        }
+
+        & {
+            flex: 1 1 0%;
+            flex-basis: stretch;
+        }
+    }
+}

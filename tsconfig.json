@@ -17,10 +17,9 @@
             "fest/ui": ["./src/index.ts"],
             "fest/polyfill/*": ["../shared/fest/polyfill/*"],
             "polyfill/*": ["../shared/fest/polyfill/*"],
-            "@legacy/*": ["./legacy/*"],
-            "@helpers/*": ["./src/helpers/*"],
-            "@scss/*": ["./src/scss/*"],
-            "@ui/*": ["./src/ui/*"]
+            "@design/*": ["./src/design/*"],
+            "@ui/*": ["./src/ui/*"],
+            "@src/*": ["./src/*"]
         },
         "target": "ESNext",
         "module": "ESNext",

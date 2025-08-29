@@ -1,0 +1,127 @@
+@use "./mixins" as m;
+@use "../lib/ps-cursor.scss" as *;
+
+//
+@use "@design/scss/classes/shadows" as *;
+
+//
+@property --value  { syntax: "<number>"; initial-value: 0; inherits: true; };
+@property --relate { syntax: "<number>"; initial-value: 0; inherits: true; };
+@property --drag-x { syntax: "<number>"; initial-value: 0; inherits: true; };
+@property --drag-y { syntax: "<number>"; initial-value: 0; inherits: true; };
+
+//
+@property --order { syntax: "<integer>"; initial-value: 1; inherits: true; };
+@property --content-inline-size { syntax: "<length-percentage>"; initial-value: 100%; inherits: true; };
+@property --content-block-size  { syntax: "<length-percentage>"; initial-value: 100%; inherits: true; };
+@property --icon-size { syntax: "<length>"; initial-value: 1rem; inherits: true; };
+@property --icon-color { syntax: "<color>"; initial-value: currentColor; inherits: true; };
+
+//
+@layer ux-classes {
+    @include m.host-related(".grid-rows", "::slotted(*)") { @include m.grid-row; }
+    @include m.host-related(".grid-rows", "*") { @include m.grid-row; }
+    @include m.host-context(".grid-rows") {
+        @include m.display(inline-grid, column, center, center);
+        @include m.size(auto, auto);
+
+        //
+        & {
+            grid-auto-rows: minmax(0px, max-content);
+            grid-template-columns: minmax(0px, max-content) minmax(0px, 1fr) minmax(0px, max-content);
+            margin: 0px;
+            padding: 0px;
+            list-style-type: none;
+            list-style-position: inside;
+        }
+    }
+
+    //
+    @include m.host-related(".grid-columns", "::slotted(*)") { @include m.grid-column; }
+    @include m.host-related(".grid-columns", "*") { @include m.grid-column; }
+    @include m.host-context(".grid-columns") {
+        @include m.display(inline-grid, row, center, center);
+        @include m.size(auto, auto);
+
+        //
+        & {
+            grid-auto-columns: minmax(0px, 1fr);
+            grid-template-rows: minmax(0px, 1fr);
+            margin: 0px;
+            padding: 0px;
+            list-style-type: none;
+            list-style-position: inside;
+        }
+    }
+
+    //
+    /*
+    @include m.host-related(".flex-rows", "::slotted(*)") { @include m.flex-row; }
+    @include m.host-related(".flex-rows", "*") { @include m.flex-row; }
+    @include m.host-context(".flex-rows") {
+        @include m.display(inline-flex, row, center, center);
+        @include m.size(max-content, max-content);
+    }*/
+
+    //
+    @include m.host-related(".flex-columns", "::slotted(*)") { @include m.flex-column; }
+    @include m.host-related(".flex-columns", "*") { @include m.flex-column; }
+    @include m.host-context(".flex-columns") {
+        @include m.display(inline-flex, column, center, center);
+        @include m.size(max-content, max-content);
+    }
+
+    //
+    @include m.host-related(".grid-layered", "::slotted(*)") { @include m.grid-layered; }
+    @include m.host-related(".grid-layered", "*") { @include m.grid-layered; }
+    @include m.host-context(".grid-layered") {
+        @include m.grid-layered;
+        @include m.display(inline-grid, column, center, center);
+        @include m.size(max-content, max-content);
+    }
+
+    //
+    @include m.host-related(".grid-rows-3c", "::slotted(*)") { @include m.grid-rows-3c; }
+    @include m.host-related(".grid-rows-3c", "*") { @include m.grid-rows-3c; }
+    @include m.host-context(".grid-rows-3c") {
+        //
+        & { grid-template-columns: minmax(0px, max-content) minmax(0px, 1fr) minmax(0px, max-content); }
+
+        //
+        @include m.size(auto, auto);
+    }
+
+    //
+    @include m.host-related(".grid-rows-3c", "::slotted(*:last-child)") { grid-column: var(--order, 1) / 3 span; }
+    @include m.host-related(".grid-rows-3c", "*:last-child") { grid-column: var(--order, 1) / 3 span; }
+    @include m.host-context(".grid-rows-3c") {
+        //
+        --order: m.sibling-index();
+
+        //
+        & { grid-column: var(--order, 1) / var(--order, 1) span; }
+
+        //
+        @include m.size(auto, auto);
+    }
+
+    //
+    @include m.host-context(".stretch-inline") { @include m.inline-stretch; }
+    @include m.host-context(".stretch-block") { @include m.block-stretch; }
+
+    // requires `box-sizing: border-box`
+    @include m.host-context(".content-inline-size") { @include m.content-inline-size; }
+
+    // requires `box-sizing: border-box`
+    @include m.host-context(".content-block-size") { @include m.content-block-size; }
+
+    //
+    @include m.host-context(".ux-anchor") { @include m.ux-anchor; }
+    @include m.host-context(".ux-anchor") { @include ps-cursor; }
+
+    //
+    @include m.host-context(".layered-wrap") {
+        & { background-color: transparent; display: inline grid; inline-size: max-content; block-size: max-content; grid-template-columns: minmax(0px, 1fr); grid-template-rows: minmax(0px, 1fr); z-index: calc(var(--z-index, 0) + 1); overflow: visible; }
+        & > * { grid-column: 1 / -1; grid-row: 1 / -1; }
+    }
+}

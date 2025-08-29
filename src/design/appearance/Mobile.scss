@@ -1,0 +1,13 @@
+// Mobile Specific Styles
+@mixin host-related($host, $child) {
+    // outside web component
+    #{$host} { & > #{$child} { @content; } }
+    // inside web component
+    :host(#{$host}) { ::slotted(#{$child}) { @content; } }
+}
+
+//
+@include host-related('ui-taskbar[data-type="mobile"]', 'ui-task[data-focus]') {
+    background: --c2-surface(0.0, var(--current));
+    color: --c2-on-surface(0.0, var(--current));
+}

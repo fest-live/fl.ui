@@ -10,7 +10,7 @@ import {
     downloadFile
 } from "fest/lure";
 
-import UIElement from "@helpers/base/UIElement";
+import UIElement from "@design/base/UIElement";
 
 // @ts-ignore
 import fmCss from "./FileManager.scss?inline";

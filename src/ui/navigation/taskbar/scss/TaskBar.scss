@@ -1,0 +1,28 @@
+/* Taskbar */
+@use "@ui/scss/classes/mixins" as m;
+@use "./mixins" as tb;
+
+//
+@include m.host-related('ui-taskbar', '*') {
+    background-color: transparent;
+    color: --c2-on-contrast(0.0, var(--current));
+    //color-scheme: dark;
+}
+
+//
+@include m.host-context('ui-taskbar') {
+    @include tb.taskbar-variables;
+    @include tb.taskbar-layout;
+    @include tb.taskbar-children;
+    @include tb.taskbar-focus-colors();
+}
+
+//
+@include m.host-context('ui-taskbar[data-type="desktop"]') {
+    @include tb.taskbar-type-desktop;
+}
+
+//
+@include m.host-context('ui-taskbar[data-type="mobile"]') {
+    @include tb.taskbar-type-mobile;
+}

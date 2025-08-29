@@ -1,22 +1,21 @@
-import { TaskStateReflect, colorScheme, TaskInteraction, makeTask, makeTasks } from "fest/fl-ui";
+import { TaskStateReflect, colorScheme, TaskInteraction } from "fest/fl-ui";
 
 //
 import { default as loadCSS } from "fest/dom";
 import { makeReactive } from "fest/object";
-import { H, Q, dropFile } from "fest/lure";
+import { H, Q, dropFile, makeTask, makeTasks } from "fest/lure";
 
 //
 async function makeWallpaper() {
     const { H, orientRef } = await import("fest/lure");
     const oRef = orientRef();
-    const CE = H`<canvas style="inline-size: 100%; block-size: 100%; inset: 0; position: fixed; pointer-events: none;" data-orient=${oRef} is="ui-canvas" data-src="./imgs/test.jpg"></canvas>`;
+    const CE = H`<canvas style="inline-size: 100%; block-size: 100%; inset: 0; position: fixed; pointer-events: none;" data-orient=${oRef} is="ui-canvas" data-src="./assets/imgs/test.jpg"></canvas>`;
     return CE;
 }
 
 //
 async function createCtxMenu() {
-    const { H } = await import("fest/lure");
-    const { ctxMenuTrigger } = await import("fest/fl-ui");
+    const { H, ctxMenuTrigger, makeTask, makeTasks } = await import("fest/lure");
     const ctxMenuDesc = {
         openedWith: null,
         items: [

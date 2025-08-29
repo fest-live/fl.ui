@@ -1,0 +1,40 @@
+@layer ui-icon {
+    :host(ui-icon) {
+        & {
+            --icon-size: 2rem;
+            --icon-color: currentColor;
+        }
+
+        & { // mask image
+            mask-image: linear-gradient(#0000, #0000);
+            mask-type: alpha !important;
+            mask-clip: content-box !important;
+            mask-origin: content-box !important;
+            mask-repeat: no-repeat !important;
+            mask-size: contain !important;
+            mask-position: center center !important;
+        }
+
+        & { //
+            padding: 0.25rem;
+            content-visibility: visible;
+            background-color: var(--icon-color, currentColor) !important;
+            border: none 0px transparent !important;
+            outline: none 0px transparent !important;
+            box-shadow: none !important;
+            box-sizing: border-box;
+            user-select: none;
+            pointer-events: none;
+            aspect-ratio: 1 / 1 !important;
+        }
+
+        & {
+            aspect-ratio: 1 / 1;
+            inline-size: var(--icon-size);
+            block-size: var(--icon-size);
+            display: inline-flex;
+            place-content: center;
+            place-items: center;
+        }
+    }
+}

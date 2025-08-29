@@ -1,0 +1,54 @@
+@use "@ui/scss/classes/mixins" as m;
+@use "./mixins" as tb;
+
+//
+:host(ui-task) {
+    //
+    &, * {
+        box-sizing: border-box;
+        user-select: none;
+        touch-action: manipulation;
+        -webkit-user-drag: none;
+        -webkit-tap-highlight-color: transparent;
+        gap: 0px;
+        margin: 0px;
+        padding: 0px;
+        border: 0px none transparent;
+    }
+
+    //
+    & { @include tb.task-base; @include tb.task-slots; @include tb.task-states; }
+
+    & {
+        user-select: none;
+        pointer-events: auto;
+        box-shadow: none;
+        filter: none;
+    }
+
+    & > * {
+        pointer-events: none;
+    }
+}
+
+//
+:host(ui-task:hover) {
+    & {
+        --background-tone-shift: 0.1;
+        background-color: --c2-surface(var(--background-tone-shift, 0.0), var(--current));
+    }
+
+    & { @include tb.task-states; }
+}
+
+//
+:host(ui-task[data-focus]) {
+    border-block-end-color: --c2-on-surface(0.0, var(--current)) !important;
+    & { @include tb.task-states; }
+}
+
+//
+:host(ui-task:not([data-active])) {
+    opacity: 0.6;
+    & { @include tb.task-states; }
+}

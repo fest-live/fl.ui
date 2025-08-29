@@ -9,9 +9,12 @@ import { H, Q, dropFile, makeTask, makeTasks } from "fest/lure";
 async function makeWallpaper() {
     const { H, orientRef } = await import("fest/lure");
     const oRef = orientRef();
-    const CE = H`<canvas style="inline-size: 100%; block-size: 100%; inset: 0; position: fixed; pointer-events: none;" data-orient=${oRef} is="ui-canvas" data-src="./assets/imgs/test.jpg"></canvas>`;
+    const CE = H`<canvas style="inline-size: 100%; block-size: 100%; inset: 0; position: fixed; pointer-events: none;" data-orient=${oRef} is="ui-canvas" data-src=${BACKGROUND_IMAGE}></canvas>`;
     return CE;
 }
+
+//
+const BACKGROUND_IMAGE = "./assets/imgs/test.jpg";
 
 //
 async function createCtxMenu() {
@@ -120,7 +123,7 @@ async function main() {
     const container = document.querySelector("#app") || document.body;
 
     //
-    fetch("./imgs/test.jpg")?.then?.(async (res)=>{
+    fetch(BACKGROUND_IMAGE)?.then?.(async (res)=>{
         const blob = await res.blob();
         colorScheme(blob);
     });

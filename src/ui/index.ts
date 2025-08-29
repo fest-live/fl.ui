@@ -1,11 +1,11 @@
 import { loadInlineStyle, preloadStyle, initialize } from "fest/dom";
 
+/*
 //@ts-ignore
 import styles from "./index.scss?inline";
 export const UIStyles = preloadStyle(styles);
-
-//
 loadInlineStyle(styles);
+*/
 
 //
 export * from "./components/containers/window/WindowFrame";

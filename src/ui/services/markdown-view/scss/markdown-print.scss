@@ -1,4 +1,4 @@
-// === Переменные ===
+// === Variables ===
 $font-stack: "Source Sans 3", "Open Sans", "Ubuntu Sans", "Noto Sans", "Segoe UI", "Helvetica", "Calibri", "Carlito", "Twemoji Country Flags", "Comic Sans", Helvetica, serif, -apple-system, BlinkMacSystemFont, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
 $font-size-base: 0.7em;
 $page-margin: 10mm 12mm 10mm 12mm;
@@ -10,7 +10,7 @@ $blockquote-padding-inline: 1em;
 $table-padding: 0.3em 0.6em;
 $img-max-width: min(min(40%, 50dvi), 50cqi);
 
-// === Миксины ===
+// === Mixins ===
 @mixin break($before: auto, $inside: auto, $after: auto) {
     break-before: $before;
     break-inside: $inside;
@@ -40,12 +40,12 @@ $img-max-width: min(min(40%, 50dvi), 50cqi);
     -moz-osx-font-smoothing: if($mode == always, auto, grayscale) !important;
 }
 
-// === Функции ===
+// === Functions ===
 @function heading-size($level) {
     @return if($level == 1, 2em, if($level == 2, 1.6em, if($level == 3, 1.2em, 1em)));
 }
 
-// === Основные стили страницы ===
+// === Main page styles ===
 @page {
     size: A4;
     margin: $page-margin;
@@ -58,7 +58,7 @@ $img-max-width: min(min(40%, 50dvi), 50cqi);
     @top-right { content: "UC"; }
 }
 
-// === Основной слой для печати ===
+// === Main layer for printing ===
 @layer md-print {
     [data-print] {
         math {
@@ -271,7 +271,7 @@ $img-max-width: min(min(40%, 50dvi), 50cqi);
     }
 }
 
-// === Разрывы страниц ===
+// === Page breaks ===
 @layer page-breaks {
     h1:first-child { break-before: auto; }; h2 { break-before: auto; &:has(+h3) { break-before: recto; }; };
     h1:not(:first-child) { break-before: recto; break-after: auto; };

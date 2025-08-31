@@ -1,0 +1,12 @@
+@use "./scss/github-markdown.scss";
+@use "./scss/markdown-print.scss";
+
+//
+@layer md-misc {
+    #markdown   { font-size: 1em; isolation: isolate; touch-action: pan-y; };
+    #markdown * { font-size: 1em;  contain-intrinsic-block-size: auto 1em; };
+
+    //
+    [data-hidden]   #markdown { content-visibility: hidden !important; display: none !important; }
+    [data-dragging] #markdown { content-visibility: hidden !important; :where(*) { content-visibility: hidden !important; } }
+}

@@ -79,9 +79,9 @@ async function createGridWithItem() {
 
 //
 const tasks = makeTasks((list)=>[
-    makeTask("#task1", list, {active: true}, makeReactive({ title: "Task 1", icon: "app-window" })),
-    makeTask("#task0", list, {active: true}, makeReactive({ title: "Task 2", icon: "newspaper" })),
-    makeTask("#task2", list, {active: true, render: ()=>H`<ui-file-manager></ui-file-manager>`}, makeReactive({ title: "Task 0", icon: "folder" }))
+    makeTask("#task1", list, {active: true}, makeReactive({ title: "Empty Window 1", icon: "app-window" })),
+    makeTask("#task0", list, {active: true}, makeReactive({ title: "Empty Window 0", icon: "newspaper" })),
+    makeTask("#task2", list, {active: true, render: ()=>H`<ui-file-manager></ui-file-manager>`}, makeReactive({ title: "File Manager", icon: "folder" }))
 ]);
 
 //

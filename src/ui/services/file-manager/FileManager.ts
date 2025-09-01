@@ -43,6 +43,16 @@ const iconByMime = (mime: string | undefined, def = "file") => {
 //
 const iconFor = (item: FileEntryItem) => item?.kind === "directory" ? "folder" : iconByMime(item?.type);
 
+//
+const getSize = (size: number) => {
+    if (size < 1024) return size + " B";
+    if (size < 1024 * 1024) return (size / 1024).toFixed(2) + " kB";
+    if (size < 1024 * 1024 * 1024) return (size / 1024 / 1024).toFixed(2) + " MB";
+    return (size / 1024 / 1024 / 1024).toFixed(2) + " GB";
+};
+
+
+
 // @ts-ignore
 @defineElement("ui-file-manager")
 export class FileManager extends UIElement {
@@ -114,9 +124,8 @@ export class FileManager extends UIElement {
             return H`<div class="row c2-surface" on:click=${(ev: MouseEvent) => self.onRowClick?.(item, ev)} on:dblclick=${(ev: MouseEvent) => self.onRowDblClick?.(item, ev)}>
                 <div style="text-overflow: ellipsis; overflow: hidden;" class="c icon">${H`<ui-icon icon=${iconFor(item)} />`}</div>
                 <div style="text-overflow: ellipsis; overflow: hidden; inline-size: stretch;" class="c name" title=${item?.name}>${item?.name}</div>
-                <div style="text-overflow: ellipsis; overflow: hidden;" class="c type">${item?.kind === "directory" ? "directory" : (item?.type || "")}</div>
-                <div style="text-overflow: ellipsis; overflow: hidden;" class="c size">${item?.size != null ? (item?.size as number).toLocaleString() : ""}</div>
-                <div style="text-overflow: ellipsis; overflow: hidden;" class="c date">${item?.lastModified ? new Date(item?.lastModified).toLocaleString() : ""}</div>
+                <div style="text-overflow: ellipsis; overflow: hidden;" class="c size">${item?.size != null ? getSize(item?.size) : ""}</div>
+                <div style="text-overflow: ellipsis; overflow: hidden;" class="c date">${item?.lastModified ? new Date(item?.lastModified).toLocaleString("en-US", { dateStyle: "short", timeStyle: "short" }) : ""}</div>
             </div>`;
         }));
     }
@@ -258,7 +267,6 @@ export class FileManager extends UIElement {
                             <div class="fm-grid-header">
                                 <div class="c icon" style="overflow: hidden;"></div>
                                 <div class="c name" style="overflow: hidden; inline-size: stretch;">Name</div>
-                                <div class="c type" style="overflow: hidden;">Type</div>
                                 <div class="c size" style="overflow: hidden;">Size</div>
                                 <div class="c date" style="overflow: hidden;">Modified</div>
                             </div>

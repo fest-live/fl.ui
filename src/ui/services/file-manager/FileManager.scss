@@ -115,11 +115,10 @@
         .fm-grid {
             display: grid;
             grid-template-columns:
-                minmax(2rem, max-content)
+                minmax(1rem, max-content)
                 minmax(0px, 1fr)
-                minmax(12ch, max-content)
-                minmax(8ch, max-content)
-                minmax(16ch, max-content);
+                minmax(1rem, max-content)
+                minmax(1rem, max-content);
             grid-template-rows: minmax(max-content, 2rem) minmax(0, 1fr);
             row-gap: 0.125rem;
             align-content: start;
@@ -203,34 +202,12 @@
 
         .row:hover, ::slotted(.row:hover) { --background-tone-shift: 0.04; background-color: --c2-surface(var(--background-tone-shift, 0), var(--current, transparent)); }
 
-        @container (inline-size < 900px) {
-            .fm-grid {
-                grid-template-columns:
-                    minmax(2rem, max-content)
-                    minmax(0px, 1fr)
-                    minmax(10ch, max-content)
-                    minmax(8ch, max-content)
-                    minmax(12ch, max-content);
-            }
-        }
-
-        @container (inline-size < 680px) {
-            .fm-grid {
-                grid-template-columns:
-                    minmax(2rem, max-content)
-                    minmax(0px, 1fr)
-                    minmax(10ch, max-content);
-            }
-            ::slotted(.c.size), ::slotted(.c.date), ::slotted(.size), ::slotted(.date),
-            .c.size, .c.date, .size, .date { display: none !important; }
-        }
-
         @container (inline-size < 520px) {
-            .fm-root[data-with-sidebar="true"] { grid-template-columns: 1fr; }
+            .fm-content { grid-column: 1 / -1; }
+            .fm-root { grid-column: 1 / -1; }
+            .fm-grid { grid-column: 1 / -1; }
+            .fm-root[data-with-sidebar="true"] { grid-template-columns: minmax(0px, 1fr); }
             .fm-sidebar { display: none !important; }
-            .fm-grid { grid-template-columns: minmax(2rem, max-content) minmax(0px, 1fr); }
-            ::slotted(.c.type), ::slotted(.c.size), ::slotted(.c.date), ::slotted(.type), ::slotted(.size), ::slotted(.date),
-            .c.type, .c.size, .c.date, .type, .size, .date { display: none !important; }
         }
     }
 }

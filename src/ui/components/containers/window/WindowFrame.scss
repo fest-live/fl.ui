@@ -478,8 +478,21 @@
     // Main styles
     :host(ui-window-frame) {
         // Reset all elements
-        &, & * {
+        &, :where(*) {
             @include reset-styles;
+        }
+
+        //
+        &, :where(*), ::slotted(*) {
+            user-select: none;
+            user-drag: none;
+            -webkit-user-select: none;
+            -webkit-user-drag: none;
+            cursor: default;
+            pointer-events: none;
+            -webkit-touch-callout: none;
+            -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+            -webkit-tap-highlight-color: transparent;
         }
 
         //
@@ -499,6 +512,13 @@
         & {
             @include window-frame-variables;
             @include window-frame-layout;
+        }
+
+        //
+        & {
+            will-change: inset, translate, transform, opacity, z-index;
+            transform: scale3d(var(--scale, 1), var(--scale, 1), 1) translate3d(var(--translate-x, 0px), var(--translate-y, 0px), 0px);
+            opacity: var(--opacity, 1);
         }
 
         // Content area
@@ -565,14 +585,10 @@
         @include m.transition(('inline-size', 'block-size'), $duration: m.$ui-duration-fast);
 
         & { // transform styles
-            transform: none;
+            transform: scale3d(var(--scale, 1), var(--scale, 1), 1) translate3d(var(--translate-x, 0px), var(--translate-y, 0px), 0px);
             transform-origin: 50% 50%;
             transform-style: flat;
             transform-box: fill-box;
-        }
-
-        & { // use variables for effects
-            scale: var(--scale, 1);
             opacity: var(--opacity, 1);
         }
 
@@ -606,6 +622,11 @@
         }
     }
 
+    //
+    :host(ui-window-frame[data-dragging]) {
+        will-change: inset, translate, transform, opacity, z-index;
+    }
+
     // functionality
     @media (width >= 600px) {
         :host(ui-window-frame:not([data-maximized])) {
@@ -622,14 +643,10 @@
             --ui-window-frame-titlebar-height: 48px;
 
             & { // transform styles
-                transform: none;
                 transform-origin: 50% 50%;
                 transform-style: flat;
                 transform-box: fill-box;
-            }
-
-            & { // use variables for effects
-                scale: var(--scale, 1) ;
+                transform: scale3d(var(--scale, 1), var(--scale, 1), 1) translate3d(var(--translate-x, 0px), var(--translate-y, 0px), 0px);
                 opacity: var(--opacity, 1);
             }
 

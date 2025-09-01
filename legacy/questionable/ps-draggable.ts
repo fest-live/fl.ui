@@ -21,7 +21,7 @@ export const makeControl = async (frameElement: HTMLElement)=>{
         addEvent(frameElement, "m-dragstart", (ev: any)=>{
             if (ev.propertyName == "drag") {
                 frameElement?.setAttribute?.("data-dragging", "");
-                frameElement?.style?.setProperty?.("will-change", "transform", "important");
+                frameElement?.style?.setProperty?.("will-change", "inset, translate, transform, opacity, z-index", "important");
             }
         });
 

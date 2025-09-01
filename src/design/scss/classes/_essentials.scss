@@ -98,7 +98,7 @@
             block-size: max-content;
             z-index: calc(99999 + var(--z-index, 0)) !important;
             opacity: var(--opacity, 1);
-            transform: scale(var(--scale, 1)) translate(var(--translate-x, 0px), var(--translate-y, 0px));
+            transform: scale3d(var(--scale, 1), var(--scale, 1), 1) translate3d(var(--translate-x, 0px), var(--translate-y, 0px), 0px);
             pointer-events: auto;
             font-size: 0.8em;
         }
@@ -176,7 +176,7 @@
 
         //
         &:active {
-            will-change: transform;
+            will-change: inset, translate, transform, opacity, z-index;
             cursor: grabbing;
         }
     }

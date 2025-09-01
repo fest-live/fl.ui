@@ -79,7 +79,7 @@ export const makeInput = (host?: HTMLElement, ROOT = document.documentElement)=>
             if (input) {
                 if (ev.type == "click" || ev.pointerType == "touch") {
                     ev?.preventDefault?.();
-                    ev?.stopPropagation?.();
+                    //ev?.stopPropagation?.();
                 }
                 if (document.activeElement != input && ev.type == "click") {
                     input?.focus?.();
@@ -112,7 +112,7 @@ export const makeInput = (host?: HTMLElement, ROOT = document.documentElement)=>
             const scrollable = scr_w?.deref?.();
             if (scrollable?.matches?.(":where(:hover, :active)")) {
                 ev.preventDefault();
-                ev.stopPropagation();
+                //ev.stopPropagation();
                 {   //
                     scrollable?.scrollBy?.({
                         left: ((ev?.deltaY || 0)+(ev?.deltaX || 0)), top: 0,

@@ -106,7 +106,7 @@ export const makeCtxMenuItems = (ctxMenu?: any, initiator?: any, content?: any[]
 //
 export const openDropMenu = (button: any, ev?: any, $menu?: any)=>{
     ev?.preventDefault?.();
-    ev?.stopPropagation?.();
+    //ev?.stopPropagation?.();
 
     //
     const items = Array.from(button?.querySelectorAll?.("ui-select-row, ui-button-row"));

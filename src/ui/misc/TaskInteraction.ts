@@ -18,8 +18,6 @@ export class TaskInteraction {
         if (!this.taskbar) return this;
         this.taskbar?.addEventListener?.("click", (ev)=>{
             ev.preventDefault();
-            ev.stopPropagation();
-            ev.stopImmediatePropagation();
 
             //
             const taskEl = Q("ui-task", ev?.target, 0, "parent");

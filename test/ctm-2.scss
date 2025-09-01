@@ -43,7 +43,7 @@
 }
 
 .color-block:hover {
-    transform: scale(1.05);
+    transform: scale3d(1.05, 1.05, 1);
     box-shadow: 0 4px 16px 0 #0003;
 }
 
@@ -69,7 +69,7 @@
     color: inherit;
     inset-inline-start: 50%;
     inset-block-start: 50%;
-    transform: translateY(-6px) translate(-50%, -50%) scale(1.2);
+    transform: translateY(-6px) translate3d(-50%, -50%, 0px) scale3d(1.2, 1.2, 1);
     font-size: 1.5em;
     font-weight: bold;
     inline-size: max-content;

@@ -83,7 +83,7 @@
                 & {
                     inset-inline-start: 50%;
                     inset-block-start: 50%;
-                    transform: translate(-50%, -50%);
+                    transform: translate3d(-50%, -50%, 0px);
                     /* active fill */
                     background-image: linear-gradient(
                         to right,
@@ -111,7 +111,7 @@
                     inset: auto;
                     inset-inline-start: 0px;
                     inset-block-start: 50%;
-                    transform: translate(calc(var(--translate-x, 0px) + var(--ui-slider-gap, 0px)), -50%);
+                    transform: translate3d(calc(var(--translate-x, 0px) + var(--ui-slider-gap, 0px)), -50%, 0px);
                     border-radius: 50%;
                     pointer-events: auto;
                     box-shadow: 0 1px 2px rgb(0 0 0 / 0.15), 0 1px 1px rgb(0 0 0 / 0.08);
@@ -125,7 +125,6 @@
                 //
                 &[data-dragging] {
                     transition: none;
-                    pointer-events: none;
                 }
             }
         }

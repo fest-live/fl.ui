@@ -119,7 +119,8 @@ const makeInteractive = (holder, content, scrollbar, axis = 0, status: any = {},
         const ev     = evc;
         const status = status_w?.deref?.();
         if (self && status?.pointerId == ev.pointerId) {
-            evc?.stopPropagation?.(); evc?.preventDefault?.();
+            //evc?.stopPropagation?.();
+            evc?.preventDefault?.();
             const cm = ev[CAXIS[axis]] || 0; const dm = (cm - status.point) || 0;
             const contentScrollSize = content?.[['scrollWidth', 'scrollHeight'][axis]] - content?.[['clientWidth', 'clientHeight'][axis]];
             const trackSize = scrollbar?.[['clientWidth', 'clientHeight'][axis]] - handler?.querySelector?.("*")?.[['offsetWidth', 'offsetHeight'][axis]];
@@ -139,7 +140,7 @@ const makeInteractive = (holder, content, scrollbar, axis = 0, status: any = {},
         const ev     = evc;
         const status = status_w?.deref?.();
         if (status && status?.pointerId == ev.pointerId) {
-            evc?.stopPropagation?.();
+            //evc?.stopPropagation?.();
             evc?.preventDefault?.();
             status.point = ev[CAXIS[axis]] || 0;
 
@@ -158,7 +159,7 @@ const makeInteractive = (holder, content, scrollbar, axis = 0, status: any = {},
         const ev     = evc;
         const status = status_w?.deref?.();
         if (self && status?.pointerId < 0) {
-            evc?.stopPropagation?.();
+            //evc?.stopPropagation?.();
             evc?.preventDefault?.();
             (handler?.element ?? ev.target)?.setPointerCapture?.(status.pointerId = ev.pointerId || 0);
 

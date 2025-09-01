@@ -319,7 +319,7 @@ $def-ff: 'InterVariable', 'Inter', 'Open Sans', 'Source Sans 3','Gill Sans Nova'
 @mixin content-block-size { & { padding-block: limit-by-size(calc(var(--content-block-size, 100%) * 0.5), 100%); } }
 
 //
-@mixin ux-anchor { & { transform: scale(var(--scale, 1)) translate(var(--translate-x, 0px), var(--translate-y, 0px)); } }
+@mixin ux-anchor { & { transform: scale3d(var(--scale, 1), var(--scale, 1), 1) translate3d(var(--translate-x, 0px), var(--translate-y, 0px), 0px); } }
 
 //
 @mixin grid-layered {

@@ -37,13 +37,13 @@ export class BoxWithSidebar extends UIElement {
         self.sidebarOpened.value = false;
 
         // debug triggering
-        subscribe(self.sidebarOpened, (opened) => {
+        /*subscribe(self.sidebarOpened, (opened) => {
             if (opened) {
                 console.log("sidebar opened");
             } else {
                 console.log("sidebar closed");
             }
-        });
+        });*/
     }
 
     //

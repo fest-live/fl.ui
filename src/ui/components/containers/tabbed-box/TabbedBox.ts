@@ -100,7 +100,7 @@ export class TabbedBox extends UIElement {
     //
     styles = () => styled?.cloneNode?.(true);
     render = function() { return H`
-        <form class="ui-tabbed-box-tabs">${M(observableByMap(this.#tabs) ?? [], ([tabName, $tab]) => $tab?.button)}</form>
+        <form class="ui-tabbed-box-tabs">${M(observableByMap(this.#tabs) ?? [], (...args) => args?.[0]?.[1]?.button)}</form>
         <div class="ui-tabbed-box-content"><slot></slot></div>
     `}
 }

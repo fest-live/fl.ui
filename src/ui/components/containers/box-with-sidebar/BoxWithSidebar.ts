@@ -20,7 +20,6 @@ import { UIElement } from "@design/base/UIElement"
 
 // @ts-ignore
 import styles from "./BoxWithSidebar.scss?inline"
-import { subscribe } from "fest/object";
 const styled = preloadStyle(styles);
 
 // @ts-ignore

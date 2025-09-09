@@ -1,6 +1,6 @@
-import { defineElement, Q, H, E, M, bindWith, I } from "fest/lure"
-import { handleHidden, preloadStyle } from "fest/dom"
-import { observableByMap, ref, subscribe } from "fest/object";
+import { defineElement, H, E, M, I } from "fest/lure"
+import { preloadStyle } from "fest/dom"
+import { observableByMap, ref } from "fest/object";
 
 //
 import { UIElement } from "@design/base/UIElement"
@@ -9,6 +9,7 @@ import { UIElement } from "@design/base/UIElement"
 import styles from "./TabbedBox.scss?inline"
 const styled = preloadStyle(styles);
 
+//
 const _LOG_ = (data: any)=>{
     console.log(data);
     return data;

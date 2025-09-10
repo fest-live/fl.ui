@@ -7,7 +7,7 @@
             grid-template-areas: "tabs" "content";
             inline-size: stretch;
             block-size: stretch;
-            gap: 0.125rem;
+            gap: 0.25rem;
             background-color: transparent;
         }
 
@@ -34,7 +34,7 @@
                 inline-size: max-content;
                 min-inline-size: 3rem;
                 gap: 0.125rem;
-                border-radius: 0.25rem;
+                border-radius: 0.5rem;
                 overflow: hidden;
                 block-size: max-content;
                 min-block-size: 2rem;
@@ -44,7 +44,8 @@
                 user-select: none;
                 place-content: center;
                 place-items: center;
-                padding: 0.25rem;
+                padding: 0.5rem;
+                padding-inline: 1rem;
             }
 
             & .ui-tabbed-box-handle {
@@ -74,10 +75,8 @@
                 display: flex;
                 flex-direction: column;
                 gap: 0.125rem;
-                border-radius: 0.25rem;
+                border-radius: 0.5rem;
                 overflow: hidden;
-
-                //
                 inline-size: stretch;
                 block-size: stretch;
             }
@@ -87,7 +86,9 @@
                 inline-size: stretch;
                 block-size: stretch;
                 line-height: normal;
-                padding: 0.25rem;
+                padding: 0.5rem;
+                padding-block: 1rem;
+                gap: 0.25rem;
             }
         }
     }

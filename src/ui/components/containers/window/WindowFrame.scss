@@ -2,8 +2,6 @@
 @use "@ui/scss/lib/ps-resizable" as *;
 @use "@ui/scss/lib/ps-mechanic" as *;
 @use "@ui/scss/lib/ps-properties" as *;
-
-//
 @use "@ui/scss/classes/mixins" as m;
 
 // default styles
@@ -93,7 +91,6 @@
 @mixin window-frame-layout {
     @include m.radius(var(--ui-window-frame-border-radius));
     @include m.border(var(--ui-window-frame-border-width), solid, var(--ui-window-frame-border-color));
-    //@include m.shadow(var(--ui-window-frame-shadow));
     @include m.grid(minmax(0px, 1fr), minmax(0px, var(--ui-window-frame-titlebar-height)) minmax(0px, 1fr));
     @include m.center(y);
     @include m.container(ui-window-frame);
@@ -140,8 +137,8 @@
         transform: translate3d(var(--translate-x, 0px), var(--translate-y, 0px), 0px) scale3d(var(--scale, 1), var(--scale, 1), 1);
     }
 
-    & { // z-index: 1 + sibling index
-        --z-index-order: var(--order, sibling-index()); // z-index: 1 + custom order (order property)
+    & { /* z-index: 1 + sibling index */
+        --z-index-order: var(--order, sibling-index()); /* z-index: 1 + custom order (order property) */
         --z-index: var(--z-index-order, sibling-index());
         z-index: calc(99 + var(--z-index, 0)) !important;
     }
@@ -155,7 +152,7 @@
 
     // grid-specific styles
     & { grid-area: content; display: flex; flex-direction: column; gap: 0.5rem; place-content: stretch; place-items: stretch; }
-    & { // border styles
+    & {
         border-block-start: none;
     }
 
@@ -172,7 +169,7 @@
     }
 
     & {
-        background-color: transparent;//var(--ui-window-frame-content-background-color);
+        background-color: transparent;
         color: var(--ui-window-frame-content-color);
         --icon-color: var(--ui-window-frame-content-color);
     }
@@ -224,14 +221,14 @@
     @include m.flex(row, space-between, center);
 
     //
-    & { // sizing
+    & {
         inline-size: stretch;
         block-size: stretch;
         max-block-size: 2rem;
     }
 
     //
-    & { // other styles
+    & {
         gap: 0px;
         pointer-events: auto;
         background-color: transparent;
@@ -243,26 +240,26 @@
     @include m.flex(row, flex-start, center);
     @include m.container(ui-titlebar-handle);
 
-    & { // interaction
+    & {
         pointer-events: auto !important;
     }
 
-    & { // sizing
+    & {
         inline-size: stretch;
         block-size: stretch;
         min-inline-size: 0px;
     }
 
-    & { // colorization
+    & {
         color: var(--ui-window-frame-on-surface);
     }
 
-    & { // spacing and paddings
+    & {
         padding-inline-start: 12px;
         padding-inline-end: 12px;
     }
 
-    & { // flex options
+    & {
         flex: 1 1 0px;
         gap: 8px;
         flex-basis: stretch;
@@ -282,12 +279,12 @@
         align-items: flex-start;
     }
 
-    & { // sizing
+    & {
         inline-size: stretch;
         block-size: stretch;
     }
 
-    & { // flex options
+    & {
         gap: 0px;
         pointer-events: none;
         flex: 1 1 0px;
@@ -301,12 +298,12 @@
     @include m.text-ellipsis();
     @include m.text(m.$ui-font-subtitle-size, 400, #{"--c2-on-surface(0.0, var(--current))"});
 
-    & { // sizing
+    & {
         inline-size: max-content;
         block-size: stretch;
     }
 
-    & { // flex options
+    & {
         gap: 0px;
         flex-basis: max-content;
         flex-shrink: 0;
@@ -314,15 +311,15 @@
         place-items: center;
     }
 
-    & { // spacing
+    & {
         padding: 0px;
     }
 
-    & { // colorization or opacity
+    & {
         opacity: 0.5;
     }
 
-    & { // interaction
+    & {
         pointer-events: none;
     }
 }
@@ -331,46 +328,46 @@
 @mixin app-icon-styles {
     @include m.flex(row, center, center);
 
-    & { // sizing
+    & {
         inline-size: max-content;
         block-size: stretch;
         min-inline-size: 1rem;
     }
 
-    & { // flex options
+    & {
         flex-basis: max-content;
         place-content: center;
         place-items: center;
     }
 
-    & { // colorization
+    & {
         color: --c2-on-surface(0.0, var(--current));
         --icon-color: --c2-on-surface(0.0, var(--current));
     }
 
-    & { // spacing
+    & {
         padding: 0px;
         margin: 0px;
     }
 
-    & { // pointer events
+    & {
         pointer-events: none;
     }
 
     ui-icon { // icon styles
-        & { // sizing
+        & {
             block-size: stretch;
             inline-size: auto;
-            aspect-ratio: 1 / 1; // square
+            aspect-ratio: 1 / 1;
         }
 
-        & { // colorization
+        & {
             color: inherit;
             --icon-color: inherit;
             background-color: transparent;
         }
 
-        & { // spacing
+        & {
             border: none;
             outline: none;
             padding: 0px;
@@ -450,8 +447,8 @@
     }
 
     & {
-        margin: #{m.$ui-spacing-xs};
-        padding: #{m.$ui-spacing-xs};
+        margin: m.$ui-spacing-xs;
+        padding: m.$ui-spacing-xs;
         gap: 0px;
     }
 
@@ -584,7 +581,7 @@
     :host(ui-window-frame[data-maximized]) {
         @include m.transition(('inline-size', 'block-size'), $duration: m.$ui-duration-fast);
 
-        & { // transform styles
+        & {
             transform: scale3d(var(--scale, 1), var(--scale, 1), 1) translate3d(var(--translate-x, 0px), var(--translate-y, 0px), 0px);
             transform-origin: 50% 50%;
             transform-style: flat;
@@ -592,19 +589,19 @@
             opacity: var(--opacity, 1);
         }
 
-        & { // sizing
+        & {
             inline-size: stretch;
             block-size: stretch;
         }
 
-        & { // positioning
+        & {
             inset-inline-start: 0px;
             inset-block-start: 0px;
             inset-inline-end: 0px;
             inset-block-end: 0px;
         }
 
-        & { // border styles
+        & {
             border: none;
             border-radius: 0px;
             border-width: 0px;
@@ -612,7 +609,7 @@
             border-color: transparent;
         }
 
-        & { // outline styles
+        & {
             outline: none;
             box-shadow: none;
         }
@@ -642,7 +639,7 @@
             --ui-window-frame-border-radius: 0px;
             --ui-window-frame-titlebar-height: 48px;
 
-            & { // transform styles
+            & {
                 transform-origin: 50% 50%;
                 transform-style: flat;
                 transform-box: fill-box;
@@ -650,21 +647,21 @@
                 opacity: var(--opacity, 1);
             }
 
-            & { // sizing
+            & {
                 inline-size: stretch !important;
                 block-size: stretch !important;
                 max-block-size: none !important;
                 max-inline-size: none !important;
             }
 
-            & { // positioning
+            & {
                 inset-inline-start: 0px !important;
                 inset-block-start: 0px !important;
                 inset-inline-end: auto !important;
                 inset-block-end: auto !important;
             }
 
-            & { // border styles
+            & {
                 border: none !important;
                 border-radius: 0px !important;
                 border-width: 0px !important;
@@ -672,13 +669,13 @@
                 border-color: transparent !important;
             }
 
-            & { // outline styles
+            & {
                 outline: none !important;
                 box-shadow: none !important;
             }
 
-            & { // z-index: 1 + sibling index
-                --z-index-order: var(--order, sibling-index()) !important; // z-index: 1 + custom order (order property)
+            & {
+                --z-index-order: var(--order, sibling-index()) !important;
                 --z-index: var(--z-index-order, sibling-index()) !important;
                 z-index: calc(99 + var(--z-index, 0)) !important;
             }

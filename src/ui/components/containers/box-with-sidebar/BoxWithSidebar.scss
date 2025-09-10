@@ -1,6 +1,10 @@
 @layer box-with-sidebar {
     :host {
         & {
+            --ui-shadow-soft: #0002;
+        }
+
+        & {
             display: grid;
             grid-template-columns: [sidebar-col] minmax(0px, max-content) [content-col] minmax(0px, 1fr);
             grid-template-rows: [bar-row] minmax(3rem, max-content) [content-row] minmax(0px, 1fr);
@@ -8,6 +12,7 @@
             block-size: stretch;
             position: relative;
             background-color: transparent;
+            container-type: inline-size;
         }
 
         // bar
@@ -26,6 +31,7 @@
             overflow: hidden;
             place-content: center;
             place-items: center;
+            box-shadow: none;
 
             ::slotted([slot="bar"]) {
                 inline-size: stretch;
@@ -62,6 +68,8 @@
             margin-inline: 0.25rem;
             margin-block-end: 0.25rem;
             background-color: transparent;
+            box-shadow: none;
+            contain: none;
         }
 
         // sidebar
@@ -76,15 +84,17 @@
                 grid-column: sidebar-col;
                 grid-row: 1 / -1;
                 transform: translateX(-100%);
-                transition: transform 0.3s ease-in-out;
+                transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
                 z-index: 2;
                 overflow: hidden;
-                border-radius: 0.25rem;
+                border-radius: 0.5rem;
                 padding: 0px;
+                box-shadow: none;
             }
 
             @starting-style {
                 transform: translateX(-100%);
+                box-shadow: none;
             }
 
             ::slotted([slot="sidebar"]) {
@@ -95,11 +105,13 @@
                 place-items: center;
                 line-height: normal;
                 align-content: start;
-                padding: 0.25rem;
+                padding: 0rem;
+                box-shadow: none;
             }
 
             &[data-visible] {
                 transform: translateX(0px);
+                box-shadow: 0 0 1rem var(--ui-shadow-soft);
             }
         }
 
@@ -110,11 +122,20 @@
             gap: 0.125rem;
             inline-size: stretch;
             block-size: stretch;
+
+            max-inline-size: none;
+            max-block-size: none;
+
             grid-column: 1 / -1; // span with contents, overlays by sidebar, bar, etc.
             grid-row: 1 / -1;
             z-index: 1;
             overflow: hidden;
             background-color: transparent;
+
+            box-shadow: none;
+            contain: none;
+
+            container-type: inline-size;
 
             //
             ::slotted(*) {
@@ -123,6 +144,7 @@
                 flex-grow: 1;
                 place-content: center;
                 place-items: center;
+                box-shadow: none;
             }
         }
     }

@@ -10,11 +10,12 @@ import { UIElement } from "@design/base/UIElement"
  *
  * <ui-box-with-sidebar>
  *   <div slot="bar">
+ *     <button part="open-sidebar" class="open-sidebar" on:click=${()=>{this.sidebarOpened.value = true;}}></button>
  *     <button class="open-sidebar" on:click=${()=>{this.sidebarOpened.value = true;}}></button>
  *     <slot name="bar"></slot>
  *   </div>
- *   <div class="sidebar" visibility="${this.sidebarOpened}"><slot name="sidebar"></slot></div>
- *   <div class="content"><slot></slot></div>
+ *   <div part="sidebar" class="sidebar c2-surface" visibility="${this.sidebarOpened}"><slot name="sidebar"></slot></div>
+ *   <div part="content" class="content"><slot></slot></div>
  * </ui-box-with-sidebar>
  */
 
@@ -47,8 +48,8 @@ export class BoxWithSidebar extends UIElement {
 
     //
     styles = () => styled?.cloneNode?.(true);
-    render = function() { return H`<div class="bar c2-surface"><button class="open-sidebar c2-surface" on:click=${()=>{this.sidebarOpened.value = !this.sidebarOpened.value;}}><ui-icon icon="${conditional(this.sidebarOpened, 'text-outdent', 'list')}"></ui-icon></button><slot name="bar"></slot></div>
-    <div class="content-box"><div class="sidebar c2-surface" data-visible=${this.sidebarOpened}><slot name="sidebar"></slot></div><div class="content c2-surface"><slot></slot></div></div>
-    `;
+    render = function () {
+        return H`<div class="bar c2-surface"><button part="open-sidebar" class="open-sidebar c2-surface" on:click=${() => { this.sidebarOpened.value = !this.sidebarOpened.value; }}><ui-icon icon="${conditional(this.sidebarOpened, 'text-outdent', 'list')}"></ui-icon></button><slot name="bar"></slot></div>
+    <div part="content-box" class="content-box"><div part="sidebar" class="sidebar" data-visible=${this.sidebarOpened}><slot name="sidebar"></slot></div><div part="content" class="content"><slot></slot></div></div>`;
     }
 }

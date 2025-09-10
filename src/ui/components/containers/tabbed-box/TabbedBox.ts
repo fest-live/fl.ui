@@ -10,6 +10,13 @@ import styles from "./TabbedBox.scss?inline"
 const styled = preloadStyle(styles);
 
 //
+const addPartProperty = (element: HTMLElement | string, part: string = "", value: string = "") => {
+    if (typeof element == "string") { return element; }
+    if (element instanceof HTMLElement) { element?.setAttribute?.(`data-part-${part}`, value); }
+    return element;
+}
+
+//
 const _LOG_ = (data: any)=>{
     console.log(data);
     return data;
@@ -30,6 +37,12 @@ export class TabbedBox extends UIElement {
         super.onInitialize?.();
         self.currentTab = ref("");
     }
+
+    //
+    /*renderTabName = function (tabName: string) {
+        //const self: any = this;
+        return tabName;
+    }*/
 
     //
     setTabs(tabs: Map<string, HTMLElement|string|any>) {
@@ -54,10 +67,13 @@ export class TabbedBox extends UIElement {
     createTab(tabName: string) {
         if (!tabName) return;
         const self: any = this;
-        const tabButton = H`<label class="ui-tabbed-box-tab">${tabName}</label>`;
-        tabButton?.addEventListener("change", (ev) => self.openTab(tabName, ev));
-        tabButton?.addEventListener("click", (ev) => self.openTab(tabName, ev));
-        tabButton.slot = "tabs";
+        const tabButton = H`<label class="ui-tabbed-box-tab">${addPartProperty(self.renderTabName?.(tabName) ?? tabName, "tab", tabName)}</label>`;
+
+        if (tabButton) {
+            tabButton?.addEventListener("change", (ev) => self.openTab(tabName, ev));
+            tabButton?.addEventListener("click", (ev) => self.openTab(tabName, ev));
+            tabButton.slot = "tabs";
+        }
         return tabButton; //@ts-ignore
     }
 
@@ -70,7 +86,7 @@ export class TabbedBox extends UIElement {
     //
     styles = () => styled?.cloneNode?.(true);
     render = function() { return H`
-        <form class="ui-tabbed-box-tabs">${M(observableByMap(this.tabs ?? []), (key_value) => this.createTab(key_value?.[0]))}</form>
-        <div class="ui-tabbed-box-content"><slot></slot></div>`
+        <form class="ui-tabbed-box-tabs" part="tabs">${M(observableByMap(this.tabs ?? []), (key_value) => this.createTab(key_value?.[0]))}</form>
+        <div class="ui-tabbed-box-content" part="content"><slot></slot></div>`
     }
 }

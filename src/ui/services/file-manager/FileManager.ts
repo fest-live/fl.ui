@@ -122,10 +122,10 @@ export class FileManager extends UIElement {
         const self: any = this;
         return E(self, {}, M(this.#entries, (item: FileEntryItem) => {
             return H`<div class="row c2-surface" on:click=${(ev: MouseEvent) => self.onRowClick?.(item, ev)} on:dblclick=${(ev: MouseEvent) => self.onRowDblClick?.(item, ev)}>
-                <div style="text-overflow: ellipsis; overflow: hidden;" class="c icon">${H`<ui-icon icon=${iconFor(item)} />`}</div>
-                <div style="text-overflow: ellipsis; overflow: hidden; inline-size: stretch;" class="c name" title=${item?.name}>${item?.name}</div>
-                <div style="text-overflow: ellipsis; overflow: hidden;" class="c size">${item?.size != null ? getSize(item?.size) : ""}</div>
-                <div style="text-overflow: ellipsis; overflow: hidden;" class="c date">${item?.lastModified ? new Date(item?.lastModified).toLocaleString("en-US", { dateStyle: "short", timeStyle: "short" }) : ""}</div>
+                <div style="place-content: center; place-items: center; text-overflow: ellipsis; min-block-size: 2rem; block-size: max-content; overflow: hidden;" class="c icon">${H`<ui-icon icon=${iconFor(item)} />`}</div>
+                <div style="place-content: center; place-items: center; text-overflow: ellipsis; min-block-size: 2rem; block-size: max-content; overflow: hidden; inline-size: stretch;" class="c name" title=${item?.name}>${item?.name}</div>
+                <div style="place-content: center; place-items: center; text-overflow: ellipsis; min-block-size: 2rem; block-size: max-content; overflow: hidden;" class="c size">${item?.size != null ? getSize(item?.size) : ""}</div>
+                <div style="place-content: center; place-items: center; text-overflow: ellipsis; min-block-size: 2rem; block-size: max-content; overflow: hidden;" class="c date">${item?.lastModified ? new Date(item?.lastModified).toLocaleString("en-US", { dateStyle: "short", timeStyle: "short" }) : ""}</div>
             </div>`;
         }));
     }
@@ -265,10 +265,10 @@ export class FileManager extends UIElement {
                     <div class="fm-grid-container">
                         <div class="fm-grid" part="grid">
                             <div class="fm-grid-header">
-                                <div class="c icon" style="overflow: hidden;"></div>
-                                <div class="c name" style="overflow: hidden; inline-size: stretch;">Name</div>
-                                <div class="c size" style="overflow: hidden;">Size</div>
-                                <div class="c date" style="overflow: hidden;">Modified</div>
+                                <div class="c icon" style="place-content: center; place-items: center; min-block-size: 2rem; overflow: hidden; block-size: max-content;"></div>
+                                <div class="c name" style="place-content: center; place-items: center; min-block-size: 2rem; overflow: hidden; block-size: max-content; inline-size: stretch;">Name</div>
+                                <div class="c size" style="place-content: center; place-items: center; min-block-size: 2rem; overflow: hidden; block-size: max-content;">Size</div>
+                                <div class="c date" style="place-content: center; place-items: center; min-block-size: 2rem; overflow: hidden; block-size: max-content;">Modified</div>
                             </div>
                             <div class="fm-grid-rows"><slot></slot></div>
                         </div>

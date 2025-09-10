@@ -34,6 +34,13 @@ export class BoxWithSidebar extends UIElement {
     onRender() {
         const self: any = this;
         makeClickOutsideTrigger(self.sidebarOpened, Q("button", self?.shadowRoot), Q(".sidebar", self?.shadowRoot));
+
+        //
+        Q("a")?.addEventListener?.("click", ()=>{
+            self.sidebarOpened.value = false;
+        });
+
+        //
         self.sidebarOpened.value = false;
 
         // debug triggering

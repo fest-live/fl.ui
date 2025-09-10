@@ -1,5 +1,12 @@
 @mixin ps-draggable {
     & {
+        --shift-x: 0;
+        --shift-y: 0;
+        --drag-x: 0;
+        --drag-y: 0;
+        --translate-x: var(--ds-x, 0px);
+        --translate-y: var(--ds-y, 0px);
+
         inset-inline-start: var(--sp-x, 0px);
         inset-block-start : var(--sp-y, 0px);
         transform-origin  : 0% 0%;
@@ -10,13 +17,5 @@
         translate: 0% 0% 0%;
         direction: ltr;
         position: fixed;
-
-        //
-        --shift-x: 0;
-        --shift-y: 0;
-        --drag-x: 0;
-        --drag-y: 0;
-        --translate-x: var(--ds-x, 0px);
-        --translate-y: var(--ds-y, 0px);
     };
 };

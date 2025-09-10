@@ -134,11 +134,10 @@
         scrollbar-color: transparent transparent;
         scrollbar-gutter: stable;
         box-sizing: border-box;
-        //gap: 6px;
     }
 
     & {
-        border-radius: 0px;//var(--task-radius);
+        border-radius: 0px;
         border: 0px none transparent;
         border-block-end-width: 0.25rem;
         border-block-end-style: solid;
@@ -148,7 +147,7 @@
 
     & {
         inline-size: calc(var(--task-size) * 1.4);
-        block-size: stretch; //var(--task-size);
+        block-size: stretch;
     }
 
     & {

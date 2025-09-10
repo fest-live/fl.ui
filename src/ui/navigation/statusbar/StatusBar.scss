@@ -11,16 +11,12 @@
 
     //
     & {
-        //
         color: --c2-on-contrast(0.0, var(--current));
-
-        // in general, depends what in background!
-        // overrides by JS-reactivity!
         color-scheme: dark;
     }
 
     //
-    .left { // should be max-content
+    .left {
         @include m.display(flex, row, center, start);
 
         & {
@@ -35,7 +31,7 @@
     }
 
     //
-    .right { // should be max-content
+    .right {
         @include m.display(flex, row, center, end);
 
         & {
@@ -52,7 +48,7 @@
     }
 
     //
-    .center { // should be stretch
+    .center {
         @include m.display(flex, row, center, center);
 
         & {

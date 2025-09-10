@@ -8,16 +8,10 @@
             container-type: normal;
             contain: none !important;
             overflow: visible !important;
-
-            //
             zoom: max(var(--zoom, 1), 0.125);
             font-size: 1rem;
-
-            //
             writing-mode: horizontal-tb !important;
             direction: ltr !important;
-
-            //
             grid-column: 1 / -1;
             grid-row: 1 / -1;
         }

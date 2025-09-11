@@ -196,8 +196,8 @@ export class ScrollBar {
         //
         const currAxis   = axisConfig[axis]; // @ts-ignore
         const bar        = this.scrollbar, source = this.content; bar?.style?.setProperty(...currAxis.cssScrollProperty, "") // @ts-ignore
-        const native     = typeof ScrollTimeline != "undefined", timeline: any = native ? new ScrollTimeline({ source: (source as any)?.element ?? source, axis: currAxis.tName }) : makeTimeline(source, axis);
-        const properties = { [currAxis.cssPercentProperty]: [0,1] };
+        const native = source != null && ((source?.element ?? source) instanceof HTMLElement) && (typeof ScrollTimeline != "undefined"), timeline: any = native ? new ScrollTimeline({ source: (source as any)?.element ?? source, axis: currAxis.tName }) : makeTimeline(source, axis);
+        const properties = { [currAxis.cssPercentProperty]: [0, 1] };
 
         //
         if (native) // @ts-ignore

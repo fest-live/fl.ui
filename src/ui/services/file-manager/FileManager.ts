@@ -172,36 +172,44 @@ export class FileManager extends UIElement {
             this.#error.value = "";
             const rel = path; // openDirectory can consume absolute-like parts (it filters Booleans)
             this.#dirProxy = openDirectory(this.#fsRoot, rel, { create: false });
+
             //const map = await this.#dirProxy?.getMap?.();
             const items: FileEntryItem[] = [];
             await this.#dirProxy;
-            for (const [name, $handle] of (await this.#dirProxy?.entries?.() ?? [])) {
-                const handle = await $handle;
-                const kind: EntryKind = handle?.kind || (name?.endsWith?.("/") ? "directory" : "file");
-                let type: string | undefined;
-                let size: number | undefined;
-                let lastModified: number | undefined;
-                if (kind === "file") {
-                    type = getMimeTypeByFilename?.(name);
-                    try {
-                        const f = await handle?.getFile?.();
-                        size = f?.size;
-                        lastModified = f?.lastModified;
-                        type = f?.type || type;
-                    } catch {}
-                }
+            const handleMap = await Array.fromAsync(await this.#dirProxy?.entries?.() ?? []);
 
-                //items.push({ name, kind, type, size, lastModified, handle });
-                //this.#entries.push({ name, kind, type, size, lastModified, handle });
-                const item = { name, kind, type, size, lastModified, handle };
-                const up = { onRowClick: () => self.onRowClick(item), onRowDblClick: () => self.onRowDblClick(item) };
-                this.#entries.push(item);
+            for (const $pair of handleMap) {
+                try {
+                    const [name, handle] = await $pair as any;
+                    const kind: EntryKind = handle?.kind || (name?.endsWith?.("/") ? "directory" : "file");
+                    let type: string | undefined;
+                    let size: number | undefined;
+                    let lastModified: number | undefined;
+                    if (kind === "file") {
+                        type = getMimeTypeByFilename?.(name);
+                        try {
+                            const f = await handle?.getFile?.();
+                            size = f?.size;
+                            lastModified = f?.lastModified;
+                            type = f?.type || type;
+                        } catch { }
+                    }
+
+                    //items.push({ name, kind, type, size, lastModified, handle });
+                    //this.#entries.push({ name, kind, type, size, lastModified, handle });
+                    const item = { name, kind, type, size, lastModified, handle };
+                    const up = { onRowClick: () => self.onRowClick(item), onRowDblClick: () => self.onRowDblClick(item) };
+                    this.#entries.push(item);
+                } catch (e: any) {
+                    console.warn(e);
+                }
             }
             // sort: directories first, then files by name
             //items.sort((a, b) => (a?.kind === b?.kind ? a?.name?.localeCompare?.(b?.name) : (a?.kind === "directory" ? -1 : 1)));
             //this.#entries.splice(0, this.#entries.length, ...items);
         } catch (e: any) {
             this.#error.value = e?.message || String(e || "");
+            console.warn(e);
         } finally {
             this.#loading.value = false;
         }

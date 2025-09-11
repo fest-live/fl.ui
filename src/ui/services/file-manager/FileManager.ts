@@ -33,7 +33,7 @@ const iconByMime = (mime: string | undefined, def = "file") => {
     if (mime.startsWith("video/")) return "video";
     if (mime === "application/pdf") return "file-text";
     if (mime.includes("zip") || mime.includes("7z") || mime.includes("rar")) return "file-archive";
-    if (mime.includes("json")) return "brackets";
+    if (mime.includes("json")) return "brackets-curly";
     if (mime.includes("csv")) return "file-spreadsheet";
     if (mime.includes("xml")) return "code";
     if (mime.startsWith("text/")) return "file-text";
@@ -104,6 +104,22 @@ export class FileManager extends UIElement {
     }
 
     //
+    manuallyRenderFileList(entries: FileEntryItem[]) {
+        const rows = entries?.map?.((item: FileEntryItem) => {
+            return H`<div class="row c2-surface" on:click=${(ev: MouseEvent) => self.onRowClick?.(item, ev)} on:dblclick=${(ev: MouseEvent) => self.onRowDblClick?.(item, ev)}>
+                <div style="place-content: center; place-items: center; text-overflow: ellipsis; min-block-size: 2rem; block-size: max-content; overflow: hidden;" class="c icon">${H`<ui-icon icon=${iconFor(item)} />`}</div>
+                <div style="place-content: center; place-items: center; text-overflow: ellipsis; min-block-size: 2rem; block-size: max-content; overflow: hidden; inline-size: stretch;" class="c name" title=${item?.name}>${item?.name}</div>
+                <div style="place-content: center; place-items: center; text-overflow: ellipsis; min-block-size: 2rem; block-size: max-content; overflow: hidden;" class="c size">${item?.size != null ? getSize(item?.size) : ""}</div>
+                <div style="place-content: center; place-items: center; text-overflow: ellipsis; min-block-size: 2rem; block-size: max-content; overflow: hidden;" class="c date">${item?.lastModified ? new Date(item?.lastModified).toLocaleString("en-US", { dateStyle: "short", timeStyle: "short" }) : ""}</div>
+            </div>`;
+        });
+        const self: any = this;
+        self.innerHTML = "";
+        self?.append?.(...rows);
+        return rows;
+    }
+
+    //
     onRender() {
         super.onRender();
         // handle address field submit
@@ -120,14 +136,16 @@ export class FileManager extends UIElement {
 
         //
         const self: any = this;
-        return E(self, {}, M(this.#entries, (item: FileEntryItem) => {
+        self.manuallyRenderFileList(this.#entries);
+
+        /*return E(self, {}, M(this.#entries, (item: FileEntryItem) => {
             return H`<div class="row c2-surface" on:click=${(ev: MouseEvent) => self.onRowClick?.(item, ev)} on:dblclick=${(ev: MouseEvent) => self.onRowDblClick?.(item, ev)}>
                 <div style="place-content: center; place-items: center; text-overflow: ellipsis; min-block-size: 2rem; block-size: max-content; overflow: hidden;" class="c icon">${H`<ui-icon icon=${iconFor(item)} />`}</div>
                 <div style="place-content: center; place-items: center; text-overflow: ellipsis; min-block-size: 2rem; block-size: max-content; overflow: hidden; inline-size: stretch;" class="c name" title=${item?.name}>${item?.name}</div>
                 <div style="place-content: center; place-items: center; text-overflow: ellipsis; min-block-size: 2rem; block-size: max-content; overflow: hidden;" class="c size">${item?.size != null ? getSize(item?.size) : ""}</div>
                 <div style="place-content: center; place-items: center; text-overflow: ellipsis; min-block-size: 2rem; block-size: max-content; overflow: hidden;" class="c date">${item?.lastModified ? new Date(item?.lastModified).toLocaleString("en-US", { dateStyle: "short", timeStyle: "short" }) : ""}</div>
             </div>`;
-        }));
+        }));*/
     }
 
     //
@@ -176,11 +194,11 @@ export class FileManager extends UIElement {
             //const map = await this.#dirProxy?.getMap?.();
             const items: FileEntryItem[] = [];
             await this.#dirProxy;
-            const handleMap = await Array.fromAsync(await this.#dirProxy?.entries?.() ?? []);
+            const handleMap = await Promise.all(await Array.fromAsync(await this.#dirProxy?.entries?.() ?? []));
 
             for (const $pair of handleMap) {
                 try {
-                    const [name, handle] = await $pair as any;
+                    const [name, handle] = $pair as any;
                     const kind: EntryKind = handle?.kind || (name?.endsWith?.("/") ? "directory" : "file");
                     let type: string | undefined;
                     let size: number | undefined;
@@ -197,13 +215,14 @@ export class FileManager extends UIElement {
 
                     //items.push({ name, kind, type, size, lastModified, handle });
                     //this.#entries.push({ name, kind, type, size, lastModified, handle });
-                    const item = { name, kind, type, size, lastModified, handle };
                     const up = { onRowClick: () => self.onRowClick(item), onRowDblClick: () => self.onRowDblClick(item) };
+                    const item = { name, kind, type, size, lastModified, handle, up };
                     this.#entries.push(item);
                 } catch (e: any) {
                     console.warn(e);
                 }
             }
+            self.manuallyRenderFileList(this.#entries);
             // sort: directories first, then files by name
             //items.sort((a, b) => (a?.kind === b?.kind ? a?.name?.localeCompare?.(b?.name) : (a?.kind === "directory" ? -1 : 1)));
             //this.#entries.splice(0, this.#entries.length, ...items);

@@ -45,14 +45,14 @@ async function createCtxMenu() {
         items: [
             // ICONS in Lucide!
             [   // section 1
-                { id: "new-tab", label: "New Tab", icon: "newspaper" },
+                { id: "new-tab", label: "New Tab", icon: "tabs" },
                 { id: "new-window", label: "New Window", icon: "app-window" },
-                { id: "new-private-window", label: "New Private Tab", icon: "glasses" }
+                { id: "new-private-window", label: "New Private Tab", icon: "eye-slash" }
             ],
             [   // section 2
-                { id: "open-link", label: "Open in New Tab", icon: "link" },
-                { id: "save-link-as", label: "Save Link As", icon: "save" },
-                { id: "copy-link", label: "Copy Link", icon: "copy" }
+                { id: "open-link", label: "Open in New Tab", icon: "copy" },
+                { id: "save-link-as", label: "Save Link As", icon: "download" },
+                { id: "copy-link", label: "Copy Link", icon: "link" }
             ],
             [   // section 3 (inspect element)
                 { id: "inspect-element", label: "Inspect Element", icon: "eye" }

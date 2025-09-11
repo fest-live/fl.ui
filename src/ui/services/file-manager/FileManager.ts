@@ -105,7 +105,7 @@ export class FileManager extends UIElement {
 
     //
     manuallyRenderFileList(entries: FileEntryItem[]) {
-        const rows = entries?.map?.((item: FileEntryItem) => {
+        /*const rows = entries?.map?.((item: FileEntryItem) => {
             return H`<div class="row c2-surface" on:click=${(ev: MouseEvent) => self.onRowClick?.(item, ev)} on:dblclick=${(ev: MouseEvent) => self.onRowDblClick?.(item, ev)}>
                 <div style="place-content: center; place-items: center; text-overflow: ellipsis; min-block-size: 2rem; block-size: max-content; overflow: hidden;" class="c icon">${H`<ui-icon icon=${iconFor(item)} />`}</div>
                 <div style="place-content: center; place-items: center; text-overflow: ellipsis; min-block-size: 2rem; block-size: max-content; overflow: hidden; inline-size: stretch;" class="c name" title=${item?.name}>${item?.name}</div>
@@ -116,7 +116,7 @@ export class FileManager extends UIElement {
         const self: any = this;
         self.innerHTML = "";
         self?.append?.(...rows);
-        return rows;
+        return rows;*/
     }
 
     //
@@ -138,14 +138,15 @@ export class FileManager extends UIElement {
         const self: any = this;
         self.manuallyRenderFileList(this.#entries);
 
-        /*return E(self, {}, M(this.#entries, (item: FileEntryItem) => {
+        //
+        return E(self, {}, M(this.#entries, (item: FileEntryItem) => {
             return H`<div class="row c2-surface" on:click=${(ev: MouseEvent) => self.onRowClick?.(item, ev)} on:dblclick=${(ev: MouseEvent) => self.onRowDblClick?.(item, ev)}>
                 <div style="place-content: center; place-items: center; text-overflow: ellipsis; min-block-size: 2rem; block-size: max-content; overflow: hidden;" class="c icon">${H`<ui-icon icon=${iconFor(item)} />`}</div>
                 <div style="place-content: center; place-items: center; text-overflow: ellipsis; min-block-size: 2rem; block-size: max-content; overflow: hidden; inline-size: stretch;" class="c name" title=${item?.name}>${item?.name}</div>
                 <div style="place-content: center; place-items: center; text-overflow: ellipsis; min-block-size: 2rem; block-size: max-content; overflow: hidden;" class="c size">${item?.size != null ? getSize(item?.size) : ""}</div>
                 <div style="place-content: center; place-items: center; text-overflow: ellipsis; min-block-size: 2rem; block-size: max-content; overflow: hidden;" class="c date">${item?.lastModified ? new Date(item?.lastModified).toLocaleString("en-US", { dateStyle: "short", timeStyle: "short" }) : ""}</div>
             </div>`;
-        }));*/
+        }));
     }
 
     //

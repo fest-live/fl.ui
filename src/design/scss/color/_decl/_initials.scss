@@ -4,7 +4,7 @@
 @use "./names" as *;
 
 /* Define initials */
-@mixin initials-define($primary-color: #1a1) {
+@mixin initials-define($primary-color: #12a) {
     interpolate-size: allow-keywords;
 
     /* Variables */

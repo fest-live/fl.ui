@@ -16,10 +16,24 @@
     //
     :host {
         & { --scrollbar-color: oklch(from --c2-on-surface(var(--scrollbar-tone-shift, 0.0), var(--current, #111)) l c h / 0.8); };
-        & { display: block; }
-        &, & * {
+        & { display: block; container-type: size !important; contain: strict !important; position: fixed !important; border-radius: 0.25rem; overflow: hidden; }
+        &, * {
             interpolate-size: allow-keywords;
             transition-behavior: allow-discrete;
+            overflow: hidden !important;
+            scrollbar-width: none !important;
+            scrollbar-color: transparent transparent !important;
+            scrollbar-gutter: auto !important;
+            background-color: transparent;
+            pointer-events: none;
+            box-sizing: border-box;
+            border: none 0px transparent;
+            outline: none 0px transparent;
+            padding: 0px;
+            margin: 0px;
+            font-size: 0rem;
+            line-height: 0;
+            color: transparent;
         }
 
         //
@@ -29,6 +43,12 @@
 
         //
         .ui-scrollbar {
+            & {
+                background-color: transparent !important;
+                background: transparent !important;
+                background-image: none !important;
+            }
+
             .ui-thumb {
                 border-radius: 0.25rem;
             }

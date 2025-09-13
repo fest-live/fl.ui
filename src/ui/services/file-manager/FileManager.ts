@@ -271,11 +271,19 @@ export class FileManager extends UIElement {
         return H`
             <div part="root" class="fm-root" data-with-sidebar=${sidebarVisible}>
                 <div part="toolbar" class="fm-toolbar">
-                    <button class="btn" title="Up" on:click=${() => this.goUp()}><ui-icon icon="arrow-up"/></button>
-                    <button class="btn" title="Refresh" on:click=${() => this.loadPath(this.path)}><ui-icon icon="arrow-clockwise"/></button>
-                    <ui-longtext class="address c2-surface" style="background-color: --c2-surface(0.04, var(--current, transparent)); inline-size: stretch; border: none 0px transparent; outline: none 0px transparent;" name="address">
-                        <input type="text" value=${this.path} name="address" />
-                    </ui-longtext>
+                    <div class="fm-toolbar-left">
+                        <button class="btn" title="Up" on:click=${() => this.goUp()}><ui-icon icon="arrow-up"/></button>
+                        <button class="btn" title="Refresh" on:click=${() => this.loadPath(this.path)}><ui-icon icon="arrow-clockwise"/></button>
+                    </div>
+                    <div class="fm-toolbar-center">
+                        <ui-longtext class="address c2-surface" style="background-color: --c2-surface(0.04, var(--current, transparent)); inline-size: stretch; border: none 0px transparent; outline: none 0px transparent;" name="address">
+                            <input type="text" value=${this.path} name="address" />
+                        </ui-longtext>
+                    </div>
+                    <div class="fm-toolbar-right">
+                        <button class="btn" title="Add" on:click=${() => this.requestUpload?.()}><ui-icon icon="file-up"/></button>
+                        <button class="btn" title="Use" on:click=${() => this.requestUse?.()}><ui-icon icon="image-play"/></button>
+                    </div>
                 </div>
 
                 ${H`<aside visible=${sidebarVisible} part="sidebar" class="fm-sidebar">

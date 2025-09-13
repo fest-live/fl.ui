@@ -1,5 +1,21 @@
 @layer box-with-sidebar {
     :host {
+        &, :where(*), ::slotted(*) {
+            overflow: hidden;
+            scrollbar-width: none;
+            scrollbar-color: transparent transparent;
+            scrollbar-gutter: auto;
+            border: none 0px transparent;
+            outline: none 0px transparent;
+            padding: 0px;
+            margin: 0px;
+            line-height: 0;
+            box-sizing: border-box;
+            background-color: transparent;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
         & {
             --ui-shadow-soft: #0002;
         }

@@ -1,9 +1,29 @@
 @layer ux-file-manager {
+
     :host(ui-file-manager) {
-        container-type: inline-size;
-        display: grid;
-        inline-size: stretch;
-        block-size: stretch;
+        &, :where(*) {
+            overflow: hidden;
+            scrollbar-width: none;
+            scrollbar-color: transparent transparent;
+            scrollbar-gutter: auto;
+            border: none 0px transparent;
+            outline: none 0px transparent;
+            padding: 0px;
+            margin: 0px;
+            line-height: 0;
+            box-sizing: border-box;
+            background-color: transparent;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        & {
+            container-type: inline-size;
+            display: grid;
+            inline-size: stretch;
+            block-size: stretch;
+            background-color: --c2-surface(0, var(--current, transparent));
+        }
 
         .fm-root {
             display: grid;
@@ -20,24 +40,68 @@
 
         .fm-toolbar {
             grid-column: 1 / -1;
-            display: flex;
+            display: grid;
+            grid-template-columns: minmax(0px, max-content) minmax(0px, 1fr) minmax(0px, max-content);
+            grid-template-rows: minmax(0px, 1fr);
+            grid-auto-flow: column;
             place-content: center;
             place-items: center;
             gap: 0.5rem;
-            padding: 0.25rem;
             background: --c2-surface(0, var(--current, transparent));
             border-radius: 0.5rem;
+            padding: 0.25rem;
+            line-height: 0;
 
             .btn {
                 transition: background 0.1s ease-in-out;
                 appearance: none;
                 border: 0;
                 background: transparent;
-                padding: 0.25rem;
-                border-radius: 0.4rem;
+                padding: 0.65rem;
+                border-radius: 0rem;
                 cursor: pointer;
+                inline-size: 2.5rem;
+                block-size: 2.5rem;
+                aspect-ratio: 1 / 1;
             }
             .btn:hover { background: --c2-surface(0.06, var(--current, transparent)); }
+
+            & > * {
+                display: flex;
+                flex-direction: row;
+                flex-wrap: nowrap;
+                gap: 0rem;
+                block-size: max-content;
+                min-block-size: stretch;
+                border-radius: 0.5rem;
+                padding: 0rem;
+                overflow: hidden;
+                background: --c2-surface(0.03, var(--current, transparent));
+            }
+
+            & .fm-toolbar-left { grid-column: 1; }
+            & .fm-toolbar-center {
+                grid-column: 2;
+                flex-grow: 1;
+                inline-size: stretch;
+                block-size: max-content;
+                min-block-size: stretch;
+                border-radius: 0.5rem;
+                padding: 0rem;
+                overflow: hidden;
+                place-content: center;
+                place-items: center;
+
+                & > * {
+                    inline-size: stretch;
+                    block-size: stretch;
+                }
+
+                & ui-longtext input {
+                    padding-inline: 0.5rem;
+                }
+            }
+            & .fm-toolbar-right { grid-column: 3; }
         }
 
         .fm-sidebar {
@@ -90,6 +154,10 @@
             border-radius: 0.5rem;
             background-color: --c2-surface(0.0, var(--current, transparent));
             padding: 0.25rem;
+
+            scrollbar-width: none;
+            scrollbar-color: transparent transparent;
+            scrollbar-gutter: auto;
         }
 
         .status { padding: 0.5rem; opacity: 0.8; }
@@ -111,6 +179,7 @@
             isolation: isolate;
             pointer-events: none;
             container-type: size;
+            background-color: --c2-surface(0, var(--current, transparent));
         }
 
         /* Grid with subgrid columns */
@@ -128,6 +197,9 @@
             min-block-size: stretch;
             block-size: max-content;
             overflow: visible;
+            scrollbar-width: none;
+            scrollbar-color: transparent transparent;
+            scrollbar-gutter: auto;
         }
 
         .fm-grid-header {

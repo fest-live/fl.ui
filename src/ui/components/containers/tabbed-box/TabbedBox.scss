@@ -1,5 +1,21 @@
 @layer tabbed-box {
     :host {
+        &, :where(*), ::slotted(*) {
+            overflow: hidden;
+            scrollbar-width: none;
+            scrollbar-color: transparent transparent;
+            scrollbar-gutter: auto;
+            border: none 0px transparent;
+            outline: none 0px transparent;
+            padding: 0px;
+            margin: 0px;
+            line-height: 0;
+            box-sizing: border-box;
+            background-color: transparent;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
         & {
             display: grid;
             grid-template-columns: minmax(0px, 1fr);

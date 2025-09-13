@@ -95,10 +95,18 @@ $counter: 0;
     //
     & :is(#{$selector}[axis="#{$axe}"]) {
         & { #{$inv}-size: 0.5rem; #{$fit}-size: calc(#{$cqf} - 1rem);
-            inset-#{$fit}-end  : auto;
+            @if $fit == 'block' {
+                grid-column: scrollbar-x !important;
+                grid-row: content-h !important;
+            } @else {
+                grid-column: content-w !important;
+                grid-row: scrollbar-y !important;
+            }
+
+            /*inset-#{$fit}-end  : auto;
             inset-#{$inv}-start: auto;
             inset-#{$fit}-start: 0.5rem;
-            inset-#{$inv}-end  : 1px;
+            inset-#{$inv}-end  : 1px;*/
             --content-size: calc(#{$cqf} * 1); //--scroll-size: calc(var(--content-size, 0) / var(--scroll-coef, 1));
             --clamped-size: calc(#{$cqf} - 1rem); --max-size: min(100%, var(--clamped-size, #{$cqf}));
             --scroll-coef: clamp(0, calc(var(--content-size, 0px) / var(--scroll-size, 0.0001px)), 1); //! new CSS calc feature
@@ -144,7 +152,7 @@ $counter: 0;
         box-sizing: border-box;
         direction: ltr !important;
         //overflow: hidden;
-        position: absolute;
+        position: relative;
         //position: fixed;
         display: block flow;
         z-index: 9999;
@@ -184,6 +192,11 @@ $counter: 0;
         scrollbar-gutter: auto !important;
         pointer-events: none !important;
         z-index: 1;
+
+        //
+        display: grid !important;
+        grid-template-columns: [content-w] minmax(0px, 1fr) [scrollbar-y] minmax(0px, max-content) !important;
+        grid-template-rows: [content-h] minmax(0px, 1fr) [scrollbar-x] minmax(0px, max-content) !important;
         //position: relative;
         //position: fixed !important;
     }

@@ -1,17 +1,13 @@
 @use "sass:math";
 @use "sass:list";
-
-//
 @use "./wavy" as wavy;
-
-@property --background-tone-shift { syntax: "<number>"; initial-value: 0.0; inherits: true; };
 
 //
 @layer ux-shapes {
 
     //
     .shaped {
-        --icon-size: 6rem; //100%;
+        --icon-size: 6rem;
         aspect-ratio: 1 / 1;
         inline-size: 6rem;
         block-size: 6rem;
@@ -19,7 +15,7 @@
         place-content: center;
         place-items: center;
 
-        //
+
         color: --c2-on-surface(0.0, var(--current));
         background-color: --c2-surface(var(--background-tone-shift, 0.0), var(--current));
         padding: 1.25rem;

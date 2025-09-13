@@ -34,7 +34,6 @@
             }
         }
 
-        //
         @include sb.scrollbox();
         @include sb.scroll-tm-2-axis();
         @include sb.axis-scrollbar(".ui-scrollbar", "inline", ".ui-thumb", "ux-scrollbox");

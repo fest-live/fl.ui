@@ -290,7 +290,7 @@ export class FileManager extends UIElement {
                 <div part="content" class="fm-content">
                     ${loading?.value ? H`<div class="status">Loading…</div>` : null}
                     ${error?.value ? H`<div class="status error">${error.value}</div>` : null}
-                    <div class="fm-grid-container">
+                    <div class="fm-grid-container" data-mixin="ov-scrollbar">
                         <div class="fm-grid" part="grid">
                             <div class="fm-grid-header">
                                 <div class="c icon" style="place-content: center; place-items: center; min-block-size: 2rem; overflow: hidden; block-size: max-content;"></div>

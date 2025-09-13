@@ -7,6 +7,9 @@ import { UIElement } from "@design/base/UIElement"
 import styles from "./ScrollFrame.scss?inline"
 const styled = preloadStyle(styles);
 
+//
+const withScrollbars = new WeakMap();
+
 // @ts-ignore
 @defineElement("ui-scrollframe")
 export class ScrollBoxed extends UIElement {
@@ -22,12 +25,17 @@ export class ScrollBoxed extends UIElement {
 
     //
     bindWith(content: any, inputChange?: any|null) {
+        if (content.style.anchorName || withScrollbars?.has?.(content)) return false;
+        withScrollbars?.set?.(content, this);
+
+        //
         requestAnimationFrame(()=>{ // @ts-ignore
-            this.#x = new ScrollBar({holder: this, scrollbar: Q(".ui-scrollbar[axis=\"x\"]", this.shadowRoot), content, inputChange}, 0); // @ts-ignore
-            this.#y = new ScrollBar({holder: this, scrollbar: Q(".ui-scrollbar[axis=\"y\"]", this.shadowRoot), content, inputChange}, 1); // @ts-ignore
+            this.#x ??= new ScrollBar({ holder: this, scrollbar: Q(".ui-scrollbar[axis=\"x\"]", this.shadowRoot), content, inputChange }, 0); // @ts-ignore
+            this.#y ??= new ScrollBar({ holder: this, scrollbar: Q(".ui-scrollbar[axis=\"y\"]", this.shadowRoot), content, inputChange }, 1); // @ts-ignore
         });
         const name = "--rand-" + Math.random().toString(36).slice(2); // @ts-ignore
         this.style.positionAnchor = name, content.style.anchorName = name;
+        return true;
     }
 
     //
@@ -45,18 +53,19 @@ export class OverlayScrollbarMixin extends DOMMixin {
     // @ts-ignore
     connect(ws) {
         const self: any = ws?.deref?.();
-        const frame = document.createElement("ui-scrollframe"); // @ts-ignore
-        frame?.bindWith?.(self);
+        if (withScrollbars?.has?.(self)) return;
 
         //
-        self.style.scrollbarGutter = "auto";
-        self.style.scrollbarWidth = "none";
-        self.style.scrollbarColor = "transparent transparent";
-        self.style.overflow = "scroll";
-        self.style.zIndex = (Number(getComputedStyle(self)?.zIndex || 0) + 1) + "";
-
-        //
-        self.parentNode?.append(frame);
+        const frame = withScrollbars?.get?.(self) ?? document.createElement("ui-scrollframe"); // @ts-ignore
+        const bound = frame?.bindWith?.(self);
+        if (bound) {
+            self.style.scrollbarGutter = "auto";
+            self.style.scrollbarWidth = "none";
+            self.style.scrollbarColor = "transparent transparent";
+            self.style.overflow = "scroll";
+            self.style.zIndex = (Number(getComputedStyle(self)?.zIndex || 0) + 1) + "";
+            self.parentNode?.append(frame);
+        }
     }
 }
 

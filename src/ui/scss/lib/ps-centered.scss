@@ -12,7 +12,6 @@
         inset-block-start: max(calc(var(--shift-y) * 1px), 0px);
         inset-inline-end: auto;
         inset-block-end: auto;
-        writing-mode: horizontal-tb;
 
 
         direction: ltr;
@@ -24,5 +23,6 @@
                 round(nearest, calc(/*var(--drag-y) * 1px)*/ -50%), calc(1px / var(--pixel-ratio, 1)))
             , 0%);
         transform-origin: 0% 0%;
+        writing-mode: horizontal-tb;
     };
 };

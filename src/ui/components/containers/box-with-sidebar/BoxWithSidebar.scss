@@ -35,9 +35,10 @@
         .bar {
             display: flex;
             flex-direction: row;
-            gap: 0.125rem;
+            gap: 0rem;
             inline-size: stretch;
-            block-size: 3rem;
+            min-block-size: 2rem;
+            block-size: max-content;
             max-block-size: stretch;
             grid-column: 1 / -1;
             grid-row: bar-row;
@@ -48,6 +49,8 @@
             place-content: center;
             place-items: center;
             box-shadow: none;
+            padding: 0.125rem;
+            padding-inline: 0.5rem;
 
             ::slotted([slot="bar"]) {
                 inline-size: stretch;
@@ -58,10 +61,42 @@
             }
 
             button {
+                display: flex;
+                flex-direction: row;
+                gap: 0rem;
                 aspect-ratio: 1 / 1;
-                block-size: stretch;
+                min-block-size: 2.5rem;
+                block-size: max-content;
                 inline-size: max-content;
+                box-sizing: border-box;
                 color: --c2-on-surface(0.0, var(--current, currentColor));
+                place-content: center;
+                place-items: center;
+                padding: 0.333rem;
+                transition: background-color 0.12s linear;
+                border-radius: 0.5rem;
+                border: 0px none transparent;
+                outline: 0px none transparent;
+                cursor: pointer;
+                background-color: transparent;
+
+                @media (hover: hover) {
+                    &:hover {
+                        background-color: --c2-surface(0.1, var(--current, currentColor));
+                    }
+                }
+
+                &:active {
+                    background-color: --c2-surface(0.1, var(--current, currentColor));
+                }
+
+                span {
+                    display: block;
+                    font-size: 0.8rem;
+                    font-weight: 400;
+                    color: --c2-on-surface(0.0, var(--current, currentColor));
+                    padding-inline-end: 0.333rem;
+                }
             }
 
             ui-icon {

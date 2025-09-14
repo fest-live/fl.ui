@@ -3,7 +3,7 @@ import { preloadStyle } from "fest/dom"
 import { observableByMap, ref } from "fest/object";
 
 //
-import { UIElement } from "@design/base/UIElement"
+import { UIElement } from "@fl-design/base/UIElement"
 
 // @ts-ignore
 import styles from "./TabbedBox.scss?inline"

@@ -1,5 +1,5 @@
 /* Taskbar wrapper */
-import UIElement from "@design/base/UIElement";
+import UIElement from "@fl-design/base/UIElement";
 import { H, defineElement } from "fest/lure";
 
 //

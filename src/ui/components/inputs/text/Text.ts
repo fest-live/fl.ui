@@ -19,7 +19,7 @@ import { addEvent, handleProperty, preloadStyle } from "fest/dom";
 
 //
 import { assign } from "fest/object";
-import { UIElement } from "@design/base/UIElement";
+import { UIElement } from "@fl-design/base/UIElement";
 
 // @ts-ignore
 import styles from "./Text.scss?inline"

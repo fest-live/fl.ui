@@ -1,7 +1,7 @@
 import { property, defineElement, Q, H } from "fest/lure"
 import { DOMMixin, preloadStyle } from "fest/dom"
 import { ScrollBar } from "../scrollbar/ScrollBar"
-import { UIElement } from "@design/base/UIElement"
+import { UIElement } from "@fl-design/base/UIElement"
 
 // @ts-ignore
 import styles from "./ScrollFrame.scss?inline"

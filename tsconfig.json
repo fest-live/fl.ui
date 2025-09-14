@@ -17,9 +17,15 @@
             "fest/theme": ["../theme.core/src/index.ts"],
             "fest/polyfill/*": ["../../shared/fest/polyfill/*"],
             "polyfill/*": ["../../shared/fest/polyfill/*"],
-            "@design/*": ["./src/design/*"],
-            "@ui/*": ["./src/ui/*"],
-            "@src/*": ["./src/*"]
+            "@fl-design/*": [
+                "./src/design/*"
+            ],
+            "@fl-ui/*": [
+                "./src/ui/*"
+            ],
+            "@fl-src/*": [
+                "./src/*"
+            ]
         },
         "target": "ESNext",
         "module": "ESNext",

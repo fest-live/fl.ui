@@ -2,7 +2,7 @@ import { initialize, preloadStyle } from "fest/dom";
 import { defineElement, GLitElement, H, property } from "fest/lure";
 
 // @ts-ignore
-import styles from "@src/index.scss?inline"
+import styles from "@fl-src/index.scss?inline"
 
 //
 const styled = preloadStyle(styles);

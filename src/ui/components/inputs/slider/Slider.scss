@@ -1,4 +1,4 @@
-@use "@ui/scss/classes/mixins" as m;
+@use "@fl-ui/scss/classes/mixins" as m;
 
 // sizes
 @property --ui-slider-track-size { syntax: "<percentage> | <length>"; inherits: true; initial-value: 0.125rem; }

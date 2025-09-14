@@ -2,8 +2,8 @@ import { defineElement, H, E, property, DragHandler, ResizeHandler, ITask } from
 import { preloadStyle, handleAttribute, setStyleProperty } from "fest/dom";
 
 //
-import { UIElement } from "@design/base/UIElement";
-import { TaskStateReflect } from "@ui/misc/TaskStateReflect";
+import { UIElement } from "@fl-design/base/UIElement";
+import { TaskStateReflect } from "@fl-ui/misc/TaskStateReflect";
 
 // @ts-ignore
 import styles from "./WindowFrame.scss?inline"

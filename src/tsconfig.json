@@ -17,9 +17,9 @@
             "fest/ui": ["./index.ts", "../../../shared/fest/ui/index.ts"],
             "fest/polyfill/*": ["../polyfill/*", "../../../shared/fest/polyfill/*"],
             "polyfill/*": ["../polyfill/*", "../../../shared/polyfill/*"],
-            "@design/*": ["./design/*", "../../../shared/fest/fl-ui/design/*"],
-            "@ui/*": ["./ui/*", "../../../shared/fest/fl-ui/ui/*"],
-            "@src/*": ["./*", "../../../shared/fest/fl-ui/*"]
+            "@fl-design/*": ["./design/*", "../../../shared/fest/fl-ui/design/*"],
+            "@fl-ui/*": ["./ui/*", "../../../shared/fest/fl-ui/ui/*"],
+            "@fl-src/*": ["./*", "../../../shared/fest/fl-ui/*"]
         },
         "target": "ESNext",
         "module": "ESNext",

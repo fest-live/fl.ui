@@ -25,7 +25,7 @@
         "jsox": "^1.2.123",
         "katex": "^0.16.22",
         "lucide": "^0.525.0",
-        "marked": "^16.2.1",
+        "marked": "^16.3.0",
         "marked-katex-extension": "^5.1.5",
         "postcss-discard-duplicates": "^7.0.2",
         "postcss-preset-env": "^10.2.4",

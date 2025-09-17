@@ -7,7 +7,7 @@ import markedKatex from "marked-katex-extension";
 marked?.use?.(markedKatex({ throwOnError: false, nonStandard: true }));
 
 //
-const preInit = URL.createObjectURL(new Blob([styles], {type: "text/css"}));
+const preInit = URL.createObjectURL(new Blob([styles], { type: "text/css" }));
 export class MarkdownView extends HTMLElement {
     static observedAttributes = ["src"];
 
@@ -32,29 +32,29 @@ export class MarkdownView extends HTMLElement {
     }
 
     //
-    renderMarkdown(file) {
-        typeof file == "string" ? (localStorage.setItem("$cached-md$", file)) : file?.text?.()?.then?.((t)=>localStorage.setItem("$cached-md$", t));
-        if (file && navigator?.storage) { provide("/user/cache/last.md", true)?.write?.(file instanceof Response ? file?.blob?.() : file); }
+    async renderMarkdown(file) {
+        typeof file == "string" ? (localStorage.setItem("$cached-md$", file)) : file?.text?.()?.then?.((t) => localStorage.setItem("$cached-md$", t));
+        if (file && navigator?.storage) { provide("/user/cache/last.md", true)?.then?.((p) => p?.write?.(file instanceof Response ? file?.blob?.() : file)); }
         if (typeof file == "string") {
-            this.setHTML(marked(file));
+            this.setHTML(await marked(file));
         } else
-        if (file instanceof File || file instanceof Blob || file instanceof Response) {
-            file?.text()?.then?.((doc)=>this.setHTML(marked(doc)));
-        }
+            if (file instanceof File || file instanceof Blob || file instanceof Response) {
+                file?.text()?.then?.(async (doc) => this.setHTML(await marked(doc)));
+            }
     }
 
     //
     attributeChangedCallback(name, oldValue) {
         const nv = this.getAttribute("src");
         if (nv && name == "src" && oldValue != nv) {
-            provide(nv || "")?.then?.((file)=>this.renderMarkdown(file));
+            provide(nv || "")?.then?.((file) => this.renderMarkdown(file))?.catch?.(console.error);
         };
     }
 
     //
     createShadowRoot() {
         const shadowRoot = this.attachShadow({ mode: "open" });
-        shadowRoot.append((this.#view = E("div.markdown-body", { dataset: {print: ""} }))?.element);
+        shadowRoot.append((this.#view = E("div.markdown-body", { dataset: { print: "" } }))?.element);
 
         //
         const style = document.createElement("style");
@@ -62,9 +62,9 @@ export class MarkdownView extends HTMLElement {
         shadowRoot.appendChild(style);
 
         //
-        requestAnimationFrame(()=>{
+        requestAnimationFrame(() => {
             if (this.getAttribute("src")) {
-                provide(this.getAttribute("src") || "")?.then?.((file)=>this.renderMarkdown(file));
+                provide(this.getAttribute("src") || "")?.then?.((file) => this.renderMarkdown(file))?.catch?.(console.error);
             }
         });
     }

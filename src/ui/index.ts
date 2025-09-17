@@ -26,6 +26,7 @@ export * from "./components/inputs/text/Text";
 
 //
 export * from "./services/file-manager/FileManager";
+export * from "./services/markdown-view/Markdown";
 
 //
 export * from "./navigation/statusbar/StatusBar";

@@ -28,6 +28,11 @@
         --width-content: 1080px;
     }
 
+    :host, :scope, :root {
+        color-scheme: inherit;
+        background-color: transparent;
+    }
+
     html {
         scroll-behavior: smooth;
     }

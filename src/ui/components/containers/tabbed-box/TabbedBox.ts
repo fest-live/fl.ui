@@ -35,7 +35,7 @@ export class TabbedBox extends UIElement {
     onInitialize() {
         const self: any = this;
         super.onInitialize?.();
-        self.currentTab = ref("");
+        self.currentTab ??= ref("");
     }
 
     //
@@ -81,6 +81,9 @@ export class TabbedBox extends UIElement {
     openTab(tabName: string, ev?: any) {
         if (!tabName) return;
         const self: any = this;
+        if (self.currentTab) {
+            self.currentTab.value = tabName ?? self.currentTab.value;
+        }
     }
 
     //

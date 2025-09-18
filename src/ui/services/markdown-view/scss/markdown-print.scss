@@ -87,6 +87,7 @@ $img-max-width: min(min(40%, 50dvi), 50cqi);
             line-height: $line-height-base;
             isolation: isolate;
             white-space: normal;
+            color-scheme: inherit;
         }
 
         p {

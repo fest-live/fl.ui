@@ -3,10 +3,10 @@
 
 //
 @layer md-misc {
-    #markdown   { font-size: 1em; isolation: isolate; touch-action: pan-y; };
-    #markdown * { font-size: 1em;  contain-intrinsic-block-size: auto 1em; };
+    #markdown   { color-scheme: inherit; font-size: 1em; isolation: isolate; touch-action: pan-y; };
+    #markdown * { color-scheme: inherit; font-size: 1em;  contain-intrinsic-block-size: auto 1em; };
 
     //
-    [data-hidden]   #markdown { content-visibility: auto !important; }
-    [data-dragging] #markdown { content-visibility: auto !important; :where(*) { content-visibility: auto !important; } }
+    [data-hidden]   #markdown { color-scheme: inherit; content-visibility: auto !important; }
+    [data-dragging] #markdown { color-scheme: inherit; content-visibility: auto !important; :where(*) { content-visibility: auto !important; } }
 }

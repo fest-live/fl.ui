@@ -7,7 +7,15 @@ import {
     openDirectory,
     getDir,
     getMimeTypeByFilename,
-    downloadFile
+    downloadFile,
+    writeFile,
+    remove,
+    uploadFile,
+    getFileHandle,
+    getDirectoryHandle,
+    copyFromOneHandlerToAnother,
+    attachFile,
+    provide
 } from "fest/lure";
 
 import UIElement from "@fl-design/base/UIElement";
@@ -87,13 +95,15 @@ const createItemCtxMenu = async (fileManager: FileManager, item: FileEntryItem |
         items: [
             makeFileActionOps(fileManager, item),
             makeFileSystemOps(fileManager, item),
-        ]
+        ],
+        defaultAction: (initiator: HTMLElement, menuItem: any, ev: MouseEvent) => {
+            (fileManager as any).onMenuAction?.(item, menuItem?.id, ev);
+        }
     };
 
     //
     const ctxMenu = H`<ul class="grid-rows c2-surface round-decor ctx-menu ux-anchor"></ul>`;
     const initiatorElement = Q(`.row[data-id="${item?.name}"]`, fileManager as any);
-    console.log(initiatorElement, item, ctxMenu);
 
     //
     ctxMenuTrigger(initiatorElement as any, ctxMenuDesc, ctxMenu);
@@ -125,6 +135,7 @@ export class FileManager extends UIElement {
     #error = ref("");
     #fsRoot: any = null;
     #dirProxy: any = null;
+    #clipboard: { items: string[]; cut?: boolean } | null = null;
 
     styles = () => styled?.cloneNode?.(true);
 
@@ -191,7 +202,7 @@ export class FileManager extends UIElement {
 
         //
         return E(self, {}, M(this.#entries, (item: FileEntryItem) => {
-            const itemEl = H`<div data-id=${item?.name} class="row c2-surface" on:click=${(ev: MouseEvent) => self.onRowClick?.(item, ev)} on:dblclick=${(ev: MouseEvent) => self.onRowDblClick?.(item, ev)}>
+            const itemEl = H`<div draggable="${item?.kind === "file"}" data-id=${item?.name} class="row c2-surface" on:click=${(ev: MouseEvent) => self.onRowClick?.(item, ev)} on:dblclick=${(ev: MouseEvent) => self.onRowDblClick?.(item, ev)} on:dragstart=${(ev: DragEvent) => self.onRowDragStart?.(item, ev)}>
                 <div style="place-content: center; place-items: center; text-overflow: ellipsis; min-block-size: 2rem; block-size: max-content; overflow: hidden; pointer-events: none;" class="c icon">${H`<ui-icon icon=${iconFor(item)} />`}</div>
                 <div style="place-content: center; place-items: center; text-overflow: ellipsis; min-block-size: 2rem; block-size: max-content; overflow: hidden; pointer-events: none; inline-size: stretch;" class="c name" title=${item?.name}>${item?.name}</div>
                 <div style="place-content: center; place-items: center; text-overflow: ellipsis; min-block-size: 2rem; block-size: max-content; overflow: hidden; pointer-events: none;" class="c size">${item?.size != null ? getSize(item?.size) : ""}</div>
@@ -314,6 +325,163 @@ export class FileManager extends UIElement {
     };
 
     //
+    private onRowDragStart = (item: FileEntryItem, ev: DragEvent) => {
+        try {
+            if (item?.kind !== "file") return;
+            const dt = ev?.dataTransfer;
+            if (!dt) return;
+            ev.stopPropagation();
+            Promise.try(async () => {
+                const fh = await this.#dirProxy?.getFileHandle?.(item?.name, { create: false });
+                const file = await fh?.getFile?.();
+                const abs = (this.path || "/user/") + item?.name;
+                if (file) attachFile(dt, file, abs);
+            }).catch(console.warn);
+        } catch (e) { console.warn(e); }
+    };
+
+    //
+    private async onMenuAction(item: FileEntryItem | null, actionId: string, ev: MouseEvent) {
+        try {
+            if (!actionId) return;
+            const abs = (this.path || "/user/") + (item?.name || "");
+            switch (actionId) {
+                case "open":
+                    if (item?.kind === "file") {
+                        const detail = { path: abs, item };
+                        (this as any).dispatchEvent?.(new CustomEvent("open", { detail, bubbles: true, composed: true }));
+                    }
+                    break;
+                case "download":
+                    if (item?.kind === "file") {
+                        Promise.try(async () => {
+                            const fh = await this.#dirProxy?.getFileHandle?.(item?.name, { create: false });
+                            const file = await fh?.getFile?.();
+                            if (file) await downloadFile(file);
+                        }).catch(console.warn);
+                    }
+                    break;
+                case "delete":
+                    await remove(this.#fsRoot, abs);
+                    await this.loadPath(this.path);
+                    break;
+                case "rename":
+                    if (item?.kind === "file") {
+                        const next = prompt("Rename to:", item?.name);
+                        if (next && next !== item?.name) {
+                            await this.renameFile(item?.name, next);
+                            await this.loadPath(this.path);
+                        }
+                    }
+                    break;
+                case "copy":
+                    this.#clipboard = { items: [abs], cut: false };
+                    try { await navigator.clipboard?.writeText?.(abs); } catch { }
+                    break;
+                case "move":
+                    this.#clipboard = { items: [abs], cut: true };
+                    try { await navigator.clipboard?.writeText?.(abs); } catch { }
+                    break;
+            }
+        } catch (e: any) {
+            console.warn(e);
+            this.#error.value = e?.message || String(e || "");
+        }
+    }
+
+    //
+    private async renameFile(oldName: string, newName: string) {
+        const fromHandle = await this.#dirProxy?.getFileHandle?.(oldName, { create: false });
+        const file = await fromHandle?.getFile?.();
+        if (!file) return;
+        const target = await this.#dirProxy?.getFileHandle?.(newName, { create: true }).catch(() => null);
+        if (!target) {
+            await writeFile(this.#fsRoot, (this.path || "/user/") + newName, file);
+        } else {
+            await writeFile(this.#fsRoot, (this.path || "/user/") + newName, file);
+        }
+        await remove(this.#fsRoot, (this.path || "/user/") + oldName);
+    }
+
+    //
+    async requestUpload() {
+        try {
+            await uploadFile(this.path, null);
+            await this.loadPath(this.path);
+        } catch (e) { console.warn(e); }
+    }
+
+    //
+    async requestPaste() {
+        try {
+            let sources: string[] = [];
+            // try system clipboard
+            try {
+                const txt = await navigator.clipboard?.readText?.();
+                if (txt && txt.startsWith("/user/")) sources = txt.split(/\n+/).map(s => s.trim()).filter(Boolean);
+            } catch { }
+            if (!sources?.length && this.#clipboard?.items?.length) sources = this.#clipboard.items;
+            if (!sources?.length) return;
+
+            const toDir = await getDirectoryHandle(this.#fsRoot, this.path, { create: true });
+            for (const src of sources) {
+                // fallback: detect via getHandler not exported; instead derive by trailing slash
+                const isDir = src.endsWith("/");
+                if (isDir) {
+                    const fromDir = await getDirectoryHandle(this.#fsRoot, src, { create: false });
+                    await copyFromOneHandlerToAnother(fromDir as any, toDir as any);
+                } else {
+                    const fromFile = await getFileHandle(this.#fsRoot, src, { create: false });
+                    const toFile = await toDir?.getFileHandle?.(src.split("/").pop() || "file", { create: true });
+                    await copyFromOneHandlerToAnother(fromFile as any, toFile as any);
+                }
+                if (this.#clipboard?.cut) { await remove(this.#fsRoot, src); }
+            }
+            this.#clipboard = null;
+            await this.loadPath(this.path);
+        } catch (e) { console.warn(e); }
+    }
+
+    //
+    private bindDropHandlers() {
+        const container = Q(".fm-grid-container", (this as any)?.shadowRoot ?? this) as HTMLElement;
+        if (!container) return;
+        addEvent(container, "dragover", (ev: DragEvent) => { ev.preventDefault(); ev.dataTransfer!.dropEffect = "copy"; });
+        addEvent(container, "drop", (ev: DragEvent) => this.onDrop(ev));
+        // paste via keyboard
+        addEvent(this, "keydown", (ev: KeyboardEvent) => {
+            if ((ev.ctrlKey || ev.metaKey) && ev.key.toLowerCase() === "v") {
+                ev.preventDefault(); this.requestPaste();
+            }
+        });
+    }
+
+    //
+    private onDrop(ev: DragEvent) {
+        ev.preventDefault();
+        const dt = ev.dataTransfer;
+        if (!dt) return;
+        const files = dt.files;
+        const tasks: Promise<any>[] = [];
+        for (let i = 0; i < files.length; i++) {
+            const f = files[i];
+            tasks.push(writeFile(this.#fsRoot, (this.path || "/user/") + f.name, f));
+        }
+        // URLs
+        const uriList = dt.getData("text/uri-list") || dt.getData("text/plain");
+        if (uriList) {
+            const urls = uriList.split(/\r?\n/).filter(Boolean);
+            for (const url of urls) {
+                tasks.push(Promise.try(async () => {
+                    const file = await provide(url);
+                    if (file) await writeFile(this.#fsRoot, (this.path || "/user/") + file.name, file);
+                }));
+            }
+        }
+        Promise.allSettled(tasks).then(() => this.loadPath(this.path)).catch(console.warn);
+    }
+
+    //
     render = function() {
         const entries = this.#entries;
         const loading = this.#loading;
@@ -350,6 +518,7 @@ export class FileManager extends UIElement {
             </div>
             <div class="fm-toolbar-right">
                 <button class="btn" title="Add" on:click=${() => this.requestUpload?.()}><ui-icon icon="file-up"/></button>
+                <button class="btn" title="Paste" on:click=${() => this.requestPaste?.()}><ui-icon icon="clipboard-paste"/></button>
                 <button class="btn" title="Use" on:click=${() => this.requestUse?.()}><ui-icon icon="image-play"/></button>
             </div>
         </div>`
@@ -377,12 +546,15 @@ export class FileManager extends UIElement {
         </div>`
 
         //
-        return H`
+        const root = H`
             <div part="root" class="fm-root" data-with-sidebar=${sidebarVisible}>
                 ${toolbar}
                 ${content}
             </div>
         `;
+        // bind drop and paste handlers after first render
+        requestAnimationFrame(() => this.bindDropHandlers());
+        return root;
     }
 }
 

@@ -125,7 +125,7 @@
 
 
 /* подключайте этот блок к любому «поднятому» элементу */
-.elev, ui-window-frame, .shadow-wrap, .ctx-menu, .ui-frame {
+.elev, ui-window-frame, .shadow-wrap, .ui-frame {
     filter: drop-shadow(0px 0px calc(max(0.125 + var(--z-index, 0) * 0.125, 0) * 1rem) #00000040);
 }
 

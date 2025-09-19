@@ -1,6 +1,6 @@
-import { H, defineElement, property, M, Q, E } from "fest/lure";
+import { H, defineElement, property, M, Q, E, ctxMenuTrigger } from "fest/lure";
 import { makeReactive, ref } from "fest/object";
-import { addEvent, preloadStyle } from "fest/dom";
+import { preloadStyle, addEvent } from "fest/dom";
 
 // OPFS helpers
 import {
@@ -16,6 +16,7 @@ import UIElement from "@fl-design/base/UIElement";
 import fmCss from "./FileManager.scss?inline";
 const styled = preloadStyle(fmCss);
 
+//
 type EntryKind = "file" | "directory";
 interface FileEntryItem {
     name: string;
@@ -26,6 +27,7 @@ interface FileEntryItem {
     handle?: any;
 }
 
+//
 const iconByMime = (mime: string | undefined, def = "file") => {
     if (!mime) return def;
     if (mime.startsWith("image/")) return "image";
@@ -50,6 +52,55 @@ const getSize = (size: number) => {
     if (size < 1024 * 1024 * 1024) return (size / 1024 / 1024).toFixed(2) + " MB";
     return (size / 1024 / 1024 / 1024).toFixed(2) + " GB";
 };
+
+//
+const makeFileActionOps = (fileManager: FileManager, item: FileEntryItem | null) => {
+    return [
+        { id: "open", label: "Open", icon: "function", disabled: item?.kind === "directory" || !item },
+        { id: "download", label: "Download", icon: "download" }
+    ];
+};
+
+//
+const makeFileSystemOps = (fileManager: FileManager, item: FileEntryItem | null) => {
+    return [
+        { id: "delete", label: "Delete", icon: "trash", disabled: item?.kind === "directory" || !item },
+        { id: "rename", label: "Rename", icon: "pencil", disabled: item?.kind === "directory" || !item },
+        { id: "copy", label: "Copy", icon: "copy" },
+        { id: "move", label: "Move", icon: "hand-withdraw", disabled: item?.kind === "directory" || !item }
+    ];
+};
+
+//
+const disconnectRegistry = new FinalizationRegistry((ctxMenu: HTMLElement) => {
+    // utilize redundant ctx menu from DOM
+    ctxMenu?.remove?.();
+});
+
+//
+const createItemCtxMenu = async (fileManager: FileManager, item: FileEntryItem | null) => {
+    if (!item) return;
+
+    //
+    const ctxMenuDesc = {
+        openedWith: null,
+        items: [
+            makeFileActionOps(fileManager, item),
+            makeFileSystemOps(fileManager, item),
+        ]
+    };
+
+    //
+    const ctxMenu = H`<ul class="grid-rows c2-surface round-decor ctx-menu ux-anchor"></ul>`;
+    const initiatorElement = Q(`.row[data-id="${item?.name}"]`, fileManager as any);
+    console.log(initiatorElement, item, ctxMenu);
+
+    //
+    ctxMenuTrigger(initiatorElement as any, ctxMenuDesc, ctxMenu);
+    document.body.append(ctxMenu);
+    disconnectRegistry.register(item, ctxMenu);
+    return ctxMenu;
+}
 
 
 
@@ -140,12 +191,14 @@ export class FileManager extends UIElement {
 
         //
         return E(self, {}, M(this.#entries, (item: FileEntryItem) => {
-            return H`<div class="row c2-surface" on:click=${(ev: MouseEvent) => self.onRowClick?.(item, ev)} on:dblclick=${(ev: MouseEvent) => self.onRowDblClick?.(item, ev)}>
-                <div style="place-content: center; place-items: center; text-overflow: ellipsis; min-block-size: 2rem; block-size: max-content; overflow: hidden;" class="c icon">${H`<ui-icon icon=${iconFor(item)} />`}</div>
-                <div style="place-content: center; place-items: center; text-overflow: ellipsis; min-block-size: 2rem; block-size: max-content; overflow: hidden; inline-size: stretch;" class="c name" title=${item?.name}>${item?.name}</div>
-                <div style="place-content: center; place-items: center; text-overflow: ellipsis; min-block-size: 2rem; block-size: max-content; overflow: hidden;" class="c size">${item?.size != null ? getSize(item?.size) : ""}</div>
-                <div style="place-content: center; place-items: center; text-overflow: ellipsis; min-block-size: 2rem; block-size: max-content; overflow: hidden;" class="c date">${item?.lastModified ? new Date(item?.lastModified).toLocaleString("en-US", { dateStyle: "short", timeStyle: "short" }) : ""}</div>
+            const itemEl = H`<div data-id=${item?.name} class="row c2-surface" on:click=${(ev: MouseEvent) => self.onRowClick?.(item, ev)} on:dblclick=${(ev: MouseEvent) => self.onRowDblClick?.(item, ev)}>
+                <div style="place-content: center; place-items: center; text-overflow: ellipsis; min-block-size: 2rem; block-size: max-content; overflow: hidden; pointer-events: none;" class="c icon">${H`<ui-icon icon=${iconFor(item)} />`}</div>
+                <div style="place-content: center; place-items: center; text-overflow: ellipsis; min-block-size: 2rem; block-size: max-content; overflow: hidden; pointer-events: none; inline-size: stretch;" class="c name" title=${item?.name}>${item?.name}</div>
+                <div style="place-content: center; place-items: center; text-overflow: ellipsis; min-block-size: 2rem; block-size: max-content; overflow: hidden; pointer-events: none;" class="c size">${item?.size != null ? getSize(item?.size) : ""}</div>
+                <div style="place-content: center; place-items: center; text-overflow: ellipsis; min-block-size: 2rem; block-size: max-content; overflow: hidden; pointer-events: none;" class="c date">${item?.lastModified ? new Date(item?.lastModified).toLocaleString("en-US", { dateStyle: "short", timeStyle: "short" }) : ""}</div>
             </div>`;
+            createItemCtxMenu(self, item);
+            return itemEl;
         }));
     }
 
@@ -268,48 +321,66 @@ export class FileManager extends UIElement {
         const sidebarVisible = this.showSidebar;
 
         //
+        const fileHeader = H`<div class="fm-grid-header">
+            <div class="c icon" style="place-content: center; place-items: center; min-block-size: 2rem; overflow: hidden; block-size: max-content;"></div>
+            <div class="c name" style="place-content: center; place-items: center; min-block-size: 2rem; overflow: hidden; block-size: max-content; inline-size: stretch;">Name</div>
+            <div class="c size" style="place-content: center; place-items: center; min-block-size: 2rem; overflow: hidden; block-size: max-content;">Size</div>
+            <div class="c date" style="place-content: center; place-items: center; min-block-size: 2rem; overflow: hidden; block-size: max-content;">Modified</div>
+        </div>`
+
+        //
+        const fileRows = H`<div class="fm-grid-rows"><slot></slot></div>`
+        const fileContainer = H`<div class="fm-grid-container" data-mixin="ov-scrollbar">
+            <div class="fm-grid" part="grid">
+                ${fileHeader}
+                ${fileRows}
+            </div>
+        </div>`
+
+        //
+        const toolbar = H`<div part="toolbar" class="fm-toolbar">
+            <div class="fm-toolbar-left">
+                <button class="btn" title="Up" on:click=${() => this.goUp()}><ui-icon icon="arrow-up"/></button>
+                <button class="btn" title="Refresh" on:click=${() => this.loadPath(this.path)}><ui-icon icon="arrow-clockwise"/></button>
+            </div>
+            <div class="fm-toolbar-center">
+                <ui-longtext class="address c2-surface" style="background-color: --c2-surface(0.04, var(--current, transparent)); inline-size: stretch; border: none 0px transparent; outline: none 0px transparent;" name="address">
+                    <input type="text" value=${this.path} name="address" />
+                </ui-longtext>
+            </div>
+            <div class="fm-toolbar-right">
+                <button class="btn" title="Add" on:click=${() => this.requestUpload?.()}><ui-icon icon="file-up"/></button>
+                <button class="btn" title="Use" on:click=${() => this.requestUse?.()}><ui-icon icon="image-play"/></button>
+            </div>
+        </div>`
+
+        //! UNUSED!
+        const sidebar = H`<aside visible=${sidebarVisible} part="sidebar" class="fm-sidebar">
+            <div class="sec">
+                <div class="sec-title">Places</div>
+                <button class="link" on:click=${() => this.navigate("/user/")}>/user</button>
+                <button class="link" on:click=${() => this.navigate("/user/temp/")}>/user/temp</button>
+                <button class="link" on:click=${() => this.navigate("/user/pictures/")}>/user/pictures</button>
+            </div>
+        </aside>`
+
+        //
+        const status = H`
+        ${loading?.value ? H`<div class="status">Loading…</div>` : null}
+        ${error?.value ? H`<div class="status error">${error.value}</div>` : null}
+        `
+
+        //
+        const content = H`<div part="content" class="fm-content">
+            ${status}
+            ${fileContainer}
+        </div>`
+
+        //
         return H`
             <div part="root" class="fm-root" data-with-sidebar=${sidebarVisible}>
-                <div part="toolbar" class="fm-toolbar">
-                    <div class="fm-toolbar-left">
-                        <button class="btn" title="Up" on:click=${() => this.goUp()}><ui-icon icon="arrow-up"/></button>
-                        <button class="btn" title="Refresh" on:click=${() => this.loadPath(this.path)}><ui-icon icon="arrow-clockwise"/></button>
-                    </div>
-                    <div class="fm-toolbar-center">
-                        <ui-longtext class="address c2-surface" style="background-color: --c2-surface(0.04, var(--current, transparent)); inline-size: stretch; border: none 0px transparent; outline: none 0px transparent;" name="address">
-                            <input type="text" value=${this.path} name="address" />
-                        </ui-longtext>
-                    </div>
-                    <div class="fm-toolbar-right">
-                        <button class="btn" title="Add" on:click=${() => this.requestUpload?.()}><ui-icon icon="file-up"/></button>
-                        <button class="btn" title="Use" on:click=${() => this.requestUse?.()}><ui-icon icon="image-play"/></button>
-                    </div>
-                </div>
-
-                ${H`<aside visible=${sidebarVisible} part="sidebar" class="fm-sidebar">
-                    <div class="sec">
-                        <div class="sec-title">Places</div>
-                        <button class="link" on:click=${() => this.navigate("/user/")}>/user</button>
-                        <button class="link" on:click=${() => this.navigate("/user/temp/")}>/user/temp</button>
-                        <button class="link" on:click=${() => this.navigate("/user/pictures/")}>/user/pictures</button>
-                    </div>
-                </aside>`}
-
-                <div part="content" class="fm-content">
-                    ${loading?.value ? H`<div class="status">Loading…</div>` : null}
-                    ${error?.value ? H`<div class="status error">${error.value}</div>` : null}
-                    <div class="fm-grid-container" data-mixin="ov-scrollbar">
-                        <div class="fm-grid" part="grid">
-                            <div class="fm-grid-header">
-                                <div class="c icon" style="place-content: center; place-items: center; min-block-size: 2rem; overflow: hidden; block-size: max-content;"></div>
-                                <div class="c name" style="place-content: center; place-items: center; min-block-size: 2rem; overflow: hidden; block-size: max-content; inline-size: stretch;">Name</div>
-                                <div class="c size" style="place-content: center; place-items: center; min-block-size: 2rem; overflow: hidden; block-size: max-content;">Size</div>
-                                <div class="c date" style="place-content: center; place-items: center; min-block-size: 2rem; overflow: hidden; block-size: max-content;">Modified</div>
-                            </div>
-                            <div class="fm-grid-rows"><slot></slot></div>
-                        </div>
-                    </div>
-                </div>
+                ${toolbar}
+                ${content}
             </div>
         `;
     }

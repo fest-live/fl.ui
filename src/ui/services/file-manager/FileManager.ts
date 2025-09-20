@@ -85,6 +85,15 @@ const disconnectRegistry = new FinalizationRegistry((ctxMenu: HTMLElement) => {
     ctxMenu?.remove?.();
 });
 
+let hasContextMenu = null;
+const makeContextMenu = () => {
+    if (hasContextMenu) return hasContextMenu;
+    const ctxMenu = H`<ul class="grid-rows c2-surface round-decor ctx-menu ux-anchor"></ul>`;
+    hasContextMenu = ctxMenu;
+    document.body.append(ctxMenu);
+    return ctxMenu;
+}
+
 //
 const createItemCtxMenu = async (fileManager: FileManager, item: FileEntryItem | null) => {
     if (!item) return;
@@ -102,12 +111,11 @@ const createItemCtxMenu = async (fileManager: FileManager, item: FileEntryItem |
     };
 
     //
-    const ctxMenu = H`<ul class="grid-rows c2-surface round-decor ctx-menu ux-anchor"></ul>`;
     const initiatorElement = Q(`.row[data-id="${item?.name}"]`, fileManager as any);
 
     //
+    const ctxMenu = makeContextMenu();
     ctxMenuTrigger(initiatorElement as any, ctxMenuDesc, ctxMenu);
-    document.body.append(ctxMenu);
     disconnectRegistry.register(item, ctxMenu);
     return ctxMenu;
 }
@@ -208,7 +216,7 @@ export class FileManager extends UIElement {
                 <div style="place-content: center; place-items: center; text-overflow: ellipsis; min-block-size: 2rem; block-size: max-content; overflow: hidden; pointer-events: none;" class="c size">${item?.size != null ? getSize(item?.size) : ""}</div>
                 <div style="place-content: center; place-items: center; text-overflow: ellipsis; min-block-size: 2rem; block-size: max-content; overflow: hidden; pointer-events: none;" class="c date">${item?.lastModified ? new Date(item?.lastModified).toLocaleString("en-US", { dateStyle: "short", timeStyle: "short" }) : ""}</div>
             </div>`;
-            createItemCtxMenu(self, item);
+            createItemCtxMenu?.(self, item);
             return itemEl;
         }));
     }

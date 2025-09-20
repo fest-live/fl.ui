@@ -178,9 +178,11 @@
             position: relative;
             contain: none;
             isolation: isolate;
-            pointer-events: none;
             container-type: size;
             background-color: --c2-surface(0, var(--current, transparent));
+
+            touch-action: manipulation;
+            pointer-events: auto;
         }
 
         /* Grid with subgrid columns */
@@ -201,6 +203,9 @@
             scrollbar-width: none;
             scrollbar-color: transparent transparent;
             scrollbar-gutter: auto;
+
+            touch-action: manipulation;
+            pointer-events: none;
         }
 
         .fm-grid-header {
@@ -222,6 +227,8 @@
             justify-content: start;
             justify-items: start;
             text-align: start;
+
+            touch-action: manipulation;
             pointer-events: auto;
 
             .c { font-weight: 600; }
@@ -241,6 +248,10 @@
             inline-size: stretch;
             block-size: stretch;
             z-index: 1;
+
+            //
+            touch-action: manipulation;
+            pointer-events: none;
         }
 
         .row, ::slotted(.row) {
@@ -255,6 +266,7 @@
             border-radius: 0.375rem;
             cursor: default;
             pointer-events: auto;
+            touch-action: manipulation;
 
             text-align: start;
             text-wrap: nowrap;

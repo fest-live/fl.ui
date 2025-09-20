@@ -82,7 +82,7 @@ const makeFileSystemOps = (fileManager: FileManager, item: FileEntryItem | null)
 //
 const disconnectRegistry = new FinalizationRegistry((ctxMenu: HTMLElement) => {
     // utilize redundant ctx menu from DOM
-    ctxMenu?.remove?.();
+    //ctxMenu?.remove?.();
 });
 
 let hasContextMenu = null;

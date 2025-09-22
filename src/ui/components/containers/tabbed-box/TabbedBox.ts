@@ -1,6 +1,6 @@
 import { defineElement, H, E, M, I } from "fest/lure"
 import { preloadStyle } from "fest/dom"
-import { observableByMap, ref } from "fest/object";
+import { observableByMap, ref, subscribe } from "fest/object";
 
 //
 import { UIElement } from "@fl-design/base/UIElement"
@@ -25,24 +25,14 @@ const _LOG_ = (data: any)=>{
 // @ts-ignore
 @defineElement("ui-tabbed-box")
 export class TabbedBox extends UIElement {
-
-    // internal built tabs
-    //protected currentTab = ref("");
-    //protected tabs?: Map<string, HTMLElement|string|any>;
-
     //
     constructor() { super(); }
     onInitialize() {
         const self: any = this;
         super.onInitialize?.();
         self.currentTab ??= ref("");
+        subscribe(self.currentTab, (newVal) => self.openTab(newVal));
     }
-
-    //
-    /*renderTabName = function (tabName: string) {
-        //const self: any = this;
-        return tabName;
-    }*/
 
     //
     setTabs(tabs: Map<string, HTMLElement|string|any>) {
@@ -53,14 +43,16 @@ export class TabbedBox extends UIElement {
     renderTabs() {
         const self: any = this;
         if (!self.tabs) return;
+        self.currentTab.value ||= [...self.tabs?.keys?.()]?.[0] || "";
         E(self, {}, [I({ current: self.currentTab, mapped: self.tabs })])
+        self.openTab(self.currentTab.value)
     }
 
     //
     onRender() {
         const self: any = this;
         self.currentTab.value ||= [...self.tabs?.keys?.()]?.[0] || "";
-        self.renderTabs();
+        self.renderTabs?.()
     }
 
     //
@@ -88,8 +80,11 @@ export class TabbedBox extends UIElement {
 
     //
     styles = () => styled?.cloneNode?.(true);
-    render = function() { return H`
+    render = function () {
+        const self: any = this;
+        const root = H`
         <form class="ui-tabbed-box-tabs" part="tabs">${M(observableByMap(this.tabs ?? []), (key_value) => this.createTab(key_value?.[0]))}</form>
         <div class="ui-tabbed-box-content" part="content"><slot></slot></div>`
+        return root;
     }
 }

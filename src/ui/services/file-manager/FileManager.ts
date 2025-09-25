@@ -262,6 +262,7 @@ export class FileManager extends UIElement {
             this.#loading.value = true;
             this.#error.value = "";
             const rel = path; // openDirectory can consume absolute-like parts (it filters Booleans)
+
             this.#dirProxy = openDirectory(this.#fsRoot, rel, { create: false });
 
             //const map = await this.#dirProxy?.getMap?.();

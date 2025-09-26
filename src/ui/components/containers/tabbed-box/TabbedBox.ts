@@ -1,4 +1,4 @@
-import { defineElement, H, E, M, I } from "fest/lure"
+import { defineElement, H, E, M, I, property } from "fest/lure"
 import { preloadStyle } from "fest/dom"
 import { observableByMap, ref, subscribe } from "fest/object";
 
@@ -25,11 +25,17 @@ const _LOG_ = (data: any)=>{
 // @ts-ignore
 @defineElement("ui-tabbed-box")
 export class TabbedBox extends UIElement {
+    @property({ source: "attr" }) currentTab?: string = "";
+
     //
-    constructor() { super(); const self: any = this; self.currentTab ??= ref("") ?? self.currentTab; }
+    constructor() { super(); const self: any = this; self.currentTab ??= ""; }
     onInitialize() {
         const self: any = this;
         super.onInitialize?.();
+
+        //
+        self.currentTab ||= [...self?.tabs?.keys?.() ?? []]?.[0] || "";
+        E(self, {}, [I({ current: self.getProperty("currentTab"), mapped: self.tabs })])
     }
 
     //
@@ -63,7 +69,7 @@ export class TabbedBox extends UIElement {
         if (!tabName) return;
         const self: any = this;
         if (self.currentTab) {
-            self.currentTab.value = tabName ?? self.currentTab.value;
+            self.currentTab = tabName ?? self.currentTab;
         }
     }
 
@@ -74,12 +80,6 @@ export class TabbedBox extends UIElement {
         const root = H`
         <form class="ui-tabbed-box-tabs" part="tabs">${M(observableByMap(self.tabs ?? []), (key_value) => this.createTab(key_value?.[0]))}</form>
         <div class="ui-tabbed-box-content" part="content"><slot></slot></div>`
-
-        //
-        requestAnimationFrame(() => {
-            self.currentTab.value ||= [...self?.tabs?.keys?.() ?? []]?.[0] || "";
-            E(self, {}, [I({ current: self.currentTab, mapped: self.tabs })])
-        });
         return root;
     }
 }

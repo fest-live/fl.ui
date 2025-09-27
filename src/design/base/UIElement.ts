@@ -13,7 +13,7 @@ export class UIElement extends GLitElement() {
     @property({ source: "attr" }) theme: string = "default";
 
     //
-    render() { return H`<slot></slot>`; }
+    render = function () { return H`<slot></slot>`; }
 
     //
     constructor() { super(); }

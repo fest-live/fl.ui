@@ -1,4 +1,4 @@
-import { defineElement, H, E, property, DragHandler, ResizeHandler, ITask } from "fest/lure";
+import { defineElement, property, H, E, DragHandler, ResizeHandler, ITask } from "fest/lure";
 import { preloadStyle, handleAttribute, setStyleProperty } from "fest/dom";
 
 //
@@ -101,7 +101,7 @@ export class WindowFrame extends UIElement {
     }
 
     //
-    styles = () => styled.cloneNode(true);
+    styles = function () { return styled?.cloneNode?.(true); }
     render = function () { return H`
         <div class="ui-window-frame-titlebar" part="titlebar">
             <span class="ui-window-frame-titlebar-handle" part="handle">

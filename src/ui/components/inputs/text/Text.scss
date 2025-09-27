@@ -41,6 +41,7 @@
             container-type: size;
             contain: none;
             line-height: 0;
+            content-visibility: visible;
         }
 
         //
@@ -123,6 +124,7 @@
 
         //
         .box-layer {
+            content-visibility: visible;
             font-size: 0rem;
             line-height: 0;
             grid-column: 1 / -1;
@@ -212,6 +214,7 @@
             text-spacing-trim: normal;
             text-wrap: nowrap;
             word-break: keep-all;
+            visibility: visible;
         }
     }
 }

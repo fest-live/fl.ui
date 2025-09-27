@@ -1,3 +1,8 @@
+import { bindWith, defineElement, property, H, Q } from "fest/lure";
+import { addEvent, handleProperty, preloadStyle } from "fest/dom";
+import { assign } from "fest/object";
+import { UIElement } from "@fl-design/base/UIElement";
+
 /* **
  * @module ui/inputs/text/Text
  * @description Text input element
@@ -12,14 +17,6 @@
  * Usable for: Text Input, Fields, Textarea
  * Differs by: Scrollable, Long-Length, Better Text Selection, Mobile Friendly
  */
-
-//
-import { bindWith, defineElement, H, property, Q, valueRef } from "fest/lure";
-import { addEvent, handleProperty, preloadStyle } from "fest/dom";
-
-//
-import { assign } from "fest/object";
-import { UIElement } from "@fl-design/base/UIElement";
 
 // @ts-ignore
 import styles from "./Text.scss?inline"
@@ -47,22 +44,15 @@ export class LongTextInput extends UIElement {
     }
 
     //
-    styles = () => styled.cloneNode(true);
-    render = ()=> H`<div class="box-layer" part="box-layer"><slot></slot></div>`;
-
-    //
-    onInitialize() {
-        super.onInitialize(); // @ts-ignore
-        assign([this.internals_, "ariaValueText"], this.value); // @ts-ignore
-        assign([this.internals_, "ariaOrientation"], "horizontal"); // @ts-ignore
-        assign([this.internals_, "ariaLive"], "polite"); // @ts-ignore
-        assign([this.internals_, "ariaRelevant"], "additions"); // @ts-ignore
-        assign([this.internals_, "ariaRole"], "textbox"); // @ts-ignore
+    onRender() {
+        super.onRender();
 
         //
         const self: any = this;
         const frame: any = document.createElement("ui-scrollframe"); // @ts-ignore
         frame.style.zIndex = 99;
+
+        //
         const box = self?.box || Q(".box-layer", self?.shadowRoot);
         frame?.bindWith?.(box, Q("input", self));
         self.style.display = "grid";
@@ -71,7 +61,7 @@ export class LongTextInput extends UIElement {
         box.style.scrollbarGutter = "auto";
         box.style.scrollbarWidth = "none";
         box.style.scrollbarColor = "transparent transparent";
-        box.style.overflowBlock  = "hidden";
+        box.style.overflowBlock = "hidden";
         box.style.overflowInline = "scroll";
 
         //
@@ -84,7 +74,7 @@ export class LongTextInput extends UIElement {
         self?.shadowRoot?.append(frame);
 
         // fix scrolling by horizontal
-        addEvent(self, "wheel", (ev)=>{
+        addEvent(self, "wheel", (ev) => {
             // use vertical scroll to scroll horizontally
             if (ev?.deltaY !== 0) {
                 ev?.preventDefault?.();
@@ -96,26 +86,43 @@ export class LongTextInput extends UIElement {
         });
 
         //
-        requestAnimationFrame(()=>{
-            if (!self?.querySelector?.("input")) {
-                const newInput = document.createElement("input");
-                self.append(newInput);
-            }
-            {
-                const newInput = Q("input", self);
-                newInput.type  = "text";
-                newInput.value ||= self.value;
-
-                //
-                bindWith(newInput, "value", self.getProperty("value"), handleProperty, null, true);
-                bindWith(newInput, "name", self.getProperty("name"), handleProperty);
-                bindWith(newInput, "placeholder", self.getProperty("placeholder"), handleProperty);
-                bindWith(newInput, "disabled", self.getProperty("disabled"), handleProperty);
-                bindWith(newInput, "readOnly", self.getProperty("readOnly"), handleProperty);
-                bindWith(newInput, "required", self.getProperty("required"), handleProperty);
-            }
-        });
+        requestAnimationFrame(() => this.initializeInput());
     }
+
+    initializeInput() {
+        const self: any = this;
+        if (!self?.querySelector?.("input")) {
+            const newInput = document.createElement("input");
+            self?.append?.(newInput);
+        }
+        {
+            const newInput = Q("input", self);
+            newInput.type = "text";
+            newInput.value ||= self?.value;
+
+            //
+            bindWith(newInput, "value", self.getProperty("value"), handleProperty, null, true);
+            bindWith(newInput, "name", self?.getProperty("name"), handleProperty);
+            bindWith(newInput, "placeholder", self?.getProperty("placeholder"), handleProperty);
+            bindWith(newInput, "disabled", self?.getProperty("disabled"), handleProperty);
+            bindWith(newInput, "readOnly", self.getProperty("readOnly"), handleProperty);
+            bindWith(newInput, "required", self.getProperty("required"), handleProperty);
+        }
+    }
+
+    //
+    onInitialize() {
+        super.onInitialize(); // @ts-ignore
+        assign([this.internals_, "ariaValueText"], this.value); // @ts-ignore
+        assign([this.internals_, "ariaOrientation"], "horizontal"); // @ts-ignore
+        assign([this.internals_, "ariaLive"], "polite"); // @ts-ignore
+        assign([this.internals_, "ariaRelevant"], "additions"); // @ts-ignore
+        assign([this.internals_, "ariaRole"], "textbox"); // @ts-ignore
+    }
+
+    //
+    styles = function () { return styled?.cloneNode?.(true); }
+    render = function () { return H`<div class="box-layer" part="box-layer"><slot></slot></div>`; };
 }
 
 //

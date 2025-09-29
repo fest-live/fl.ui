@@ -144,6 +144,7 @@ export class FileManager extends UIElement {
     #fsRoot: any = null;
     #dirProxy: any = null;
     #clipboard: { items: string[]; cut?: boolean } | null = null;
+    #loadLock = false;
 
     styles = () => styled?.cloneNode?.(true);
 
@@ -257,19 +258,25 @@ export class FileManager extends UIElement {
     //
     async loadPath(path: string) {
         const self: any = this;
+
+        //
+        if (this.#loadLock) return;
+        this.#loadLock = true;
+
+        //
         this.#entries.splice(0, this.#entries.length);
         try {
             this.#loading.value = true;
             this.#error.value = "";
             const rel = path; // openDirectory can consume absolute-like parts (it filters Booleans)
 
-            this.#dirProxy = openDirectory(this.#fsRoot, rel, { create: false });
+            //
+            this.#dirProxy = openDirectory(this.#fsRoot, rel, { create: false }); await this.#dirProxy;
 
-            //const map = await this.#dirProxy?.getMap?.();
-            const items: FileEntryItem[] = [];
-            await this.#dirProxy;
+            //
             const handleMap = await Promise.all(await Array.fromAsync(await this.#dirProxy?.entries?.() ?? []));
 
+            //
             for (const $pair of handleMap) {
                 try {
                     const [name, handle] = $pair as any;
@@ -306,10 +313,11 @@ export class FileManager extends UIElement {
         } finally {
             this.#loading.value = false;
         }
+        this.#loadLock = false;
     }
 
     //
-    private onRowClick = (item: FileEntryItem, ev: MouseEvent) => {
+    protected onRowClick = (item: FileEntryItem, ev: MouseEvent) => {
         ev.preventDefault();
         if (item?.kind === "directory") {
             const next = (this.path?.endsWith?.("/") ? this.path : this.path + "/") + item?.name + "/";
@@ -321,7 +329,7 @@ export class FileManager extends UIElement {
     };
 
     //
-    private onRowDblClick = (item: FileEntryItem, ev: MouseEvent) => {
+    protected onRowDblClick = (item: FileEntryItem, ev: MouseEvent) => {
         ev.preventDefault();
         if (item?.kind === "file") {
             // attempt to download the file
@@ -334,7 +342,7 @@ export class FileManager extends UIElement {
     };
 
     //
-    private onRowDragStart = (item: FileEntryItem, ev: DragEvent) => {
+    protected onRowDragStart = (item: FileEntryItem, ev: DragEvent) => {
         try {
             if (item?.kind !== "file") return;
             const dt = ev?.dataTransfer;
@@ -350,7 +358,7 @@ export class FileManager extends UIElement {
     };
 
     //
-    private async onMenuAction(item: FileEntryItem | null, actionId: string, ev: MouseEvent) {
+    protected async onMenuAction(item: FileEntryItem | null, actionId: string, ev: MouseEvent) {
         try {
             if (!actionId) return;
             const abs = (this.path || "/user/") + (item?.name || "");
@@ -399,7 +407,7 @@ export class FileManager extends UIElement {
     }
 
     //
-    private async renameFile(oldName: string, newName: string) {
+    protected async renameFile(oldName: string, newName: string) {
         const fromHandle = await this.#dirProxy?.getFileHandle?.(oldName, { create: false });
         const file = await fromHandle?.getFile?.();
         if (!file) return;
@@ -452,7 +460,7 @@ export class FileManager extends UIElement {
     }
 
     //
-    private bindDropHandlers() {
+    protected bindDropHandlers() {
         const container = Q(".fm-grid-container", (this as any)?.shadowRoot ?? this) as HTMLElement;
         if (!container) return;
         addEvent(container, "dragover", (ev: DragEvent) => { ev.preventDefault(); ev.dataTransfer!.dropEffect = "copy"; });
@@ -466,7 +474,7 @@ export class FileManager extends UIElement {
     }
 
     //
-    private onDrop(ev: DragEvent) {
+    protected onDrop(ev: DragEvent) {
         ev.preventDefault();
         const dt = ev.dataTransfer;
         if (!dt) return;

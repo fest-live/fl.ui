@@ -53,7 +53,7 @@
             // elements or items
             & .ui-tabbed-box-tab {
                 line-height: normal;
-                display: flex;
+                display: block;
                 flex-direction: row;
                 inline-size: max-content;
                 max-inline-size: stretch;
@@ -62,7 +62,6 @@
                 border-radius: 0.5rem;
                 overflow: hidden;
                 block-size: max-content;
-                min-block-size: 2rem;
                 background-color: --c2-surface(0.0, var(--current, currentColor));
                 pointer-events: auto;
                 cursor: pointer;
@@ -70,7 +69,7 @@
                 place-content: center;
                 place-items: center;
                 padding: 0.5rem;
-                padding-inline: 1rem;
+                padding-inline: 0.75rem;
 
                 word-break: keep-all;
                 word-wrap: nowrap;
@@ -79,6 +78,8 @@
                 text-overflow: ellipsis;
                 text-wrap: nowrap;
                 text-align: center;
+                font-size: 0.7rem;
+                font-weight: 500;
             }
 
             & .ui-tabbed-box-handle {

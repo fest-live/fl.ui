@@ -594,7 +594,7 @@
     }
 
     /* HACK to workaround unexpected display: none in shared files */
-    [aria-hidden] { display: none !important; }
+    [aria-hidden="true"] { display: none !important; }
 
     /* Github Markdown */
     .markdown-body {

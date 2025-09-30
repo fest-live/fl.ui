@@ -191,6 +191,15 @@ export class FileManager extends UIElement {
     }
 
     //
+    byFirstTwoLetterOrName(name: string): number {
+        const firstTwoLetters = name?.substring?.(0, 2)?.toUpperCase?.();
+
+        // needs get index by first two letters in alphabet
+        const index = (firstTwoLetters?.charCodeAt?.(0) || 65) - 65; //+ ((firstTwoLetters?.charCodeAt?.(1) || 65) - 65);
+        return index;
+    }
+
+    //
     onRender() {
         super.onRender();
         // handle address field submit
@@ -217,6 +226,7 @@ export class FileManager extends UIElement {
                 <div style="place-content: center; place-items: center; text-overflow: ellipsis; min-block-size: 2rem; block-size: max-content; overflow: hidden; pointer-events: none;" class="c size">${item?.size != null ? getSize(item?.size) : ""}</div>
                 <div style="place-content: center; place-items: center; text-overflow: ellipsis; min-block-size: 2rem; block-size: max-content; overflow: hidden; pointer-events: none;" class="c date">${item?.lastModified ? new Date(item?.lastModified).toLocaleString("en-US", { dateStyle: "short", timeStyle: "short" }) : ""}</div>
             </div>`;
+            itemEl.style.setProperty("--order", this.byFirstTwoLetterOrName(item?.name));
             createItemCtxMenu?.(self, item);
             return itemEl;
         }));
@@ -260,11 +270,13 @@ export class FileManager extends UIElement {
         const self: any = this;
 
         //
-        if (this.#loadLock) return;
+        if (this.#loadLock) { return setTimeout(() => this.loadPath(path), 100); };
         this.#loadLock = true;
 
         //
         this.#entries.splice(0, this.#entries.length);
+
+        //
         try {
             this.#loading.value = true;
             this.#error.value = "";
@@ -277,7 +289,7 @@ export class FileManager extends UIElement {
             const handleMap = await Promise.all(await Array.fromAsync(await this.#dirProxy?.entries?.() ?? []));
 
             //
-            for (const $pair of handleMap) {
+            await Promise.all(handleMap?.map?.(async ($pair: any) => {
                 try {
                     const [name, handle] = $pair as any;
                     const kind: EntryKind = handle?.kind || (name?.endsWith?.("/") ? "directory" : "file");
@@ -302,7 +314,9 @@ export class FileManager extends UIElement {
                 } catch (e: any) {
                     console.warn(e);
                 }
-            }
+            }));
+
+            //
             self.manuallyRenderFileList(this.#entries);
             // sort: directories first, then files by name
             //items.sort((a, b) => (a?.kind === b?.kind ? a?.name?.localeCompare?.(b?.name) : (a?.kind === "directory" ? -1 : 1)));
@@ -313,6 +327,8 @@ export class FileManager extends UIElement {
         } finally {
             this.#loading.value = false;
         }
+
+        //
         this.#loadLock = false;
     }
 

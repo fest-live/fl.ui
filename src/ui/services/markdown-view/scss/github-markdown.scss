@@ -593,6 +593,9 @@
         border-radius: 10px;
     }
 
+    /* HACK to workaround unexpected display: none in shared files */
+    [aria-hidden] { display: none !important; }
+
     /* Github Markdown */
     .markdown-body {
         & {

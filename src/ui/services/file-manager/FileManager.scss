@@ -258,6 +258,8 @@
             display: grid !important;
             grid-template-columns: subgrid !important;
             grid-column: 1 / -1;
+            order: var(--order, 1) !important;
+
             place-content: center;
             place-items: center;
             place-self: center;

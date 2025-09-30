@@ -39,7 +39,16 @@
                 inline-size: stretch;
                 block-size: max-content;
                 background-color: transparent;
-                pointer-events: none;
+                pointer-events: auto;
+                position: relative;
+                padding-inline: 0.125rem;
+                overscroll-behavior-inline: contain;
+                touch-action: pan-x;
+                scroll-behavior: smooth;
+                -webkit-overflow-scrolling: touch;
+                scrollbar-gutter: stable;
+                //touch-action: manipulation;
+                user-select: none;
 
                 word-break: keep-all;
                 word-wrap: nowrap;
@@ -50,6 +59,52 @@
                 text-align: center;
             }
 
+            &::before,
+            &::after {
+                content: "";
+                position: absolute;
+                inset-block: 0.125rem;
+                inline-size: clamp(0.75rem, 2vw, 1.5rem);
+                pointer-events: none;
+                opacity: 0;
+                transition: opacity 0.18s ease;
+                //background-image: linear-gradient(to right, var(--_fade-start, transparent) 0%, var(--_fade-end, currentColor) 100%);
+                mix-blend-mode: multiply;
+            }
+
+            &::before {
+                inset-inline-start: 0;
+                --_fade-start: var(--c2-surface(0.02, var(--current, currentColor)));
+                --_fade-end: transparent;
+            }
+
+            &::after {
+                inset-inline-end: 0;
+                --_fade-start: transparent;
+                --_fade-end: var(--c2-surface(0.02, var(--current, currentColor)));
+            }
+
+            &[data-scrollable-start]::before { opacity: 0.85; }
+            &[data-scrollable-end]::after { opacity: 0.85; }
+
+            @supports (mask-image: linear-gradient(#0000, #000)) {
+                &[data-scrollable="true"] {
+                    mask-image: linear-gradient(to right, transparent 0%, black clamp(0.5rem, 1.5vw, 1.5rem), black calc(100% - clamp(0.5rem, 1.5vw, 1.5rem)), transparent 100%);
+                }
+
+                &[data-scrollable="true"]:not([data-scrollable-start]) {
+                    mask-image: linear-gradient(to right, black 0%, black calc(100% - clamp(0.5rem, 1.5vw, 1.5rem)), transparent 100%);
+                }
+
+                &[data-scrollable="true"]:not([data-scrollable-end]) {
+                    mask-image: linear-gradient(to right, transparent 0%, black clamp(0.5rem, 1.5vw, 1.5rem), black 100%);
+                }
+
+                &[data-scrollable="true"]:not([data-scrollable-start]):not([data-scrollable-end]) {
+                    mask-image: none;
+                }
+            }
+
             // elements or items
             & .ui-tabbed-box-tab {
                 line-height: normal;
@@ -58,6 +113,7 @@
                 inline-size: max-content;
                 max-inline-size: stretch;
                 min-inline-size: 3rem;
+                flex: 0 0 auto;
                 gap: 0.125rem;
                 border-radius: 0.5rem;
                 overflow: hidden;
@@ -80,6 +136,8 @@
                 text-align: center;
                 font-size: 0.7rem;
                 font-weight: 500;
+
+                touch-action: pan-x;
             }
 
             & .ui-tabbed-box-handle {

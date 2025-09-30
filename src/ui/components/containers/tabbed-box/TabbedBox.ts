@@ -1,6 +1,6 @@
 import { defineElement, H, E, M, I, property } from "fest/lure"
 import { preloadStyle } from "fest/dom"
-import { observableByMap, ref, subscribe } from "fest/object";
+import { observableByMap } from "fest/object";
 
 //
 import { UIElement } from "@fl-design/base/UIElement"
@@ -17,10 +17,7 @@ const addPartProperty = (element: HTMLElement | string, part: string = "", value
 }
 
 //
-const _LOG_ = (data: any)=>{
-    console.log(data);
-    return data;
-}
+const clamp = (value: number, min: number, max: number) => Math.max(min, Math.min(max, value));
 
 // @ts-ignore
 @defineElement("ui-tabbed-box")
@@ -28,6 +25,10 @@ export class TabbedBox extends UIElement {
     @property({ source: "attr" }) currentTab?: string = "";
 
     //
+    private tabsBox?: HTMLElement
+    private detachTabsOverflow?: () => void
+    private resizeObserver?: ResizeObserver
+
     constructor() { super(); const self: any = this; self.currentTab ??= ""; }
     onInitialize() {
         const self: any = this;
@@ -48,6 +49,7 @@ export class TabbedBox extends UIElement {
     onRender() {
         const self: any = this;
         if (!self.tabs || !self.currentTab) return;
+        self.observeTabsOverflow();
     }
 
     //
@@ -81,5 +83,55 @@ export class TabbedBox extends UIElement {
         <form class="ui-tabbed-box-tabs" part="tabs">${M(observableByMap(self.tabs ?? []), (key_value) => this.createTab(key_value?.[0]))}</form>
         <div class="ui-tabbed-box-content" part="content"><slot></slot></div>`
         return root;
+    }
+
+    private observeTabsOverflow() {
+        const self: any = this;
+        self.tabsBox = self.shadowRoot?.querySelector?.(".ui-tabbed-box-tabs") ?? undefined;
+        const tabsBox = self.tabsBox;
+        if (!tabsBox) return;
+
+        self.detachTabsOverflow?.();
+        self.resizeObserver?.disconnect();
+
+        const updateIndicators = () => {
+            const maxScrollLeft = tabsBox.scrollWidth - tabsBox.clientWidth;
+            const hasOverflow = maxScrollLeft > 1;
+            const startOverflow = tabsBox.scrollLeft > 1;
+            const endOverflow = tabsBox.scrollLeft < maxScrollLeft - 1;
+
+            tabsBox.toggleAttribute("data-scrollable", hasOverflow);
+            tabsBox.toggleAttribute("data-scrollable-start", startOverflow);
+            tabsBox.toggleAttribute("data-scrollable-end", endOverflow);
+        };
+
+        const onWheel = (event: WheelEvent) => {
+            if (Math.abs(event.deltaX) < Math.abs(event.deltaY)) {
+                const delta = clamp(event.deltaY, -80, 80);
+                tabsBox.scrollLeft += delta;
+                event.preventDefault();
+            }
+        };
+
+        const onPointerUp = () => updateIndicators();
+
+        tabsBox.addEventListener("wheel", onWheel, { passive: false });
+        tabsBox.addEventListener("scroll", updateIndicators, { passive: true });
+        tabsBox.addEventListener("pointerup", onPointerUp, { passive: true });
+
+        self.detachTabsOverflow = () => {
+            tabsBox.removeEventListener("wheel", onWheel);
+            tabsBox.removeEventListener("scroll", updateIndicators);
+            tabsBox.removeEventListener("pointerup", onPointerUp);
+        };
+
+        updateIndicators();
+        queueMicrotask(updateIndicators);
+        requestAnimationFrame(updateIndicators);
+
+        if (typeof ResizeObserver !== "undefined") {
+            self.resizeObserver = new ResizeObserver(updateIndicators);
+            self.resizeObserver.observe(tabsBox);
+        }
     }
 }

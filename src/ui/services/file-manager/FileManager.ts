@@ -62,20 +62,20 @@ const getSize = (size: number) => {
 };
 
 //
-const makeFileActionOps = (fileManager: FileManager, item: FileEntryItem | null) => {
+const makeFileActionOps = (fileManager: FileManager) => {
     return [
-        { id: "open", label: "Open", icon: "function", disabled: item?.kind === "directory" || !item },
+        { id: "open", label: "Open", icon: "function" },
         { id: "download", label: "Download", icon: "download" }
     ];
 };
 
 //
-const makeFileSystemOps = (fileManager: FileManager, item: FileEntryItem | null) => {
+const makeFileSystemOps = (fileManager: FileManager) => {
     return [
-        { id: "delete", label: "Delete", icon: "trash", disabled: item?.kind === "directory" || !item },
-        { id: "rename", label: "Rename", icon: "pencil", disabled: item?.kind === "directory" || !item },
+        { id: "delete", label: "Delete", icon: "trash" },
+        { id: "rename", label: "Rename", icon: "pencil" },
         { id: "copy", label: "Copy", icon: "copy" },
-        { id: "move", label: "Move", icon: "hand-withdraw", disabled: item?.kind === "directory" || !item }
+        { id: "move", label: "Move", icon: "hand-withdraw" }
     ];
 };
 
@@ -95,28 +95,31 @@ const makeContextMenu = () => {
 }
 
 //
-const createItemCtxMenu = async (fileManager: FileManager, item: FileEntryItem | null) => {
-    if (!item) return;
+const _LOG_ = (ev: MouseEvent) => {
+    console.log(ev);
+    return ev;
+}
 
-    //
+//
+const createItemCtxMenu = async (fileManager: FileManager, entries: FileEntryItem[]) => {
     const ctxMenuDesc = {
         openedWith: null,
         items: [
-            makeFileActionOps(fileManager, item),
-            makeFileSystemOps(fileManager, item),
+            makeFileActionOps(fileManager),
+            makeFileSystemOps(fileManager),
         ],
         defaultAction: (initiator: HTMLElement, menuItem: any, ev: MouseEvent) => {
-            (fileManager as any).onMenuAction?.(item, menuItem?.id, ev);
+            (fileManager as any).onMenuAction?.(entries?.find?.(item => (item?.name === (initiator as any)?.getAttribute?.("data-id"))), menuItem?.id, ev);
         }
     };
 
     //
-    const initiatorElement = Q(`.row[data-id="${item?.name}"]`, fileManager as any);
+    const initiatorElement = fileManager;
 
     //
     const ctxMenu = makeContextMenu();
     ctxMenuTrigger(initiatorElement as any, ctxMenuDesc, ctxMenu);
-    disconnectRegistry.register(item, ctxMenu);
+    disconnectRegistry.register(initiatorElement, ctxMenu);
     return ctxMenu;
 }
 
@@ -216,7 +219,8 @@ export class FileManager extends UIElement {
 
         //
         const self: any = this;
-        self.manuallyRenderFileList(this.#entries);
+        //self.manuallyRenderFileList(this.#entries);
+        createItemCtxMenu?.(self, this.#entries);
 
         //
         return E(self, {}, M(this.#entries, (item: FileEntryItem) => {
@@ -227,7 +231,6 @@ export class FileManager extends UIElement {
                 <div style="place-content: center; place-items: center; text-overflow: ellipsis; min-block-size: 2rem; block-size: max-content; overflow: hidden; pointer-events: none;" class="c date">${item?.lastModified ? new Date(item?.lastModified).toLocaleString("en-US", { dateStyle: "short", timeStyle: "short" }) : ""}</div>
             </div>`;
             itemEl.style.setProperty("--order", this.byFirstTwoLetterOrName(item?.name));
-            createItemCtxMenu?.(self, item);
             return itemEl;
         }));
     }
@@ -270,11 +273,8 @@ export class FileManager extends UIElement {
         const self: any = this;
 
         //
-        if (this.#loadLock) { return setTimeout(() => this.loadPath(path), 100); };
+        if (this.#loadLock) { return setTimeout(() => this.loadPath(path), 1000); };
         this.#loadLock = true;
-
-        //
-        this.#entries.splice(0, this.#entries.length);
 
         //
         try {
@@ -284,11 +284,10 @@ export class FileManager extends UIElement {
 
             //
             this.#dirProxy = openDirectory(this.#fsRoot, rel, { create: false }); await this.#dirProxy;
-
-            //
             const handleMap = await Promise.all(await Array.fromAsync(await this.#dirProxy?.entries?.() ?? []));
 
             //
+            this.#entries.splice(0, this.#entries.length);
             await Promise.all(handleMap?.map?.(async ($pair: any) => {
                 try {
                     const [name, handle] = $pair as any;
@@ -314,10 +313,10 @@ export class FileManager extends UIElement {
                 } catch (e: any) {
                     console.warn(e);
                 }
-            }));
+            }))?.catch?.(console.warn.bind(console));
 
             //
-            self.manuallyRenderFileList(this.#entries);
+            //self.manuallyRenderFileList(this.#entries);
             // sort: directories first, then files by name
             //items.sort((a, b) => (a?.kind === b?.kind ? a?.name?.localeCompare?.(b?.name) : (a?.kind === "directory" ? -1 : 1)));
             //this.#entries.splice(0, this.#entries.length, ...items);
@@ -326,10 +325,12 @@ export class FileManager extends UIElement {
             console.warn(e);
         } finally {
             this.#loading.value = false;
+            this.#loadLock = false;
         }
 
         //
         this.#loadLock = false;
+        return this;
     }
 
     //

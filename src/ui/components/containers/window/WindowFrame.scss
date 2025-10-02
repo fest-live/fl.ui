@@ -495,7 +495,7 @@
         //
         slot {
             display: contents !important;
-            pointer-events: none !important;
+            pointer-events: auto !important;
             background-color: transparent !important;
             color: inherit !important;
             box-shadow: none !important;
@@ -513,7 +513,7 @@
 
         //
         & {
-            will-change: inset, translate, transform, opacity, z-index;
+            contain: layout paint style;
             transform: scale3d(var(--scale, 1), var(--scale, 1), 1) translate3d(var(--translate-x, 0px), var(--translate-y, 0px), 0px);
             opacity: var(--opacity, 1);
         }
@@ -622,6 +622,10 @@
     //
     :host(ui-window-frame[data-dragging]) {
         will-change: inset, translate, transform, opacity, z-index;
+    }
+
+    :host(ui-window-frame[data-resizing]) {
+        will-change: inline-size, block-size, transform, opacity;
     }
 
     // functionality

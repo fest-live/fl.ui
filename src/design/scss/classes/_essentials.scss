@@ -29,11 +29,6 @@
     }
 
     //
-    ui-icon {
-        mask-image: linear-gradient(#0000, #0000);
-    }
-
-    //
     .round-decor {
         & { --background-tone-shift: 0; };
 
@@ -145,8 +140,6 @@
 
             & > ui-icon {
                 --icon-size: 1.8rem;
-                //--icon-color: --c2-on-surface(var(--icon-tone-shift, 0), var(--current, transparent));
-                background-color: var(--icon-color, currentColor);
                 padding: 0.5rem;
                 user-select: none;
                 pointer-events: none;

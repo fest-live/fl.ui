@@ -131,10 +131,10 @@ async function main() {
     //
     const elements = await Promise.all([
         makeWallpaper(),
-        //createGridWithItem(),
-        //createCtxMenu(),
+        createGridWithItem(),
+        createCtxMenu(),
         createWindowFrame(),
-        //createTaskBar()
+        createTaskBar()
     ]);
 
     //

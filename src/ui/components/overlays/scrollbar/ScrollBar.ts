@@ -205,8 +205,9 @@ export class ScrollBar {
             { animateByTimeline(bar, properties, timeline); }
 
         //
-        setProperty(this.scrollbar, "visibility", "collapse");
-        setProperty(this.scrollbar?.querySelector?.("*"), "pointer-events", "none");
+        const thumb = this.scrollbar instanceof HTMLElement ? this.scrollbar?.querySelector?.("*") : null;
+        if (this.scrollbar != null) setProperty(this.scrollbar, "visibility", "collapse");
+        if (thumb instanceof HTMLElement) { setProperty(thumb, "pointer-events", "none"); };
         makeInteractive(this.holder, this.content, this.scrollbar, axis, this.status, this.inputChange);
 
         //

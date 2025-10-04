@@ -187,9 +187,9 @@ export class FileManager extends UIElement {
                 </ui-longtext>
             </div>
             <div class="fm-toolbar-right">
-                <button class="btn" title="Add" on:click=${() => this.requestUpload?.()}><ui-icon icon="file-up"/></button>
-                <button class="btn" title="Paste" on:click=${() => this.requestPaste?.()}><ui-icon icon="clipboard-paste"/></button>
-                <button class="btn" title="Use" on:click=${() => this.requestUse?.()}><ui-icon icon="image-play"/></button>
+                <button class="btn" title="Add" on:click=${() => this.requestUpload?.()}><ui-icon icon="upload"/></button>
+                <button class="btn" title="Paste" on:click=${() => this.requestPaste?.()}><ui-icon icon="clipboard"/></button>
+                <button class="btn" title="Use" on:click=${() => this.requestUse?.()}><ui-icon icon="hand-withdraw"/></button>
             </div>
         </div>`
 

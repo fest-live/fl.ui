@@ -101,7 +101,7 @@ const _LOG_ = (ev: any) => {
 }
 
 //
-const createItemCtxMenu = async (fileManager: any, entries: FileEntryItem[]) => {
+const createItemCtxMenu = async (fileManager: any, onMenuAction: (item: FileEntryItem | null | undefined, actionId: string, ev: MouseEvent) => Promise<void>, entries: FileEntryItem[]) => {
     const ctxMenuDesc = {
         openedWith: null,
         items: [
@@ -110,7 +110,7 @@ const createItemCtxMenu = async (fileManager: any, entries: FileEntryItem[]) => 
         ],
         defaultAction: (initiator: HTMLElement, menuItem: any, ev: MouseEvent) => {
             const rowFromCompose = Array.from(ev?.composedPath?.() || []).find((element: any) => element?.classList?.contains?.("row")) ?? initiator;
-            (fileManager as any).onMenuAction?.(entries?.find?.(item => (item?.name === (rowFromCompose as any)?.getAttribute?.("data-id"))), menuItem?.id, ev);
+            onMenuAction?.(entries?.find?.(item => (item?.name === (rowFromCompose as any)?.getAttribute?.("data-id"))), menuItem?.id, ev);
         }
     };
 
@@ -461,7 +461,7 @@ export class FileManagerContent extends UIElement {
         //
         const fileRows = H`<div class="fm-grid-rows">${renderedEntries}</div>`
         E(fileRows, {}, renderedEntries);
-        createItemCtxMenu?.(fileRows, this.entries);
+        createItemCtxMenu?.(fileRows, this.onMenuAction.bind(this), this.#entries);
 
         //
         return H`<div class="fm-grid" part="grid">

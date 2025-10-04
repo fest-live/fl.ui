@@ -64,7 +64,7 @@ export class OverlayScrollbarMixin extends DOMMixin {
             self.style.scrollbarColor = "transparent transparent";
             self.style.overflow = "scroll";
             self.style.zIndex = (Number(getComputedStyle(self)?.zIndex || 0) + 1) + "";
-            self.parentNode?.append(frame);
+            //self.parentNode?.append(frame);
         }
     }
 }

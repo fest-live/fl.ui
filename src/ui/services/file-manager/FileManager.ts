@@ -173,7 +173,7 @@ export class FileManager extends UIElement {
             //
             const rows = Q(".fm-grid-container", self?.shadowRoot), grid = Q(".fm-grid", self?.shadowRoot);
             frame.bindWith(rows, rows);
-            grid?.append(frame);
+            //grid?.append(frame);
         });
     }
 
@@ -579,7 +579,7 @@ export class FileManager extends UIElement {
             ${fileContainer}
         </div>`
 
-        //
+        // ${content}
         const root = H`
             <div part="root" class="fm-root" data-with-sidebar=${sidebarVisible}>
                 ${toolbar}

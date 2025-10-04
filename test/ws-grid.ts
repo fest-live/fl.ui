@@ -129,22 +129,16 @@ async function main() {
     });
 
     //
-    const [
-        wallpaper,
-        scrollBoxed,
-        ctxMenu,
-        windowFrame,
-        taskBar
-    ] = await Promise.all([
+    const elements = await Promise.all([
         makeWallpaper(),
-        createGridWithItem(),
-        createCtxMenu(),
+        //createGridWithItem(),
+        //createCtxMenu(),
         createWindowFrame(),
-        createTaskBar()
+        //createTaskBar()
     ]);
 
     //
-    container.append(wallpaper, scrollBoxed, ctxMenu, windowFrame, taskBar);
+    container.append(...elements);
 
     //
     Q("#app", document.documentElement)?.addEventListener?.("dragover", (event: any)=>{

@@ -61,7 +61,7 @@
     --ui-window-frame-outline: #{"oklch(from --c2-on-surface(0.0, var(--current)) l c h / 0.1)"};
     --ui-window-frame-surface: #{"oklch(from --c2-surface(0.1, var(--current)) l c h / 1)"};
     --ui-window-frame-border-radius: 0.5rem;
-    --ui-window-frame-border-width: 1px;
+    --ui-window-frame-border-width: 0px;
     --ui-window-frame-border-color: --c2-on-surface(0.0, var(--current));
     --ui-window-frame-padding: 0px;
     --ui-window-frame-margin: 0px;
@@ -156,6 +156,12 @@
         border-block-start: none;
     }
 
+    & {
+        display: grid;
+        grid-template-columns: minmax(0px, 1fr);
+        grid-template-rows: minmax(0px, 1fr);
+    }
+
     //
     & {
         padding: var(--ui-window-frame-content-padding);
@@ -172,6 +178,20 @@
         background-color: transparent;
         color: var(--ui-window-frame-content-color);
         --icon-color: var(--ui-window-frame-content-color);
+    }
+
+    &::slotted(*) {
+        grid-column: 1 / -1;
+        grid-row: 1 / -1;
+        inline-size: stretch;
+        block-size: stretch;
+    }
+
+    & > *:not(slot) {
+        grid-column: 1 / -1;
+        grid-row: 1 / -1;
+        inline-size: stretch;
+        block-size: stretch;
     }
 }
 
@@ -622,6 +642,11 @@
     //
     :host(ui-window-frame[data-dragging]) {
         will-change: inset, translate, transform, opacity, z-index;
+        content-visibility: auto;
+
+        ::slotted(*) {
+            content-visibility: auto;
+        }
     }
 
     :host(ui-window-frame[data-resizing]) {

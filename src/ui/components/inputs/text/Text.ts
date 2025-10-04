@@ -71,7 +71,7 @@ export class LongTextInput extends UIElement {
         self.style.scrollbarGutter = "auto";
 
         //
-        self?.shadowRoot?.append(frame);
+        //self?.shadowRoot?.append(frame);
 
         // fix scrolling by horizontal
         addEvent(self, "wheel", (ev) => {

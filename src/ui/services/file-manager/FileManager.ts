@@ -1,28 +1,18 @@
-import { H, defineElement, property, M, Q, E, ctxMenuTrigger } from "fest/lure";
-import { link, makeReactive, ref, subscribe } from "fest/object";
+import { H, defineElement, property, getDir, Q } from "fest/lure";
+import { link, ref, subscribe } from "fest/object";
 import { preloadStyle, addEvent } from "fest/dom";
 
+//
 import FileManagerContent from "./FileManagerContent";
 
-// OPFS helpers
-import { getDir } from "fest/lure";
-
+//
 import UIElement from "@fl-design/base/UIElement";
 
 // @ts-ignore
 import fmCss from "./FileManager.scss?inline";
-const styled = preloadStyle(fmCss);
 
 //
-type EntryKind = "file" | "directory";
-interface FileEntryItem {
-    name: string;
-    kind: EntryKind;
-    type?: string;
-    size?: number;
-    lastModified?: number;
-    handle?: any;
-}
+const styled = preloadStyle(fmCss);
 
 // @ts-ignore
 @defineElement("ui-file-manager")
@@ -37,12 +27,6 @@ export class FileManager extends UIElement {
     @property({ source: "inline-size" }) inlineSize?: number;
 
     // refs/state
-    #loading = ref(false);
-    #error = ref("");
-    #fsRoot: any = null;
-    #dirProxy: any = null;
-    #loadLock = false;
-
     styles = () => styled?.cloneNode?.(true);
     pathRef = ref("/user/");
 
@@ -50,30 +34,12 @@ export class FileManager extends UIElement {
     get path() { return this.pathRef.value; }
     set path(value: string) { if (this.pathRef) this.pathRef.value = value; }
 
-    constructor() { super(); }
-
     //
-    itemAction(item: FileEntryItem) {
-        const self: any = this;
-        if (item?.kind === "directory") {
-            const next = (self.path?.endsWith?.("/") ? self.path : self.path + "/") + item?.name + "/";
-            self.path = next;
-        } else {
-            const detail = { path: (self.path || "/user/") + item?.name, item };
-            self.path = detail.path;
-            self.dispatchEvent?.(new CustomEvent("open", { detail, bubbles: true, composed: true }));
-        }
-    }
+    constructor() { super(); }
 
     //
     onInitialize() {
         super.onInitialize();
-        // initialize OPFS root
-        Promise.try(async () => {
-            // @ts-ignore
-            this.#fsRoot = await navigator?.storage?.getDirectory?.();
-            this.path = "/user/";
-        });
 
         //
         const weak: any = new WeakRef(this);
@@ -91,31 +57,12 @@ export class FileManager extends UIElement {
         //
         const self: any = this;
         self.pathRef ??= ref("/user/");
-        subscribe(this.pathRef, (path) => {
-            this.navigate(path);
-        });
+        subscribe(this.pathRef, (path) => this.navigate(path));
 
         //
         const contents: any = document.createElement("ui-file-manager-content");
-        contents.itemAction = this.itemAction;
         link(this.pathRef, contents.pathRef);
         requestAnimationFrame(() => self.append(contents));
-    }
-
-    //
-    manuallyRenderFileList(entries: FileEntryItem[]) {
-        /*const rows = entries?.map?.((item: FileEntryItem) => {
-            return H`<div class="row c2-surface" on:click=${(ev: MouseEvent) => self.onRowClick?.(item, ev)} on:dblclick=${(ev: MouseEvent) => self.onRowDblClick?.(item, ev)}>
-                <div style="place-content: center; place-items: center; text-overflow: ellipsis; min-block-size: 2rem; block-size: max-content; overflow: hidden;" class="c icon">${H`<ui-icon icon=${iconFor(item)} />`}</div>
-                <div style="place-content: center; place-items: center; text-overflow: ellipsis; min-block-size: 2rem; block-size: max-content; overflow: hidden; inline-size: stretch;" class="c name" title=${item?.name}>${item?.name}</div>
-                <div style="place-content: center; place-items: center; text-overflow: ellipsis; min-block-size: 2rem; block-size: max-content; overflow: hidden;" class="c size">${item?.size != null ? getSize(item?.size) : ""}</div>
-                <div style="place-content: center; place-items: center; text-overflow: ellipsis; min-block-size: 2rem; block-size: max-content; overflow: hidden;" class="c date">${item?.lastModified ? new Date(item?.lastModified).toLocaleString("en-US", { dateStyle: "short", timeStyle: "short" }) : ""}</div>
-            </div>`;
-        });
-        const self: any = this;
-        self.innerHTML = "";
-        self?.append?.(...rows);
-        return rows;*/
     }
 
     //
@@ -146,13 +93,6 @@ export class FileManager extends UIElement {
     //
     async navigate(toPath: string) {
         const clean = getDir(toPath);
-        if (!clean?.startsWith?.("/user")) {
-            // only allow OPFS /user; optional host stub
-            this.#error.value = "Only /user partition is supported";
-            return;
-        }
-
-        console.log((this as any)?.querySelector?.("ui-file-manager-content"));
         (this as any).path = clean || (this as any).path;
         await (this as any)?.querySelector?.("ui-file-manager-content")?.loadPath?.(toPath);
     }
@@ -171,11 +111,10 @@ export class FileManager extends UIElement {
 
     //
     render = function() {
-        const loading = this.#loading;
-        const error = this.#error;
         const sidebarVisible = this.showSidebar;
 
         //
+        const content = H`<div part="content" class="fm-content"><slot></slot></div>`
         const toolbar = H`<div part="toolbar" class="fm-toolbar">
             <div class="fm-toolbar-left">
                 <button class="btn" title="Up" on:click=${() => this.goUp()}><ui-icon icon="arrow-up"/></button>
@@ -194,32 +133,10 @@ export class FileManager extends UIElement {
         </div>`
 
         //
-        const status = H`
-        ${loading?.value ? H`<div class="status">Loading…</div>` : null}
-        ${error?.value ? H`<div class="status error">${error.value}</div>` : null}
-        `
-
-        //
-        const content = H`<div part="content" class="fm-content">
-            ${status}
-            <slot></slot>
-        </div>`
-
-        // ${content}
-        const root = H`
-            <div part="root" class="fm-root" data-with-sidebar=${sidebarVisible}>
-                ${toolbar}
-                ${content}
-            </div>
-        `;
-        // bind drop and paste handlers after first render
-
-        return root;
+        return H`<div part="root" class="fm-root" data-with-sidebar=${sidebarVisible}>${toolbar}${content}</div>`;
     }
 }
 
 //
 export default FileManager;
-
-//
 export { FileManagerContent };

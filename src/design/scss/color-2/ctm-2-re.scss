@@ -145,17 +145,19 @@
     }
 
     .c2-surface {
-        background-color: --c2-surface(var(--background-tone-shift, 0.0), var(--current, inherit));
-        color: --c2-on-surface(var(--color-tone-shift, 0.0), var(--current, currentColor));
-        --icon-color: --c2-on-surface(var(--icon-tone-shift, 0.0), var(--current, currentColor));
-        scrollbar-color: --c2-on-surface(var(--scrollbar-tone-shift, 0.0), var(--current, transparent)) transparent;
-        accent-color: --c2-on-surface(var(--accent-tone-shift, 0.0), var(--current, transparent));
-        border-color: --c2-on-surface(var(--border-tone-shift, 0.0), var(--current, transparent));
-        outline-color: --c2-on-surface(var(--outline-tone-shift, 0.0), var(--current, transparent));
-        text-decoration-color: --c2-on-surface(var(--text-decoration-tone-shift, 0.0), var(--current, transparent));
-        text-emphasis-color: --c2-on-surface(var(--text-emphasis-tone-shift, 0.0), var(--current, transparent));
-        fill-color: --c2-on-surface(var(--fill-tone-shift, 0.0), var(--current, transparent));
-        stroke-color: --c2-on-surface(var(--stroke-tone-shift, 0.0), var(--current, transparent));
+        & {
+            background-color: --c2-surface(var(--background-tone-shift, 0.0), var(--current, inherit));
+            color: --c2-on-surface(var(--color-tone-shift, 0.0), var(--current, currentColor));
+            --icon-color: --c2-on-surface(var(--icon-tone-shift, 0.0), var(--current, currentColor));
+            scrollbar-color: --c2-on-surface(var(--scrollbar-tone-shift, 0.0), var(--current, transparent)) transparent;
+            accent-color: --c2-on-surface(var(--accent-tone-shift, 0.0), var(--current, transparent));
+            border-color: --c2-on-surface(var(--border-tone-shift, 0.0), var(--current, transparent));
+            outline-color: --c2-on-surface(var(--outline-tone-shift, 0.0), var(--current, transparent));
+            text-decoration-color: --c2-on-surface(var(--text-decoration-tone-shift, 0.0), var(--current, transparent));
+            text-emphasis-color: --c2-on-surface(var(--text-emphasis-tone-shift, 0.0), var(--current, transparent));
+            fill-color: --c2-on-surface(var(--fill-tone-shift, 0.0), var(--current, transparent));
+            stroke-color: --c2-on-surface(var(--stroke-tone-shift, 0.0), var(--current, transparent));
+        }
 
         svg {
             fill-color: --c2-on-surface(var(--fill-tone-shift, 0.0), var(--current, transparent));
@@ -164,23 +166,25 @@
 
         &::selection {
             background-color: --c2-on-surface(var(--selection-tone-shift, 0.0), var(--current, transparent));
-            color: --c2-on-surface(var(--selection-tone-shift, 0.0), var(--current, currentColor));
+            color: --c2-surface(var(--selection-tone-shift, 0.0), var(--current, currentColor));
             --icon-color: --c2-on-surface(var(--selection-tone-shift, 0.0), var(--current, currentColor));
         }
     }
 
     .c2-contrast {
-        background-color: --c2-contrast(var(--contrast-tone-shift, 0.0), var(--current, inherit));
-        color: --c2-on-contrast(var(--on-contrast-tone-shift, 0.0), var(--current, currentColor));
-        --icon-color: --c2-on-surface(var(--icon-tone-shift, 0.0), var(--current, currentColor));
-        scrollbar-color: --c2-on-surface(var(--scrollbar-tone-shift, 0.0), var(--current, transparent)) transparent;
-        accent-color: --c2-on-surface(var(--accent-tone-shift, 0.0), var(--current, transparent));
-        border-color: --c2-on-surface(var(--border-tone-shift, 0.0), var(--current, transparent));
-        outline-color: --c2-on-surface(var(--outline-tone-shift, 0.0), var(--current, transparent));
-        text-decoration-color: --c2-on-surface(var(--text-decoration-tone-shift, 0.0), var(--current, transparent));
-        text-emphasis-color: --c2-on-surface(var(--text-emphasis-tone-shift, 0.0), var(--current, transparent));
-        fill-color: --c2-on-surface(var(--fill-tone-shift, 0.0), var(--current, transparent));
-        stroke-color: --c2-on-surface(var(--stroke-tone-shift, 0.0), var(--current, transparent));
+        & {
+            background-color: --c2-contrast(var(--contrast-tone-shift, 0.0), var(--current, inherit));
+            color: --c2-on-contrast(var(--on-contrast-tone-shift, 0.0), var(--current, currentColor));
+            --icon-color: --c2-on-surface(var(--icon-tone-shift, 0.0), var(--current, currentColor));
+            scrollbar-color: --c2-on-surface(var(--scrollbar-tone-shift, 0.0), var(--current, transparent)) transparent;
+            accent-color: --c2-on-surface(var(--accent-tone-shift, 0.0), var(--current, transparent));
+            border-color: --c2-on-surface(var(--border-tone-shift, 0.0), var(--current, transparent));
+            outline-color: --c2-on-surface(var(--outline-tone-shift, 0.0), var(--current, transparent));
+            text-decoration-color: --c2-on-surface(var(--text-decoration-tone-shift, 0.0), var(--current, transparent));
+            text-emphasis-color: --c2-on-surface(var(--text-emphasis-tone-shift, 0.0), var(--current, transparent));
+            fill-color: --c2-on-surface(var(--fill-tone-shift, 0.0), var(--current, transparent));
+            stroke-color: --c2-on-surface(var(--stroke-tone-shift, 0.0), var(--current, transparent));
+        }
 
         svg {
             fill-color: --c2-on-surface(var(--fill-tone-shift, 0.0), var(--current, transparent));
@@ -189,8 +193,8 @@
 
         &::selection {
             background-color: --c2-on-surface(var(--selection-tone-shift, 0.0), var(--current, transparent));
-            color: --c2-on-surface(var(--selection-tone-shift, 0.0), var(--current, currentColor));
-            --icon-color: --c2-on-surface(var(--selection-tone-shift, 0.0), var(--current, currentColor));
+            color: --c2-surface(var(--selection-tone-shift, 0.0), var(--current, currentColor));
+            --icon-color: --c2-surface(var(--selection-tone-shift, 0.0), var(--current, currentColor));
         }
     }
 

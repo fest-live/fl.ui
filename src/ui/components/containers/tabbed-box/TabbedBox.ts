@@ -10,9 +10,26 @@ import styles from "./TabbedBox.scss?inline"
 const styled = preloadStyle(styles);
 
 //
-const addPartProperty = (element: HTMLElement | string, part: string = "", value: string = "") => {
+const renderTabName = (tabName: string) => {
+    if (!tabName) return "";
+
+    // split _ as spaces
+    tabName = tabName?.replace?.(/_/g, " ") || tabName;
+
+    // capitalize first word letter
+    tabName = (tabName?.charAt?.(0)?.toUpperCase?.() + tabName?.slice?.(1)) || tabName;
+
+    //
+    return tabName;
+}
+
+//
+const addPartProperty = (element: HTMLElement | string, name: string = "") => {
     if (typeof element == "string") { return element; }
-    if (element instanceof HTMLElement) { element?.setAttribute?.(`data-part-${part}`, value); }
+    if (element instanceof HTMLElement) {
+        element?.setAttribute?.(`data-tab`, name);
+        element?.setAttribute?.(`part`, "tab");
+    }
     return element;
 }
 
@@ -29,6 +46,10 @@ export class TabbedBox extends UIElement {
     private detachTabsOverflow?: () => void
     private resizeObserver?: ResizeObserver
 
+    //
+    public renderTabName = renderTabName;
+
+    //
     constructor() { super(); const self: any = this; self.currentTab ??= ""; }
     onInitialize() {
         const self: any = this;
@@ -56,7 +77,7 @@ export class TabbedBox extends UIElement {
     createTab(tabName: string) {
         if (!tabName) return;
         const self: any = this;
-        const tabButton = H`<label class="ui-tabbed-box-tab">${addPartProperty(self.renderTabName?.(tabName) ?? tabName, "tab", tabName)}</label>`;
+        const tabButton = H`<label class="ui-tabbed-box-tab">${addPartProperty(self?.renderTabName?.(tabName) ?? tabName, tabName)}</label>`;
 
         if (tabButton) {
             tabButton?.addEventListener("change", (ev) => self.openTab(tabName, ev));
@@ -77,6 +98,8 @@ export class TabbedBox extends UIElement {
 
     //
     styles = () => styled?.cloneNode?.(true);
+
+    //
     render = function () {
         const self: any = this;
         const root = H`
@@ -85,6 +108,7 @@ export class TabbedBox extends UIElement {
         return root;
     }
 
+    //
     private observeTabsOverflow() {
         const self: any = this;
         self.tabsBox = self.shadowRoot?.querySelector?.(".ui-tabbed-box-tabs") ?? undefined;

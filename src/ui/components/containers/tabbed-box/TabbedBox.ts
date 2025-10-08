@@ -103,7 +103,7 @@ export class TabbedBox extends UIElement {
     render = function () {
         const self: any = this;
         const root = H`
-        <form class="ui-tabbed-box-tabs" part="tabs">${M(observableByMap(self.tabs ?? []), (key_value) => this.createTab(key_value?.[0]))}</form>
+        <form class="ui-tabbed-box-tabs" part="tabs">${M(observableByMap(self.tabs ?? new Map()) ?? [], (key_value) => this.createTab(key_value?.[0]))}</form>
         <div class="ui-tabbed-box-content" part="content"><slot></slot></div>`
         return root;
     }

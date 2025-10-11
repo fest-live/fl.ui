@@ -11,8 +11,7 @@ async function createScrollBoxed() {
 }
 
 async function createTimeStatus() {
-    const { H } = await import("fest/lure");
-    const { timeStatusRef } = await import("fest/fl-ui");
+    const { H, timeStatusRef } = await import("fest/lure");
     const tref = timeStatusRef();
     return H`<div class="time-format">${tref}</div>`;
 }
@@ -37,8 +36,7 @@ async function createSlider() {
 }
 
 async function createCtxMenu() {
-    const { H } = await import("fest/lure");
-    const { ctxMenuTrigger } = await import("fest/fl-ui");
+    const { H, ctxMenuTrigger } = await import("fest/lure");
     const { UIPhosphorIcon } = await import("fest/fl-ui");
     const ctxMenuDesc = {
         openedWith: null,

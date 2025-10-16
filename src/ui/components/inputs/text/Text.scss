@@ -1,4 +1,4 @@
-@use "@fl-ui/scss/classes/mixins" as m;
+@use "veela-lib" as m;
 
 //
 @layer ui-text {
@@ -89,7 +89,7 @@
         }
 
         & {
-            @include m.round-corner(var(--ui-text-radius, 0.5rem));
+            @include m.border-radius(var(--ui-text-radius, 0.5rem));
         }
 
         //

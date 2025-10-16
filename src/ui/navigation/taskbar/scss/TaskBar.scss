@@ -1,6 +1,5 @@
 /* Taskbar */
-@use "@fl-ui/scss/classes/mixins" as m;
-@use "./mixins" as tb;
+@use "veela-lib" as m;
 
 //
 @include m.host-related('ui-taskbar', '*') {
@@ -11,18 +10,18 @@
 
 //
 @include m.host-context('ui-taskbar') {
-    @include tb.taskbar-variables;
-    @include tb.taskbar-layout;
-    @include tb.taskbar-children;
-    @include tb.taskbar-focus-colors();
+    @include m.taskbar-variables;
+    @include m.taskbar-layout;
+    @include m.taskbar-children;
+    @include m.taskbar-focus-colors();
 }
 
 //
 @include m.host-context('ui-taskbar[data-type="desktop"]') {
-    @include tb.taskbar-type-desktop;
+    @include m.taskbar-type-desktop;
 }
 
 //
 @include m.host-context('ui-taskbar[data-type="mobile"]') {
-    @include tb.taskbar-type-mobile;
+    @include m.taskbar-type-mobile;
 }

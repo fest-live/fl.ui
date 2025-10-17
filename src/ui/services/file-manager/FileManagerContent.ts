@@ -151,8 +151,10 @@ export class FileManagerContent extends UIElement {
         //
         //const renderer = makeRenderer();
         //renderer.append(rendered);
+        //return renderer;
         return rendered;
     }
 }
 
+//
 export default FileManagerContent;

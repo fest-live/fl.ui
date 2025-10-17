@@ -49,7 +49,9 @@
         //
         & {
             contain: layout paint style;
-            transform: scale3d(var(--scale, 1), var(--scale, 1), 1) translate3d(var(--translate-x, 0px), var(--translate-y, 0px), 0px);
+            transform:
+                scale3d(var(--scale, 1), var(--scale, 1), var(--scale, 1))
+                translate3d(calc(var(--drag-x, 0) * 1px), calc(var(--drag-y, 0) * 1px), 0px);
             opacity: var(--opacity, 1);
         }
 
@@ -119,7 +121,7 @@
         @include m.transition(('transform', 'opacity'), $duration: $ui-duration-fast, $timing: $ui-ease-standard);
 
         & {
-            transform: scale3d(var(--scale, 1), var(--scale, 1), 1) translate3d(var(--translate-x, 0px), var(--translate-y, 0px), 0px);
+            transform: scale3d(var(--scale, 1), var(--scale, 1), 1);
             transform-origin: 50% 50%;
             transform-style: flat;
             transform-box: fill-box;
@@ -159,6 +161,7 @@
     //
     :host(ui-window-frame[data-dragging]) {
         will-change: inset, translate, transform, opacity, z-index;
+        transform: translate3d(calc(var(--drag-x, 0) * 1px), calc(var(--drag-y, 0) * 1px), 0px);
         content-visibility: auto;
 
         ::slotted(*) {
@@ -189,7 +192,7 @@
                 transform-origin: 50% 50%;
                 transform-style: flat;
                 transform-box: fill-box;
-                transform: scale3d(var(--scale, 1), var(--scale, 1), 1) translate3d(var(--translate-x, 0px), var(--translate-y, 0px), 0px);
+                transform: scale3d(var(--scale, 1), var(--scale, 1), var(--scale, 1));
                 opacity: var(--opacity, 1);
             }
 

@@ -9,6 +9,74 @@ import { TaskStateReflect } from "@fl-ui/misc/TaskStateReflect";
 import styles from "./WindowFrame.scss?inline"
 const styled  = preloadStyle(styles);
 
+//
+const generateAnchorId = () => {
+    return ("anchor-" + Math.random().toString(36).substring(2, 15));
+}
+
+//
+export const appendAsOverlay = (self: HTMLElement, element?: HTMLElement) => {
+    let anchor: any = self?.children?.[0] ?? null;
+    if (self?.children?.length < 1) {
+        // fix anchor problems
+        const fillAnchorBox = document.createElement("div");
+        fillAnchorBox.classList.add("ui-window-frame-anchor-box");
+        fillAnchorBox.style.position = "relative";
+        fillAnchorBox.style.inlineSize = "stretch";
+        fillAnchorBox.style.blockSize = "stretch";
+        fillAnchorBox.style.zIndex = "0";
+        fillAnchorBox.style.pointerEvents = "none";
+        fillAnchorBox.style.opacity = "0";
+        fillAnchorBox.style.backgroundColor = "transparent";
+        (self as any).append(anchor = fillAnchorBox);
+    }
+
+    //
+    if (anchor == null || element == null) { return; }
+
+    //
+    const CSSAnchorId = generateAnchorId();
+    element.style.setProperty("position-anchor", `--${CSSAnchorId}`);
+    anchor.style.setProperty("anchor-name", `--${CSSAnchorId}`);
+    self.style.setProperty("anchor-scope", `--${CSSAnchorId}`);
+    self.style.setProperty("anchor-name", `--${CSSAnchorId}`);
+
+    //
+    if ((self as any)?.parentElement && !((self as any)?.parentElement instanceof DocumentFragment)) {
+        ((self as any)?.parentElement as any).style.setProperty("anchor-scope", `--${CSSAnchorId}`);
+        (self as any)?.after?.(element);
+    } else {
+        requestAnimationFrame(()=>{
+            if ((self as any)?.parentElement && !((self as any)?.parentElement instanceof DocumentFragment)) {
+                ((self as any)?.parentElement as any).style.setProperty("anchor-scope", `--${CSSAnchorId}`);
+                (self as any)?.after?.(element);
+            }
+        });
+    }
+
+    //
+    element.style.setProperty("position", `absolute`);
+    element.style.setProperty("z-index", (Number((self?.style.zIndex || getComputedStyle(self)?.zIndex) || 0) + 1) + "");
+    requestAnimationFrame(()=>{
+        element.style.setProperty("inset-inline-start", `anchor(--${CSSAnchorId} start, 0px)`);
+        element.style.setProperty("inset-block-start", `anchor(--${CSSAnchorId} start, 0px)`);
+        element.style.setProperty("inset-inline-end", `anchor(--${CSSAnchorId} end, 0px)`);
+        element.style.setProperty("inset-block-end", `anchor(--${CSSAnchorId} end, 0px)`);
+        element.style.setProperty("inline-size", `anchor-size(--${CSSAnchorId} self-inline, stretch)`);
+        element.style.setProperty("block-size", `anchor-size(--${CSSAnchorId} self-block, stretch)`);
+    });
+
+    //
+    element?.setAttribute("data-overlay", "true");
+    element?.setAttribute("data-window-frame", self.getAttribute("data-name") ?? self.getAttribute("name") ?? self.getAttribute("id") ?? "");
+
+    //
+    console.log("appendAsOverlay", self, element, anchor);
+    return self;
+}
+
+
+
 // @ts-ignore
 @defineElement("ui-window-frame")
 export class WindowFrame extends UIElement {
@@ -71,6 +139,8 @@ export class WindowFrame extends UIElement {
         this.bindWithTask();
     }
 
+
+
     //
     bindWithTask(task: ITask|null = null) {
         if (this.task != task) {
@@ -127,7 +197,7 @@ export class WindowFrame extends UIElement {
                 </button>
             </span>
         </div>
-        <div class="ui-window-frame-content" part="content">
+        <div class="ui-window-frame-content ui-window-frame-anchor-box" part="content">
             <slot></slot>
         </div>
         <span class="ui-window-frame-resize-handle" part="resize-handle"></span>`; }

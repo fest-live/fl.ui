@@ -87,7 +87,7 @@ const tasks = makeTasks((list)=>[
 //
 async function createWindowFrame() {
     const { H, orientRef, M } = await import("fest/lure");
-    const { WindowFrame, FileManager, SliderInput, LongTextInput, ScrollBoxed } = await import("fest/fl-ui");
+    const { WindowFrame, FileManager, SliderInput, LongTextInput, ScrollBoxed, appendAsOverlay } = await import("fest/fl-ui");
     console.log(LongTextInput, ScrollBoxed);
 
     //

@@ -1,4 +1,4 @@
-import { H, defineElement, property, M, Q, E } from "fest/lure";
+import { H, defineElement, property, M, Q, E, makeRenderer } from "fest/lure";
 import { preloadStyle } from "fest/dom";
 import { ref } from "fest/object";
 import { addEvent } from "fest/dom";
@@ -143,10 +143,15 @@ export class FileManagerContent extends UIElement {
         requestAnimationFrame(() => this.bindDropHandlers());
 
         //
-        return H`<div class="fm-grid" part="grid">
+        const rendered = H`<div class="fm-grid" part="grid">
             ${fileHeader}
             ${fileRows}
         </div>`;
+
+        //
+        //const renderer = makeRenderer();
+        //renderer.append(rendered);
+        return rendered;
     }
 }
 

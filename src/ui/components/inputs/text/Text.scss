@@ -188,8 +188,8 @@
             min-inline-size: -webkit-fill-available;
             min-inline-size: 100%;
             min-block-size: 100cqb;
-            inline-size: max-content;
-            block-size: max-content;
+            inline-size: fit-content;
+            block-size: fit-content;
             max-inline-size: none;
             max-block-size: none;
             place-self: stretch;

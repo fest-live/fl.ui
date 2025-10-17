@@ -1,5 +1,5 @@
-import { attrRef, E } from "fest/lure";
-import { DOMMixin, elementPointerMap } from "fest/dom";
+import { attrRef, bindWith, E } from "fest/lure";
+import { DOMMixin, elementPointerMap, handleAttribute, handleStyleChange, observeAttribute, setStyleProperty } from "fest/dom";
 
 //
 export class UIOrientBox extends DOMMixin {
@@ -8,8 +8,12 @@ export class UIOrientBox extends DOMMixin {
     // @ts-ignore
     connect(ws) {
         const self: any = ws?.deref?.();
+        self.classList.add("ui-orientbox");
+
+        //
         const zoom = attrRef(self, "zoom", 1), orient = attrRef(self, "orient", 0);
-        E(self, {classList: new Set(["ui-orientbox"]), style: { "--orient": orient, "--zoom": zoom }});
+        bindWith(self, "--zoom", zoom, handleStyleChange, null);
+        bindWith(self, "--orient", orient, handleStyleChange, null);
 
         // settings size is illogical! and not implemented!
         Object.defineProperty(self, "size", { get: () => size });

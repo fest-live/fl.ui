@@ -118,7 +118,7 @@ $img-max-width: min(min(40%, 50dvi), 50cqi);
             margin-block: 0.5em;
             margin-inline-start: 0.75em;
             gap: 0px;
-            block-size: max-content;
+            block-size: fit-content;
             display: block;
         }
         ol ol, ul ul, ol ul, ul ol {
@@ -147,9 +147,8 @@ $img-max-width: min(min(40%, 50dvi), 50cqi);
 
         // Table
         table {
-            inline-size: 100%;
             border-collapse: collapse;
-            inline-size: max-content;
+            inline-size: fit-content;
             thead, tfoot, tbody, th, td, tr { @include table-cell; }
             @media screen {
                 border: solid 1px rgb(from light-dark(#101010, #fff) r g b / 0.1) !important;
@@ -160,8 +159,8 @@ $img-max-width: min(min(40%, 50dvi), 50cqi);
         // Images and media
         img, picture, video, canvas, svg {
             display: inline-block;
-            max-width: $img-max-width;
-            width: max-content;
+            max-inline-size: $img-max-width;
+            inline-size: fit-content;
             color: transparent;
             font-size: 0;
             line-height: 0;
@@ -262,7 +261,7 @@ $img-max-width: min(min(40%, 50dvi), 50cqi);
             contain: none;
             display: block;
             inline-size: 100%;
-            block-size: max-content;
+            block-size: fit-content;
             min-block-size: 100%;
             max-block-size: none;
             overflow: hidden;

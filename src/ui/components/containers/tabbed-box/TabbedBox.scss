@@ -37,7 +37,7 @@
                 overflow-y: hidden;
                 overflow-x: auto;
                 inline-size: stretch;
-                block-size: max-content;
+                block-size: fit-content;
                 background-color: transparent;
                 pointer-events: auto;
                 position: relative;
@@ -110,14 +110,14 @@
                 line-height: normal;
                 display: block;
                 flex-direction: row;
-                inline-size: max-content;
+                inline-size: fit-content;
                 max-inline-size: stretch;
                 min-inline-size: 3rem;
                 flex: 0 0 auto;
                 gap: 0.125rem;
                 border-radius: 0.5rem;
                 overflow: hidden;
-                block-size: max-content;
+                block-size: fit-content;
                 background-color: --c2-surface(0.0, var(--current, currentColor));
                 pointer-events: auto;
                 cursor: pointer;

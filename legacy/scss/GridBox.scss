@@ -102,8 +102,8 @@
                 min-block-size: 1px;
 
                 //
-                inline-size: 100%;//max-content;
-                block-size: 100%;//max-content;
+                inline-size: stretch;
+                block-size: stretch;
 
                 //
                 max-inline-size: var(--icon-size, 1px);
@@ -120,9 +120,9 @@
             }
 
             // if interpolation keywords supported
-            @supports (min-inline-size: max(1px, max-content)) {
-                min-inline-size: max(1px, max-content);
-                min-block-size: max(1px, max-content);
+            @supports (min-inline-size: max(1px, fit-content)) {
+                min-inline-size: max(1px, fit-content);
+                min-block-size: max(1px, fit-content);
             }
 
             //
@@ -136,8 +136,8 @@
                 overflow: visible;
 
                 //
-                inline-size: 100%;//max-content;
-                block-size: 100%;//max-content;
+                inline-size: stretch;
+                block-size: stretch;
             }
         }
 
@@ -160,8 +160,8 @@
                 overflow: visible;
 
                 //
-                inline-size: max-content !important;
-                block-size: max-content !important;
+                inline-size: fit-content !important;
+                block-size: fit-content !important;
                 max-inline-size: none !important;
 
                 //

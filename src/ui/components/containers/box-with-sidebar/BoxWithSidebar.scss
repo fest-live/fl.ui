@@ -38,7 +38,7 @@
             gap: 0rem;
             inline-size: stretch;
             min-block-size: 2rem;
-            block-size: max-content;
+            block-size: fit-content;
             max-block-size: stretch;
             grid-column: 1 / -1;
             grid-row: bar-row;
@@ -66,8 +66,8 @@
                 gap: 0rem;
                 aspect-ratio: 1 / 1;
                 min-block-size: 2.5rem;
-                block-size: max-content;
-                inline-size: max-content;
+                block-size: fit-content;
+                inline-size: fit-content;
                 box-sizing: border-box;
                 color: --c2-on-surface(0.0, var(--current, currentColor));
                 place-content: center;
@@ -129,7 +129,7 @@
                 display: flex;
                 flex-direction: column;
                 gap: 0.125rem;
-                inline-size: max-content;
+                inline-size: fit-content;
                 min-inline-size: 4rem;
                 block-size: stretch;
                 grid-column: sidebar-col;

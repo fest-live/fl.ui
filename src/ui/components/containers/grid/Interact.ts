@@ -1,4 +1,4 @@
-import { getPropertyValue, bindDraggable, convertOrientPxToCX, getBoundingOrientRect, RAFBehavior, doAnimate, orientOf, redirectCell, setStyleProperty } from "fest/dom";
+import { getPropertyValue, bindDraggable, convertOrientPxToCX, clientSpaceInOrientCX, RAFBehavior, doAnimate, orientOf, redirectCell, setStyleProperty, getBoundingOrientRect } from "fest/dom";
 import { makeObjectAssignable, makeReactive, subscribe, autoRef } from "fest/object";
 import { LongPressHandler, makeShiftTrigger, E } from "fest/lure";
 
@@ -39,34 +39,40 @@ export const makeDragEvents = async (newItem, {layout, dragging, currentCell}, {
     //
     const correctOffset = (dragging)=>{
         const gridSystem = newItem?.parentElement;
-        const cbox = getBoundingOrientRect(newItem) || newItem?.getBoundingClientRect?.();
-        const pbox = getBoundingOrientRect(gridSystem) || gridSystem?.getBoundingClientRect?.();
+        const orient = orientOf(gridSystem);
+
+        // client space
+        const cbox = getBoundingOrientRect(newItem, orient) ?? newItem?.getBoundingClientRect?.();
+        const pbox = getBoundingOrientRect(gridSystem, orient) ?? gridSystem?.getBoundingClientRect?.();
         const rel: [number, number] = [(cbox.left + cbox.right)/2 - pbox.left, (cbox.top + cbox.bottom)/2 - pbox.top];
 
         // compute correct cell
         const args = {layout: $updateLayout(newItem), item, items, size: [gridSystem?.clientWidth, gridSystem?.clientHeight]}; // @ts-ignore
-        setCell(redirectCell(clamped(convertOrientPxToCX(rel, args, orientOf(gridSystem)), layout), args));
+        setCell(redirectCell(clamped(convertOrientPxToCX(rel, args, orient), layout), args));
 
         //
-        newItem.dataset.dragging = "";
         setStyleProperty(newItem, "--p-cell-x", parseInt(getPropertyValue(newItem, "--cell-x")) || 0);
         setStyleProperty(newItem, "--p-cell-y", parseInt(getPropertyValue(newItem, "--cell-y")) || 0);
 
         // reset dragging offset
         try { dragging[0].value = 0, dragging[1].value = 0; } catch(e) {};
+        newItem.dataset.dragging = "";
         return [0, 0];
     };
 
     //
     const resolveDragging = (dragging) => {
         const gridSystem = newItem?.parentElement;
-        const cbox = getBoundingOrientRect(newItem) || newItem?.getBoundingClientRect?.();
-        const pbox = getBoundingOrientRect?.(gridSystem) || gridSystem?.getBoundingClientRect?.();
+        const orient = orientOf(gridSystem);
+
+        // client space
+        const cbox = getBoundingOrientRect(newItem, orient) ?? newItem?.getBoundingClientRect?.();
+        const pbox = getBoundingOrientRect(gridSystem, orient) ?? gridSystem?.getBoundingClientRect?.();
         const rel : [number, number] = [(cbox.left + cbox.right)/2 - pbox.left, (cbox.top + cbox.bottom)/2 - pbox.top];
 
         // compute correct cell
         const args = {item, items, layout: $updateLayout(newItem), size: [gridSystem?.clientWidth, gridSystem?.clientHeight]}; // @ts-ignore
-        const cell = redirectCell(clamped(convertOrientPxToCX(rel, args, orientOf(gridSystem)), layout), args);
+        const cell = redirectCell(clamped(convertOrientPxToCX(rel, args, orient), layout), args);
 
         // set cell position and animate
         doAnimate(newItem, cell[0], "x", true); setCellAxis(cell, 0);

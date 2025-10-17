@@ -72,7 +72,7 @@ async function createGridWithItem() {
 
     //
     const oRef = orientRef();
-    return H`<div data-mixin="ui-orientbox" style="pointer-events: none; inline-size: 100%; block-size: 100%; inset: 0; position: fixed; background-color: transparent;"  orient=${oRef}>
+    return H`<div data-mixin="ui-orientbox" style="pointer-events: none; inline-size: 100%; block-size: 100%; inset: 0; position: fixed; background-color: transparent;" orient=${oRef}>
         <div data-mixin="ui-gridbox" style="--layout-c: 4; --layout-r: 8; color-scheme: dark;">${M(items, genItem)}</div>
     </div>`;
 }

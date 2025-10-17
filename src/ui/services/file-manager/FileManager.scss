@@ -72,7 +72,7 @@
                 flex-direction: row;
                 flex-wrap: nowrap;
                 gap: 0rem;
-                block-size: max-content;
+                block-size: fit-content;
                 min-block-size: stretch;
                 border-radius: 0.5rem;
                 padding: 0rem;
@@ -85,7 +85,7 @@
                 grid-column: 2;
                 flex-grow: 1;
                 inline-size: stretch;
-                block-size: max-content;
+                block-size: fit-content;
                 min-block-size: stretch;
                 border-radius: 0.5rem;
                 padding: 0rem;

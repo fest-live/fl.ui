@@ -72,8 +72,8 @@
     transform: translateY(-6px) translate3d(-50%, -50%, 0px) scale3d(1.2, 1.2, 1);
     font-size: 1.5em;
     font-weight: bold;
-    inline-size: max-content;
-    block-size: max-content;
+    inline-size: fit-content;
+    block-size: fit-content;
     display: flex;
     place-content: center;
     place-items: center;

@@ -53,7 +53,7 @@
             }
 
             .vc-week {
-                min-block-size: max-content;
+                min-block-size: fit-content;
                 block-size: 3rem;
                 grid-template-columns: subgrid;
                 grid-template-rows: 1fr;

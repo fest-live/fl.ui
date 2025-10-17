@@ -20,8 +20,8 @@
     :host {
         inline-size: 100%;
         block-size: 100%;
-        min-inline-size: max-content;
-        min-block-size: max-content;
+        min-inline-size: fit-content;
+        min-block-size: fit-content;
         display: grid;
     }
 

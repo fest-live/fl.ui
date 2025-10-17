@@ -60,8 +60,8 @@
         canvas,
         svg {
             display: inline-block;
-            max-width: min(min(40%, 50dvi), 50cqi);
-            width: max-content;
+            max-inline-size: min(min(40%, 50dvi), 50cqi);
+            inline-size: fit-content;
         }
 
         input,
@@ -110,8 +110,7 @@
         //
         h1,
         h2 {
-            //border-bottom: 1px solid #0004;
-            inline-size: max-content;
+            inline-size: fit-content;
             min-inline-size: 60%;
             padding-inline: 0.5em;
             padding-block: 0.5em;
@@ -122,7 +121,6 @@
             text-align: start;
             margin-block: 0.5em;
             margin-block-start: 0.25em;
-            //place-self: center;
         }
 
         //
@@ -163,7 +161,7 @@
         p,
         ol,
         ul {
-            block-size: max-content;
+            block-size: fit-content;
             display: block;
         }
 
@@ -317,9 +315,8 @@
 
         // Table styling with nesting
         table {
-            inline-size: 100%;
             border-collapse: collapse;
-            inline-size: max-content;
+            inline-size: fit-content;
             //border: none 0px transparent;
             //border: solid 1px oklch(from var(--rv-color, #000) l c h / 0.1);
 
@@ -455,7 +452,7 @@
             contain: none;
             display: block;
             inline-size: 100%;
-            block-size: max-content;
+            block-size: fit-content;
             min-block-size: 100%;
             max-block-size: none;
             overflow: hidden;

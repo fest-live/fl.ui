@@ -3,7 +3,7 @@ import { TaskStateReflect, colorScheme, TaskInteraction } from "fest/fl-ui";
 //
 import { default as loadCSS } from "fest/dom";
 import { makeReactive } from "fest/object";
-import { H, Q, dropFile, makeTask, makeTasks } from "fest/lure";
+import { H, Q, dropFile, makeRenderer, makeTask, makeTasks } from "fest/lure";
 
 //
 async function makeWallpaper() {
@@ -94,8 +94,11 @@ async function createWindowFrame() {
     const oRef = orientRef();
     return H`<div data-mixin="ui-orientbox" style="inline-size: 100%; block-size: 100%; inset: 0; position: fixed; background-color: transparent;">
         ${M(tasks, task=>{
+            //const wrap = makeRenderer();
+            //wrap.append(task?.render?.());
             const frame = H`<ui-window-frame></ui-window-frame>`;
-            if (task?.render) { frame.append(task?.render?.()); }
+            //frame.append(wrap);
+            frame.append(task?.render?.());
             new TaskStateReflect(frame, task);
             return frame;
         })}

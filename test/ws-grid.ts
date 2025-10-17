@@ -98,7 +98,7 @@ async function createWindowFrame() {
             //wrap.append(task?.render?.());
             const frame = H`<ui-window-frame></ui-window-frame>`;
             //frame.append(wrap);
-            frame.append(task?.render?.());
+            if (task?.render) { frame.append(task?.render?.()); }
             new TaskStateReflect(frame, task);
             return frame;
         })}

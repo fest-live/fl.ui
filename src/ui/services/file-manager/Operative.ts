@@ -128,8 +128,18 @@ export class FileOperative {
     protected async onMenuAction(item: FileEntryItem | null, actionId: string, ev: MouseEvent) {
         try {
             if (!actionId) return; const abs = (this.path || "/user/") + (item?.name || ""); switch (actionId) {
-                case "open": if (item?.kind === "file") { const detail = { path: abs, item }; (this as any).dispatchEvent?.(new CustomEvent("open", { detail, bubbles: true, composed: true })); } break;
-                case "download": if (item?.kind === "file") { Promise.try(async () => { const fh = await this.#dirProxy?.getFileHandle?.(item?.name, { create: false }); const file = await fh?.getFile?.(); if (file) await downloadFile(file); }).catch(console.warn); } break;
+                case "open":
+                    this.itemAction(item as FileEntryItem);
+                    break;
+                case "download":
+                    Promise.try(async () => {
+                        if (item?.kind === "file") {
+                            await downloadFile(await this.#dirProxy?.getFileHandle?.(item?.name, { create: false }));
+                        } else {
+                            await downloadFile(await this.#dirProxy?.getDirectoryHandle?.(item?.name, { create: false }));
+                        }
+                    }).catch(console.warn);
+                     break;
                 case "delete":
                     await remove(this.#fsRoot, abs);
                     await this.loadPath(this.path);
@@ -143,12 +153,8 @@ export class FileOperative {
                         }
                     }
                     break;
-                case "copy":
+                case "copyPath":
                     this.#clipboard = { items: [abs], cut: false };
-                    try { await navigator.clipboard?.writeText?.(abs); } catch { }
-                    break;
-                case "move":
-                    this.#clipboard = { items: [abs], cut: true };
                     try { await navigator.clipboard?.writeText?.(abs); } catch { }
                     break;
             }
@@ -192,20 +198,14 @@ export class FileOperative {
             if (!sources?.length && this.#clipboard?.items?.length) sources = this.#clipboard.items;
             if (!sources?.length) return;
 
-            const toDir = await getDirectoryHandle(this.#fsRoot, this.path, { create: true });
+            // copy/move
             for (const src of sources) {
-                // fallback: detect via getHandler not exported; instead derive by trailing slash
-                const isDir = src.endsWith("/");
-                if (isDir) {
-                    const fromDir = await getDirectoryHandle(this.#fsRoot, src, { create: false });
-                    await copyFromOneHandlerToAnother(fromDir as any, toDir as any);
-                } else {
-                    const fromFile = await getFileHandle(this.#fsRoot, src, { create: false });
-                    const toFile = await toDir?.getFileHandle?.(src.split("/").pop() || "file", { create: true });
-                    await copyFromOneHandlerToAnother(fromFile as any, toFile as any);
-                }
+                const isDir = src.endsWith("/"); // write file now i unified
+                await writeFile(this.#fsRoot, this.path + src, isDir ? await getDirectoryHandle(this.#fsRoot, src, { create: false }) : (await getFileHandle(this.#fsRoot, src, { create: false })));
                 if (this.#clipboard?.cut) { await remove(this.#fsRoot, src); }
             }
+
+            //
             this.#clipboard = null;
             await this.loadPath(this.path);
         } catch (e) { console.warn(e); }

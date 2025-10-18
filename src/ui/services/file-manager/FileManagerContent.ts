@@ -1,4 +1,4 @@
-import { H, defineElement, property, M, Q, E, makeRenderer } from "fest/lure";
+import { H, defineElement, property, M, E } from "fest/lure";
 import { preloadStyle } from "fest/dom";
 import { ref } from "fest/object";
 import { addEvent } from "fest/core";
@@ -63,25 +63,29 @@ export class FileManagerContent extends UIElement {
         super.onInitialize();
 
         //
-        const weak: any = new WeakRef(this);
-        requestAnimationFrame(() => {
-            const self = weak?.deref?.();
-            const frame: any = document.createElement("ui-scrollframe");
-            frame.style.zIndex = 99;
+        //const weak: any = new WeakRef(this);
+        //requestAnimationFrame(() => {
+            //const self = weak?.deref?.();
+            //const frame: any = document.createElement("ui-scrollframe");
+            //frame.style.zIndex = 99;
 
             //
-            const rows = Q(".fm-grid-container", self?.shadowRoot), grid = Q(".fm-grid", self?.shadowRoot);
-            frame.bindWith(rows, rows);
+            //const rows = Q(".fm-grid-container", self?.shadowRoot), grid = Q(".fm-grid", self?.shadowRoot);
+            //frame.bindWith(rows, rows);
             //grid?.append(frame);
-        });
+        //});
     }
 
     //
     protected bindDropHandlers() {
-        const container = Q(".fm-grid-container", (this as any)?.shadowRoot ?? this) as HTMLElement;
+        const container = this;
         if (!container) return;
-        addEvent(container, "dragover", (ev: DragEvent) => { ev.preventDefault(); ev.dataTransfer!.dropEffect = "copy"; });
-        addEvent(container, "drop", (ev: DragEvent) => this.operativeInstance?.onDrop?.(ev));
+        addEvent(container, "dragover", (ev: DragEvent) => { ev?.preventDefault?.(); (ev.dataTransfer as DataTransfer)!.dropEffect = "copy"; });
+        addEvent(container, "drop", (ev: DragEvent) => {
+            ev?.preventDefault?.();
+            ev?.stopImmediatePropagation?.();
+            this.operativeInstance?.onDrop?.(ev)
+        });
         addEvent(this, "keydown", (ev: KeyboardEvent) => {
             if ((ev.ctrlKey || ev.metaKey) && ev.key.toLowerCase() === "v") {
                 ev.preventDefault(); this.operativeInstance?.requestPaste?.();
@@ -116,16 +120,16 @@ export class FileManagerContent extends UIElement {
         </div>`
 
         //
-        const oper = this.operativeInstance;
-        if (!oper) return "";
+        const operative = this.operativeInstance;
+        if (!operative) return "";
 
         //
         const fileContainer = this.shadowRoot;
-        const renderedEntries = M(oper.entries, (item: FileEntryItem) => {
+        const renderedEntries = M(operative.entries, (item: FileEntryItem) => {
             const itemEl = H`<div draggable="${item?.kind === "file"}" data-id=${item?.name} class="row c2-surface"
-                on:click=${(ev: MouseEvent) => oper.onRowClick?.(item, ev)}
-                on:dblclick=${(ev: MouseEvent) => oper.onRowDblClick?.(item, ev)}
-                on:dragstart=${(ev: DragEvent) => oper.onRowDragStart?.(item, ev)}
+                on:click=${(ev: MouseEvent) => operative.onRowClick?.(item, ev)}
+                on:dblclick=${(ev: MouseEvent) => operative.onRowDblClick?.(item, ev)}
+                on:dragstart=${(ev: DragEvent) => operative.onRowDragStart?.(item, ev)}
             >
                 <div style="grid-row: 1; place-content: center; place-items: center; text-overflow: ellipsis; min-block-size: 2rem; block-size: max-content; overflow: hidden; pointer-events: none;" class="c icon">${H`<ui-icon icon=${iconFor(item)} />`}</div>
                 <div style="grid-row: 1; place-content: center; place-items: center; text-overflow: ellipsis; min-block-size: 2rem; block-size: max-content; overflow: hidden; pointer-events: none; inline-size: stretch;" class="c name" title=${item?.name}>${item?.name}</div>
@@ -139,7 +143,7 @@ export class FileManagerContent extends UIElement {
         //
         const fileRows = H`<div class="fm-grid-rows">${renderedEntries}</div>`
         E(fileRows, {}, renderedEntries);
-        createItemCtxMenu?.(fileRows, oper.onMenuAction.bind(oper), oper.entries);
+        createItemCtxMenu?.(fileRows, operative.onMenuAction.bind(operative), operative.entries);
         requestAnimationFrame(() => this.bindDropHandlers());
 
         //

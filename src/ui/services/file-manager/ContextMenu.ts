@@ -20,8 +20,8 @@ const makeFileSystemOps = () => {
     return [
         { id: "delete", label: "Delete", icon: "trash" },
         { id: "rename", label: "Rename", icon: "pencil" },
-        { id: "copy", label: "Copy", icon: "copy" },
-        { id: "move", label: "Move", icon: "hand-withdraw" }
+        { id: "copyPath", label: "Copy Path", icon: "copy" },
+        { id: "movePath", label: "Move Path", icon: "hand-withdraw" }
     ];
 };
 

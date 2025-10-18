@@ -1,6 +1,6 @@
 import { defineElement, H, property } from "fest/lure"
 import { preloadStyle } from "fest/dom"
-import { makeReactive, subscribe } from "fest/object";
+import { subscribe, autoRef, makeReactive, type refValid } from "fest/object";
 
 //
 import { UIElement } from "@fl-design/base/UIElement"
@@ -49,7 +49,7 @@ export class TabbedBox extends UIElement {
     private resizeObserver?: ResizeObserver
     private renderedTabs = new Map<string, HTMLLabelElement>();
     private cleanupListeners: (() => void)[] = [];
-    private tabsSource: Map<string, HTMLElement | string | any> = makeReactive(new Map());
+    private tabsSource: refValid<Map<string, HTMLElement | string | any>> = makeReactive(new Map());
     private renderTabNameFn?: (tabName: string) => any;
 
     @property({ source: "prop" })

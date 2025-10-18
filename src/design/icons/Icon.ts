@@ -1,7 +1,8 @@
 import { defineElement, property, E } from "fest/lure";
-import { camelToKebab, preloadStyle } from "fest/dom";
+import { preloadStyle } from "fest/dom";
 import { autoRef } from "fest/object";
 import { UIElement } from "../base/UIElement";
+import { camelToKebab } from "fest/core";
 
 // @ts-ignore
 import styles from "./Icon.scss?inline";
@@ -215,6 +216,7 @@ export class UIPhosphorIcon extends UIElement {
     }
 
     public disconnectedCallback(): void {
+        // @ts-ignore
         super.disconnectedCallback?.();
         this.#resizeObserver?.disconnect();
         this.#resizeObserver = undefined;

@@ -1,4 +1,4 @@
-import { getPropertyValue, bindDraggable, convertOrientPxToCX, clientSpaceInOrientCX, RAFBehavior, doAnimate, orientOf, redirectCell, setStyleProperty, getBoundingOrientRect } from "fest/dom";
+import { getPropertyValue, bindDraggable, convertOrientPxToCX, RAFBehavior, doAnimate, orientOf, redirectCell, setStyleProperty, getBoundingOrientRect } from "fest/dom";
 import { makeObjectAssignable, makeReactive, subscribe, autoRef } from "fest/object";
 import { LongPressHandler, makeShiftTrigger, E } from "fest/lure";
 

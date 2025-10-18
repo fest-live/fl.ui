@@ -16,12 +16,10 @@ export class StatusBar extends UIElement {
 
     //
     styles = () => styled?.cloneNode?.(true);
-
-    //
-    render() {
+    render = () => {
         return H`
 <div style="background-color: transparent;" part="left"   class="left"  ><slot name="left"  ></slot></div>
-<div style="background-color: transparent;" part="center" class="center"><slot name="center"></slot></div>
-<div style="background-color: transparent;" part="right"  class="right" ><slot name="right" ></slot></div>`;
-    }
+        <div style="background-color: transparent;" part="center" class="center"><slot name="center"></slot></div>
+        <div style="background-color: transparent;" part="right"  class="right" ><slot name="right" ></slot></div>`;
+    };
 }

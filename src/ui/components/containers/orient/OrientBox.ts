@@ -1,5 +1,5 @@
-import { attrRef, bindWith, E } from "fest/lure";
-import { DOMMixin, elementPointerMap, handleAttribute, handleStyleChange, observeAttribute, setStyleProperty } from "fest/dom";
+import { attrRef, bindWith } from "fest/lure";
+import { DOMMixin, elementPointerMap, handleStyleChange } from "fest/dom";
 
 //
 export class UIOrientBox extends DOMMixin {

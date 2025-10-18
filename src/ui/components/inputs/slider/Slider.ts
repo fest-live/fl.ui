@@ -50,7 +50,7 @@ export class SliderInput extends UIElement {
     }
 
     //
-    styles = () => styled.cloneNode(true);
+    styles = () => styled?.cloneNode?.(true);
     render = ()=> H`
 <div class="ui-box c2-surface" part="box">
     <div class="ui-track c2-surface" part="track"></div>

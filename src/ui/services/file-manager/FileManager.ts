@@ -1,6 +1,7 @@
 import { H, defineElement, property, getDir, Q } from "fest/lure";
 import { link, ref, subscribe } from "fest/object";
-import { preloadStyle, addEvent } from "fest/dom";
+import { preloadStyle } from "fest/dom";
+import { addEvent } from "fest/core";
 
 //
 import FileManagerContent from "./FileManagerContent";

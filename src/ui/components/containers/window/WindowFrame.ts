@@ -1,5 +1,5 @@
-import { defineElement, property, H, E, DragHandler, ResizeHandler, ITask, sizeRef, bindWith } from "fest/lure";
-import { preloadStyle, handleAttribute, setStyleProperty, handleProperty } from "fest/dom";
+import { defineElement, property, H, E, DragHandler, ResizeHandler, ITask  } from "fest/lure";
+import { handleAttribute, preloadStyle, setStyleProperty } from "fest/dom";
 
 //
 import { UIElement } from "@fl-design/base/UIElement";

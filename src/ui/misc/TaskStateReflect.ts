@@ -1,6 +1,7 @@
 import { propRef, subscribe } from "fest/object";
-import { handleHidden, handleAttribute, handleStyleChange, setStyleProperty, addEvent } from "fest/dom";
+import { handleHidden, handleAttribute, handleStyleChange, setStyleProperty } from "fest/dom";
 import { bindWith, ITask } from "fest/lure";
+import { addEvent } from "fest/core";
 
 //
 export class TaskStateReflect {

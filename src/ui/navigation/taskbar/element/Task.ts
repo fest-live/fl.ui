@@ -15,11 +15,7 @@ export class UITask extends UIElement {
     @property({ source: "attr" }) public icon?: string = "github";
 
     //
-    constructor() {
-        super();
-    }
-
-    //
+    constructor() { super(); }
     styles = () => styled?.cloneNode?.(true);
     render = function () {
         return H`

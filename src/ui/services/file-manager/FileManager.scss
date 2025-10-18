@@ -64,8 +64,9 @@
                 inline-size: 2.5rem;
                 block-size: 2.5rem;
                 aspect-ratio: 1 / 1;
+
+                &:hover { background: --c2-surface(0.06, var(--current, transparent)); }
             }
-            .btn:hover { background: --c2-surface(0.06, var(--current, transparent)); }
 
             & > * {
                 display: flex;

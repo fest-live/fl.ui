@@ -1,6 +1,6 @@
 import { defineElement, Q, H, makeClickOutsideTrigger } from "fest/lure"
 import { preloadStyle } from "fest/dom"
-import { booleanRef, conditional } from "fest/object"
+import { booleanRef, conditional, subscribe } from "fest/object"
 import { UIElement } from "@fl-design/base/UIElement"
 
 /*

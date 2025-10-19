@@ -160,7 +160,7 @@
                     transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
                 }
 
-                &[data-visible] {
+                &:is([data-visible], [data-visible=""]) {
                     transform: translateX(0px);
                     box-shadow: 0 0 1rem var(--ui-shadow-soft);
 

@@ -27,7 +27,7 @@ const axisConfig = [{
 }];
 
 //
-const CAXIS    = ["layerX", "layerY"];
+const CAXIS    = ["clientX", "clientY"];
 const asWeak   = (source)=>{ return ((source instanceof WeakRef || typeof source?.deref == "function") ? source : new WeakRef(source)) as any; }
 const stepped  = (count = 100)=>{ return Array.from({ length: count }, (_, i) => i / count).concat([1]); }
 const sheduler = makeRAFCycle();
@@ -126,19 +126,19 @@ const makeInteractive = (holder, content, scrollbar, axis = 0, status: any = {},
             evc?.preventDefault?.();
             const cm = ev[CAXIS[axis]] || 0; const dm = (cm - status.point) || 0;
             const contentScrollSize = content?.[['scrollWidth', 'scrollHeight'][axis]] - content?.[['clientWidth', 'clientHeight'][axis]];
-            const trackSize = scrollbar?.[['clientWidth', 'clientHeight'][axis]] - handler?.querySelector?.("*")?.[['offsetWidth', 'offsetHeight'][axis]];
+            const trackSize = scrollbar?.[['clientWidth', 'clientHeight'][axis]] - handler?.[['offsetWidth', 'offsetHeight'][axis]];
             const DT = (dm * contentScrollSize) / trackSize; status.point = cm;
 
             // Скроллим содержимое
-            content_w?.deref?.()?.scrollTo?.({
-                [['left', 'top'][axis]]: (status.scroll += DT),
+            content_w?.deref?.()?.scrollBy?.({
+                [['left', 'top'][axis]]: DT,//(status.scroll += DT),
                 behavior: 'instant'
             });
         }
     }
 
     //
-    const handler = scrollbar;
+    const handler = scrollbar?.querySelector?.("*") ?? scrollbar;
     const stopScroll = (evc) => {
         const ev     = evc;
         const status = status_w?.deref?.();
@@ -208,14 +208,7 @@ export class ScrollBar {
             { animateByTimeline(bar, properties, timeline); }
 
         //
-        const thumb = this.scrollbar instanceof HTMLElement ? this.scrollbar?.querySelector?.("*") : null;
-        if (this.scrollbar != null) setProperty(this.scrollbar, "visibility", "collapse");
-        if (thumb instanceof HTMLElement) { setProperty(thumb, "pointer-events", "none"); };
         makeInteractive(this.holder, this.content, this.scrollbar, axis, this.status, this.inputChange);
-
-        //
-        //E(this.scrollbar, { style: { "--scroll-size": computed(scrollSize(this.content, axis, this.inputChange), (v)=>`${v||1}px`, RAFBehavior()) } });
-
         bindWith(this.scrollbar, "--content-size", computed(paddingBoxSize(this.content, axis, this.inputChange), (v)=>`${v||1}px`), handleStyleChange);
         bindWith(this.scrollbar, "--scroll-size", computed(scrollSize(this.content, axis, this.inputChange), (v)=>`${v||1}px`), handleStyleChange);
     }

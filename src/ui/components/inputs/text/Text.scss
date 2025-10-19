@@ -19,20 +19,21 @@
         //
         & {
             max-inline-size: none;
-            max-block-size: none;
+            max-block-size: stretch;
             inline-size: stretch;
-            block-size: stretch;
+            block-size: fit-content;
+            min-block-size: 2rem;
             display: grid !important;
             place-content: stretch;
             place-items: stretch;
             text-align: start;
             pointer-events: none;
             user-select: none;
-            background-color: var(--ui-text-background-color, transparent);
+            background-color: transparent !important;
             border: none 0px transparent;
             outline: none 0px transparent;
-            padding: 0;
-            margin: 0;
+            padding: 0 !important;
+            margin: 0 !important;
             font-size: var(--ui-text-font-size, 1rem);
             grid-template-columns: minmax(0px, 1fr) !important;
             grid-template-rows: minmax(0px, 1fr) !important;
@@ -95,7 +96,8 @@
         //
         & {
             border-radius: var(--ui-text-border-radius, 0.5rem);
-            border-width: var(--ui-text-border-width, 0.0625rem);
+            border-width: 0px;
+            //border-width: var(--ui-text-border-width, 0.0625rem);
             border-color: var(--ui-text-border-color, --c2-on-surface(var(--ui-text-tone-shift, 0.0), var(--current, currentColor)));
             border-style: solid;
         }
@@ -129,10 +131,11 @@
             line-height: 0;
             grid-column: 1 / -1;
             grid-row: 1 / -1;
+            min-block-size: fit-content;
             inline-size: stretch;
-            block-size: 100cqb;
-            max-inline-size: none;
-            max-block-size: none;
+            block-size: stretch;
+            max-inline-size: stretch;
+            max-block-size: stretch;
             display: block;
             flex-direction: row;
             text-align: start;
@@ -140,6 +143,8 @@
             place-items: stretch;
             justify-content: start;
             justify-items: start;
+            align-content: center;
+            align-items: center;
             user-select: none;
             pointer-events: none;
             border: none 0px transparent !important;
@@ -151,7 +156,6 @@
             overflow-inline: scroll;
             overflow-block: visible;
             contain: none;
-            background-color: transparent;
             position: relative;
             white-space: nowrap;
             text-spacing-trim: normal;
@@ -160,6 +164,7 @@
             scrollbar-width: none;
             scrollbar-color: transparent transparent;
             clip-path: inset(0px 0.125rem round 0.125rem);
+            background-color: var(--ui-text-background-color, transparent);
 
             /*
              * Mask for smooth crop of input in left and right edges
@@ -182,31 +187,47 @@
         }
 
         //
+        ::slotted(*) {
+            inline-size: stretch;
+            block-size: stretch;
+            max-inline-size: stretch;
+            max-block-size: stretch;
+            place-self: stretch;
+        }
+
+        //
+        ::slotted(ui-scrollframe) {
+            inline-size: stretch !important;
+            block-size: stretch !important;
+            min-block-size: 2rem;
+            max-inline-size: none;
+            max-block-size: none;
+            place-self: stretch;
+            z-index: 99 !important;
+        }
+
+        //
         ::slotted(input) {
             font-size: var(--ui-text-font-size, 1rem);
             display: inline-block;
             min-inline-size: -webkit-fill-available;
             min-inline-size: 100%;
-            min-block-size: 100cqb;
+            min-block-size: fit-content;
             inline-size: fit-content;
-            block-size: fit-content;
+            block-size: stretch;
             max-inline-size: none;
-            max-block-size: none;
+            max-block-size: stretch;
             place-self: stretch;
             place-content: stretch;
             place-items: stretch;
             text-align: start;
             justify-self: start;
             justify-content: start;
-            user-select: auto;
-            pointer-events: auto;
-            background-color: transparent;
+            user-select: text;
+            cursor: text;
             padding: 0.25rem 0.5rem 0.333rem 0.5rem;
-            margin: 0;
             field-sizing: content;
             font-family: var(--ui-text-font-family, inherit);
-            border: none 0px transparent;
-            outline: none 0px transparent;
             box-sizing: border-box;
             overflow: visible;
             text-overflow: ellipsis;
@@ -215,6 +236,12 @@
             text-wrap: nowrap;
             word-break: keep-all;
             visibility: visible;
+            pointer-events: auto;
+
+            margin: 0 !important;
+            background-color: transparent !important;
+            border: none 0px transparent !important;
+            outline: none 0px transparent !important;
         }
     }
 }

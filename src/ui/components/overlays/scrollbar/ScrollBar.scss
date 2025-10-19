@@ -4,21 +4,25 @@
 @mixin anchor($name: "ux-scrollbox") { & { anchor-name: --#{$name}; } }
 @mixin anchor-bind($name: "ux-scrollbox") {
     & {
+        position-area: span-all !important;
+        position-visibility: always !important;
         position: absolute !important;
         inline-size: anchor-size(inline, 100%) !important;
         block-size: anchor-size(block, 100%) !important;
         inset-inline-start: anchor(start, 0px) !important;
         inset-block-start: anchor(start, 0px) !important;
-        min-block-size: 0px !important;
-        min-inline-size: 0px !important;
-        max-block-size: stretch !important;
-        max-inline-size: stretch !important;
+        inset-inline-end: anchor(end, 0px) !important;
+        inset-block-end: anchor(end, 0px) !important;
+        min-inline-size: 0px;
+        min-block-size: 0px;
+        max-inline-size: none;
+        max-block-size: none;
         overflow: hidden !important;
         pointer-events: none !important;
         scrollbar-width: none !important;
         scrollbar-color: transparent transparent !important;
         scrollbar-gutter: auto !important;
-        z-index: 1 !important;
+        z-index: 99 !important;
     }
 }
 

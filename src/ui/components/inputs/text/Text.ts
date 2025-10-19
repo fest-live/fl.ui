@@ -37,16 +37,19 @@ export class LongTextInput extends UIElement {
 
     //
     static formAssociated = true;
+    #connected = Promise.withResolvers();
 
     //
     constructor() {
         super(); // @ts-ignore
         this.internals_ = this.attachInternals();
+        this.#connected = Promise.withResolvers();
     }
 
     //
     onRender() {
         super.onRender();
+        this.#connected.resolve(true);
 
         //
         const self: any = this;
@@ -54,22 +57,22 @@ export class LongTextInput extends UIElement {
         frame.style.zIndex = 99;
 
         //
-        const box = self?.querySelector?.(".box-layer");
         self.style.display = "grid";
 
-        // fix scrolling by horizontal
-        addEvent(self, "wheel", (ev) => {
+        //
+        const box = self?.shadowRoot?.querySelector?.(".box-layer");
+        addEvent(box, "wheel", (ev) => {
             // use vertical scroll to scroll horizontally
             if (ev?.deltaY !== 0) {
-                ev?.preventDefault?.();
                 box?.scrollBy?.({
-                    left: (-ev?.deltaY || 0) + (ev?.deltaX || 0),
+                    left: (-ev?.deltaY || 0) - (ev?.deltaX || 0),
                     behavior: "smooth"
                 });
+                ev?.preventDefault?.();
             }
         });
 
-        //
+        // fix scrolling by horizontal
         requestAnimationFrame(() => {
             this.initializeInput();
             frame?.bindWith?.(box, self, self?.querySelector?.("input"));

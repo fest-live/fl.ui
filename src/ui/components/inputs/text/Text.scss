@@ -5,7 +5,8 @@
     :host(ui-longtext) {
         //
         & {
-            --background-tone-shift: 0.1;
+            --background-tone-shift: 0.01;
+            //--ui-text-background-color: transparent;//--c2-surface(var(--background-tone-shift, 0.0), var(--current, transparent));
             --ui-text-background-color: --c2-surface(var(--background-tone-shift, 0.0), var(--current, transparent));
             --ui-text-color: --c2-on-surface(var(--ui-text-tone-shift, 0.0), var(--current, currentColor));
             --ui-text-font-size: 0.9rem;
@@ -146,7 +147,6 @@
             align-content: center;
             align-items: center;
             user-select: none;
-            pointer-events: none;
             border: none 0px transparent !important;
             outline: none 0px transparent !important;
             padding: 0px !important;
@@ -165,6 +165,7 @@
             scrollbar-color: transparent transparent;
             clip-path: inset(0px 0.125rem round 0.125rem);
             background-color: var(--ui-text-background-color, transparent);
+            pointer-events: auto;
 
             /*
              * Mask for smooth crop of input in left and right edges
@@ -211,11 +212,11 @@
             font-size: var(--ui-text-font-size, 1rem);
             display: inline-block;
             min-inline-size: -webkit-fill-available;
-            min-inline-size: 100%;
+            min-inline-size: stretch;
             min-block-size: fit-content;
-            inline-size: fit-content;
+            inline-size: max-content !important;
             block-size: stretch;
-            max-inline-size: none;
+            max-inline-size: none !important;
             max-block-size: stretch;
             place-self: stretch;
             place-content: stretch;
@@ -229,7 +230,7 @@
             field-sizing: content;
             font-family: var(--ui-text-font-family, inherit);
             box-sizing: border-box;
-            overflow: visible;
+            overflow: visible !important;
             text-overflow: ellipsis;
             white-space: nowrap;
             text-spacing-trim: normal;

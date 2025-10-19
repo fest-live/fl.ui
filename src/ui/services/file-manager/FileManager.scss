@@ -104,6 +104,11 @@
                 }
             }
             & .fm-toolbar-right { grid-column: 3; }
+
+            & ui-longtext {
+                background-color: --c2-surface(0.02, var(--current, transparent));
+                --ui-text-background-color: --c2-surface(0.02, var(--current, transparent));
+            }
         }
 
         .fm-sidebar {

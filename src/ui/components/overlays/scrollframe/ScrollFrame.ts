@@ -16,11 +16,19 @@ export class ScrollBoxed extends UIElement {
     @property({source: "attr"}) anchor = "_";
     #x: any = null;
     #y: any = null;
+    #connected = Promise.withResolvers();
 
     //
-    constructor() { super(); }
+    constructor() { super(); this.#connected = Promise.withResolvers(); }
     onInitialize() { //@ts-ignore
         super.onInitialize?.(); //@ts-ignore
+    }
+
+    //
+    onRender() {
+        super.onRender();
+        this.#connected.resolve(true);
+        console.log("connected");
     }
 
     //
@@ -30,9 +38,11 @@ export class ScrollBoxed extends UIElement {
 
         //
         if (content) {
-            requestAnimationFrame(()=>{ // @ts-ignore
-                this.#x ??= new ScrollBar({ holder: this, scrollbar: Q(".ui-scrollbar[axis=\"x\"]", this.shadowRoot), content, inputChange }, 0); // @ts-ignore
-                this.#y ??= new ScrollBar({ holder: this, scrollbar: Q(".ui-scrollbar[axis=\"y\"]", this.shadowRoot), content, inputChange }, 1); // @ts-ignore
+            const self = this as any;
+            requestAnimationFrame(async ()=>{
+                await this.#connected?.promise;
+                this.#x ??= new ScrollBar({ holder: self, scrollbar: self.shadowRoot?.querySelector?.(".ui-scrollbar[axis=\"x\"]"), content, inputChange }, 0);
+                this.#y ??= new ScrollBar({ holder: self, scrollbar: self.shadowRoot?.querySelector?.(".ui-scrollbar[axis=\"y\"]"), content, inputChange }, 1);
             });
         }
 

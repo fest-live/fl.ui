@@ -126,7 +126,7 @@ const makeInteractive = (holder, content, scrollbar, axis = 0, status: any = {},
             evc?.preventDefault?.();
             const cm = ev[CAXIS[axis]] || 0; const dm = (cm - status.point) || 0;
             const contentScrollSize = content?.[['scrollWidth', 'scrollHeight'][axis]] - content?.[['clientWidth', 'clientHeight'][axis]];
-            const trackSize = scrollbar?.[['clientWidth', 'clientHeight'][axis]] - handler?.[['offsetWidth', 'offsetHeight'][axis]];
+            const trackSize = scrollbar?.[['clientWidth', 'clientHeight'][axis]] - (handler?.[['offsetWidth', 'offsetHeight'][axis] || 0]);
             const DT = (dm * contentScrollSize) / trackSize; status.point = cm;
 
             // Скроллим содержимое
@@ -158,26 +158,28 @@ const makeInteractive = (holder, content, scrollbar, axis = 0, status: any = {},
     }
 
     //
-    addEvent(handler, "pointerdown", (evc: any) => {
-        const ev     = evc;
-        const status = status_w?.deref?.();
-        if (self && status?.pointerId < 0) {
-            //evc?.stopPropagation?.();
-            evc?.preventDefault?.();
-            (handler?.element ?? ev.target)?.setPointerCapture?.(status.pointerId = ev.pointerId || 0);
+    if (handler) {
+        addEvent(handler, "pointerdown", (evc: any) => {
+            const ev     = evc;
+            const status = status_w?.deref?.();
+            if (self && status?.pointerId < 0) {
+                //evc?.stopPropagation?.();
+                evc?.preventDefault?.();
+                (handler?.element ?? ev.target)?.setPointerCapture?.(status.pointerId = ev.pointerId || 0);
 
-            //
-            status.point  = ev[CAXIS[axis]] || 0;
-            status.scroll = content_w?.deref?.()?.[["scrollLeft", "scrollTop"][axis]] || 0;
+                //
+                status.point  = ev[CAXIS[axis]] || 0;
+                status.scroll = content_w?.deref?.()?.[["scrollLeft", "scrollTop"][axis]] || 0;
 
-            //
-            addEvents(handler, {
-                "pointerup"    : stopScroll,
-                "pointermove"  : moveScroll,
-                "pointercancel": stopScroll
-            });
-        }
-    });
+                //
+                addEvents(handler, {
+                    "pointerup"    : stopScroll,
+                    "pointermove"  : moveScroll,
+                    "pointercancel": stopScroll
+                });
+            }
+        });
+    }
 }
 
 //

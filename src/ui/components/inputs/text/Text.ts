@@ -55,7 +55,6 @@ export class LongTextInput extends UIElement {
 
         //
         const box = self?.querySelector?.(".box-layer");
-        frame?.bindWith?.(box, self, self?.querySelector?.("input"));
         self.style.display = "grid";
 
         // fix scrolling by horizontal
@@ -71,7 +70,10 @@ export class LongTextInput extends UIElement {
         });
 
         //
-        requestAnimationFrame(() => this.initializeInput());
+        requestAnimationFrame(() => {
+            this.initializeInput();
+            frame?.bindWith?.(box, self, self?.querySelector?.("input"));
+        });
     }
 
     initializeInput() {

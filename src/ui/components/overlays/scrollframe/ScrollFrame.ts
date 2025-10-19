@@ -25,14 +25,16 @@ export class ScrollBoxed extends UIElement {
 
     //
     bindWith(content: any, holder: any, inputChange?: any|null) {
-        if (content.style.anchorName || withScrollbars?.has?.(content)) return false;
-        withScrollbars?.set?.(content, this);
+        if (content?.style?.anchorName || withScrollbars?.has?.(content)) return false;
+        if (content) { withScrollbars?.set?.(content, this); };
 
         //
-        requestAnimationFrame(()=>{ // @ts-ignore
-            this.#x ??= new ScrollBar({ holder: this, scrollbar: Q(".ui-scrollbar[axis=\"x\"]", this.shadowRoot), content, inputChange }, 0); // @ts-ignore
-            this.#y ??= new ScrollBar({ holder: this, scrollbar: Q(".ui-scrollbar[axis=\"y\"]", this.shadowRoot), content, inputChange }, 1); // @ts-ignore
-        });
+        if (content) {
+            requestAnimationFrame(()=>{ // @ts-ignore
+                this.#x ??= new ScrollBar({ holder: this, scrollbar: Q(".ui-scrollbar[axis=\"x\"]", this.shadowRoot), content, inputChange }, 0); // @ts-ignore
+                this.#y ??= new ScrollBar({ holder: this, scrollbar: Q(".ui-scrollbar[axis=\"y\"]", this.shadowRoot), content, inputChange }, 1); // @ts-ignore
+            });
+        }
 
         //
         if (content) {

@@ -18,7 +18,7 @@
 //
 @layer ui-slider {
     :host(ui-slider) {
-        &, * {
+        &, & .ui-box, & .ui-track, & .ui-thumb {
             box-sizing: border-box;
             transition-behavior: allow-discrete;
             interpolate-size: allow-keywords;
@@ -37,25 +37,26 @@
             --ui-slider-thumb-radius: 0.5rem;
 
             // colors
-            --ui-slider-thumb-color: --c2-on-surface(-0.1, var(--current));
-            --ui-slider-track-color: --c2-on-surface(0.0, var(--current));
-            --ui-slider-active-color: --c2-on-surface(-1.0, var(--current));
+            --ui-slider-thumb-color: --c2-surface(0.0, var(--current));
+            --ui-slider-track-color: --c2-surface(0.1, var(--current));
+            --ui-slider-active-color: --c2-surface(1.0, var(--current));
+        }
+
+        //
+        & {
+            min-inline-size: 2rem;
+            min-block-size: 0px;
+            max-inline-size: stretch;
+            max-block-size: stretch;
+            inline-size: fit-content;
+            block-size: fit-content;
         }
 
         //
         & {
             @include m.display('inline-flex', center, center);
-            @include m.size(16rem, 1rem);
             @include m.interaction(none);
             @include m.container-base(size, ui-slider, strict);
-        }
-
-        //
-        & {
-            min-inline-size: fit-content;
-            min-block-size: fit-content;
-            max-inline-size: stretch;
-            max-block-size: stretch;
         }
 
         //
@@ -98,16 +99,22 @@
                 & {
                     --travel-x: calc(100cqi - var(--ui-slider-thumb-size, 0px) * 2 - var(--ui-slider-gap, 0px) * 2);
                     --shift-x: calc(var(--value, 0) * var(--travel-x, 100cqi));
-                    --translate-x: calc(clamp(0px, calc(var(--drag-x, 0) * 1px + var(--shift-x, 0px)), var(--travel-x, 100cqi)) + var(--ui-slider-thumb-size, 0px) / 2);
 
                     //
                     inset: auto;
                     inset-inline-start: 0px;
                     inset-block-start: 50%;
-                    transform: translate3d(calc(var(--translate-x, 0px) + var(--ui-slider-gap, 0px)), -50%, 0px);
+                    transform: translate3d(calc(
+                        calc(clamp(0px, calc(var(--drag-x, 0) * 1px + var(--shift-x, 0px)), var(--travel-x, 100cqi)) + var(--ui-slider-thumb-size, 0px) / 2) +
+                        var(--ui-slider-gap, 0px)
+                        ), -50%, 0px);
                     border-radius: 50%;
                     pointer-events: auto;
                     box-shadow: 0 1px 2px rgb(0 0 0 / 0.15), 0 1px 1px rgb(0 0 0 / 0.08);
+                    z-index: 99;
+
+                    //
+                    background-color: --c2-surface(0.0, var(--current));
                 }
 
                 //
@@ -125,7 +132,7 @@
         /* variants declared at root scope */
 
         //
-        ::slotted(*) {
+        ::slotted(input) {
             @include m.position('absolute');
             @include m.display('none');
         }

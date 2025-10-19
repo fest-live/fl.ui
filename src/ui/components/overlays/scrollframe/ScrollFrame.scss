@@ -3,7 +3,7 @@
 //
 @property --max-size { syntax: "<length-percentage>"; initial-value: 0px; inherits: true; };
 @property --scroll-coef { syntax: "<number>"; initial-value: 1; inherits: true; };
-@property --determinant { syntax: "<number>"; initial-value: 1; inherits: true; };
+@property --determinant { syntax: "<number>"; initial-value: 0; inherits: true; };
 @property --scroll-size { syntax: "<length-percentage>"; initial-value: 0px; inherits: true; };
 @property --content-size { syntax: "<length-percentage>"; initial-value: 0px; inherits: true; };
 @property --thumb-size { syntax: "<length-percentage>"; initial-value: 0px; inherits: true; };

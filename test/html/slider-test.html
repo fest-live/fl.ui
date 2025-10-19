@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Slider Component Test</title>
+    <style>
+        #test-body {
+            font-family: system-ui, -apple-system, sans-serif;
+            padding: 2rem;
+            /*background: #f5f5f5;*/
+        }
+
+        .test-container {
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .test-item {
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+        }
+
+        .test-item h3 {
+            margin: 0 0 1rem 0;
+            color: #333;
+        }
+
+        .test-item p {
+            margin: 0.5rem 0;
+            color: #666;
+        }
+
+        ui-slider {
+            margin: 1rem 0;
+        }
+    </style>
+</head>
+<body>
+    <div id="test-body" class="c2-surface">
+        <h1>Slider Component Test</h1>
+
+        <div class="test-container">
+            <h2>Range Slider</h2>
+            <div class="test-item">
+                <h3>Basic Range Slider</h3>
+                <p>Min: 0, Max: 100, Step: 1</p>
+                <ui-slider type="range" min="0" max="100" step="1" value="50" name="range1"></ui-slider>
+            </div>
+
+            <div class="test-item">
+                <h3>Range Slider with Custom Range</h3>
+                <p>Min: 10, Max: 200, Step: 5</p>
+                <ui-slider type="range" min="10" max="200" step="5" value="100" name="range2"></ui-slider>
+            </div>
+        </div>
+
+        <div class="test-container">
+            <h2>Switch (Checkbox)</h2>
+            <div class="test-item">
+                <h3>Toggle Switch</h3>
+                <p>Checkbox as switch variant</p>
+                <ui-slider type="checkbox" variant="switch" name="switch1"></ui-slider>
+            </div>
+
+            <div class="test-item">
+                <h3>Toggle Switch (Checked)</h3>
+                <p>Pre-checked switch</p>
+                <ui-slider type="checkbox" variant="switch" checked name="switch2"></ui-slider>
+            </div>
+        </div>
+
+        <div class="test-container">
+            <h2>Number Input</h2>
+            <div class="test-item">
+                <h3>Number Slider</h3>
+                <p>Number input with slider appearance</p>
+                <ui-slider type="number" min="0" max="50" step="0.5" value="25" name="number1"></ui-slider>
+            </div>
+        </div>
+
+        <div class="test-container">
+            <h2>Disabled State</h2>
+            <div class="test-item">
+                <h3>Disabled Range Slider</h3>
+                <p>Non-interactive slider</p>
+                <ui-slider type="range" min="0" max="100" value="75" disabled name="disabled1"></ui-slider>
+            </div>
+        </div>
+
+        <div class="test-container">
+            <h2>Form Integration Test</h2>
+            <form id="testForm">
+                <div class="test-item">
+                    <h3>Form Values</h3>
+                    <p>All sliders in a form</p>
+                    <ui-slider type="range" min="0" max="100" value="30" name="formRange"></ui-slider>
+                    <ui-slider type="checkbox" variant="switch" name="formSwitch"></ui-slider>
+                    <ui-slider type="number" min="1" max="10" value="5" name="formNumber"></ui-slider>
+
+                    <button type="submit">Submit Form</button>
+                    <button type="button" onclick="showFormData()">Show Form Data</button>
+                </div>
+            </form>
+        </div>
+
+        <script type="module" async defer>
+            import { SliderInput } from 'fest/fl-ui';
+
+            // Import the slider component
+            /*import('fest/fl-ui').then(() => {
+                console.log('Slider component loaded');
+            }).catch(err => {
+                console.error('Failed to load slider component:', err);
+            });*/
+
+            function showFormData() {
+                const form = document.getElementById('testForm');
+                const formData = new FormData(form);
+                console.log('Form data:', Object.fromEntries(formData));
+                alert('Check console for form data');
+            }
+
+            // Test event listeners
+            document.addEventListener('change', (e) => {
+                if (e.target.tagName === 'UI-SLIDER') {
+                    console.log('Slider changed:', e.target.name, e.target.value);
+                }
+            });
+        </script>
+    </div>
+</body>
+</html>

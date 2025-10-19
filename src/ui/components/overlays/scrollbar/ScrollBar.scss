@@ -109,13 +109,18 @@ $counter: 0;
             inset-#{$inv}-end  : 1px;*/
             --content-size: calc(#{$cqf} * 1); //--scroll-size: calc(var(--content-size, 0) / var(--scroll-coef, 1));
             --clamped-size: calc(#{$cqf} - 1rem); --max-size: min(100%, var(--clamped-size, #{$cqf}));
-            --scroll-coef: clamp(0, calc(var(--content-size, 0px) / var(--scroll-size, 0.0001px)), 1); //! new CSS calc feature
-            --determinant: clamp(0, round(up, calc(1 - (var(--scroll-coef, 1) + 0.0001)), 1), 1);
+            --scroll-coef: clamp(0, calc(var(--content-size, 0.0001px) / var(--scroll-size, 0.0001px)), 1); //! new CSS calc feature
+            --determinant: clamp(0, round(up, calc(1 - (var(--scroll-coef, 1) + 0.001)), 1), 1);
             //inset-#{$fit}-start: calc(anchor(--ux-scrollbox start, 0px) + 0.5rem);
             //inset-#{$inv}-end  : calc(anchor(--ux-scrollbox end  , 0px) +    1px);
             //position-try-fallbacks: --just-inline, --just-block;
             //@include timeline-interpol-coef("--percent-#{$axe}", "#{$timeline-name}-#{$axe}");
-            pointer-events: #{"if(style(--determinant: 0): none; else: auto)"} !important;    //! new CSS if feature
+
+            pointer-events: none !important;
+            pointer-events: #{"if(style(--determinant: 0): none; else: auto)"} !important;
+
+            //! new CSS if feature
+            visibility: collapse !important;
             visibility: #{"if(style(--determinant: 0): collapse; else: visible)"} !important; //! new CSS if feature
             @include timeline-interpol-coef("--percent-#{$axe}", "#{$timeline-name}-#{$axe}");
         }

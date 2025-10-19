@@ -55,24 +55,8 @@ export class LongTextInput extends UIElement {
 
         //
         const box = self?.box || Q(".box-layer", self?.shadowRoot);
-        frame?.bindWith?.(box, Q("input", self));
+        frame?.bindWith?.(box, self, Q("input", self));
         self.style.display = "grid";
-
-        //
-        box.style.scrollbarGutter = "auto";
-        box.style.scrollbarWidth = "none";
-        box.style.scrollbarColor = "transparent transparent";
-        box.style.overflowBlock = "hidden";
-        box.style.overflowInline = "scroll";
-
-        //
-        self.style.overflow = "hidden";
-        self.scrollbarWidth = "none";
-        self.style.scrollbarColor = "transparent transparent";
-        self.style.scrollbarGutter = "auto";
-
-        //
-        //self?.shadowRoot?.append(frame);
 
         // fix scrolling by horizontal
         addEvent(self, "wheel", (ev) => {

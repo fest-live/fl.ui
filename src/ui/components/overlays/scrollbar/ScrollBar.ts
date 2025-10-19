@@ -1,4 +1,4 @@
-import {    subscribe, computed, numberRef } from "fest/object";
+import {    subscribe, computed, numberRef, $trigger } from "fest/object";
 import { bindWith, E, scrollRef, sizeRef } from "fest/lure";
 import { getPadding, setProperty, makeRAFCycle, RAFBehavior, preloadStyle, handleStyleChange } from "fest/dom";
 import { addEvent, removeEvents, addEvents } from "fest/core";
@@ -45,12 +45,15 @@ const makeTimeline = (source, axis: number)=>{
 const effectProperty = { fill: "both", delay: 0, easing: "linear", rangeStart: "cover 0%", rangeEnd: "cover 100%", duration: 1 };
 
 //
-const scrollbarCoef  = (source: HTMLElement, axis: number)=>{ // @ts-ignore
+const paddingBoxSize  = (source: HTMLElement, axis: number, inputChange?: any|null)=>{ // @ts-ignore
     const target  = asWeak(source);
     const scroll  = scrollRef(source, (["inline", "block"] as ["inline", "block"])[axis]);
-    const content = computed(sizeRef(source, (["inline", "block"] as ["inline", "block"])[axis], "content-box"), (v)=>(v + getPadding(source, (["inline", "block"] as ["inline", "block"])[axis])));
-    const percent = computed(content, (vl)=> (vl / (target?.deref?.()?.[['scrollWidth', 'scrollHeight'][axis]] || 1)));
-    subscribe(scroll, ()=>percent.value = (content?.value / (target?.deref?.()?.[['scrollWidth', 'scrollHeight'][axis]] || 1))); return percent;
+    const conRef = sizeRef(source, (["inline", "block"] as ["inline", "block"])[axis], "content-box");
+    const content = computed(conRef, (v: any)=>(v + (getPadding(source, (["inline", "block"] as ["inline", "block"])[axis]) || 0)));
+    subscribe(scroll, (vl: any)=>{ conRef?.[$trigger]?.(); });
+    addEvent(inputChange || source, "input" , ()=>(conRef?.[$trigger]?.()));
+    addEvent(inputChange || source, "change", ()=>(conRef?.[$trigger]?.()));
+    return content;
 }
 
 //
@@ -61,15 +64,14 @@ const _LOG_ = (a)=>{
 //
 const scrollSize  = (source: HTMLElement, axis: number = 0, inputChange?: any|null)=>{ // @ts-ignore
     const target  = asWeak(source);
+    const compute = (vl: any)=>((target?.deref?.()?.[['scrollWidth', 'scrollHeight'][axis] || 'scrollWidth'] - 1) || 1);
     const scroll  = scrollRef(source, (["inline", "block"] as ["inline", "block"])[axis]);
     const content =   sizeRef(source, (["inline", "block"] as ["inline", "block"])[axis], "content-box");
-    const compute = ()=>((target?.deref?.()?.[['scrollWidth', 'scrollHeight'][axis] || 'scrollWidth'] - 1) || 1);
-    const percent = numberRef(compute());
-    subscribe(content, ()=>(percent.value = compute()));
-    subscribe(scroll,  ()=>(percent.value = compute()));
-    addEvent(inputChange || source, "input" , ()=>(percent.value = compute()));
-    addEvent(inputChange || source, "change", ()=>(percent.value = compute()));
-    requestAnimationFrame(()=>(percent.value = compute()));
+    const percent = computed(scroll, compute);
+    subscribe(content, ()=>( scroll?.[$trigger]?.() ));
+    addEvent(inputChange || source, "input" , ()=>(scroll?.[$trigger]?.()));
+    addEvent(inputChange || source, "change", ()=>(scroll?.[$trigger]?.()));
+    requestAnimationFrame(()=>(scroll?.[$trigger]?.()));
     return percent;
 }
 
@@ -104,7 +106,7 @@ const animateByTimeline = async (source: HTMLElement, properties = {}, timeline:
 try { CSS.registerProperty({ name: "--percent-x", syntax: "<number>", inherits: true, initialValue: "0" }); } catch(e) {};
 try { CSS.registerProperty({ name: "--percent-y", syntax: "<number>", inherits: true, initialValue: "0" }); } catch(e) {};
 try { CSS.registerProperty({ name: "--scroll-coef", syntax: "<number>", inherits: true, initialValue: "1" }); } catch(e) {};
-try { CSS.registerProperty({ name: "--determinant", syntax: "<number>", inherits: true, initialValue: "1" }); } catch(e) {};
+try { CSS.registerProperty({ name: "--determinant", syntax: "<number>", inherits: true, initialValue: "0" }); } catch(e) {};
 try { CSS.registerProperty({ name: "--scroll-size", syntax: "<length-percentage>", inherits: true, initialValue: "0px" }); } catch(e) {};
 try { CSS.registerProperty({ name: "--content-size", syntax: "<length-percentage>", inherits: true, initialValue: "0px" }); } catch(e) {};
 try { CSS.registerProperty({ name: "--clamped-size", syntax: "<length-percentage>", inherits: true, initialValue: "0px" }); } catch(e) {};
@@ -213,6 +215,8 @@ export class ScrollBar {
 
         //
         //E(this.scrollbar, { style: { "--scroll-size": computed(scrollSize(this.content, axis, this.inputChange), (v)=>`${v||1}px`, RAFBehavior()) } });
-        bindWith(this.scrollbar, "--scroll-size", computed(scrollSize(this.content, axis, this.inputChange), (v)=>`${v||1}px`, RAFBehavior()), handleStyleChange);
+
+        bindWith(this.scrollbar, "--content-size", computed(paddingBoxSize(this.content, axis, this.inputChange), (v)=>`${v||1}px`), handleStyleChange);
+        bindWith(this.scrollbar, "--scroll-size", computed(scrollSize(this.content, axis, this.inputChange), (v)=>`${v||1}px`), handleStyleChange);
     }
 }

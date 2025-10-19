@@ -1,4 +1,4 @@
-import { property, defineElement, Q, H } from "fest/lure"
+import { property, defineElement, Q, H, appendAsOverlay } from "fest/lure"
 import { DOMMixin, preloadStyle } from "fest/dom"
 import { ScrollBar } from "../scrollbar/ScrollBar"
 import { UIElement } from "@fl-design/base/UIElement"
@@ -24,7 +24,7 @@ export class ScrollBoxed extends UIElement {
     }
 
     //
-    bindWith(content: any, inputChange?: any|null) {
+    bindWith(content: any, holder: any, inputChange?: any|null) {
         if (content.style.anchorName || withScrollbars?.has?.(content)) return false;
         withScrollbars?.set?.(content, this);
 
@@ -33,8 +33,26 @@ export class ScrollBoxed extends UIElement {
             this.#x ??= new ScrollBar({ holder: this, scrollbar: Q(".ui-scrollbar[axis=\"x\"]", this.shadowRoot), content, inputChange }, 0); // @ts-ignore
             this.#y ??= new ScrollBar({ holder: this, scrollbar: Q(".ui-scrollbar[axis=\"y\"]", this.shadowRoot), content, inputChange }, 1); // @ts-ignore
         });
-        const name = "--rand-" + Math.random().toString(36).slice(2); // @ts-ignore
-        this.style.positionAnchor = name, content.style.anchorName = name;
+
+        //
+        if (content) {
+            content.style.scrollbarGutter = "auto";
+            content.style.scrollbarWidth = "none";
+            content.style.scrollbarColor = "transparent transparent";
+            content.style.overflowBlock = "hidden";
+            content.style.overflowInline = "scroll";
+        }
+
+        //
+        if (holder) {
+            holder.style.overflow = "hidden";
+            holder.scrollbarWidth = "none";
+            holder.style.scrollbarColor = "transparent transparent";
+            holder.style.scrollbarGutter = "auto";
+        }
+
+        //
+        appendAsOverlay(content, this as any);
         return true;
     }
 

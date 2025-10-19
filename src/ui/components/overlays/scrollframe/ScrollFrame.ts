@@ -22,49 +22,49 @@ export class ScrollBoxed extends UIElement {
     constructor() { super(); this.#connected = Promise.withResolvers(); }
     onInitialize() { //@ts-ignore
         super.onInitialize?.(); //@ts-ignore
+        requestAnimationFrame(()=>{
+            this.#connected.resolve(true);
+        });
     }
 
     //
     onRender() {
         super.onRender();
-        this.#connected.resolve(true);
-        console.log("connected");
     }
 
     //
     bindWith(content: any, holder: any, inputChange?: any|null) {
         if (content?.style?.anchorName || withScrollbars?.has?.(content)) return false;
-        if (content) { withScrollbars?.set?.(content, this); };
 
         //
         if (content) {
             const self = this as any;
-            requestAnimationFrame(async ()=>{
-                await this.#connected?.promise;
+            withScrollbars?.set?.(content, self);
+            this.#connected?.promise?.then(()=>{
                 this.#x ??= new ScrollBar({ holder: self, scrollbar: self.shadowRoot?.querySelector?.(".ui-scrollbar[axis=\"x\"]"), content, inputChange }, 0);
                 this.#y ??= new ScrollBar({ holder: self, scrollbar: self.shadowRoot?.querySelector?.(".ui-scrollbar[axis=\"y\"]"), content, inputChange }, 1);
             });
-        }
 
-        //
-        if (content) {
+            //
             content.style.scrollbarGutter = "auto";
             content.style.scrollbarWidth = "none";
             content.style.scrollbarColor = "transparent transparent";
             content.style.overflowBlock = "hidden";
             content.style.overflowInline = "scroll";
+
+            //
+            appendAsOverlay(content, self, holder);
         }
 
         //
         if (holder) {
             holder.style.overflow = "hidden";
-            holder.scrollbarWidth = "none";
+            holder.style.scrollbarWidth = "none";
             holder.style.scrollbarColor = "transparent transparent";
             holder.style.scrollbarGutter = "auto";
         }
 
         //
-        appendAsOverlay(content, this as any);
         return true;
     }
 

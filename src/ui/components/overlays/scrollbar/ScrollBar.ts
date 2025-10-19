@@ -48,11 +48,15 @@ const effectProperty = { fill: "both", delay: 0, easing: "linear", rangeStart: "
 const paddingBoxSize  = (source: HTMLElement, axis: number, inputChange?: any|null)=>{ // @ts-ignore
     const target  = asWeak(source);
     const scroll  = scrollRef(source, (["inline", "block"] as ["inline", "block"])[axis]);
-    const conRef = sizeRef(source, (["inline", "block"] as ["inline", "block"])[axis], "content-box");
+    const conRef  = sizeRef(source, (["inline", "block"] as ["inline", "block"])[axis], "content-box");
     const content = computed(conRef, (v: any)=>(v + (getPadding(source, (["inline", "block"] as ["inline", "block"])[axis]) || 0)));
-    subscribe(scroll, (vl: any)=>{ conRef?.[$trigger]?.(); });
-    addEvent(inputChange || source, "input" , ()=>(conRef?.[$trigger]?.()));
-    addEvent(inputChange || source, "change", ()=>(conRef?.[$trigger]?.()));
+    const recompute = ()=>{ conRef?.[$trigger]?.(); content?.[$trigger]?.(); }
+
+    //
+    subscribe(scroll, (vl: any)=>{ recompute?.(); });
+    addEvent(inputChange || source, "input" , ()=>{ recompute?.(); });
+    addEvent(inputChange || source, "change", ()=>{ recompute?.(); });
+    requestAnimationFrame(()=>{ recompute?.(); });
     return content;
 }
 
@@ -66,12 +70,15 @@ const scrollSize  = (source: HTMLElement, axis: number = 0, inputChange?: any|nu
     const target  = asWeak(source);
     const compute = (vl: any)=>((target?.deref?.()?.[['scrollWidth', 'scrollHeight'][axis] || 'scrollWidth'] - 1) || 1);
     const scroll  = scrollRef(source, (["inline", "block"] as ["inline", "block"])[axis]);
-    const content =   sizeRef(source, (["inline", "block"] as ["inline", "block"])[axis], "content-box");
+    const conRef  = sizeRef(source, (["inline", "block"] as ["inline", "block"])[axis], "content-box");
     const percent = computed(scroll, compute);
-    subscribe(content, ()=>( scroll?.[$trigger]?.() ));
-    addEvent(inputChange || source, "input" , ()=>(scroll?.[$trigger]?.()));
-    addEvent(inputChange || source, "change", ()=>(scroll?.[$trigger]?.()));
-    requestAnimationFrame(()=>(scroll?.[$trigger]?.()));
+    const recompute = ()=>{ scroll?.[$trigger]?.(); percent?.[$trigger]?.(); }
+
+    //
+    subscribe(conRef, (vl: any)=>{ recompute?.(); });
+    addEvent(inputChange || source, "input" , ()=>{ recompute?.(); });
+    addEvent(inputChange || source, "change", ()=>{ recompute?.(); });
+    requestAnimationFrame(()=>{ recompute?.(); });
     return percent;
 }
 

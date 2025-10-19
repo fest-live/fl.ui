@@ -53,10 +53,6 @@ export class LongTextInput extends UIElement {
 
         //
         const self: any = this;
-        const frame: any = document.createElement("ui-scrollframe"); // @ts-ignore
-        frame.style.zIndex = 99;
-
-        //
         self.style.display = "grid";
 
         //
@@ -75,6 +71,11 @@ export class LongTextInput extends UIElement {
         // fix scrolling by horizontal
         requestAnimationFrame(() => {
             this.initializeInput();
+
+            //
+            const box = self?.shadowRoot?.querySelector?.(".box-layer");
+            const frame: any = document.createElement("ui-scrollframe"); // @ts-ignore
+            frame.style.zIndex = 99;
             frame?.bindWith?.(box, self, self?.querySelector?.("input"));
         });
     }

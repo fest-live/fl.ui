@@ -1,8 +1,7 @@
 import { electronAPI } from "./Config.js";
 import { formatCss, formatHex, oklch, parse } from "culori";
-import { fixedClientZoom } from "fest/dom";
+import { addEvent, fixedClientZoom } from "fest/dom";
 import { stringRef } from "fest/object";
-import { addEvent } from "fest/core";
 
 //
 const tacp = (color: string)=>{

@@ -1,7 +1,6 @@
-import { H, defineElement, property, M, E } from "fest/lure";
-import { preloadStyle } from "fest/dom";
+import { property, defineElement, H, M, E } from "fest/lure";
+import { addEvent, preloadStyle } from "fest/dom";
 import { ref } from "fest/object";
-import { addEvent } from "fest/core";
 
 //
 import UIElement from "@fl-design/base/UIElement";

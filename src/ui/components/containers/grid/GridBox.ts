@@ -1,5 +1,5 @@
-import { E } from "fest/lure";
-import { DOMMixin, elementPointerMap } from "fest/dom";
+import { E, elementPointerMap } from "fest/lure";
+import { DOMMixin } from "fest/dom";
 
 //
 export class UIGridBox extends DOMMixin {

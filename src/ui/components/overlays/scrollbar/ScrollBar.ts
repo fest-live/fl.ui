@@ -1,7 +1,6 @@
-import {    subscribe, computed, numberRef, $trigger } from "fest/object";
+import {    subscribe, computed, $trigger } from "fest/object";
 import { bindWith, E, scrollRef, sizeRef } from "fest/lure";
-import { getPadding, setProperty, makeRAFCycle, RAFBehavior, preloadStyle, handleStyleChange } from "fest/dom";
-import { addEvent, removeEvents, addEvents } from "fest/core";
+import { getPadding, setProperty, makeRAFCycle, addEvent, removeEvents, addEvents, preloadStyle, handleStyleChange } from "fest/dom";
 
 // @ts-ignore
 import styles from "./ScrollBar.scss?inline";

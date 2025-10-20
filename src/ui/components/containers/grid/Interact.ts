@@ -1,6 +1,7 @@
-import { getPropertyValue, bindDraggable, convertOrientPxToCX, RAFBehavior, doAnimate, orientOf, redirectCell, setStyleProperty, getBoundingOrientRect } from "fest/dom";
+import { getPropertyValue, RAFBehavior, doAnimate, orientOf, setStyleProperty, getBoundingOrientRect } from "fest/dom";
 import { makeObjectAssignable, makeReactive, subscribe, autoRef } from "fest/object";
-import { LongPressHandler, makeShiftTrigger, E } from "fest/lure";
+import { LongPressHandler, makeShiftTrigger, E, bindDraggable } from "fest/lure";
+import { convertOrientPxToCX, redirectCell } from "fest/core";
 
 //
 export const reflectCell = async (newItem: any, pArgs: any, withAnimate = false)=>{ // @ts-ignore

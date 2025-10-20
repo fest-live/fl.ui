@@ -9,6 +9,7 @@ export * from "./components/containers/grid/GridBox";
 export * from "./components/containers/orient/OrientBox";
 
 //
+export * from "./components/overlays/scrollbar/ScrollBar";
 export * from "./components/overlays/scrollframe/ScrollFrame";
 
 //

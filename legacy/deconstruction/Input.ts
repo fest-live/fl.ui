@@ -1,4 +1,4 @@
-import { ScrollBar } from "../../src/ui/scrollbar/Scrollbar";
+import { ScrollBar } from "fest/fl-ui";
 import { addEvent, addEvents, includeSelf } from "fest/dom";
 import { setChecked } from "fest/dom";
 

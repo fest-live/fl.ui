@@ -1,7 +1,6 @@
-import { bindWith, defineElement, property, H, Q } from "fest/lure";
-import { handleProperty, preloadStyle } from "fest/dom";
+import { bindWith, defineElement, property, H } from "fest/lure";
+import { addEvent, preloadStyle, handleProperty } from "fest/dom";
 import { UIElement } from "@fl-design/base/UIElement";
-import { addEvent } from "fest/core";
 import { assign } from "fest/object";
 
 /* **

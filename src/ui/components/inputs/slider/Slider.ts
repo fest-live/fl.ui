@@ -41,7 +41,7 @@ export class SliderInput extends UIElement {
     @property({ source: "attr" }) min?: string = "0";
     @property({ source: "attr" }) max?: string = "100";
     @property({ source: "attr" }) step?: string = "1";
-    @property({ source: "attr" }) type?: string = "range";
+    @property({ source: "attr" }) type?: string;
     @property({ source: "attr" }) disabled?: boolean = false;
     @property({ source: "attr" }) variant?: string;
 
@@ -80,8 +80,9 @@ export class SliderInput extends UIElement {
         }
         {
             const newInput = Q("input", self);
-            newInput.type = self?.type || "range";
+            newInput.type = newInput?.type || self?.type || "range";
             newInput.value ||= self?.value || self?.min || "0";
+            self.type = newInput.type || self?.type;
 
             // Bind properties to input element
             bindWith(newInput, "value", self.getProperty("value"), handleProperty, null, true);
@@ -99,7 +100,7 @@ export class SliderInput extends UIElement {
         super.onInitialize();
 
         // Set default variant based on input type
-        const host = this as unknown as HTMLElement;
+        const host = this as any;
         if (!host.getAttribute("variant")) {
             const inputType = this.type || "range";
             host.setAttribute("variant", inputType === "checkbox" ? "switch" : "slider");

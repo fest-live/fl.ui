@@ -26,11 +26,14 @@ async function createSlider() {
     const { SliderInput } = await import("fest/fl-ui");
 
     return H`<div style="display: inline-flex; gap: 1rem; align-items: center;">
-        <ui-slider variant="slider" style="inline-size: 160px; block-size: 1rem; border-radius: 0.5rem;">
-            <input type="range" min="0" max="100" value="35">
+        <ui-slider variant="slider" style="inline-size: 10rem; block-size: 1rem; border-radius: 0.5rem;">
+            <input type="range" min="0" max="100" value="35"></input>
         </ui-slider>
-        <ui-slider variant="switch" style="inline-size: 64px; block-size: 1.25rem; border-radius: 9999px;">
-            <input type="checkbox" checked>
+        <ui-slider variant="switch" style="inline-size: 3rem; block-size: 1.25rem; border-radius: 9999px;">
+            <input type="checkbox" checked></input>
+        </ui-slider>
+        <ui-slider variant="slider" style="inline-size: 8rem; block-size: 1.25rem; border-radius: 9999px;">
+            <input type="range" min="0" max="100" value="35"></input>
         </ui-slider>
     </div>`;
 }
@@ -85,14 +88,14 @@ async function main() {
         icon,
         slider,
         longText,
-        ctxMenu
+        //ctxMenu
     ] = await Promise.all([
         createScrollBoxed(),
         createTimeStatus(),
         createIcon(),
         createSlider(),
         createLongText(),
-        createCtxMenu()
+        //createCtxMenu()
     ]);
 
     container.append(
@@ -102,7 +105,7 @@ async function main() {
         slider,
         longText
     );
-    document.body.append(ctxMenu);
+    //document.body.append(ctxMenu);
 }
 
 main();

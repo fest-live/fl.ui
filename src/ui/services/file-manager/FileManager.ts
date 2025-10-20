@@ -45,12 +45,12 @@ export class FileManager extends UIElement {
         const weak: any = new WeakRef(this);
         requestAnimationFrame(()=>{
             const self = weak?.deref?.();
-            const frame: any = document.createElement("ui-scrollframe");
-            frame.style.zIndex = 99;
+            //const frame: any = document.createElement("ui-scrollframe");
+            //frame.style.zIndex = 99;
 
             //
-            const rows = Q(".fm-grid-container", self?.shadowRoot), grid = Q(".fm-grid", self?.shadowRoot);
-            frame.bindWith(rows, rows);
+            //const rows = Q(".fm-grid-container", self?.shadowRoot), grid = Q(".fm-grid", self?.shadowRoot);
+            //frame.bindWith(rows, rows);
             //grid?.append(frame);
         });
 

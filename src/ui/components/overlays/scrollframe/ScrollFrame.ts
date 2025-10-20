@@ -86,6 +86,7 @@ export class OverlayScrollbarMixin extends DOMMixin {
         if (withScrollbars?.has?.(self)) return;
 
         //
+        /*
         const frame = withScrollbars?.get?.(self) ?? document.createElement("ui-scrollframe"); // @ts-ignore
         const bound = frame?.bindWith?.(self);
         if (bound) {
@@ -95,7 +96,7 @@ export class OverlayScrollbarMixin extends DOMMixin {
             self.style.overflow = "scroll";
             self.style.zIndex = (Number(getComputedStyle(self)?.zIndex || 0) + 1) + "";
             //self.parentNode?.append(frame);
-        }
+        }*/
     }
 }
 

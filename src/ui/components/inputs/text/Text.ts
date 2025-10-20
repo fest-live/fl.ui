@@ -73,9 +73,9 @@ export class LongTextInput extends UIElement {
 
             //
             const box = self?.shadowRoot?.querySelector?.(".box-layer");
-            const frame: any = document.createElement("ui-scrollframe"); // @ts-ignore
-            frame.style.zIndex = 99;
-            frame?.bindWith?.(box, self, self?.querySelector?.("input"));
+            //const frame: any = document.createElement("ui-scrollframe"); // @ts-ignore
+            //frame.style.zIndex = 99;
+            //frame?.bindWith?.(box, self, self?.querySelector?.("input"));
         });
     }
 

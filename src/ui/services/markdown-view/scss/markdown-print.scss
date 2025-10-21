@@ -254,6 +254,9 @@ $img-max-width: min(min(40%, 50dvi), 50cqi);
             contain: none;
             padding: 2rem;
             font-size: 1em;
+            touch-action: manipulation;
+            pointer-events: auto;
+            user-select: text;
         }
         .markdown-body[data-print] {
             background-color: transparent;
@@ -266,6 +269,10 @@ $img-max-width: min(min(40%, 50dvi), 50cqi);
             max-block-size: none;
             overflow: hidden;
             font-size: 1em;
+        }
+        .markdown-body {
+            touch-action: manipulation;
+            pointer-events: auto;
         }
     }
 }

@@ -157,6 +157,10 @@ export class FileOperative {
                     this.#clipboard = { items: [abs], cut: false };
                     try { await navigator.clipboard?.writeText?.(abs); } catch { }
                     break;
+                case "copy":
+                    this.#clipboard = { items: [abs], cut: false };
+                    try { await navigator.clipboard?.writeText?.(abs); } catch { }
+                    break;
             }
         } catch (e: any) {
             console.warn(e);

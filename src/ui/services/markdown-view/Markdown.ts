@@ -15,6 +15,13 @@ export class MarkdownView extends HTMLElement {
     constructor() { super(); this.createShadowRoot(); }
 
     //
+    connectedCallback() {
+        this.style.setProperty("pointer-events", "auto");
+        this.style.setProperty("touch-action", "manipulation");
+        this.style.setProperty("user-select", "text");
+    }
+
+    //
     async setHTML(doc = "") {
         const view = this.#view;
         if (view) {

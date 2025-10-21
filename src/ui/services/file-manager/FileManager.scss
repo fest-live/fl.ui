@@ -99,8 +99,12 @@
                     block-size: stretch;
                 }
 
-                & ui-longtext input {
+                & input {
                     padding-inline: 0.5rem;
+                    background-color: --c2-surface(0.04, var(--current, transparent));
+                    inline-size: stretch;
+                    border: none 0px transparent;
+                    outline: none 0px transparent;
                 }
             }
             & .fm-toolbar-right { grid-column: 3; }

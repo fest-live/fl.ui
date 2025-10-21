@@ -116,6 +116,7 @@ export class FileManagerContent extends UIElement {
             <div class="c name" style="place-content: center; place-items: center; min-block-size: 2rem; overflow: hidden; block-size: max-content; inline-size: stretch;">Name</div>
             <div class="c size" style="place-content: center; place-items: center; min-block-size: 2rem; overflow: hidden; block-size: max-content;">Size</div>
             <div class="c date" style="place-content: center; place-items: center; min-block-size: 2rem; overflow: hidden; block-size: max-content;">Modified</div>
+            <div class="c actions" style="place-content: center; place-items: center; min-block-size: 2rem; overflow: hidden; block-size: max-content;">Actions</div>
         </div>`
 
         //
@@ -130,10 +131,21 @@ export class FileManagerContent extends UIElement {
                 on:dblclick=${(ev: MouseEvent) => operative.onRowDblClick?.(item, ev)}
                 on:dragstart=${(ev: DragEvent) => operative.onRowDragStart?.(item, ev)}
             >
-                <div style="grid-row: 1; place-content: center; place-items: center; text-overflow: ellipsis; min-block-size: 2rem; block-size: max-content; overflow: hidden; pointer-events: none;" class="c icon">${H`<ui-icon icon=${iconFor(item)} />`}</div>
-                <div style="grid-row: 1; place-content: center; place-items: center; text-overflow: ellipsis; min-block-size: 2rem; block-size: max-content; overflow: hidden; pointer-events: none; inline-size: stretch;" class="c name" title=${item?.name}>${item?.name}</div>
-                <div style="grid-row: 1; place-content: center; place-items: center; text-overflow: ellipsis; min-block-size: 2rem; block-size: max-content; overflow: hidden; pointer-events: none;" class="c size">${item?.size != null ? getSize(item?.size) : ""}</div>
-                <div style="grid-row: 1; place-content: center; place-items: center; text-overflow: ellipsis; min-block-size: 2rem; block-size: max-content; overflow: hidden; pointer-events: none;" class="c date">${item?.lastModified ? new Date(item?.lastModified).toLocaleString("en-US", { dateStyle: "short", timeStyle: "short" }) : ""}</div>
+                <div class="c icon">${H`<ui-icon icon=${iconFor(item)} />`}</div>
+                <div class="c name" title=${item?.name}>${item?.name}</div>
+                <div class="c size">${item?.size != null ? getSize(item?.size) : ""}</div>
+                <div class="c date">${item?.lastModified ? new Date(item?.lastModified).toLocaleString("en-US", { dateStyle: "short", timeStyle: "short" }) : ""}</div>
+                <div class="c actions">
+                    <button class="action-btn" title="Copy Path" on:click=${(ev: MouseEvent) => { ev.stopPropagation(); operative.onMenuAction?.(item, "copyPath", ev); }}>
+                        <ui-icon icon="copy" />
+                    </button>
+                    <button class="action-btn" title="Copy" on:click=${(ev: MouseEvent) => { ev.stopPropagation(); operative.onMenuAction?.(item, "copy", ev); }}>
+                        <ui-icon icon="clipboard" />
+                    </button>
+                    <button class="action-btn" title="Delete" on:click=${(ev: MouseEvent) => { ev.stopPropagation(); operative.onMenuAction?.(item, "delete", ev); }}>
+                        <ui-icon icon="trash" />
+                    </button>
+                </div>
             </div>`;
             itemEl.style.setProperty("--order", this.byFirstTwoLetterOrName(item?.name));
             return itemEl;

@@ -121,9 +121,7 @@ export class FileManager extends UIElement {
                 <button class="btn" title="Refresh" on:click=${() => this.navigate(this.path)}><ui-icon icon="arrow-clockwise"/></button>
             </div>
             <div class="fm-toolbar-center">
-                <ui-longtext class="address c2-surface" style="background-color: --c2-surface(0.04, var(--current, transparent)); inline-size: stretch; border: none 0px transparent; outline: none 0px transparent;" name="address">
-                    <input autocomplete="off" type="text" value=${this.pathRef} name="address" />
-                </ui-longtext>
+                <input class="address c2-surface" autocomplete="off" type="text" value=${this.pathRef} name="address" />
             </div>
             <div class="fm-toolbar-right">
                 <button class="btn" title="Add" on:click=${() => this.requestUpload?.()}><ui-icon icon="upload"/></button>

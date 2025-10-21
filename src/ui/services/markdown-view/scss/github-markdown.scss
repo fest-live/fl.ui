@@ -31,6 +31,9 @@
     :host, :scope, :root {
         color-scheme: inherit;
         background-color: transparent;
+        touch-action: manipulation;
+        pointer-events: auto;
+        user-select: text;
     }
 
     html {

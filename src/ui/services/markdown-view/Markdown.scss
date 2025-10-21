@@ -9,4 +9,11 @@
     //
     [data-hidden]   #markdown { color-scheme: inherit; content-visibility: auto !important; }
     [data-dragging] #markdown { color-scheme: inherit; content-visibility: auto !important; :where(*) { content-visibility: auto !important; } }
+
+    //
+    #markdown {
+        touch-action: manipulation;
+        pointer-events: auto;
+        user-select: text;
+    }
 }

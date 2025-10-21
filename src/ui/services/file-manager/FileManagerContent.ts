@@ -112,11 +112,11 @@ export class FileManagerContent extends UIElement {
     render = function () {
         const self: any = this;
         const fileHeader = H`<div class="fm-grid-header">
-            <div class="c icon" style="place-content: center; place-items: center; min-block-size: 2rem; overflow: hidden; block-size: max-content;"></div>
-            <div class="c name" style="place-content: center; place-items: center; min-block-size: 2rem; overflow: hidden; block-size: max-content; inline-size: stretch;">Name</div>
-            <div class="c size" style="place-content: center; place-items: center; min-block-size: 2rem; overflow: hidden; block-size: max-content;">Size</div>
-            <div class="c date" style="place-content: center; place-items: center; min-block-size: 2rem; overflow: hidden; block-size: max-content;">Modified</div>
-            <div class="c actions" style="place-content: center; place-items: center; min-block-size: 2rem; overflow: hidden; block-size: max-content;">Actions</div>
+            <div class="c icon">@</div>
+            <div class="c name">Name</div>
+            <div class="c size">Size</div>
+            <div class="c date">Modified</div>
+            <div class="c actions">Actions</div>
         </div>`
 
         //

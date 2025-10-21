@@ -1,4 +1,6 @@
 @layer ux-file-manager-content {
+    $row-grid:        [icon] minmax(0px, 2.5rem) [name] minmax(0px, 1fr) [size] minmax(0px, 3rem) [date] minmax(0px, 8rem) [actions] minmax(0px, 7rem);
+    $row-grid-mobile: [icon] minmax(0px, 2.5rem) [name] minmax(0px, 1fr) [size] minmax(0px, 3rem) [date] minmax(0px, 0px)  [actions] minmax(0px, 7rem);
 
     :host(ui-file-manager-content) {
         &, :where(*) {
@@ -32,12 +34,6 @@
         /* Grid with subgrid columns */
         .fm-grid {
             display: grid;
-            grid-template-columns:
-                minmax(2rem, 2rem)
-                minmax(0px, 1fr)
-                minmax(0px, 4rem)
-                minmax(0px, 8rem)
-                minmax(0px, 6rem);
             grid-template-rows: minmax(max-content, 2rem) minmax(0, 1fr);
             row-gap: 0.125rem;
             align-content: start;
@@ -51,12 +47,15 @@
 
             touch-action: manipulation;
             pointer-events: none;
+
+            @container (inline-size <= 600px) {
+                grid-template-columns: #{$row-grid-mobile};
+            }
         }
 
         .fm-grid-header {
             position: sticky !important;
             display: grid;
-            grid-template-columns: subgrid;
             grid-column: 1 / -1;
             inset-block-start: 0;
             z-index: 8;
@@ -76,7 +75,16 @@
             touch-action: manipulation;
             pointer-events: auto;
 
+            //
+            & > * { inline-size: auto; }
+
+            //
             .c { font-weight: 600; }
+            .icon { grid-column: icon; }
+            .name { grid-column: name; inline-size: stretch; };
+            .size { grid-column: size; };
+            .date { grid-column: date; };
+            .actions { grid-column: actions; };
         }
 
         .fm-grid-rows {
@@ -115,13 +123,6 @@
 
         .row, ::slotted(.row) {
             display: grid !important;
-            grid-template-columns:
-                minmax(2rem, 2rem)
-                minmax(0px, 1fr)
-                minmax(0px, 4rem)
-                minmax(0px, 8rem)
-                minmax(0px, 7rem);
-
             grid-template-rows: 2.5rem !important;
             grid-column: 1 / -1;
             order: var(--order, 1) !important;
@@ -147,15 +148,50 @@
             gap: 0.25rem;
             flex-wrap: nowrap;
 
-            .c { min-inline-size: 0; }
-            .name {
-                text-align: start;
-                text-wrap: nowrap;
-                text-overflow: ellipsis;
-                white-space: nowrap;
-                overflow: hidden;
+            .actions {
+                inline-size: stretch;
             }
-            .icon ui-icon { inline-size: 1.25rem; block-size: 1.25rem; }
+
+            ui-icon {
+                inline-size: 1.25rem;
+                block-size: 1.25rem;
+                place-content: center;
+                place-items: center;
+            }
+        }
+
+        .c {
+            min-inline-size: 0;
+            display: flex;
+            flex-direction: row;
+            text-align: start;
+            text-wrap: nowrap;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            overflow: hidden;
+            inline-size: auto;
+            place-content: center;
+            place-items: center;
+            justify-content: start;
+        }
+
+        .icon {
+            grid-column: icon;
+            place-content: center;
+            place-items: center;
+        }
+        .name { grid-column: name; inline-size: stretch; };
+        .size { grid-column: size; };
+        .date { grid-column: date; };
+        .actions { grid-column: actions; };
+
+        .row, ::slotted(.row), .fm-grid, .fm-grid-header {
+            grid-template-columns: #{$row-grid};
+        }
+
+        @container(inline-size <= 600px) {
+            .row, ::slotted(.row), .fm-grid, .fm-grid-header { grid-template-columns: #{$row-grid-mobile}; };
+            .date { display: none !important; };
         }
 
         .row:hover .actions, ::slotted(.row:hover) .actions {

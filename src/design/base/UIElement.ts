@@ -2,7 +2,7 @@ import { initialize, preloadStyle } from "fest/dom";
 import { defineElement, GLitElement, H, property } from "fest/lure";
 
 // @ts-ignore
-import styles from "veela-runtime";
+import styles from "fest/veela";
 
 //
 const styled = preloadStyle(styles);

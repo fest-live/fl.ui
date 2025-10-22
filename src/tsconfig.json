@@ -17,17 +17,10 @@
             "fest/fl-ui": ["./index.ts", "../../../shared/fest/fl-ui/index.ts"],
             "fest/ui": ["./index.ts", "../../../shared/fest/ui/index.ts"],
             "fest/polyfill/*": ["../polyfill/*", "../../../shared/fest/polyfill/*"],
-
-
-            "veela": ["../../veela.css/src/index.ts"],
-            "veela/*": ["../../veela.css/src/scss/*"],
-            "veela-runtime": ["../../veela.css/src/scss/runtime/index.ts"],
-            "veela-runtime/*": ["../../veela.css/src/scss/runtime/*"],
-            "veela-runtime/index": ["../../veela.css/src/scss/runtime/index.scss"],
+            "fest/veela": ["../../veela.css/src/index.ts", "../../../shared/fest/veela/index.ts"],
+            "fest/veela-runtime": ["../../veela.css/src/index.ts", "../../../shared/fest/veela/index.ts"],
             "veela-lib": ["../../veela.css/src/scss/lib/index.scss"],
             "veela-lib/*": ["../../veela.css/src/scss/lib/*"],
-            "veela-mixins": ["../../veela.css/src/scss/lib/mixins/index.scss"],
-            "veela-mixins/*": ["../../veela.css/src/scss/lib/mixins/*"],
 
             "polyfill/*": ["../polyfill/*", "../../../shared/polyfill/*"],
             "@fl-design/*": ["./design/*", "../../../shared/fest/fl-ui/design/*"],

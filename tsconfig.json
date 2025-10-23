@@ -12,6 +12,7 @@
             "fest/lure": ["../lur.e/src/index.ts"],
             "fest/object": ["../object.ts/src/index.ts"],
             "fest/core": ["../core.ts/src/index.ts"],
+            "fest/icon": ["../icon.ts/src/index.ts"],
             "fest/fl-ui": ["./src/index.ts"],
             "fest/ui": ["./src/index.ts"],
             "fest/uniform": ["../uniform.ts/src/index.ts"],

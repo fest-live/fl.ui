@@ -40,7 +40,7 @@ async function createSlider() {
 
 async function createCtxMenu() {
     const { H, ctxMenuTrigger } = await import("fest/lure");
-    const { UIPhosphorIcon } = await import("fest/fl-ui");
+    const { UIPhosphorIcon } = await import("fest/icon");
     const ctxMenuDesc = {
         openedWith: null,
         items: [

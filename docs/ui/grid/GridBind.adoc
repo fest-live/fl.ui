@@ -1,7 +1,0 @@
-= GridBind.ts
-:source_path: modules/fl.ui/src/ui/grid/GridBind.ts
-
-Auto-generated documentation.
-
-== Exports
-- consts: ROOT, bindInteraction

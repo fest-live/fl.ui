@@ -12,7 +12,6 @@ loadInlineStyle(styles);
 */
 
 //
-export * from "./icons/Icon";
 export * from "./base/UIElement";
 export * from "./engine/ThemeEngine";
 export * from "./engine/DynamicEngine";

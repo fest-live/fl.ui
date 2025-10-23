@@ -1,5 +1,5 @@
 {
-    "name": "lur-e",
+    "name": "@fest/lure",
     "version": "0.0.0",
     "type": "module",
     "browserslist": [

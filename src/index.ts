@@ -1,5 +1,6 @@
 import { initialize, loadInlineStyle, preloadStyle } from "fest/dom";
 import { UIPhosphorIcon } from "fest/icon";
+console.log(UIPhosphorIcon);
 
 //@ts-ignore
 import styles from "./index.scss?inline";

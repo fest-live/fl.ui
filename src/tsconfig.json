@@ -1,5 +1,5 @@
 {
-    "include": ["./**/*.ts", "./index.ts", "../**/*.ts"],
+    "include": ["./**/*.ts", "./index.ts", "../**/*.ts", "design/engine/Config.ts", "../../lur.e/src/extension/color/StyleRules.ts", "../../lur.e/src/extension/color/DynamicEngine.ts", "../../lur.e/src/extension/color/ThemeEngine.ts"],
     "exclude": ["../../dist/**/*", "../../externals/**/*"],
     "compilerOptions": {
         "outDir": "../../dist/",

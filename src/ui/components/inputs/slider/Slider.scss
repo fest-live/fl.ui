@@ -56,7 +56,7 @@
         & {
             @include m.display('inline-flex', center, center);
             @include m.interaction(none);
-            @include m.container-base(size, ui-slider, strict);
+            @include m.container-base(stretch, true, size, ui-slider, strict);
         }
 
         //

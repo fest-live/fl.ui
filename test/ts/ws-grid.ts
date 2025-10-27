@@ -1,9 +1,9 @@
-import { TaskStateReflect, colorScheme, TaskInteraction } from "fest/fl-ui";
+import { TaskStateReflect, TaskInteraction } from "fest/fl-ui";
 
 //
 import { default as loadCSS } from "fest/dom";
 import { makeReactive } from "fest/object";
-import { H, Q, dropFile, makeRenderer, makeTask, makeTasks } from "fest/lure";
+import { H, Q, dropFile, makeRenderer, makeTask, makeTasks, colorScheme } from "fest/lure";
 
 //
 async function makeWallpaper() {

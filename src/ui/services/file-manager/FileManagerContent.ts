@@ -1,6 +1,6 @@
-import { property, defineElement, H, M, E } from "fest/lure";
+import { property, defineElement, H, M, E, C } from "fest/lure";
 import { addEvent, preloadStyle } from "fest/dom";
-import { ref } from "fest/object";
+import { computed, ref } from "fest/object";
 
 //
 import UIElement from "@fl-design/base/UIElement";
@@ -40,7 +40,6 @@ const getSize = (size: number) => {
     if (size < 1024 * 1024 * 1024) return (size / 1024 / 1024).toFixed(2) + " MB";
     return (size / 1024 / 1024 / 1024).toFixed(2) + " GB";
 };
-
 
 // @ts-ignore
 @defineElement("ui-file-manager-content")
@@ -124,8 +123,7 @@ export class FileManagerContent extends UIElement {
         if (!operative) return "";
 
         //
-        const fileContainer = this.shadowRoot;
-        const renderedEntries = M(operative.entries, (item: FileEntryItem) => {
+        const makeListElement = (item: FileEntryItem) => {
             const itemEl = H`<div draggable="${item?.kind === "file"}" data-id=${item?.name} class="row c2-surface"
                 on:click=${(ev: MouseEvent) => operative.onRowClick?.(item, ev)}
                 on:dblclick=${(ev: MouseEvent) => operative.onRowDblClick?.(item, ev)}
@@ -149,11 +147,25 @@ export class FileManagerContent extends UIElement {
             </div>`;
             itemEl.style.setProperty("--order", this.byFirstTwoLetterOrName(item?.name));
             return itemEl;
-        });
+        }
 
         //
-        const fileRows = H`<div class="fm-grid-rows">${renderedEntries}</div>`
-        E(fileRows, {}, renderedEntries);
+        const fileContainer = this.shadowRoot;
+
+        //
+        let fileRows: any = null;
+        const renderedEntries = C(computed(operative.entries, (v)=>{
+            if (v?.length > 0) {
+                if (fileRows) fileRows.innerHTML = ``;
+                const fragment = document.createDocumentFragment();
+                fragment.append(...v?.map?.((file)=>makeListElement(file)));
+                return fragment;
+            }
+        }));
+
+        //
+        fileRows = H`<div class="fm-grid-rows">${renderedEntries}</div>`
+        renderedEntries.boundParent = fileRows;
         createItemCtxMenu?.(fileRows, operative.onMenuAction.bind(operative), operative.entries);
         requestAnimationFrame(() => this.bindDropHandlers());
 

@@ -29,7 +29,7 @@ export interface FileEntryItem {
 //
 export class FileOperative {
     // refs/state
-    #entries = makeReactive<FileEntryItem[]>([]);
+    #entries = ref<FileEntryItem[]>([]);
     #loading = ref(false);
     #error = ref("");
     #fsRoot: any = null;
@@ -47,7 +47,7 @@ export class FileOperative {
 
     //
     constructor() {
-        this.#entries = makeReactive<FileEntryItem[]>([]);
+        this.#entries = ref<FileEntryItem[]>([]);
         this.pathRef ??= ref("/user/");
 
         //
@@ -85,14 +85,13 @@ export class FileOperative {
             //
             this.#dirProxy = openDirectory(this.#fsRoot, rel, { create: false }); await this.#dirProxy;
             const handleMap = await Promise.all(await Array.fromAsync(await this.#dirProxy?.entries?.() ?? []));
-
-            //
-            this.#entries.splice(0, this.#entries.length);
-            await Promise.all(handleMap?.map?.(async ($pair: any) => {
+            const entries = await Promise.all(handleMap?.map?.(async ($pair: any) => {
                 try {
                     const [name, handle] = $pair as any;
                     const kind: EntryKind = handle?.kind || (name?.endsWith?.("/") ? "directory" : "file");
                     const item: any = { name, kind, handle };
+
+                    //
                     if (kind === "file") {
                         try {
                             const f = await handle?.getFile?.();
@@ -103,11 +102,14 @@ export class FileOperative {
                     }
 
                     //
-                    this.#entries.push(item);
+                    return item;
                 } catch (e: any) {
                     console.warn(e);
                 }
             }))?.catch?.(console.warn.bind(console));
+
+            //
+            if (entries?.length != null && entries?.length > 0) { this.#entries.value = entries; };
         } catch (e: any) {
             this.#error.value = e?.message || String(e || "");
             console.warn(e);

@@ -42,7 +42,7 @@ const _LOG_ = (ev: any) => {
 }
 
 //
-export const createItemCtxMenu = async (fileManager: any, onMenuAction: (item: FileEntryItem | null | undefined, actionId: string, ev: MouseEvent) => Promise<void>, entries: FileEntryItem[]) => {
+export const createItemCtxMenu = async (fileManager: any, onMenuAction: (item: FileEntryItem | null | undefined, actionId: string, ev: MouseEvent) => Promise<void>, entries: {value: FileEntryItem[]}) => {
     const ctxMenuDesc = {
         openedWith: null,
         items: [
@@ -51,7 +51,7 @@ export const createItemCtxMenu = async (fileManager: any, onMenuAction: (item: F
         ],
         defaultAction: (initiator: HTMLElement, menuItem: any, ev: MouseEvent) => {
             const rowFromCompose = Array.from(ev?.composedPath?.() || []).find((element: any) => element?.classList?.contains?.("row")) ?? initiator;
-            onMenuAction?.(entries?.find?.(item => (item?.name === (rowFromCompose as any)?.getAttribute?.("data-id"))), menuItem?.id, ev);
+            onMenuAction?.(entries?.value?.find?.(item => (item?.name === (rowFromCompose as any)?.getAttribute?.("data-id"))), menuItem?.id, ev);
         }
     };
 

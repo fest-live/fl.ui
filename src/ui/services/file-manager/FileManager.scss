@@ -24,6 +24,8 @@
             block-size: stretch;
             background-color: --c2-surface(0, var(--current, transparent));
             content-visibility: auto;
+            border-radius: 0.5rem;
+            overflow: hidden;
         }
 
         .fm-root {

@@ -165,7 +165,7 @@ export class FileManagerContent extends UIElement {
             </div>`;
 
             //
-            bindWith(itemEl, "--order", computed(item, ()=>{ return this.byFirstTwoLetterOrName(item?.name ?? ""); }), handleStyleChange);
+            bindWith(itemEl, "--order", computed(propRef(item, "name"), (val)=>{ return this.byFirstTwoLetterOrName(val ?? ""); }), handleStyleChange);
             return itemEl;
         }
 
@@ -175,7 +175,7 @@ export class FileManagerContent extends UIElement {
             if (v?.length != null && v?.length >= 0) {
                 if (fileRows != null) fileRows.innerHTML = ``;
                 const fragment = document.createDocumentFragment();
-                fragment.append(...v?.map?.((file)=>makeListElement(file))?.filter?.(el => el != null) || []);
+                fragment.append(...v?.map?.((file: FileEntryItem)=>makeListElement(file))?.filter?.(el => el != null) || []);
                 return fragment;
             }
         }));

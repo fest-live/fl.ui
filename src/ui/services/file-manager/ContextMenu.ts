@@ -1,3 +1,4 @@
+import { MOCElement } from "fest/dom";
 import type { FileEntryItem } from "./Operative";
 import { ctxMenuTrigger, H } from "fest/lure";
 
@@ -50,8 +51,8 @@ export const createItemCtxMenu = async (fileManager: any, onMenuAction: (item: F
             makeFileSystemOps(),
         ],
         defaultAction: (initiator: HTMLElement, menuItem: any, ev: MouseEvent) => {
-            const rowFromCompose = Array.from(ev?.composedPath?.() || []).find((element: any) => element?.classList?.contains?.("row")) ?? initiator;
-            onMenuAction?.((entries?.value)?.find?.(item => (item?.name === (rowFromCompose as any)?.getAttribute?.("data-id"))), menuItem?.id, ev);
+            const rowFromCompose = Array.from(ev?.composedPath?.() || []).find((element: any) => element?.classList?.contains?.(".row")) || MOCElement(initiator, ".row");
+            onMenuAction?.((entries?.value as FileEntryItem[])?.find?.(item => (item?.name === (rowFromCompose as any)?.getAttribute?.("data-id"))), menuItem?.id, ev);
         }
     };
 

@@ -87,10 +87,13 @@ export class FileOperative {
             this.#dirProxy = openDirectory(this.#fsRoot, rel, { create: false }); await this.#dirProxy;
 
             //
-            const loader = async ($map?: any)=>{
-                const handleMap = await Promise.all($map ? Array.from($map?.entries?.() ?? []) : (await Array.fromAsync(await this.#dirProxy?.entries?.() ?? [])));
-                const entries = await Promise.all(handleMap?.map?.(async ($pair: any) => {
-                    try {
+            const loader = async ($map?: Map<string, any>)=>{
+                const $entries = $map instanceof Map ? $map?.entries?.() : null;
+                const handleMap = await Promise.all($entries ? Array.from($entries) : (await Array.fromAsync(await this.#dirProxy?.entries?.() ?? [])));
+
+                //
+                const entries = (await Promise.all(handleMap?.map?.(async ($pair: any, index: number) => {
+                    return Promise.try(async () => {
                         const [name, handle] = $pair as any;
                         const kind: EntryKind = handle?.kind || (name?.endsWith?.("/") ? "directory" : "file");
                         const item: any = { name, kind, handle };
@@ -107,18 +110,17 @@ export class FileOperative {
 
                         //
                         return item;
-                    } catch (e: any) {
-                        console.warn(e);
-                    }
-                }))?.catch?.(console.warn.bind(console));
+                    })?.catch?.(console.warn.bind(console));
+                }))?.catch?.(console.warn.bind(console)))?.filter?.(($item: any) => $item != null);
 
                 //
-                if (entries?.length != null && entries?.length > 0) { this.#entries.value = entries; };
+                if (entries?.length != null && entries?.length >= 0) { this.#entries.value = entries; };
             };
 
             //
             if (typeof this.#subscribed == "function") { this.#subscribed?.(); this.#subscribed = null; }
-            await loader()?.catch?.(console.warn.bind(console)); this.#subscribed = subscribe(this.#dirProxy?.getMap?.() ?? [], loader);
+            await loader(await this.#dirProxy?.getMap?.() ?? [])?.catch?.(console.warn.bind(console));
+            this.#subscribed = subscribe((await this.#dirProxy?.getMap?.() ?? []), loader);
         } catch (e: any) {
             this.#error.value = e?.message || String(e || "");
             console.warn(e);
@@ -153,14 +155,12 @@ export class FileOperative {
                      break;
                 case "delete":
                     await remove(this.#fsRoot, abs);
-                    await this.loadPath(this.path);
                     break;
                 case "rename":
                     if (item?.kind === "file") {
                         const next = prompt("Rename to:", item?.name);
                         if (next && next !== item?.name) {
                             await this.renameFile(item?.name, next);
-                            await this.loadPath(this.path);
                         }
                     }
                     break;
@@ -197,7 +197,6 @@ export class FileOperative {
     async requestUpload() {
         try {
             await uploadFile(this.path, null);
-            await this.loadPath(this.path);
         } catch (e) { console.warn(e); }
     }
 
@@ -222,7 +221,6 @@ export class FileOperative {
 
             //
             this.#clipboard = null;
-            await this.loadPath(this.path);
         } catch (e) { console.warn(e); }
     }
 
@@ -249,7 +247,7 @@ export class FileOperative {
                 }));
             }
         }
-        Promise.allSettled(tasks).then(() => this.loadPath(this.path)).catch(console.warn);
+        Promise.allSettled(tasks).catch(console.warn.bind(console));
     }
 
 

@@ -1,4 +1,4 @@
-import { H, defineElement, property, getDir, Q } from "fest/lure";
+import { H, defineElement, property, getDir, Q, valueLink } from "fest/lure";
 import { link, ref, subscribe } from "fest/object";
 import { addEvent, preloadStyle } from "fest/dom";
 
@@ -28,41 +28,24 @@ export class FileManager extends UIElement {
 
     // refs/state
     styles = () => styled?.cloneNode?.(true);
-    pathRef = ref("/user/");
-
-    //
-    get path() { return this.pathRef.value; }
-    set path(value: string) { if (this.pathRef) this.pathRef.value = value; }
-
-    //
     constructor() { super(); }
+
+    //
+    get pathRef() { return ((this as any)?.querySelector?.("ui-file-manager-content") as any)?.pathRef; }
+    get path() { return ((this as any)?.querySelector?.("ui-file-manager-content") as any)?.pathRef?.value ?? "/user/"; }
+    set path(value: string) {
+        const content = (this as any)?.querySelector?.("ui-file-manager-content");
+        if (content) (content as any).pathRef.value = value;
+    }
 
     //
     onInitialize() {
         super.onInitialize();
 
         //
-        const weak: any = new WeakRef(this);
-        requestAnimationFrame(()=>{
-            const self = weak?.deref?.();
-            //const frame: any = document.createElement("ui-scrollframe");
-            //frame.style.zIndex = 99;
-
-            //
-            //const rows = Q(".fm-grid-container", self?.shadowRoot), grid = Q(".fm-grid", self?.shadowRoot);
-            //frame.bindWith(rows, rows);
-            //grid?.append(frame);
-        });
-
-        //
         const self: any = this;
-        self.pathRef ??= ref("/user/");
-        subscribe(this.pathRef, (path) => this.navigate(path));
-
-        //
         const contents: any = document.createElement("ui-file-manager-content");
-        link(this.pathRef, contents.pathRef);
-        requestAnimationFrame(() => self.append(contents));
+        self.append(contents);
     }
 
     //
@@ -73,7 +56,7 @@ export class FileManager extends UIElement {
         const onEnter = (ev: KeyboardEvent) => {
             if (ev.key === "Enter") {
                 const self = weak.deref() as any;
-                const input = Q('ui-longtext input', self?.shadowRoot ?? self);
+                const input = self?.querySelector?.("input[name=\"address\"]");
                 const val = (input as HTMLInputElement)?.value?.trim?.() || "";
                 if (val) self?.navigate(val);
             }
@@ -94,7 +77,6 @@ export class FileManager extends UIElement {
     async navigate(toPath: string) {
         const clean = getDir(toPath);
         (this as any).path = clean || (this as any).path;
-        await (this as any)?.querySelector?.("ui-file-manager-content")?.loadPath?.(toPath);
     }
 
     //
@@ -121,7 +103,7 @@ export class FileManager extends UIElement {
                 <button class="btn" title="Refresh" on:click=${() => this.navigate(this.path)}><ui-icon icon="arrow-clockwise"/></button>
             </div>
             <div class="fm-toolbar-center">
-                <input class="address c2-surface" autocomplete="off" type="text" value=${this.pathRef} name="address" />
+                <input class="address c2-surface" autocomplete="off" type="text" name="address" />
             </div>
             <div class="fm-toolbar-right">
                 <button class="btn" title="Add" on:click=${() => this.requestUpload?.()}><ui-icon icon="upload"/></button>
@@ -129,6 +111,15 @@ export class FileManager extends UIElement {
                 <button class="btn" title="Use" on:click=${() => this.requestUse?.()}><ui-icon icon="hand-withdraw"/></button>
             </div>
         </div>`
+
+        //
+        const input = toolbar.querySelector("input");
+        if (input) {
+            requestAnimationFrame(() => {
+                input.value = this.path;
+                valueLink(input, this.pathRef);
+            });
+        }
 
         //
         return H`<div part="root" class="fm-root" data-with-sidebar=${sidebarVisible}>${toolbar}${content}</div>`;

@@ -155,7 +155,7 @@ export class FileManagerContent extends UIElement {
         //
         let fileRows: any = null;
         const renderedEntries = C(computed(operative.entries, (v)=>{
-            if (v?.length > 0) {
+            if (v?.length != null && v?.length >= 0) {
                 if (fileRows) fileRows.innerHTML = ``;
                 const fragment = document.createDocumentFragment();
                 fragment.append(...v?.map?.((file)=>makeListElement(file)));

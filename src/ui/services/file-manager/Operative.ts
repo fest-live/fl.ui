@@ -1,4 +1,4 @@
-import { makeReactive, ref, subscribe } from "fest/object";
+import { makeReactive, observe, ref, subscribe } from "fest/object";
 
 // OPFS helpers
 import {
@@ -36,6 +36,7 @@ export class FileOperative {
     #dirProxy: any = null;
     #loadLock = false;
     #clipboard: { items: string[]; cut?: boolean } | null = null;
+    #subscribed: any = null;
 
     //
     public pathRef = ref("/user/");
@@ -84,32 +85,40 @@ export class FileOperative {
 
             //
             this.#dirProxy = openDirectory(this.#fsRoot, rel, { create: false }); await this.#dirProxy;
-            const handleMap = await Promise.all(await Array.fromAsync(await this.#dirProxy?.entries?.() ?? []));
-            const entries = await Promise.all(handleMap?.map?.(async ($pair: any) => {
-                try {
-                    const [name, handle] = $pair as any;
-                    const kind: EntryKind = handle?.kind || (name?.endsWith?.("/") ? "directory" : "file");
-                    const item: any = { name, kind, handle };
-
-                    //
-                    if (kind === "file") {
-                        try {
-                            const f = await handle?.getFile?.();
-                            item.size = f?.size;
-                            item.lastModified = f?.lastModified;
-                            item.type = f?.type || getMimeTypeByFilename?.(name);;
-                        } catch { }
-                    }
-
-                    //
-                    return item;
-                } catch (e: any) {
-                    console.warn(e);
-                }
-            }))?.catch?.(console.warn.bind(console));
 
             //
-            if (entries?.length != null && entries?.length > 0) { this.#entries.value = entries; };
+            const loader = async ($map?: any)=>{
+                const handleMap = await Promise.all($map ? Array.from($map?.entries?.() ?? []) : (await Array.fromAsync(await this.#dirProxy?.entries?.() ?? [])));
+                const entries = await Promise.all(handleMap?.map?.(async ($pair: any) => {
+                    try {
+                        const [name, handle] = $pair as any;
+                        const kind: EntryKind = handle?.kind || (name?.endsWith?.("/") ? "directory" : "file");
+                        const item: any = { name, kind, handle };
+
+                        //
+                        if (kind === "file") {
+                            try {
+                                const f = await handle?.getFile?.();
+                                item.size = f?.size;
+                                item.lastModified = f?.lastModified;
+                                item.type = f?.type || getMimeTypeByFilename?.(name);;
+                            } catch { }
+                        }
+
+                        //
+                        return item;
+                    } catch (e: any) {
+                        console.warn(e);
+                    }
+                }))?.catch?.(console.warn.bind(console));
+
+                //
+                if (entries?.length != null && entries?.length > 0) { this.#entries.value = entries; };
+            };
+
+            //
+            if (typeof this.#subscribed == "function") { this.#subscribed?.(); this.#subscribed = null; }
+            await loader()?.catch?.(console.warn.bind(console)); this.#subscribed = subscribe(this.#dirProxy?.getMap?.() ?? [], loader);
         } catch (e: any) {
             this.#error.value = e?.message || String(e || "");
             console.warn(e);

@@ -27,6 +27,9 @@ export interface FileEntryItem {
 }
 
 //
+const handleCache = new WeakMap<any, any>();
+
+//
 export class FileOperative {
     // refs/state
     #entries = ref<FileEntryItem[]>([]);
@@ -37,6 +40,7 @@ export class FileOperative {
     #loadLock = false;
     #clipboard: { items: string[]; cut?: boolean } | null = null;
     #subscribed: any = null;
+    #loaderDebounceTimer: any = null;
 
     //
     public pathRef = ref("/user/");
@@ -94,22 +98,29 @@ export class FileOperative {
                 //
                 const entries = (await Promise.all(handleMap?.map?.(async ($pair: any, index: number) => {
                     return Promise.try(async () => {
-                        const [name, handle] = $pair as any;
-                        const kind: EntryKind = handle?.kind || (name?.endsWith?.("/") ? "directory" : "file");
-                        const item: any = { name, kind, handle };
+                        const [name, handle] = $pair as any; // @ts-ignore
+                        return handleCache?.getOrInsertComputed?.(handle, async () => {
+                            const kind: EntryKind = handle?.kind || (name?.endsWith?.("/") ? "directory" : "file");
+                            const item: any = makeReactive({ name, kind, handle });
 
-                        //
-                        if (kind === "file") {
-                            try {
-                                const f = await handle?.getFile?.();
-                                item.size = f?.size;
-                                item.lastModified = f?.lastModified;
-                                item.type = f?.type || getMimeTypeByFilename?.(name);;
-                            } catch { }
-                        }
+                            //
+                            if (kind === "file") {
+                                item.type = getMimeTypeByFilename?.(name);
+                                Promise.try(async () => {
+                                    try {
+                                        const f = await handle?.getFile?.();
+                                        if (item) {
+                                            item.size = f?.size;
+                                            item.lastModified = f?.lastModified;
+                                            item.type = f?.type || item.type;
+                                        }
+                                    } catch { }
+                                }).catch?.(console.warn.bind(console));
+                            }
 
-                        //
-                        return item;
+                            //
+                            return item;
+                        });
                     })?.catch?.(console.warn.bind(console));
                 }))?.catch?.(console.warn.bind(console)))?.filter?.(($item: any) => $item != null);
 
@@ -118,9 +129,15 @@ export class FileOperative {
             };
 
             //
+            const debouncedLoader = ($map?: Map<string, any>) => {
+                if (this.#loaderDebounceTimer) { clearTimeout(this.#loaderDebounceTimer); }
+                this.#loaderDebounceTimer = setTimeout(() => loader($map), 50);
+            };
+
+            //
             if (typeof this.#subscribed == "function") { this.#subscribed?.(); this.#subscribed = null; }
             await loader(await this.#dirProxy?.getMap?.() ?? [])?.catch?.(console.warn.bind(console));
-            this.#subscribed = subscribe((await this.#dirProxy?.getMap?.() ?? []), loader);
+            this.#subscribed = subscribe((await this.#dirProxy?.getMap?.() ?? []), debouncedLoader);
         } catch (e: any) {
             this.#error.value = e?.message || String(e || "");
             console.warn(e);

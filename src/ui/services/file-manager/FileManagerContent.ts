@@ -1,6 +1,6 @@
-import { property, defineElement, H, M, E, C } from "fest/lure";
-import { addEvent, preloadStyle } from "fest/dom";
-import { computed, ref } from "fest/object";
+import { property, defineElement, H, M, E, C, bindWith } from "fest/lure";
+import { addEvent, handleStyleChange, preloadStyle } from "fest/dom";
+import { computed, conditionalRef, propRef, ref } from "fest/object";
 
 //
 import UIElement from "@fl-design/base/UIElement";
@@ -31,14 +31,32 @@ const iconByMime = (mime: string | undefined, def = "file") => {
 };
 
 //
-const iconFor = (item: FileEntryItem) => item?.kind === "directory" ? "folder" : iconByMime(item?.type);
+const iconFor = (item: FileEntryItem, type?: string) => {
+    if (typeof item === "string") return (item === "directory" ? "folder" : iconByMime(type || item || ""));
+    return item?.kind === "directory" ? "folder" : iconByMime(item?.type);
+}
 
 //
+const sizeCache = new Map<number, string>();
 const getSize = (size: number) => {
-    if (size < 1024) return size + " B";
-    if (size < 1024 * 1024) return (size / 1024).toFixed(2) + " kB";
-    if (size < 1024 * 1024 * 1024) return (size / 1024 / 1024).toFixed(2) + " MB";
-    return (size / 1024 / 1024 / 1024).toFixed(2) + " GB";
+    if (!sizeCache.has(size)) {
+        let formatted: string;
+        if (size < 1024) formatted = size + " B";
+        else if (size < 1024 * 1024) formatted = (size / 1024).toFixed(2) + " kB";
+        else if (size < 1024 * 1024 * 1024) formatted = (size / 1024 / 1024).toFixed(2) + " MB";
+        else formatted = (size / 1024 / 1024 / 1024).toFixed(2) + " GB";
+        sizeCache.set(size, formatted);
+    }
+    return sizeCache.get(size)!;
+};
+
+//
+const dateCache = new Map<number, string>();
+const getFormattedDate = (timestamp: number) => {
+    if (!dateCache.has(timestamp)) {
+        dateCache.set(timestamp, new Date(timestamp).toLocaleString("en-US", { dateStyle: "short", timeStyle: "short" }));
+    }
+    return dateCache.get(timestamp)!;
 };
 
 // @ts-ignore
@@ -124,15 +142,15 @@ export class FileManagerContent extends UIElement {
 
         //
         const makeListElement = (item: FileEntryItem) => {
-            const itemEl = H`<div draggable="${item?.kind === "file"}" data-id=${item?.name} class="row c2-surface"
+            const itemEl = H`<div draggable="${computed(item, ()=>{ return item?.kind === "file"; })}" data-id=${propRef(item, "name")} class="row c2-surface"
                 on:click=${(ev: MouseEvent) => operative.onRowClick?.(item, ev)}
                 on:dblclick=${(ev: MouseEvent) => operative.onRowDblClick?.(item, ev)}
                 on:dragstart=${(ev: DragEvent) => operative.onRowDragStart?.(item, ev)}
             >
-                <div class="c icon">${H`<ui-icon icon=${iconFor(item)} />`}</div>
-                <div class="c name" title=${item?.name}>${item?.name}</div>
-                <div class="c size">${item?.size != null ? getSize(item?.size) : ""}</div>
-                <div class="c date">${item?.lastModified ? new Date(item?.lastModified).toLocaleString("en-US", { dateStyle: "short", timeStyle: "short" }) : ""}</div>
+                <div class="c icon"><ui-icon icon=${computed(item, ()=>{ return iconFor(item); })} /></div>
+                <div class="c name" title=${computed(item, ()=>{ return item?.name ?? ""; })}>${computed(item, ()=>{ return item?.name ?? ""; })}</div>
+                <div class="c size">${conditionalRef(computed(item, ()=>{ return item?.kind == "file"; }), computed(item, ()=>{ return getSize(item?.size ?? 0); }), "")}</div>
+                <div class="c date">${conditionalRef(computed(item, ()=>{ return item?.kind == "file"; }), computed(item, ()=>{ return getFormattedDate(item?.lastModified ?? 0); }), "")}</div>
                 <div class="c actions">
                     <button class="action-btn" title="Copy Path" on:click=${(ev: MouseEvent) => { ev.stopPropagation(); operative.onMenuAction?.(item, "copyPath", ev); }}>
                         <ui-icon icon="copy" />
@@ -145,20 +163,19 @@ export class FileManagerContent extends UIElement {
                     </button>
                 </div>
             </div>`;
-            itemEl.style.setProperty("--order", this.byFirstTwoLetterOrName(item?.name));
+
+            //
+            bindWith(itemEl, "--order", computed(item, ()=>{ return this.byFirstTwoLetterOrName(item?.name ?? ""); }), handleStyleChange);
             return itemEl;
         }
-
-        //
-        const fileContainer = this.shadowRoot;
 
         //
         let fileRows: any = null;
         const renderedEntries = C(computed(operative.entries, (v)=>{
             if (v?.length != null && v?.length >= 0) {
-                if (fileRows) fileRows.innerHTML = ``;
+                if (fileRows != null) fileRows.innerHTML = ``;
                 const fragment = document.createDocumentFragment();
-                fragment.append(...v?.map?.((file)=>makeListElement(file)));
+                fragment.append(...v?.map?.((file)=>makeListElement(file))?.filter?.(el => el != null) || []);
                 return fragment;
             }
         }));
@@ -166,7 +183,7 @@ export class FileManagerContent extends UIElement {
         //
         fileRows = H`<div class="fm-grid-rows">${renderedEntries}</div>`
         renderedEntries.boundParent = fileRows;
-        createItemCtxMenu?.(fileRows, operative.onMenuAction.bind(operative), operative.entries);
+        createItemCtxMenu?.(fileRows, operative.onMenuAction.bind(operative) /*computed(operative.entries, (entries)=>{ return operative.onMenuAction.bind(operative, entries); })*/, operative.entries);
         requestAnimationFrame(() => this.bindDropHandlers());
 
         //

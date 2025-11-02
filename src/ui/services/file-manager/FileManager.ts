@@ -1,5 +1,4 @@
-import { H, defineElement, property, getDir, Q, valueLink } from "fest/lure";
-import { link, ref, subscribe } from "fest/object";
+import { H, defineElement, property, getDir, valueLink } from "fest/lure";
 import { addEvent, preloadStyle } from "fest/dom";
 
 //

@@ -48,15 +48,15 @@
             padding-inline: calc(var(--tabbed-padding-inline) * 0.5);
             position: relative;
             pointer-events: auto;
-
-            @include scrollable("x");
-            @include surface(var(--surface-opacity-subtle));
-
             border-radius: var(--tabbed-radius);
             scrollbar-gutter: stable;
             overscroll-behavior-inline: contain;
             touch-action: pan-x;
             scroll-behavior: smooth;
+            overflow: visible;
+
+            @include scrollable("x");
+            @include surface(var(--surface-opacity-subtle));
 
             &::before,
             &::after {
@@ -88,9 +88,12 @@
             }
 
             .ui-tabbed-box-tab {
+                display: flex;
+                flex-direction: column;
                 position: relative;
                 inline-size: max-content;
                 min-inline-size: clamp(4rem, 9cqi, 8rem);
+                block-size: stretch;
                 border-radius: var(--radius-full);
                 padding-inline: calc(var(--tabbed-padding-inline) * 0.6);
                 padding-block: calc(var(--tabbed-padding-block) * 0.6);
@@ -100,22 +103,23 @@
                 color: color-mix(in oklch, var(--md3-on-surface) 85%, transparent);
                 background-color: transparent;
 
-                @include button-text(primary, false);
-                @include button-overlays(var(--md3-primary));
-
                 place-content: center;
                 place-items: center;
                 text-align: center;
 
-                transition:
-                    color var(--duration-normal) var(--ease-out),
-                    transform var(--duration-fast) var(--ease-emphasized);
+                transition: color var(--duration-normal) var(--ease-out), transform var(--duration-fast) var(--ease-emphasized);
+                overflow: visible;
+
+                @include button-text(primary, false);
+                @include button-overlays(var(--md3-primary));
 
                 &::after {
+                    overflow: visible;
                     content: "";
                     position: absolute;
                     inset-inline: clamp(0.75rem, 3cqi, 1.5rem);
                     inset-block-end: calc(var(--tabbed-indicator-height) * -1);
+                    //inset-block-start: -0.125rem;
                     block-size: var(--tabbed-indicator-height);
                     border-radius: var(--tabbed-indicator-height);
                     background: currentColor;
@@ -130,13 +134,14 @@
                 }
 
                 &:where([aria-selected="true"], [data-active], .is-active, .active) {
-                    @include button-filled(primary, false);
                     color: var(--md3-on-primary);
                     transform: translateY(-2px);
 
                     place-content: center;
                     place-items: center;
                     text-align: center;
+
+                    @include button-filled(primary, false);
 
                     &::after {
                         opacity: 1;
@@ -158,6 +163,7 @@
 
                 place-content: center;
                 place-items: center;
+                overflow: visible;
             }
         }
 

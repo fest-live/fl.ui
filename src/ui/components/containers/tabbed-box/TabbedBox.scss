@@ -26,8 +26,8 @@
             display: grid;
             gap: var(--tabbed-gap);
             grid-template-columns: minmax(0, 1fr);
-            grid-template-rows: minmax(0, max-content) minmax(0, 1fr);
-            grid-template-areas: "tabs" "content";
+            grid-template-rows: minmax(0, 1fr) minmax(0, max-content);
+            grid-template-areas: "content" "tabs";
             inline-size: stretch;
             block-size: stretch;
             container-type: inline-size;
@@ -41,7 +41,9 @@
             grid-area: tabs;
             inline-size: stretch;
             block-size: max-content;
-            display: flex;
+            display: flex !important;
+            flex-wrap: nowrap;
+            flex-direction: row;
             align-items: center;
             gap: var(--tabbed-tab-gap);
             padding-block: calc(var(--tabbed-padding-block) * 0.65);
@@ -55,9 +57,19 @@
             scroll-behavior: smooth;
             overflow: visible;
 
+            place-content: center;
+            place-items: center;
+            text-align: center;
+
+            //
+            justify-content: safe center;
+            justify-items: safe center;
+
+            //
             @include scrollable("x");
             @include surface(var(--surface-opacity-subtle));
 
+            //
             &::before,
             &::after {
                 content: "";
@@ -89,11 +101,13 @@
 
             .ui-tabbed-box-tab {
                 display: flex;
-                flex-direction: column;
+                flex-direction: row;
+                flex-wrap: nowrap;
+                text-wrap: nowrap;
+                flex-shrink: 0;
+
+                //
                 position: relative;
-                inline-size: max-content;
-                min-inline-size: clamp(4rem, 9cqi, 8rem);
-                block-size: stretch;
                 border-radius: var(--radius-full);
                 padding-inline: calc(var(--tabbed-padding-inline) * 0.6);
                 padding-block: calc(var(--tabbed-padding-block) * 0.6);
@@ -103,16 +117,24 @@
                 color: color-mix(in oklch, var(--md3-on-surface) 85%, transparent);
                 background-color: transparent;
 
+                //
                 place-content: center;
                 place-items: center;
                 text-align: center;
 
+                //
                 transition: color var(--duration-normal) var(--ease-out), transform var(--duration-fast) var(--ease-emphasized);
                 overflow: visible;
 
+                //
+                @include container-clamped(max-content, fit-content);
                 @include button-text(primary, false);
                 @include button-overlays(var(--md3-primary));
 
+                //
+                & { min-inline-size: 4rem; inline-size: max-content; max-inline-size: none; }
+
+                //
                 &::after {
                     overflow: visible;
                     content: "";
@@ -174,8 +196,13 @@
             block-size: stretch;
             border-radius: calc(var(--tabbed-radius) * 1.1);
             align-content: start;
+            grid-template-columns: minmax(0px, 1fr);
+            grid-template-rows: minmax(0px, 1fr);
 
             @include surface(var(--surface-opacity-subtle));
+            @include container-clamped(stretch, stretch);
+
+            & { max-block-size: none; }
 
             ::slotted(*) {
                 inline-size: 100%;

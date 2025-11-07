@@ -18,19 +18,21 @@
             outline: none;
             margin: 0;
             padding: 0;
+            gap: 0px;
             user-select: none;
             -webkit-tap-highlight-color: transparent;
         }
 
         & {
             display: grid;
-            gap: var(--tabbed-gap);
+            gap: 0px;
             grid-template-columns: minmax(0, 1fr);
             grid-template-rows: minmax(0, 1fr) minmax(0, max-content);
             grid-template-areas: "content" "tabs";
             inline-size: stretch;
             block-size: stretch;
             container-type: inline-size;
+            padding: 0px;
         }
 
         :where(.ui-tabbed-box-tabs, .ui-tabbed-box-content) {
@@ -38,6 +40,8 @@
         }
 
         .ui-tabbed-box-tabs {
+            margin-block-start: var(--padding-sm);
+
             grid-area: tabs;
             inline-size: stretch;
             block-size: max-content;
@@ -207,8 +211,8 @@
             ::slotted(*) {
                 inline-size: 100%;
                 block-size: 100%;
-                padding-inline: var(--tabbed-padding-inline);
-                padding-block: var(--tabbed-padding-block);
+                //padding-inline: var(--tabbed-padding-inline);
+                //padding-block: var(--tabbed-padding-block);
                 line-height: var(--leading-normal, 1.5);
                 color: var(--md3-on-surface);
                 overflow: auto;

@@ -18,6 +18,7 @@
             user-select: none;
             -webkit-tap-highlight-color: transparent;
             content-visibility: visible;
+            gap: 0px;
         }
 
         & {
@@ -150,7 +151,7 @@
             background-color: transparent;
             box-shadow: none;
             contain: none;
-            gap: inherit;
+            gap: 0px;
 
             @include container-clamped(stretch, stretch);
         }
@@ -193,7 +194,7 @@
                 align-content: start;
                 padding: 0rem;
                 box-shadow: none;
-                gap: inherit;
+                gap: 0px;
             }
 
             //
@@ -257,14 +258,12 @@
                 box-shadow: none;
                 grid-row: content-row;
                 grid-column: 1 / -1;
-                gap: inherit;
+                gap: 0px;
             }
         }
 
         @container (min-inline-size: 800px) {
             & {
-                gap: 0.5rem;
-
                 .content {
                     grid-column: content-col !important;
                 }

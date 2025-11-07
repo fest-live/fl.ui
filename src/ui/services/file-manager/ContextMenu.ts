@@ -30,7 +30,7 @@ const makeFileSystemOps = () => {
 let hasContextMenu = null;
 const makeContextMenu = () => {
     if (hasContextMenu) return hasContextMenu;
-    const ctxMenu = H`<ul class="grid-rows c2-surface round-decor ctx-menu ux-anchor"></ul>`;
+    const ctxMenu = H`<ul class="grid-rows c2-surface round-decor ctx-menu ux-anchor" style="position: fixed; z-index: 99999;"></ul>`;
     hasContextMenu = ctxMenu;
     document.body.append(ctxMenu);
     return ctxMenu;

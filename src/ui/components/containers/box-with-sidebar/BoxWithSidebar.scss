@@ -26,11 +26,13 @@
 
         & {
             --button-inline-size: 4rem;
+            --sidebar-inline-grid-size: max-content;
 
+            //
             display: grid !important;
             grid-template-columns:
+                [sidebar-col] minmax(0px, var(--sidebar-inline-grid-size))
                 [button-col] minmax(0px, var(--button-inline-size))
-                [sidebar-col] minmax(0px, max-content)
                 [content-col] minmax(0px, 1fr) !important;
             grid-template-rows: [bar-row] minmax(0px, 4rem) [content-row] minmax(0px, 1fr) !important;
             inline-size: stretch;
@@ -38,7 +40,7 @@
             position: relative;
             background-color: transparent;
             container-type: inline-size;
-            gap: var(--gap-sm) var(--gap-sm);
+            gap: 0px;
             padding: var(--padding-sm);
 
             //
@@ -46,8 +48,10 @@
                 --button-inline-size: 0px;
             }
 
+            //
             @container (max-inline-size: 800px) {
                 padding: 0px;
+                --sidebar-inline-grid-size: 0px;
             }
         }
 
@@ -68,11 +72,11 @@
             place-content: center;
             place-items: center;
             box-shadow: none;
-            padding: 0.125rem;
-            padding-inline: 0.5rem;
+            padding: 0px;
+            padding-inline: 0px;
             grid-template-columns: subgrid;
             grid-template-rows: minmax(0px, max-content);
-            gap: inherit;
+            gap: 0px;
             pointer-events: none;
 
             &::slotted([slot="bar"]) {
@@ -104,20 +108,10 @@
                 outline: 0px none transparent;
                 cursor: pointer;
                 background-color: transparent;
-                grid-column: 1 / 1 span;
+                grid-column: 1 / 2 span;
                 grid-row: 1 / 1 span;
                 pointer-events: auto;
 
-                // Make button bigger on mobile
-                @media (max-width: 720px) {
-                    min-block-size: 3rem;
-                    padding: 0.5rem;
-                }
-
-                @media (max-width: 480px) {
-                    min-block-size: 3.5rem;
-                    padding: 0.625rem;
-                }
 
                 @media (hover: hover) {
                     &:hover {
@@ -135,17 +129,6 @@
                     font-weight: 400;
                     color: --c2-on-surface(0.0, var(--current, currentColor));
                     padding-inline-end: 0.333rem;
-
-                    // Make button text bigger on mobile
-                    @media (max-width: 720px) {
-                        font-size: 1rem;
-                        padding-inline-end: 0.5rem;
-                    }
-
-                    @media (max-width: 480px) {
-                        font-size: 1.1rem;
-                        padding-inline-end: 0.625rem;
-                    }
                 }
             }
 
@@ -164,8 +147,6 @@
             z-index: 1;
             border-radius: 0.25rem;
             overflow: hidden;
-            margin-inline: 0.25rem;
-            margin-block-end: 0.25rem;
             background-color: transparent;
             box-shadow: none;
             contain: none;
@@ -179,8 +160,8 @@
             & {
                 display: flex;
                 flex-direction: column;
-                gap: inherit;
-                grid-column: button-col / sidebar-col;
+                gap: 0px;
+                grid-column: sidebar-col / button-col;
                 grid-row: 2 / -1;
                 z-index: 2;
                 overflow: hidden;
@@ -246,8 +227,8 @@
 
             grid-template-columns: subgrid;
             grid-template-columns:
-                [button-col] minmax(0px, var(--button-inline-size))
                 [sidebar-col] minmax(0px, 0px)
+                [button-col] minmax(0px, var(--button-inline-size))
                 [content-col] minmax(0px, 1fr);
 
             grid-template-rows: subgrid;
@@ -262,7 +243,7 @@
 
             box-shadow: none;
             contain: none;
-            gap: inherit;
+            gap: 0px;
 
             container-type: inline-size;
 

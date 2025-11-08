@@ -1,6 +1,6 @@
 import { defineElement, H, E, M, I, property } from "fest/lure"
 import { preloadStyle } from "fest/dom"
-import { observableByMap } from "fest/object";
+import { $trigger, observableByMap } from "fest/object";
 
 //
 import { UIElement } from "@fl-design/base/UIElement"
@@ -57,6 +57,9 @@ export class TabbedBox extends UIElement {
 
         //
         self.currentTab ||= [...self?.tabs?.keys?.() ?? []]?.[0] || "";
+        console.log(self.currentTab);
+
+        //
         E(self, {}, [I({ current: self.getProperty("currentTab"), mapped: self.tabs })])
     }
 
@@ -84,6 +87,8 @@ export class TabbedBox extends UIElement {
             tabButton?.addEventListener("click", (ev) => self.openTab(tabName, ev));
             tabButton.slot = "tabs";
         }
+
+        self?.getProperty?.("currentTab")?.[$trigger]?.();
         return tabButton; //@ts-ignore
     }
 

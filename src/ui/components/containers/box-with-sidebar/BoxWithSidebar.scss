@@ -80,16 +80,18 @@
             gap: 0px;
             pointer-events: none;
 
-            &::slotted([slot="bar"]) {
+            //
+            ::slotted([slot="bar"]) {
                 inline-size: stretch;
                 block-size: stretch;
                 place-content: center;
                 place-items: center;
                 flex-grow: 1;
-                grid-column: 2 / -1;
+                grid-column: 3 / -1;
                 grid-row: 1 / 1 span;
             }
 
+            //
             button {
                 display: flex;
                 flex-direction: row;
@@ -113,17 +115,19 @@
                 grid-row: 1 / 1 span;
                 pointer-events: auto;
 
-
+                //
                 @media (hover: hover) {
                     &:hover {
                         background-color: --c2-surface(0.1, var(--current, currentColor));
                     }
                 }
 
+                //
                 &:active {
                     background-color: --c2-surface(0.1, var(--current, currentColor));
                 }
 
+                //
                 span {
                     display: block;
                     font-size: 0.8rem;
@@ -162,7 +166,7 @@
                 display: flex;
                 flex-direction: column;
                 gap: 0px;
-                grid-column: sidebar-col / button-col;
+                grid-column: 1 / 1 span;
                 grid-row: 2 / -1;
                 z-index: 2;
                 overflow: hidden;
@@ -227,23 +231,28 @@
         .content {
             display: grid !important;
             flex-direction: column;
+
+            //
             inline-size: stretch;
             block-size: stretch;
 
+            //
             max-inline-size: none;
             max-block-size: none;
 
             grid-template-columns: subgrid;
+            grid-template-rows: subgrid;
+
+            //
             grid-template-columns:
                 [sidebar-col] minmax(0px, 0px)
                 [button-col] minmax(0px, var(--button-inline-size))
                 [content-col] minmax(0px, 1fr);
-
-            grid-template-rows: subgrid;
             grid-template-rows: [bar-row] minmax(0px, 4rem) [content-row] minmax(0px, 1fr);
 
-            grid-column: 1 / -1 !important;
-            grid-row: 1 / -1 !important;
+            //
+            grid-column: 1 / -1;
+            grid-row: 1 / -1;
 
             z-index: 1;
             overflow: hidden;
@@ -257,14 +266,15 @@
 
             //
             &::slotted(*) {
+                display: grid;
                 inline-size: stretch;
                 block-size: stretch;
                 flex-grow: 1;
                 place-content: center;
                 place-items: center;
                 box-shadow: none;
-                grid-row: content-row;
-                grid-column: 1 / -1;
+                grid-row: 2 / -1;
+                grid-column: 2 / -1;
                 gap: 0px;
             }
         }

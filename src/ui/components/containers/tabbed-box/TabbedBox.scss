@@ -11,6 +11,7 @@
         --tabbed-indicator-ease: var(--ease-emphasized, cubic-bezier(0.2, 0, 0, 1));
         --tabbed-indicator-duration: var(--duration-normal, 160ms);
 
+        //
         &, :where(*), ::slotted(*) {
             box-sizing: border-box;
             background-color: transparent;
@@ -23,26 +24,31 @@
             -webkit-tap-highlight-color: transparent;
         }
 
+        //
         & {
             display: grid;
             gap: 0px;
             grid-template-columns: minmax(0, 1fr);
-            grid-template-rows: minmax(0, 1fr) minmax(0, max-content);
-            grid-template-areas: "content" "tabs";
+            grid-template-rows:
+                [tabs] minmax(0px, max-content)
+                [content] minmax(0px, 1fr);
             inline-size: stretch;
             block-size: stretch;
             container-type: inline-size;
             padding: 0px;
         }
 
+        //
         :where(.ui-tabbed-box-tabs, .ui-tabbed-box-content) {
             margin: 0;
         }
 
+        //
         .ui-tabbed-box-tabs {
-            margin-block-start: var(--padding-sm);
+            margin-block-end: var(--padding-sm);
 
-            grid-area: tabs;
+            //
+            grid-row: tabs;
             inline-size: stretch;
             block-size: max-content;
             display: flex !important;
@@ -61,6 +67,7 @@
             scroll-behavior: smooth;
             overflow: visible;
 
+            //
             place-content: center;
             place-items: center;
             text-align: center;
@@ -87,9 +94,8 @@
             }
 
             &::before {
-                inset-inline-start: 0;
+                inset-inline-start: 0; transform: scaleX(-1);
                 --scroll-gradient: attr(data-scrollable-start number, 0);
-                transform: scaleX(-1);
             }
 
             &::after {
@@ -194,7 +200,7 @@
         }
 
         .ui-tabbed-box-content {
-            grid-area: content;
+            grid-row: content;
             display: grid;
             inline-size: stretch;
             block-size: stretch;

@@ -3,15 +3,15 @@
 
 //
 @layer md-misc {
-    #markdown   { color-scheme: inherit; font-size: 1em; isolation: isolate; touch-action: pan-y; };
-    #markdown * { color-scheme: inherit; font-size: 1em;  contain-intrinsic-block-size: auto 1em; };
+    :where(#markdown, :host)   { color-scheme: inherit; font-size: inherit; isolation: isolate; touch-action: pan-y; text-align: start; };
+    :where(#markdown, :host) * { color-scheme: inherit; font-size: 1em; contain-intrinsic-block-size: auto 1em; };
 
     //
-    [data-hidden]   #markdown { color-scheme: inherit; content-visibility: auto !important; }
-    [data-dragging] #markdown { color-scheme: inherit; content-visibility: auto !important; :where(*) { content-visibility: auto !important; } }
+    [data-hidden]   :where(#markdown, :host) { color-scheme: inherit; content-visibility: auto !important; }
+    [data-dragging] :where(#markdown, :host) { color-scheme: inherit; content-visibility: auto !important; :where(*) { content-visibility: auto !important; } }
 
     //
-    #markdown {
+    :where(#markdown, :host) {
         touch-action: manipulation;
         pointer-events: auto;
         user-select: text;

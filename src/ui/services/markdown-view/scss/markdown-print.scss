@@ -1,10 +1,10 @@
-$font-stack: "Source Sans 3", "Open Sans", "Ubuntu Sans", "Noto Sans", "Segoe UI", "Helvetica", "Calibri", "Carlito", "Twemoji Country Flags", "Comic Sans", Helvetica, serif, -apple-system, BlinkMacSystemFont, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
-$font-size-base: 0.7em;
+$font-stack: "Noto Serif", "Noto Serif Display", "PT Serif", "IBM Plex Serif", "Literata", "Merriweather", "Source Serif 4", "Georgia", "Cambria", "Palatino Linotype", "Times New Roman", "Times", serif;
+$font-size-base: 1em;
 $page-margin: 10mm 12mm 10mm 12mm;
-$line-height-base: 1.5;
+$line-height-base: 1.6;
 $heading-padding-inline: 0.5em;
 $heading-padding-inline-small: 0.75em;
-$blockquote-margin-inline: 1.75em;
+$blockquote-margin-inline: 1em;
 $blockquote-padding-inline: 1em;
 $table-padding: 0.3em 0.6em;
 $img-max-width: min(min(40%, 50dvi), 50cqi);
@@ -104,12 +104,12 @@ $img-max-width: min(min(40%, 50dvi), 50cqi);
         }
 
         // Headings
-        h1 { @include heading(heading-size(1)); place-self: center; text-align: center; }
-        h2 { @include heading(heading-size(2)); }
+        h1 { @include heading(heading-size(1)); place-self: center; text-align: center; padding-inline: 8rem; }
+        h2 { @include heading(heading-size(2)); place-self: center; text-align: center; padding-inline: 6rem; }
         h3 { @include heading(heading-size(3), $heading-padding-inline-small); margin-block-end: 1rem; }
         h4, h5, h6 { @include heading(heading-size(4), $heading-padding-inline-small); }
 
-        hr { margin-block: 0.25em; display: block; block-size: 1px; margin: 2em 1em; }
+        hr { margin-block: 2em; display: block; block-size: 1px; margin-inline: 4em; inline-size: calc(100% - 8em); text-align: center; place-self: center; }
         hr:only-child { display: none !important; }
 
         // Lists
@@ -134,6 +134,12 @@ $img-max-width: min(min(40%, 50dvi), 50cqi);
             text-indent: 0em;
             p { display: inline; white-space: normal; }
             &::marker { display: inline; white-space: nowrap; }
+        }
+
+        //
+        blockquote, blockquote p, blockquote > * {
+            text-align: start;
+            margin-inline: 0px;
         }
 
         // Blockquote
@@ -257,6 +263,7 @@ $img-max-width: min(min(40%, 50dvi), 50cqi);
             touch-action: manipulation;
             pointer-events: auto;
             user-select: text;
+            text-align: start;
         }
         .markdown-body[data-print] {
             background-color: transparent;
@@ -269,10 +276,12 @@ $img-max-width: min(min(40%, 50dvi), 50cqi);
             max-block-size: none;
             overflow: hidden;
             font-size: 1em;
+            text-align: start;
         }
         .markdown-body {
             touch-action: manipulation;
             pointer-events: auto;
+            text-align: start;
         }
     }
 }

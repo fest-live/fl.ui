@@ -214,7 +214,7 @@
 
             & { max-block-size: none; }
 
-            ::slotted(*) {
+            &::slotted(*) {
                 inline-size: 100%;
                 block-size: 100%;
                 //padding-inline: var(--tabbed-padding-inline);
@@ -224,6 +224,10 @@
                 overflow: auto;
                 scrollbar-gutter: stable both-edges;
                 @include scrollbar();
+            }
+
+            &::slotted([aria-hidden="true"], [data-hidden], :not([data-active])) {
+                display: none !important;
             }
         }
 

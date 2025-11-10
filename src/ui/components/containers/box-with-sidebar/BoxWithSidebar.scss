@@ -277,6 +277,10 @@
                 grid-column: 2 / -1;
                 gap: 0px;
             }
+
+            &::slotted([aria-hidden="true"], [data-hidden], :not([data-active])) {
+                display: none !important;
+            }
         }
 
         @container (min-inline-size: 800px) {

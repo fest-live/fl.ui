@@ -88,7 +88,7 @@
         }
 
         .row, ::slotted(.row) {
-            display: grid !important;
+            display: grid;
             grid-template-rows: 2.5rem !important;
             grid-column: 1 / -1;
             order: var(--order, 1) !important;
@@ -104,6 +104,9 @@
             pointer-events: auto;
             touch-action: manipulation;
             block-size: 3rem;
+            --background-tone-shift: 0;
+            background: --c2-surface(var(--background-tone-shift), var(--current, transparent));
+            background-color: --c2-surface(var(--background-tone-shift), var(--current, transparent));
 
             text-align: start;
             text-wrap: nowrap;
@@ -162,7 +165,7 @@
             pointer-events: auto;
         }
 
-        .row:hover, ::slotted(.row:hover) { --background-tone-shift: 0.04; background-color: --c2-surface(var(--background-tone-shift, 0), var(--current, transparent)); }
+        .row:hover, ::slotted(.row:hover) { --background-tone-shift: 0.04; }
 
         //
         .actions {
@@ -191,7 +194,10 @@
         .action-btn {
             appearance: none;
             border: none;
-            background-color: transparent;
+            --action-btn-bg: transparent;
+            --action-btn-icon: --c2-on-surface(0.7, var(--current, currentColor));
+            background: var(--action-btn-bg);
+            background-color: var(--action-btn-bg);
             padding: 0.375rem;
             border-radius: 0rem;
             cursor: pointer;
@@ -221,7 +227,8 @@
             }
 
             &:hover {
-                background: --c2-surface(0.06, var(--current, transparent));
+                --action-btn-bg: --c2-surface(0.06, var(--current, transparent));
+                --action-btn-icon: --c2-on-surface(0.9, var(--current, currentColor));
                 &::before { opacity: 1; }
             }
 
@@ -235,32 +242,22 @@
                 block-size: stretch;
                 min-inline-size: 0.875rem;
                 min-block-size: 0.875rem;
-                color: --c2-on-surface(0.7, var(--current, currentColor));
+                color: var(--action-btn-icon);
                 transition: color 0.15s cubic-bezier(0.4, 0, 0.2, 1);
-                --icon-color: --c2-on-surface(0.7, var(--current, currentColor));
-            }
-
-            &:hover ui-icon {
-                color: --c2-on-surface(0.9, var(--current, currentColor));
+                --icon-color: var(--action-btn-icon);
             }
 
             &[title*="Delete"] {
                 &:hover {
-                    background: --c2-error(0.1, var(--current, transparent));
-
-                    ui-icon {
-                        color: --c2-error(0.8, var(--current, currentColor));
-                    }
+                    --action-btn-bg: --c2-error(0.1, var(--current, transparent));
+                    --action-btn-icon: --c2-error(0.8, var(--current, currentColor));
                 }
             }
 
             &[title*="Copy"] {
                 &:hover {
-                    background: --c2-primary(0.1, var(--current, transparent));
-
-                    ui-icon {
-                        color: --c2-primary(0.8, var(--current, currentColor));
-                    }
+                    --action-btn-bg: --c2-primary(0.1, var(--current, transparent));
+                    --action-btn-icon: --c2-primary(0.8, var(--current, currentColor));
                 }
             }
         }

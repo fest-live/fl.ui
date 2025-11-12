@@ -1,3 +1,6 @@
+@use "veela-lib" as *;
+
+//
 @layer ux-file-manager-content {
     $row-grid:        [icon] minmax(0px, 2.5rem) [name] minmax(0px, 1fr) [size] minmax(0px, 3rem) [date] minmax(0px, 8rem) [actions] minmax(8rem, max-content);
     $row-grid-mobile: [icon] minmax(0px, 2.5rem) [name] minmax(0px, 1fr) [size] minmax(0px, 3rem) [date] minmax(0px, 0px)  [actions] minmax(8rem, max-content);
@@ -24,12 +27,12 @@
             contain: none;
             isolation: isolate;
             container-type: size;
-            background-color: --c2-surface(0, var(--current, transparent));
 
             touch-action: manipulation;
             pointer-events: auto;
-        }
 
+            @include solid-colorize("&");
+        }
 
         /* Grid with subgrid columns */
         .fm-grid {
@@ -66,7 +69,6 @@
             //scrollbar-color: transparent transparent;
             scrollbar-gutter: auto;
 
-
             scrollbar-width: thin;
             scrollbar-color: --c2-on-surface(0.0, var(--current, currentColor)) transparent;
 
@@ -88,6 +90,8 @@
         }
 
         .row, ::slotted(.row) {
+            @include solid-colorize("&");
+
             display: grid;
             grid-template-rows: 2.5rem !important;
             grid-column: 1 / -1;
@@ -100,13 +104,10 @@
             justify-items: start;
             padding: 0.25rem 0.375rem;
             border-radius: 0.375rem;
-            cursor: default;
+            cursor: pointer;
             pointer-events: auto;
             touch-action: manipulation;
             block-size: 3rem;
-            --background-tone-shift: 0;
-            background: --c2-surface(var(--background-tone-shift), var(--current, transparent));
-            background-color: --c2-surface(var(--background-tone-shift), var(--current, transparent));
 
             text-align: start;
             text-wrap: nowrap;
@@ -117,11 +118,25 @@
             gap: 0.25rem;
             flex-wrap: nowrap;
 
+            background-color: var(--surface-color, transparent);
+
+            &:hover { --color-shade: var(--hover-lift, 0.04); }
+            &:active { --color-shade: var(--active-lift, 0.06); }
+            &:is(:focus, :focus-visible) { --color-shade: var(--focus-lift, 0.02); }
+
             ui-icon {
                 inline-size: 1.25rem;
                 block-size: 1.25rem;
                 place-content: center;
                 place-items: center;
+            }
+
+            a, span {
+                background-color: transparent;
+            }
+
+            & > * {
+                background-color: transparent;
             }
         }
 
@@ -140,11 +155,7 @@
             justify-content: start;
         }
 
-        .icon {
-            grid-column: icon;
-            place-content: center;
-            place-items: center;
-        }
+        .icon { grid-column: icon; place-content: center; place-items: center; }
         .name { grid-column: name; inline-size: stretch; };
         .size { grid-column: size; };
         .date { grid-column: date; };
@@ -159,19 +170,8 @@
             .date { display: none !important; };
         }
 
-        .row:hover .actions, ::slotted(.row:hover) .actions {
-            opacity: 1;
-            transform: translateY(0);
-            pointer-events: auto;
-        }
-
-        .row:hover, ::slotted(.row:hover) { --background-tone-shift: 0.04; }
-
         //
         .actions {
-            background: --c2-surface(0.02, var(--current, transparent));
-            transform: translateY(-0.125rem);
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
             pointer-events: none;
             padding: 0rem;
             max-inline-size: stretch;
@@ -194,10 +194,6 @@
         .action-btn {
             appearance: none;
             border: none;
-            --action-btn-bg: transparent;
-            --action-btn-icon: --c2-on-surface(0.7, var(--current, currentColor));
-            background: var(--action-btn-bg);
-            background-color: var(--action-btn-bg);
             padding: 0.375rem;
             border-radius: 0rem;
             cursor: pointer;
@@ -216,52 +212,13 @@
             overflow: visible;
             box-shadow: none;
 
-            &::before {
-                content: '';
-                position: absolute;
-                inset: 0;
-                background: --c2-surface(0.08, var(--current, transparent));
-                opacity: 0;
-                transition: opacity 0.15s cubic-bezier(0.4, 0, 0.2, 1);
-                border-radius: inherit;
-            }
-
-            &:hover {
-                --action-btn-bg: --c2-surface(0.06, var(--current, transparent));
-                --action-btn-icon: --c2-on-surface(0.9, var(--current, currentColor));
-                &::before { opacity: 1; }
-            }
-
-            &:focus-visible {
-                outline: 0.125rem solid --c2-primary(0.6, var(--current, currentColor));
-                outline-offset: 0.125rem;
-            }
-
             ui-icon {
                 inline-size: stretch;
                 block-size: stretch;
                 min-inline-size: 0.875rem;
                 min-block-size: 0.875rem;
-                color: var(--action-btn-icon);
-                transition: color 0.15s cubic-bezier(0.4, 0, 0.2, 1);
-                --icon-color: var(--action-btn-icon);
-            }
-
-            &[title*="Delete"] {
-                &:hover {
-                    --action-btn-bg: --c2-error(0.1, var(--current, transparent));
-                    --action-btn-icon: --c2-error(0.8, var(--current, currentColor));
-                }
-            }
-
-            &[title*="Copy"] {
-                &:hover {
-                    --action-btn-bg: --c2-primary(0.1, var(--current, transparent));
-                    --action-btn-icon: --c2-primary(0.8, var(--current, currentColor));
-                }
             }
         }
-
 
         .fm-grid-header {
             position: sticky !important;
@@ -270,7 +227,6 @@
             inset-block-start: 0;
             z-index: 8;
             padding: 0.25rem 0.375rem;
-            background: --c2-surface(0.02, var(--current, transparent));
             border-radius: 0.375rem;
             font-size: 0.875em;
             opacity: 1;
@@ -299,7 +255,6 @@
                 inline-size: stretch;
                 block-size: fit-content;
                 box-shadow: none;
-                background-color: transparent;
                 padding: 0rem;
                 max-inline-size: stretch;
                 border-radius: 0rem;

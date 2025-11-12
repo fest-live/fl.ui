@@ -147,11 +147,11 @@ export class FileManagerContent extends UIElement {
                 on:dblclick=${(ev: MouseEvent) => operative.onRowDblClick?.(item, ev)}
                 on:dragstart=${(ev: DragEvent) => operative.onRowDragStart?.(item, ev)}
             >
-                <div class="c icon"><ui-icon icon=${computed(item, ()=>{ return iconFor(item); })} /></div>
-                <div class="c name" title=${propRef(item, "name")}>${propRef(item, "name")}</div>
-                <div class="c size">${conditionalRef(computed(item, ()=>{ return item?.kind == "file"; }), propRef(item, "size"), "")}</div>
-                <div class="c date">${conditionalRef(computed(item, ()=>{ return item?.kind == "file"; }), computed(propRef(item, "lastModified"), (val)=>{ return getFormattedDate(val ?? 0); }), "")}</div>
-                <div class="c actions">
+                <div style="background-color: transparent;" class="c icon"><ui-icon icon=${computed(item, ()=>{ return iconFor(item); })} /></div>
+                <div style="background-color: transparent;" class="c name" title=${propRef(item, "name")}>${propRef(item, "name")}</div>
+                <div style="background-color: transparent;" class="c size">${conditionalRef(computed(item, ()=>{ return item?.kind == "file"; }), propRef(item, "size"), "")}</div>
+                <div style="background-color: transparent;" class="c date">${conditionalRef(computed(item, ()=>{ return item?.kind == "file"; }), computed(propRef(item, "lastModified"), (val)=>{ return getFormattedDate(val ?? 0); }), "")}</div>
+                <div style="background-color: transparent;" class="c actions">
                     <button class="action-btn" title="Copy Path" on:click=${(ev: MouseEvent) => { ev.stopPropagation(); operative.onMenuAction?.(item, "copyPath", ev); }}>
                         <ui-icon icon="copy" />
                     </button>

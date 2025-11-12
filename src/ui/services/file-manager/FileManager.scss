@@ -1,3 +1,6 @@
+@use "veela-lib" as *;
+
+//
 @layer ux-file-manager {
 
     :host(ui-file-manager) {
@@ -12,7 +15,6 @@
             margin: 0px;
             line-height: 0;
             box-sizing: border-box;
-            background-color: transparent;
             user-select: none;
             -webkit-tap-highlight-color: transparent;
         }
@@ -22,10 +24,11 @@
             display: grid;
             inline-size: stretch;
             block-size: stretch;
-            background-color: --c2-surface(0, var(--current, transparent));
             content-visibility: auto;
             border-radius: 0.5rem;
             overflow: hidden;
+
+            @include solid-colorize("&");
         }
 
         .fm-root {
@@ -36,9 +39,6 @@
             inline-size: stretch;
             block-size: stretch;
             overflow: hidden;
-
-            //&[data-with-sidebar="true"] { grid-template-columns: [content-col] minmax(0px, 1fr) [sidebar-col] minmax(0px, max-content); }
-            //&[data-with-sidebar="false"] { grid-template-columns: [content-col] minmax(0px, 1fr); }
         }
 
         .fm-toolbar {
@@ -50,7 +50,6 @@
             place-content: center;
             place-items: center;
             gap: 0.5rem;
-            background: --c2-surface(0, var(--current, transparent));
             border-radius: 0.5rem;
             padding: 0.25rem;
             line-height: 0;
@@ -59,17 +58,12 @@
                 transition: background 0.1s ease-in-out;
                 appearance: none;
                 border: 0;
-                --fm-toolbar-btn-bg: transparent;
-                background: var(--fm-toolbar-btn-bg);
-                background-color: var(--fm-toolbar-btn-bg);
                 padding: 0.65rem;
                 border-radius: 0rem;
                 cursor: pointer;
                 inline-size: 2.5rem;
                 block-size: 2.5rem;
                 aspect-ratio: 1 / 1;
-
-                &:hover { --fm-toolbar-btn-bg: --c2-surface(0.06, var(--current, transparent)); }
             }
 
             & > * {
@@ -82,10 +76,16 @@
                 border-radius: 0.5rem;
                 padding: 0rem;
                 overflow: hidden;
-                background: --c2-surface(0.03, var(--current, transparent));
             }
 
-            & .fm-toolbar-left { grid-column: 1; }
+            & .fm-toolbar-left {
+                grid-column: 1;
+            }
+
+            & .fm-toolbar-left, & .fm-toolbar-right {
+                border-radius: var(--radius-md, 0.25rem);
+            }
+
             & .fm-toolbar-center {
                 grid-column: 2;
                 flex-grow: 1;
@@ -106,18 +106,14 @@
 
                 & input {
                     padding-inline: 0.5rem;
-                    background-color: --c2-surface(0.04, var(--current, transparent));
                     inline-size: stretch;
                     border: none 0px transparent;
                     outline: none 0px transparent;
                 }
             }
-            & .fm-toolbar-right { grid-column: 3; }
 
-            & ui-longtext {
-                background-color: --c2-surface(0.02, var(--current, transparent));
-                --ui-text-background-color: --c2-surface(0.02, var(--current, transparent));
-            }
+            //
+            & .fm-toolbar-right { grid-column: 3; }
         }
 
         .fm-sidebar {
@@ -128,7 +124,6 @@
             gap: 0.5rem;
             padding: 0.5rem;
             border-radius: 0.5rem;
-            background: --c2-surface(0.02, var(--current, transparent));
             line-height: normal;
             justify-content: start;
             justify-items: start;
@@ -153,15 +148,11 @@
                 text-align: start;
                 appearance: none;
                 border: 0;
-                --fm-sidebar-link-bg: transparent;
-                background: var(--fm-sidebar-link-bg);
-                background-color: var(--fm-sidebar-link-bg);
                 padding: 0.25rem 0.375rem;
                 border-radius: 0.375rem;
                 cursor: pointer;
                 line-height: normal;
             }
-            .link:hover { --fm-sidebar-link-bg: --c2-surface(0.06, var(--current, transparent)); }
         }
 
         .fm-content {
@@ -171,7 +162,6 @@
             block-size: stretch;
             overflow: auto;
             border-radius: 0.5rem;
-            background-color: --c2-surface(0.0, var(--current, transparent));
             padding: 0.25rem;
 
             scrollbar-width: none;

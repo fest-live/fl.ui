@@ -1,10 +1,8 @@
-import { initialize, preloadStyle } from "fest/dom";
+import { preloadStyle } from "fest/dom";
 import { defineElement, GLitElement, H, property } from "fest/lure";
 
 // @ts-ignore
 import styles from "fest/veela";
-
-//
 const styled = preloadStyle(styles);
 
 // @ts-ignore
@@ -32,12 +30,7 @@ export class UIElement extends GLitElement() {
     onInitialize() {
         super.onInitialize();
         const self : any = this;
-
-        //
-        initialize(self?.shadowRoot)?.then?.((style)=>{
-            self.loadStyleLibrary(style);
-            self.loadStyleLibrary(styled);
-        });
+        self.loadStyleLibrary(styled?.cloneNode?.(true));
     }
 }
 

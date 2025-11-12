@@ -1,4 +1,4 @@
-import { initialize, loadInlineStyle, preloadStyle } from "fest/dom";
+import { loadInlineStyle, preloadStyle } from "fest/dom";
 import { UIPhosphorIcon } from "fest/icon";
 console.log(UIPhosphorIcon);
 
@@ -6,7 +6,7 @@ console.log(UIPhosphorIcon);
 import styles from "./index.scss?inline";
 
 //
-initialize();
+//initialize();
 loadInlineStyle(styles);
 
 //

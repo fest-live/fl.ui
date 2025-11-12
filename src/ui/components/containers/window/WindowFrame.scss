@@ -10,11 +10,6 @@
     // Main styles
     :host(ui-window-frame) {
         // Reset all elements
-        &, :where(*) {
-            @include m.reset-styles;
-        }
-
-        //
         &, :where(*), ::slotted(*) {
             user-select: none;
             user-drag: none;

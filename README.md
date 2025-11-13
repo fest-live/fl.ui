@@ -1,3 +1,3 @@
 # 💐 FL.UI 💐
 
-🚧 full rehaul of our UI systems... full restart of UI project. 🚧
+🚧 Full reboot of our UI systems... full restart of UI project. 🚧

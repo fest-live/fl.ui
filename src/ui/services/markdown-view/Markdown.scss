@@ -4,7 +4,7 @@
 //
 @layer md-misc {
     :where(#markdown, :host)   { color-scheme: inherit; font-size: inherit; isolation: isolate; touch-action: pan-y; text-align: start; };
-    :where(#markdown, :host) * { color-scheme: inherit; font-size: 1em; contain-intrinsic-block-size: auto 1em; };
+    :where(#markdown, :host) * { color-scheme: inherit; contain-intrinsic-block-size: auto 1em; };
 
     //
     [data-hidden]   :where(#markdown, :host) { color-scheme: inherit; content-visibility: auto !important; }

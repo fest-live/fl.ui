@@ -2,7 +2,7 @@ $font-stack: "Noto Serif", "Noto Serif Display", "PT Serif", "IBM Plex Serif", "
 $font-size-base: 1em;
 $page-margin: 10mm 12mm 10mm 12mm;
 $line-height-base: 1.6;
-$heading-padding-inline: 0.5em;
+$heading-padding-inline: 0.25em;
 $heading-padding-inline-small: 0.75em;
 $blockquote-margin-inline: 1em;
 $blockquote-padding-inline: 1em;
@@ -17,14 +17,15 @@ $img-max-width: min(min(40%, 50dvi), 50cqi);
 }
 
 @mixin heading($size, $padding: $heading-padding-inline) {
+    $h-size: calc(3 - clamp(1, sqrt($size) * 0.9, 2));
     font-weight: bold;
-    font-size: $size;
+    font-size: calc($h-size * 1em);
     padding-inline: $padding;
-    margin-block-end: calc($size * 0.25);
-    margin-block-start: calc($size * 0.75);
-    text-align: start;
+    margin-block-end: calc($h-size * 0.333em);
+    margin-block-start: calc($h-size * 0.5em);
     display: block;
     line-height: 1.4;
+    text-align: start;
     @include break(auto, avoid-page, avoid-page);
 }
 
@@ -59,7 +60,7 @@ $img-max-width: min(min(40%, 50dvi), 50cqi);
 
 // === Main layer for printing ===
 @layer md-print {
-    [data-print] {
+    [data-print], :host, #markdown, .markdown-body {
         math {
             math-style: normal;
             math-shift: normal;
@@ -104,10 +105,10 @@ $img-max-width: min(min(40%, 50dvi), 50cqi);
         }
 
         // Headings
-        h1 { @include heading(heading-size(1)); place-self: center; text-align: center; padding-inline: 8rem; }
-        h2 { @include heading(heading-size(2)); place-self: center; text-align: center; padding-inline: 6rem; }
-        h3 { @include heading(heading-size(3), $heading-padding-inline-small); margin-block-end: 1rem; }
-        h4, h5, h6 { @include heading(heading-size(4), $heading-padding-inline-small); }
+        h1 { @include heading(1); place-self: center; text-align: center; padding-inline: 8rem; }
+        h2 { @include heading(2); place-self: center; text-align: center; padding-inline: 6rem; }
+        h3 { @include heading(3, $heading-padding-inline-small); margin-block-end: 1rem; }
+        h4, h5, h6 { @include heading(4, $heading-padding-inline-small); }
 
         hr { margin-block: 2em; display: block; block-size: 1px; margin-inline: 4em; inline-size: calc(100% - 8em); text-align: center; place-self: center; }
         hr:only-child { display: none !important; }

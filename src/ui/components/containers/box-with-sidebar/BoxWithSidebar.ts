@@ -60,3 +60,6 @@ export class BoxWithSidebar extends UIElement {
     <div part="content-box" class="content-box"><div part="sidebar" class="sidebar" data-visible=${this.sidebarOpened}><slot name="sidebar"></slot></div><div part="content" class="content"><slot></slot></div></div>`;
     }
 }
+
+//
+export default BoxWithSidebar;

@@ -49,10 +49,17 @@ class TabChangedEvent extends Event {
 }
 
 
+//
+const normalizeTabPosition = (value?: string): "top" | "bottom" => {
+    const normalized = String(value ?? "bottom").trim().toLowerCase();
+    return normalized === "top" ? "top" : "bottom";
+}
+
 // @ts-ignore
 @defineElement("ui-tabbed-box")
 export class TabbedBox extends UIElement {
     @property({ source: "attr" }) currentTab?: string = "";
+    @property({ source: "attr", name: "tab-position" }) tabPosition?: string = "bottom";
 
     //
     constructor() { super(); const self: any = this; self.currentTab ??= ""; }
@@ -116,8 +123,15 @@ export class TabbedBox extends UIElement {
     styles = () => styled?.cloneNode?.(true);
 
     //
+    private syncTabPositionAttr(position: "top" | "bottom") {
+        const host = this as unknown as HTMLElement;
+        host?.setAttribute?.("data-tab-position", position);
+    }
+
     render = function () {
         const self: any = this;
+        const tabPosition = normalizeTabPosition(self.tabPosition);
+        self.syncTabPositionAttr?.(tabPosition);
         const root = H`
         <form class="ui-tabbed-box-tabs" part="tabs">${M(observableByMap(self.tabs ?? new Map()) ?? [], (key_value) => this.createTab(key_value?.[0]))}</form>
         <div class="ui-tabbed-box-content" part="content"><slot></slot></div>`

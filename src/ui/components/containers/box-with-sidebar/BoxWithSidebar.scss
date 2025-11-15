@@ -43,6 +43,7 @@
             container-type: inline-size;
             gap: 0px;
             padding: var(--padding-sm);
+            perspective: 1000;
 
             //
             @container (min-inline-size: 800px) {
@@ -152,10 +153,12 @@
             z-index: 1;
             border-radius: 0.25rem;
             overflow: hidden;
-            background-color: transparent;
             box-shadow: none;
             contain: none;
             gap: 0px;
+
+            background: none;
+            background-color: transparent;
 
             @include container-clamped(stretch, stretch);
         }
@@ -256,6 +259,8 @@
 
             z-index: 1;
             overflow: hidden;
+
+            background: none;
             background-color: transparent;
 
             box-shadow: none;

@@ -10,6 +10,11 @@
         --tabbed-indicator-height: 0.2rem;
         --tabbed-indicator-ease: var(--ease-emphasized, cubic-bezier(0.2, 0, 0, 1));
         --tabbed-indicator-duration: var(--duration-normal, 160ms);
+        --tabbed-bar-block-size: clamp(3.5rem, 1cqb + 2.5rem, 4.25rem);
+        --tabbed-tabs-block-gap: var(--padding-sm, 0.75rem);
+        --tabbed-grid-rows:
+            [content-row] minmax(0px, 1fr)
+            [tabs-row] minmax(0px, var(--tabbed-bar-block-size));
 
         //
         &, :where(*), ::slotted(*) {
@@ -26,16 +31,21 @@
 
         //
         & {
-            display: grid;
+            display: grid !important;
             gap: 0px;
-            grid-template-columns: minmax(0, 1fr);
-            grid-template-rows:
-                [content] minmax(0px, 1fr)
-                [tabs] minmax(0px, max-content);
+            grid-template-columns: minmax(0px, 1fr) !important;
+            grid-template-rows: var(--tabbed-grid-rows) !important;
             inline-size: stretch;
             block-size: stretch;
             container-type: inline-size;
             padding: 0px;
+            perspective: 1000;
+        }
+
+        &[data-tab-position="top"] {
+            --tabbed-grid-rows:
+                [tabs-row] minmax(0px, var(--tabbed-bar-block-size))
+                [content-row] minmax(0px, 1fr);
         }
 
         //
@@ -45,10 +55,11 @@
 
         //
         .ui-tabbed-box-tabs {
-            margin-block-end: var(--padding-sm);
+            margin-block: 0;
+            margin-block-start: var(--tabbed-tabs-block-gap);
 
             //
-            grid-row: tabs;
+            grid-row: tabs-row;
             inline-size: stretch;
             block-size: max-content;
             display: flex !important;
@@ -115,6 +126,7 @@
                 flex-wrap: nowrap;
                 text-wrap: nowrap;
                 flex-shrink: 0;
+                grid-column: 1 / -1;
 
                 //
                 position: relative;
@@ -151,7 +163,6 @@
                     position: absolute;
                     inset-inline: clamp(0.75rem, 3cqi, 1.5rem);
                     inset-block-end: calc(var(--tabbed-indicator-height) * -1);
-                    //inset-block-start: -0.125rem;
                     block-size: var(--tabbed-indicator-height);
                     border-radius: var(--tabbed-indicator-height);
                     background: currentColor;
@@ -199,8 +210,22 @@
             }
         }
 
+        &[data-tab-position="top"] {
+            .ui-tabbed-box-tabs {
+                margin-block-start: 0;
+                margin-block-end: var(--tabbed-tabs-block-gap);
+            }
+        }
+
+        &[data-tab-position="bottom"] .ui-tabbed-box-tab::after {
+            inset-block-start: calc(var(--tabbed-indicator-height) * -1);
+            inset-block-end: auto;
+            transform: translate3d(0, -50%, 0) scaleX(0.6);
+        }
+
         .ui-tabbed-box-content {
-            grid-row: content;
+            grid-row: content-row;
+            grid-column: 1 / -1;
             display: grid;
             inline-size: stretch;
             block-size: stretch;
@@ -215,8 +240,10 @@
             & { max-block-size: none; }
 
             &::slotted(*) {
-                inline-size: 100%;
-                block-size: 100%;
+                inline-size: stretch;
+                block-size: stretch;
+                grid-column: 1 / -1;
+                grid-row: 1 / -1;
                 //padding-inline: var(--tabbed-padding-inline);
                 //padding-block: var(--tabbed-padding-block);
                 line-height: var(--leading-normal, 1.5);

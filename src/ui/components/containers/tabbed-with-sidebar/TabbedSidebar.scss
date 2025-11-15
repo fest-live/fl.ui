@@ -3,8 +3,7 @@
 //
 @layer tabbed-with-sidebar {
     :host {
-
-
+        --tabbed-min-bar-size: 3rem;
         --tabbed-gap: var(--gap-sm, 0.5rem);
         --tabbed-radius: var(--radius-lg, 0.75rem);
         --tabbed-padding-inline: clamp(0.5rem, 1cqi + 0.5rem, 1.25rem);
@@ -13,6 +12,13 @@
         --tabbed-indicator-height: 0.2rem;
         --tabbed-indicator-ease: var(--ease-emphasized, cubic-bezier(0.2, 0, 0, 1));
         --tabbed-indicator-duration: var(--duration-normal, 160ms);
+        --tabbed-close-size: clamp(1.5rem, 1cqi + 0.5rem, 1.9rem);
+        --tabbed-close-color: color-mix(in oklch, var(--md3-on-surface) 65%, transparent);
+        --tabbed-bar-block-size: clamp(3.5rem, 1cqb + 2.5rem, 4.25rem);
+        --tabbed-grid-rows:
+            [bar-row] minmax(var(--tabbed-min-bar-size), var(--tabbed-bar-block-size))
+            [content-row] minmax(0px, 1fr);
+        --tabbed-tabs-block-gap: var(--padding-sm, 0.75rem);
 
         //
         &, :where(*), ::slotted(*) {
@@ -38,8 +44,8 @@
         }
 
         & {
-            --button-inline-size: 4rem;
-            --sidebar-inline-grid-size: max-content;
+            --button-inline-size: var(--tabbed-min-bar-size);
+            --sidebar-inline-grid-size: 0px;//max-content;
 
             //
             display: grid !important;
@@ -47,27 +53,20 @@
                 [sidebar-col] minmax(0px, var(--sidebar-inline-grid-size))
                 [button-col] minmax(0px, var(--button-inline-size))
                 [content-col] minmax(0px, 1fr) !important;
-            grid-template-rows:
-                [bar-row] minmax(0px, 4rem)
-                [content-row] minmax(0px, 1fr) !important;
+            grid-template-rows: var(--tabbed-grid-rows) !important;
             inline-size: stretch;
             block-size: stretch;
             position: relative;
             background-color: transparent;
+            background: none;
             container-type: inline-size;
             gap: 0px;
             padding: var(--padding-sm);
+            perspective: 1000;
 
             //
-            @container (min-inline-size: 800px) {
-                --button-inline-size: 0px;
-            }
-
-            //
-            @container (max-inline-size: 800px) {
-                padding: 0px;
-                --sidebar-inline-grid-size: 0px;
-            }
+            place-content: space-evenly !important;
+            place-items: center !important;
         }
 
         // bar
@@ -75,34 +74,41 @@
             display: grid;
             flex-direction: row;
             inline-size: stretch;
-            min-block-size: 2rem;
-            block-size: fit-content;
-            max-block-size: stretch;
+            min-block-size: fit-content;
+            block-size: var(--tabbed-min-bar-size);
+            max-block-size: var(--tabbed-min-bar-size);
+            box-sizing: border-box;
+
             grid-column: 1 / -1;
             grid-row: bar-row;
             z-index: 3;
             background-color: transparent;
-            color: --c2-on-surface(0.0, var(--current, currentColor));
-            overflow: hidden;
+            overflow: visible;
             place-content: center;
             place-items: center;
             box-shadow: none;
-            padding: 0px;
-            padding-inline: 0px;
-            grid-template-columns: subgrid;
-            grid-template-rows: minmax(0px, max-content);
-            gap: 0px;
-            pointer-events: none;
+            padding-inline: var(--space-sm);
+            gap: var(--space-sm);
 
-            //
+            /*grid-template-columns: subgrid;*/
+            grid-template-rows: minmax(0px, max-content);
+            pointer-events: none;
+            grid-template-columns:
+                [sidebar-col] minmax(0px, var(--sidebar-inline-grid-size))
+                [button-col] minmax(0px, var(--button-inline-size))
+                [content-col] minmax(0px, 1fr);
+
+            /* */
             .ui-tabbed-box-tabs {
-                margin-block-end: var(--padding-sm);
+                margin-block: 0;
+                //margin-block-end: var(--tabbed-tabs-block-gap);
                 grid-column: 3 / -1;
                 grid-row: 1 / 1 span;
 
                 //
                 inline-size: stretch;
-                block-size: max-content;
+                block-size: stretch;
+                min-block-size: 0px;
                 display: flex !important;
                 flex-wrap: nowrap;
                 flex-direction: row;
@@ -112,25 +118,30 @@
                 padding-inline: calc(var(--tabbed-padding-inline) * 0.5);
                 position: relative;
                 pointer-events: auto;
-                border-radius: var(--tabbed-radius);
+                border-radius: 50cqmin;
                 scrollbar-gutter: stable;
                 overscroll-behavior-inline: contain;
                 touch-action: pan-x;
                 scroll-behavior: smooth;
-                overflow: visible;
+                overflow: hidden;
 
                 //
-                place-content: center;
-                place-items: center;
-                text-align: center;
+                place-content: center flex-start;
+                place-items: center flex-start;
+                text-align: start;
 
                 //
-                justify-content: safe center;
-                justify-items: safe center;
+                justify-content: safe flex-start;
+                justify-items: safe flex-start;
 
                 //
                 @include scrollable("x");
                 @include surface(var(--surface-opacity-subtle));
+            }
+
+            :host([data-tab-position="bottom"]) & .ui-tabbed-box-tabs {
+                margin-block-start: var(--tabbed-tabs-block-gap);
+                margin-block-end: 0;
             }
 
             //
@@ -179,12 +190,14 @@
                 flex-wrap: nowrap;
                 text-wrap: nowrap;
                 flex-shrink: 0;
+                gap: clamp(0.125rem, 0.35cqi, 0.35rem);
 
                 //
                 position: relative;
                 border-radius: var(--radius-full);
-                padding-inline: calc(var(--tabbed-padding-inline) * 0.6);
                 padding-block: calc(var(--tabbed-padding-block) * 0.6);
+                padding-inline: calc(var(--tabbed-padding-inline) * 0.6);
+                padding-inline-end: calc(var(--tabbed-padding-inline) * 0.35);
                 letter-spacing: 0.01em;
                 cursor: pointer;
                 isolation: isolate;
@@ -192,9 +205,9 @@
                 background-color: transparent;
 
                 //
-                place-content: center;
-                place-items: center;
-                text-align: center;
+                place-content: center flex-start;
+                place-items: center flex-start;
+                text-align: start;
 
                 //
                 transition: color var(--duration-normal) var(--ease-out), transform var(--duration-fast) var(--ease-emphasized);
@@ -206,14 +219,15 @@
                 @include button-overlays(var(--md3-primary));
 
                 //
-                & { min-inline-size: 4rem; inline-size: max-content; max-inline-size: none; }
+                & { min-inline-size: var(--tabbed-min-bar-size); inline-size: max-content; max-inline-size: none; }
 
                 //
                 &::after {
                     overflow: visible;
                     content: "";
                     position: absolute;
-                    inset-inline: clamp(0.75rem, 3cqi, 1.5rem);
+                    inset-inline: clamp(0.5rem, 4cqi, 1rem);
+                    inset-inline-end: 3rem;
                     inset-block-end: calc(var(--tabbed-indicator-height) * -1);
                     //inset-block-start: -0.125rem;
                     block-size: var(--tabbed-indicator-height);
@@ -224,9 +238,17 @@
                     transition: transform var(--tabbed-indicator-duration) var(--tabbed-indicator-ease),
                                 opacity var(--tabbed-indicator-duration) var(--tabbed-indicator-ease);
 
+                    //place-self: center;
                     place-content: center;
                     place-items: center;
+
                     text-align: center;
+                }
+
+                :host([data-tab-position="bottom"]) &::after {
+                    inset-block-start: calc(var(--tabbed-indicator-height) * -1);
+                    inset-block-end: auto;
+                    transform: translate3d(0, -50%, 0) scaleX(0.6);
                 }
 
                 &:where([aria-selected="true"], [data-active], .is-active, .active) {
@@ -249,6 +271,68 @@
                 &:disabled {
                     opacity: var(--state-opacity-disabled, 0.38);
                 }
+
+                .ui-tabbed-box-tab-label {
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: flex-start;
+                    gap: var(--gap-3xs, 0.2rem);
+                    color: inherit;
+                    pointer-events: none;
+                    text-align: inherit;
+                    line-height: var(--leading-tight, 1.1);
+                }
+
+                .ui-tabbed-box-tab-close {
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    inline-size: var(--tabbed-close-size);
+                    block-size: var(--tabbed-close-size);
+                    min-inline-size: var(--tabbed-close-size);
+                    border-radius: var(--radius-full);
+                    margin-inline-start: clamp(0.1rem, 0.5cqi, 0.3rem);
+                    color: var(--tabbed-close-color);
+                    background-color: transparent;
+                    border: none;
+                    outline: none;
+                    flex-shrink: 0;
+                    transition:
+                        color var(--duration-normal) var(--ease-out),
+                        transform var(--duration-fast) var(--ease-emphasized);
+                    cursor: pointer;
+                    aspect-ratio: 1 / 1;
+                    padding: 0.125rem;
+
+                    @include button-icon(var(--tabbed-close-size));
+                    @include button-overlays(var(--tabbed-close-color));
+
+                    ui-icon {
+                        color: currentColor;
+                        --icon-color: currentColor;
+                    }
+
+                    &:focus-visible {
+                        outline: 2px solid color-mix(in oklch, currentColor 35%, transparent);
+                        outline-offset: 2px;
+                    }
+
+                    &:hover {
+                        color: color-mix(in oklch, var(--md3-on-surface) 92%, transparent);
+                    }
+
+                    &:active {
+                        transform: scale(0.9);
+                    }
+                }
+
+                &:where([aria-selected="true"], [data-active], .is-active, .active) {
+                    .ui-tabbed-box-tab-close {
+                        color: color-mix(in oklch, var(--surface-on-primary) 85%, transparent);
+                        --icon-color: color-mix(in oklch, var(--surface-on-primary) 85%, transparent);
+                        @include button-overlays(var(--surface-on-primary));
+                    }
+                }
             }
 
             .ui-tabbed-box-handle {
@@ -268,35 +352,27 @@
                 flex-direction: row;
                 gap: 0rem;
                 aspect-ratio: 1 / 1;
-                min-block-size: 2.5rem;
-                block-size: fit-content;
-                inline-size: fit-content;
+                min-block-size: 1rem;
+                block-size: stretch;
+                inline-size: fit-content;;
                 box-sizing: border-box;
-                color: --c2-on-surface(0.0, var(--current, currentColor));
                 place-content: center;
                 place-items: center;
-                padding: 0.333rem;
+                padding: 0.5rem;
                 transition: background-color 0.12s linear;
-                border-radius: 0.5rem;
+                border-radius: 1rem;
                 border: 0px none transparent;
                 outline: 0px none transparent;
                 cursor: pointer;
-                background-color: transparent;
                 grid-column: 1 / 2 span;
                 grid-row: 1 / 1 span;
                 pointer-events: auto;
 
                 //
-                @media (hover: hover) {
-                    &:hover {
-                        background-color: --c2-surface(0.1, var(--current, currentColor));
-                    }
-                }
+                --color-shade: 0;
 
                 //
-                &:active {
-                    background-color: --c2-surface(0.1, var(--current, currentColor));
-                }
+                @include solid-colorize("&");
 
                 //
                 span {
@@ -314,6 +390,12 @@
             }
         }
 
+        &[data-tab-position="bottom"] {
+            .bar {
+                align-self: end;
+            }
+        }
+
         .content-box {
             display: grid !important;
             grid-template-columns: subgrid;
@@ -323,12 +405,21 @@
             z-index: 1;
             border-radius: 0.25rem;
             overflow: hidden;
-            background-color: transparent;
+            position: relative;
             box-shadow: none;
             contain: none;
             gap: 0px;
 
+            background: none;
+            background-color: transparent;
+
             @include container-clamped(stretch, stretch);
+        }
+
+        &[data-sidebar-drop-menu] {
+            .content-box {
+                overflow: visible;
+            }
         }
 
         // sidebar
@@ -337,8 +428,8 @@
                 display: flex;
                 flex-direction: column;
                 gap: 0px;
-                grid-column: 1 / 1 span;
-                grid-row: 2 / -1;
+                grid-column: sidebar-col;
+                grid-row: sidebar-row;
                 z-index: 2;
                 overflow: hidden;
                 border-radius: 0.5rem;
@@ -346,6 +437,9 @@
                 box-shadow: none;
                 justify-content: start;
                 transform: translateX(0px);
+                transition-behavior: allow-discrete;
+                background: none;
+                background-color: transparent;
 
                 //
                 @include container-clamped(max-content, stretch);
@@ -381,9 +475,8 @@
                     pointer-events: none;
                 }
 
-                &:is([data-visible], [data-visible=""]) {
+                &:is([data-visible="true"], [data-visible=""]) {
                     transform: translate3d(0, 0, 0);
-                    box-shadow: 0 0 1rem var(--ui-shadow-soft);
                     pointer-events: auto;
 
                     @starting-style {
@@ -392,7 +485,7 @@
                     }
                 }
 
-                &[data-visible="false"] {
+                &:is([data-visible="false"], :not([data-visible="true"], [data-visible=""])) {
                     pointer-events: none;
                 }
             }
@@ -420,7 +513,9 @@
                 [sidebar-col] minmax(0px, 0px)
                 [button-col] minmax(0px, var(--button-inline-size))
                 [content-col] minmax(0px, 1fr);
-            grid-template-rows: [bar-row] minmax(0px, 4rem) [content-row] minmax(0px, 1fr);
+
+            //
+            grid-template-rows: var(--tabbed-grid-rows);
 
             //
             grid-column: 1 / -1;
@@ -428,6 +523,7 @@
 
             z-index: 1;
             overflow: hidden;
+            background: none;
             background-color: transparent;
 
             box-shadow: none;
@@ -443,6 +539,11 @@
 
             & { max-block-size: none; }
 
+            & {
+                background: none;
+                background-color: transparent;
+            }
+
             //
             &::slotted(*) {
                 display: grid;
@@ -452,9 +553,17 @@
                 place-content: center;
                 place-items: center;
                 box-shadow: none;
-                grid-row: 2 / -1;
-                grid-column: 2 / -1;
                 gap: 0px;
+
+                //
+                flex-direction: column;
+                grid-template-columns: minmax(0px, 1fr);
+                grid-template-rows: minmax(0px, 1fr);
+                background-color: transparent;
+
+                //
+                grid-column: 1 / -1;
+                grid-row: content-row;
 
                 //padding-inline: var(--tabbed-padding-inline);
                 //padding-block: var(--tabbed-padding-block);
@@ -470,35 +579,15 @@
             }
         }
 
-        @container (min-inline-size: 800px) {
-            & {
-                .content {
-                    grid-column: content-col !important;
-                }
-
-                .sidebar {
-                    grid-column: sidebar-col !important;
-                    transform: translateX(0px);
-                }
-
-                .bar button {
-                    display: none;
-                }
-            }
+        //
+        @container (max-inline-size: 800px) {
+            padding: 0px;
+            --sidebar-inline-grid-size: 0px;
         }
 
         //
         :where(.ui-tabbed-box-tabs, .ui-tabbed-box-content) {
             margin: 0;
-        }
-
-        //
-        .ui-tabbed-box-tabs {
-
-        }
-
-        .ui-tabbed-box-content {
-
         }
 
         @container (inline-size < 40rem) {
@@ -514,6 +603,147 @@
             .ui-tabbed-box-tabs .ui-tabbed-box-tab {
                 min-inline-size: clamp(3.5rem, 14vw, 6rem);
                 padding-inline: calc(var(--tabbed-padding-inline) * 0.5);
+            }
+        }
+    }
+
+    :host {
+        --tabbed-grid-rows:
+            [bar-row] minmax(var(--tabbed-min-bar-size), var(--tabbed-bar-block-size))
+            [content-row] minmax(0px, 1fr);
+
+        .bar {
+            margin-block-start: 0px;
+            margin-block-end: var(--space-md);
+        }
+    }
+
+    :host([data-tab-position="bottom"]) {
+        --tabbed-grid-rows:
+            [content-row] minmax(0px, 1fr)
+            [bar-row] minmax(var(--tabbed-min-bar-size), var(--tabbed-bar-block-size));
+
+        .bar {
+            margin-block-end: 0px;
+            margin-block-start: var(--space-md);
+        }
+    }
+
+    :host([data-tab-position="top"]) {
+        --tabbed-grid-rows:
+            [bar-row] minmax(var(--tabbed-min-bar-size), var(--tabbed-bar-block-size))
+            [content-row] minmax(0px, 1fr);
+
+        .bar {
+            margin-block-start: 0px;
+            margin-block-end: var(--space-md);
+        }
+    }
+
+    //
+    @container (min-inline-size: 800px) {
+        :host(:not([data-sidebar-drop-menu])) {
+            --button-inline-size: 0px;
+
+            .content {
+                grid-column: content-col !important;
+            }
+
+            .sidebar {
+                grid-column: sidebar-col !important;
+                transform: translateX(0px);
+                position: relative;
+            }
+
+            .bar button {
+                display: none;
+            }
+        }
+
+        :host([data-sidebar-drop-menu]) {
+            .sidebar {
+                grid-column: sidebar-col !important;
+                grid-row: sidebar-row;
+                inline-size: min(26rem, 80cqi);
+                min-inline-size: clamp(16rem, 32cqi, 24rem);
+                max-block-size: min(80vh, 32rem);
+                background: color-mix(in oklch, var(--md3-surface) 96%, transparent);
+                border-radius: calc(var(--tabbed-radius) * 1.1);
+                border: 1px solid color-mix(in oklch, var(--md3-outline) 40%, transparent);
+                box-shadow: 0 1.5rem 3rem color-mix(in oklch, #000 22%, transparent);
+                padding-block: clamp(0.75rem, 1cqb + 0.5rem, 1.25rem);
+                padding-inline: clamp(0.75rem, 1cqi + 0.75rem, 1.5rem);
+                transform-origin: top center;
+                transform: translate3d(0, -20%, 0);
+                pointer-events: none;
+                visibility: hidden;
+                opacity: 0;
+
+                transition-behavior: allow-discrete;
+                transition:
+                    visibility var(--transition-medium, 0.3s) steps(1, jump-both),
+                    transform var(--transition-medium, 0.3s) var(--ease-emphasized),
+                    opacity var(--transition-medium, 0.3s) var(--ease-out),
+                    box-shadow var(--transition-medium, 0.3s) var(--ease-emphasized);
+                z-index: 5;
+
+                &:is([data-visible=""], [data-visible="true"]) {
+                    @starting-style {
+                        transform: translate3d(0, -20%, 0);
+                    }
+                }
+            }
+        }
+
+        //
+        :host([data-sidebar-drop-menu][data-tab-position="bottom"]) .sidebar {
+            inset-block-start: auto;
+            inset-block-end: calc(var(--tabbed-bar-block-size) + var(--tabbed-padding-block));
+            transform-origin: bottom center;
+            transform: translate3d(0, 20%, 0);
+
+            &:is([data-visible=""], [data-visible="true"]) {
+                @starting-style {
+                    transform: translate3d(0, 20%, 0);
+                }
+            }
+        }
+
+        //
+        :host([data-sidebar-drop-menu]) {
+            --sidebar-inline-grid-size: 0px;
+
+            //
+            .bar button {
+                display: flex !important;
+            }
+
+            .content-box {
+                isolation: isolate;
+
+                &::after {
+                    content: "";
+                    position: absolute;
+                    inset: clamp(0px, 1cqi, 0.5rem);
+                    border-radius: inherit;
+                    background: color-mix(in oklch, var(--md3-surface) 60%, transparent);
+                    opacity: 0;
+                    pointer-events: none;
+                    transition: opacity var(--transition-medium, 0.28s) var(--ease-out);
+                    z-index: 4;
+                }
+            }
+
+            .sidebar:is([data-visible=""], [data-visible="true"]) {
+                opacity: 1;
+                pointer-events: auto;
+                transform: translate3d(0, 0, 0);
+                visibility: visible;
+            }
+
+            &:has(.sidebar[data-visible="true"]) .content-box::after {
+                opacity: 0.6;
+                pointer-events: auto;
             }
         }
     }

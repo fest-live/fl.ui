@@ -155,7 +155,6 @@
 
     //
     :host(ui-window-frame[data-dragging]) {
-        will-change: inset, translate, transform, opacity, z-index;
         transform: translate3d(calc(var(--drag-x, 0) * 1px), calc(var(--drag-y, 0) * 1px), 0px);
         content-visibility: auto;
 

@@ -85,7 +85,6 @@
             //
             touch-action: manipulation;
             pointer-events: auto;
-            will-change: contents;
 
             //
             slot { display: contents !important; }

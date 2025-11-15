@@ -270,6 +270,7 @@
 
             //
             &::slotted(*) {
+                will-change: contents;
                 display: grid;
                 inline-size: stretch;
                 block-size: stretch;

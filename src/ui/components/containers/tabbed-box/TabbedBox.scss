@@ -233,6 +233,7 @@
             align-content: start;
             grid-template-columns: minmax(0px, 1fr);
             grid-template-rows: minmax(0px, 1fr);
+            will-change: contents;
 
             @include surface(var(--surface-opacity-subtle));
             @include container-clamped(stretch, stretch);

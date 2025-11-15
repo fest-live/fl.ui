@@ -54,6 +54,14 @@ const addPartProperty = (element: HTMLElement | string, name: string = "") => {
 const clamp = (value: number, min: number, max: number) => Math.max(min, Math.min(max, value));
 
 
+//
+class TabChangedEvent extends Event {
+    newTab?: string;
+    constructor(name, options, newTab) {
+        super(name, options);
+        this.newTab = newTab;
+    }
+}
 
 // @ts-ignore
 @defineElement("ui-tabbed-with-sidebar")
@@ -87,8 +95,9 @@ export class TabbedSidebar extends UIElement {
     openTab(tabName: string, ev?: any) {
         if (!tabName) return;
         const self: any = this;
-        if (self.currentTab) {
+        if (tabName) {
             self.currentTab = tabName ?? self.currentTab;
+            self.dispatchEvent(new TabChangedEvent("tab-changed", { bubbles: true }, self.currentTab));
         }
     }
 

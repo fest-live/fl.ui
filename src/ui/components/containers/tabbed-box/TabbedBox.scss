@@ -30,8 +30,8 @@
             gap: 0px;
             grid-template-columns: minmax(0, 1fr);
             grid-template-rows:
-                [tabs] minmax(0px, max-content)
-                [content] minmax(0px, 1fr);
+                [content] minmax(0px, 1fr)
+                [tabs] minmax(0px, max-content);
             inline-size: stretch;
             block-size: stretch;
             container-type: inline-size;

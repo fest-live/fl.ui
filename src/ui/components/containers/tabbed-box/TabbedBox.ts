@@ -1,6 +1,6 @@
 import { defineElement, H, E, M, I, property } from "fest/lure"
 import { preloadStyle } from "fest/dom"
-import { $trigger, observableByMap } from "fest/object";
+import { $trigger, observableByMap, subscribe } from "fest/object";
 
 //
 import { UIElement } from "@fl-design/base/UIElement"
@@ -39,6 +39,16 @@ const addPartProperty = (element: HTMLElement | string, name: string = "") => {
 //
 const clamp = (value: number, min: number, max: number) => Math.max(min, Math.min(max, value));
 
+//
+class TabChangedEvent extends Event {
+    newTab?: string;
+    constructor(name, options, newTab) {
+        super(name, options);
+        this.newTab = newTab;
+    }
+}
+
+
 // @ts-ignore
 @defineElement("ui-tabbed-box")
 export class TabbedBox extends UIElement {
@@ -56,6 +66,11 @@ export class TabbedBox extends UIElement {
 
         //
         E(self, {}, [I({ current: self.getProperty("currentTab"), mapped: self.tabs })])
+
+        //
+        subscribe(self.getProperty("currentTab"), (_newVal)=>{
+            self.dispatchEvent(new TabChangedEvent("tab-changed", { bubbles: true }, self.currentTab));
+        });
     }
 
     //
@@ -91,8 +106,9 @@ export class TabbedBox extends UIElement {
     openTab(tabName: string, ev?: any) {
         if (!tabName) return;
         const self: any = this;
-        if (self.currentTab) {
+        if (tabName) {
             self.currentTab = tabName ?? self.currentTab;
+            self.dispatchEvent(new TabChangedEvent("tab-changed", { bubbles: true }, self.currentTab));
         }
     }
 

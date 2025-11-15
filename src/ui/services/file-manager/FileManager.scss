@@ -20,6 +20,7 @@
         }
 
         & {
+            perspective: 1000;
             container-type: inline-size;
             display: grid;
             inline-size: stretch;
@@ -167,6 +168,8 @@
             scrollbar-width: none;
             scrollbar-color: transparent transparent;
             scrollbar-gutter: auto;
+
+            will-change: contents;
         }
 
         .status { padding: 0.5rem; opacity: 0.8; }

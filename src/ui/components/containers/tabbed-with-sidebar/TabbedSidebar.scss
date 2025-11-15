@@ -67,6 +67,9 @@
             //
             place-content: space-evenly !important;
             place-items: center !important;
+
+            //
+            padding-block-start: var(--padding-md);
         }
 
         // bar
@@ -372,14 +375,13 @@
                 --color-shade: 0;
 
                 //
-                @include solid-colorize("&");
+                @include surface(var(--surface-opacity-subtle));
 
                 //
                 span {
                     display: block;
                     font-size: 0.8rem;
                     font-weight: 400;
-                    color: --c2-on-surface(0.0, var(--current, currentColor));
                     padding-inline-end: 0.333rem;
                 }
             }
@@ -581,7 +583,7 @@
 
         //
         @container (max-inline-size: 800px) {
-            padding: 0px;
+            padding-inline: 0px;
             --sidebar-inline-grid-size: 0px;
         }
 

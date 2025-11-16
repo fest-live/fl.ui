@@ -21,7 +21,7 @@ export const reflectCell = async (newItem: any, pArgs: any, withAnimate = false)
 }
 
 //
-export const makeDragEvents = async (newItem, {layout, dragging, currentCell}, {item, items})=>{ // @ts-ignore
+export const makeDragEvents = async (newItem, {layout, dragging, currentCell, syncDragStyles}, {item, items})=>{ // @ts-ignore
     const $updateLayout = (newItem)=>{
         const gridSystem = newItem?.parentElement;
         layout[0] = parseInt(getPropertyValue(gridSystem, "--layout-c")) || layout[0];
@@ -57,12 +57,13 @@ export const makeDragEvents = async (newItem, {layout, dragging, currentCell}, {
 
         // reset dragging offset
         try { dragging[0].value = 0, dragging[1].value = 0; } catch(e) {};
+        syncDragStyles?.(true);
         newItem.dataset.dragging = "";
         return [0, 0];
     };
 
     //
-    const resolveDragging = (dragging) => {
+    const resolveDragging = async (dragging) => {
         const gridSystem = newItem?.parentElement;
         const orient = orientOf(gridSystem);
 
@@ -76,26 +77,25 @@ export const makeDragEvents = async (newItem, {layout, dragging, currentCell}, {
         const cell = redirectCell(clamped(convertOrientPxToCX(rel, args, orient), layout), args);
 
         //
-        newItem.style.setProperty("--p-cell-x", currentCell[0].value);
-        newItem.style.setProperty("--p-cell-y", currentCell[1].value);
+        setStyleProperty(newItem, "--p-cell-x", currentCell[0].value);
+        setStyleProperty(newItem, "--p-cell-y", currentCell[1].value);
+        syncDragStyles?.(true);
 
         // set cell position and animate
-        Promise.allSettled([
+        const animations = [
             doAnimate(newItem, cell[0], "x", true),
             doAnimate(newItem, cell[1], "y", true)
-        ])?.finally?.(()=>{
+        ];
+        setCell(cell);
+        try { dragging[0].value = 0, dragging[1].value = 0; } catch(e) {};
+        syncDragStyles?.();
+
+        //
+        try {
+            await Promise.allSettled(animations);
+        } finally {
             delete newItem.dataset.dragging;
-            try { dragging[0].value = 0, dragging[1].value = 0; } catch(e) {};
-        });
-
-        //
-        newItem.style.setProperty("--cell-x", currentCell[0].value);
-        newItem.style.setProperty("--cell-y", currentCell[1].value);
-        newItem.style.setProperty("--drag-x", 0);
-        newItem.style.setProperty("--drag-y", 0);
-
-        //
-        setCellAxis(cell, 0); setCellAxis(cell, 1);
+        }
     };
 
     //
@@ -124,14 +124,37 @@ export const bindInteraction = async (newItem: any, pArgs: any)=>{
     //
     E(newItem, { style: {
         "--cell-x": currentCell[0],
-        "--cell-y": currentCell[1],
-        "--drag-x": dragging[0],
-        "--drag-y": dragging[1]
+        "--cell-y": currentCell[1]
     } });
+
+    //
+    const applyDragStyles = ()=>{
+        setStyleProperty(newItem, "--drag-x", dragging[0]?.value || 0);
+        setStyleProperty(newItem, "--drag-y", dragging[1]?.value || 0);
+    };
+    let dragStyleRaf = 0;
+    const syncDragStyles = (flush = false)=>{
+        if (flush) {
+            if (dragStyleRaf) {
+                cancelAnimationFrame(dragStyleRaf);
+                dragStyleRaf = 0;
+            }
+            applyDragStyles();
+            return;
+        }
+        if (dragStyleRaf) { return; }
+        dragStyleRaf = requestAnimationFrame(()=>{
+            dragStyleRaf = 0;
+            applyDragStyles();
+        });
+    };
+    subscribe(dragging[0], ()=>syncDragStyles());
+    subscribe(dragging[1], ()=>syncDragStyles());
+    syncDragStyles(true);
 
     //
     subscribe(currentCell?.[0], (idx)=>{ item.cell[0] = idx; });
     subscribe(currentCell?.[1], (idx)=>{ item.cell[1] = idx; });
-    makeDragEvents(newItem, {layout, currentCell, dragging}, {item, items});
+    makeDragEvents(newItem, {layout, currentCell, dragging, syncDragStyles}, {item, items});
     return currentCell;
 }

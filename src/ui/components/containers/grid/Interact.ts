@@ -21,7 +21,7 @@ export const reflectCell = async (newItem: any, pArgs: any, withAnimate = false)
 }
 
 //
-export const makeDragEvents = async (newItem, {layout, dragging, currentCell, syncDragStyles}, {item, items})=>{ // @ts-ignore
+export const makeDragEvents = async (newItem, {layout, dragging, currentCell, syncDragStyles}, {item, items, list})=>{ // @ts-ignore
     const $updateLayout = (newItem)=>{
         const gridSystem = newItem?.parentElement;
         layout[0] = parseInt(getPropertyValue(gridSystem, "--layout-c")) || layout[0];
@@ -30,30 +30,86 @@ export const makeDragEvents = async (newItem, {layout, dragging, currentCell, sy
     }
 
     //
-    const setCellAxis = (cell, axis = 0)=> { if (currentCell?.[axis]?.value != cell?.[axis]) { try { currentCell[axis].value = cell[axis]; } catch(e){}; }; };
-    const setCell = (cell)=>{ setCellAxis(cell, 0); setCellAxis(cell, 1); }
+    const getSpanOffset = (bounds, layoutSnapshot: [number, number], size: [number, number], orient: number): [number, number] => {
+        const safeLayout: [number, number] = [
+            Math.max(layoutSnapshot?.[0] || 0, 1),
+            Math.max(layoutSnapshot?.[1] || 0, 1)
+        ];
+        const orientedSize: [number, number] = orient % 2 ? [size?.[1] || 1, size?.[0] || 1] : [size?.[0] || 1, size?.[1] || 1];
+        const cellSize: [number, number] = [
+            (orientedSize[0] || 1) / safeLayout[0],
+            (orientedSize[1] || 1) / safeLayout[1]
+        ];
+        const spanX = Math.max((bounds?.width || cellSize[0]) / (cellSize[0] || 1), 1);
+        const spanY = Math.max((bounds?.height || cellSize[1]) / (cellSize[1] || 1), 1);
+        return [(spanX - 1) / 2, (spanY - 1) / 2];
+    };
+
+    const computeCellFromBounds = () => {
+        const gridSystem = newItem?.parentElement as HTMLElement | null;
+        if (!gridSystem) { return null; }
+        const orient = orientOf(gridSystem);
+        const cbox = getBoundingOrientRect(newItem, orient) ?? newItem?.getBoundingClientRect?.();
+        const pbox = getBoundingOrientRect(gridSystem, orient) ?? gridSystem?.getBoundingClientRect?.();
+        if (!cbox || !pbox) { return null; }
+        const layoutSnapshot = [...$updateLayout(newItem)] as [number, number];
+        const parentRect = gridSystem.getBoundingClientRect?.();
+        const gridSize: [number, number] = [
+            gridSystem?.clientWidth || gridSystem?.offsetWidth || parentRect?.width || 1,
+            gridSystem?.clientHeight || gridSystem?.offsetHeight || parentRect?.height || 1
+        ];
+        const inset: [number, number] = [
+            //(cbox.left - pbox.left),
+            //(cbox.top - pbox.top)
+            (((cbox.left + cbox.right) / 2) - pbox.left),
+            (((cbox.top + cbox.bottom) / 2) - pbox.top)
+        ];
+        const args = { item, items, list, layout: layoutSnapshot as [number, number], size: gridSize };
+        const spanOffset = getSpanOffset(cbox, layoutSnapshot as [number, number], gridSize, orient);
+        const projected = convertOrientPxToCX(inset, args, orient);
+        projected[0] -= spanOffset[0];
+        projected[1] -= spanOffset[1];
+        return {
+            inset: [inset[0] - dragging?.[0]?.value, inset[1] - dragging?.[1]?.value],
+            cell: redirectCell(clamped(projected, layoutSnapshot as [number, number]), args)
+        };
+    };
+
+    //
+    const setCellAxis = (cell, axis = 0)=> {
+        if (currentCell?.[axis]?.value != cell?.[axis]) {
+            try { currentCell[axis].value = cell[axis]; } catch(e){};
+        };
+    };
+    const setCell = (cell)=>{
+        setCellAxis(cell, 0); setCellAxis(cell, 1);
+    }
     const clamped = (CXa, layout): [number, number]=>[
         Math.max(Math.min(Math.floor(CXa[0]), layout[0]-1), 0),
         Math.max(Math.min(Math.floor(CXa[1]), layout[1]-1), 0)
     ];
 
     //
+    const syncInsetVars = (inset?: [number, number])=>{
+        if (!inset) { return; }
+        setStyleProperty(newItem, "--cs-inset-x", `${inset[0] || 0}px`);
+        setStyleProperty(newItem, "--cs-inset-y", `${inset[1] || 0}px`);
+    };
+
+    //
     const correctOffset = (dragging)=>{
-        const gridSystem = newItem?.parentElement;
-        const orient = orientOf(gridSystem);
-
-        // client space
-        const cbox = getBoundingOrientRect(newItem, orient) ?? newItem?.getBoundingClientRect?.();
-        const pbox = getBoundingOrientRect(gridSystem, orient) ?? gridSystem?.getBoundingClientRect?.();
-        const rel: [number, number] = [(cbox.left + cbox.right)/2 - pbox.left, (cbox.top + cbox.bottom)/2 - pbox.top];
-
-        // compute correct cell
-        const args = {layout: $updateLayout(newItem), item, items, size: [gridSystem?.clientWidth, gridSystem?.clientHeight]}; // @ts-ignore
-        setCell(redirectCell(clamped(convertOrientPxToCX(rel, args, orient), layout), args));
+        // compute correct cell with span awareness
+        const ctx = computeCellFromBounds();
+        if (ctx?.cell) { setCell(ctx.cell); }
+        syncInsetVars(ctx?.inset);
 
         //
-        setStyleProperty(newItem, "--p-cell-x", parseInt(getPropertyValue(newItem, "--cell-x")) || 0);
-        setStyleProperty(newItem, "--p-cell-y", parseInt(getPropertyValue(newItem, "--cell-y")) || 0);
+        setStyleProperty(newItem, "--p-cell-x", currentCell[0]?.value || 0);
+        setStyleProperty(newItem, "--p-cell-y", currentCell[1]?.value || 0);
+
+        //
+        setStyleProperty(newItem, "--cell-x", currentCell[0]?.value || 0);
+        setStyleProperty(newItem, "--cell-y", currentCell[1]?.value || 0);
 
         // reset dragging offset
         try { dragging[0].value = 0, dragging[1].value = 0; } catch(e) {};
@@ -64,38 +120,35 @@ export const makeDragEvents = async (newItem, {layout, dragging, currentCell, sy
 
     //
     const resolveDragging = async (dragging) => {
-        const gridSystem = newItem?.parentElement;
-        const orient = orientOf(gridSystem);
-
-        // client space
-        const cbox = getBoundingOrientRect(newItem, orient) ?? newItem?.getBoundingClientRect?.();
-        const pbox = getBoundingOrientRect(gridSystem, orient) ?? gridSystem?.getBoundingClientRect?.();
-        const rel : [number, number] = [(cbox.left + cbox.right)/2 - pbox.left, (cbox.top + cbox.bottom)/2 - pbox.top];
-
         // compute correct cell
-        const args = {item, items, layout: $updateLayout(newItem), size: [gridSystem?.clientWidth, gridSystem?.clientHeight]}; // @ts-ignore
-        const cell = redirectCell(clamped(convertOrientPxToCX(rel, args, orient), layout), args);
+        const ctx = computeCellFromBounds();
+        const cell = ctx?.cell ?? [currentCell[0]?.value || 0, currentCell[1]?.value || 0];
 
         //
+        setCell(cell);
         setStyleProperty(newItem, "--p-cell-x", currentCell[0].value);
         setStyleProperty(newItem, "--p-cell-y", currentCell[1].value);
         syncDragStyles?.(true);
 
-        // set cell position and animate
-        const animations = [
-            doAnimate(newItem, cell[0], "x", true),
-            doAnimate(newItem, cell[1], "y", true)
-        ];
-        setCell(cell);
-        try { dragging[0].value = 0, dragging[1].value = 0; } catch(e) {};
-        syncDragStyles?.();
+        //
+        newItem?.style?.setPropertyValue?.("--cell-x", cell[0]);
+        newItem?.style?.setPropertyValue?.("--cell-y", cell[1]);
 
         //
-        try {
-            await Promise.allSettled(animations);
-        } finally {
+        const animations = [
+            doAnimate(newItem, "x", true),
+            doAnimate(newItem, "y", true)
+        ];
+
+        //
+        Promise.allSettled(animations)?.finally?.(()=>{
             delete newItem.dataset.dragging;
-        }
+            newItem?.removeAttribute?.("data-dragging");
+        });
+
+        //
+        try { dragging[0].value = 0, dragging[1].value = 0; } catch(e) {};
+        syncDragStyles?.(true);
     };
 
     //
@@ -118,7 +171,7 @@ export const bindInteraction = async (newItem: any, pArgs: any)=>{
     reflectCell(newItem, pArgs, true);
 
     //
-    const { item, items } = pArgs, layout = [pArgs?.layout?.columns || pArgs?.layout?.[0] || 4, pArgs?.layout?.rows || pArgs?.layout?.[1] || 8];
+    const { item, items, list } = pArgs, layout = [pArgs?.layout?.columns || pArgs?.layout?.[0] || 4, pArgs?.layout?.rows || pArgs?.layout?.[1] || 8];
     const dragging = [ autoRef(0, RAFBehavior()), autoRef(0, RAFBehavior()) ], currentCell = [ autoRef(item?.cell?.[0] || 0), autoRef(item?.cell?.[1] || 0) ];
 
     //
@@ -129,24 +182,16 @@ export const bindInteraction = async (newItem: any, pArgs: any)=>{
 
     //
     const applyDragStyles = ()=>{
-        setStyleProperty(newItem, "--drag-x", dragging[0]?.value || 0);
-        setStyleProperty(newItem, "--drag-y", dragging[1]?.value || 0);
+        if (dragging[0]?.value != null) setStyleProperty(newItem, "--drag-x", dragging[0]?.value || 0);
+        if (dragging[1]?.value != null) setStyleProperty(newItem, "--drag-y", dragging[1]?.value || 0);
     };
     let dragStyleRaf = 0;
     const syncDragStyles = (flush = false)=>{
-        if (flush) {
-            if (dragStyleRaf) {
-                cancelAnimationFrame(dragStyleRaf);
-                dragStyleRaf = 0;
-            }
-            applyDragStyles();
-            return;
+        if (flush) applyDragStyles(); else
+        if (!dragStyleRaf) {
+            applyDragStyles(); dragStyleRaf = 1;
+            requestAnimationFrame(()=>dragStyleRaf = 0);
         }
-        if (dragStyleRaf) { return; }
-        dragStyleRaf = requestAnimationFrame(()=>{
-            dragStyleRaf = 0;
-            applyDragStyles();
-        });
     };
     subscribe(dragging[0], ()=>syncDragStyles());
     subscribe(dragging[1], ()=>syncDragStyles());
@@ -155,6 +200,6 @@ export const bindInteraction = async (newItem: any, pArgs: any)=>{
     //
     subscribe(currentCell?.[0], (idx)=>{ item.cell[0] = idx; });
     subscribe(currentCell?.[1], (idx)=>{ item.cell[1] = idx; });
-    makeDragEvents(newItem, {layout, currentCell, dragging, syncDragStyles}, {item, items});
+    makeDragEvents(newItem, {layout, currentCell, dragging, syncDragStyles}, {item, items, list});
     return currentCell;
 }

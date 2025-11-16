@@ -27,6 +27,9 @@ const styled = preloadStyle(styles);
 
 //
 const renderTabName = (tabName: any) => {
+    if (tabName == "home") { return H`<ui-icon icon="house-line"></ui-icon>`; };
+
+    //
     if (typeof tabName != "string") { return tabName; }
     if (tabName == null || tabName == "") return "";
 
@@ -106,12 +109,12 @@ export class TabbedSidebar extends UIElement {
     //
     createTab(tabName: string) {
         if (!tabName) return;
-        const self: any = this;
+        const self: any = this; if (self?.shadowRoot?.querySelector(`[data-tab-name="${tabName}"]`)) return;
         const renderLabel = self?.renderTabName?.bind?.(self) ?? renderTabName;
         const rawLabel = renderLabel?.(tabName) ?? tabName;
         const readableLabel = typeof rawLabel === "string" ? rawLabel : renderTabName?.(String(tabName ?? "")) ?? String(tabName ?? "");
 
-        const tabButton = H`<label class="ui-tabbed-box-tab" role="tab"></label>`;
+        const tabButton = H`<label class="ui-tabbed-box-tab" role="tab" data-tab-name=${tabName}></label>`;
         const tabLabel = H`<span class="ui-tabbed-box-tab-label"></span>`;
         const closeButton = H`<button type="button" class="ui-tabbed-box-tab-close" aria-label=${`Close ${readableLabel}`} part="tab-close">
             <ui-icon icon="x"></ui-icon>
@@ -158,15 +161,12 @@ export class TabbedSidebar extends UIElement {
     //
     constructor() { super(); }
     onInitialize() {
-        super.onInitialize?.();
-        if (!this.getAttribute("sidebar-as-drop-menu")) {
-            this.removeAttribute("sidebar-as-drop-menu");
-        }
-
-        if (!this.getAttribute("tab-position")) {
-            this.removeAttribute("tab-position");
-        }
+        super.onInitialize?.(); const self = this as any;
+        if (!self.getAttribute("sidebar-as-drop-menu")) { self.removeAttribute("sidebar-as-drop-menu"); }
+        if (!self.getAttribute("tab-position")) { self.removeAttribute("tab-position"); }
     }
+
+    //
     onRender() {
         const self: any = this;
         makeClickOutsideTrigger(
@@ -279,7 +279,8 @@ export class TabbedSidebar extends UIElement {
                 aria-expanded=${conditional(self.sidebarOpened, "true", "false")}
                 on:click=${() => { self.sidebarOpened.value = !self.sidebarOpened.value; }}
             ><ui-icon icon="${conditional(self.sidebarOpened, 'text-outdent', 'list')}"></ui-icon></button>
-            <form class="ui-tabbed-box-tabs" part="tabs">${M(observableByMap(self.tabs ?? new Map()) ?? [], (key_value) => self.createTab(key_value?.[0]))}</form>
+            <form class="ui-tabbed-box-tabs" part="tabs">${M(observableByMap(self.tabs ?? new Map()) ?? [], (key_value) => (key_value?.[0] != "home" ? self.createTab(key_value?.[0]) : null))}</form>
+            <form class="ui-tabbed-box-tabs pinned" part="pinned">${self.createTab("home")}</form>
         </div>
         <div part="content-box" class="content-box">
             <div part="sidebar" class="sidebar" id=${sidebarId} data-visible=${conditional(self.sidebarOpened, "true", "false")}><slot name="sidebar"></slot></div>

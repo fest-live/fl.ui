@@ -75,15 +75,27 @@ export const makeDragEvents = async (newItem, {layout, dragging, currentCell}, {
         const args = {item, items, layout: $updateLayout(newItem), size: [gridSystem?.clientWidth, gridSystem?.clientHeight]}; // @ts-ignore
         const cell = redirectCell(clamped(convertOrientPxToCX(rel, args, orient), layout), args);
 
+        //
+        newItem.style.setProperty("--p-cell-x", currentCell[0].value);
+        newItem.style.setProperty("--p-cell-y", currentCell[1].value);
+
         // set cell position and animate
-        doAnimate(newItem, cell[0], "x", true); setCellAxis(cell, 0);
-        doAnimate(newItem, cell[1], "y", true); setCellAxis(cell, 1);
+        Promise.allSettled([
+            doAnimate(newItem, cell[0], "x", true),
+            doAnimate(newItem, cell[1], "y", true)
+        ])?.finally?.(()=>{
+            delete newItem.dataset.dragging;
+            try { dragging[0].value = 0, dragging[1].value = 0; } catch(e) {};
+        });
 
-        // unflag element dragging status
-        delete newItem.dataset.dragging;
+        //
+        newItem.style.setProperty("--cell-x", currentCell[0].value);
+        newItem.style.setProperty("--cell-y", currentCell[1].value);
+        newItem.style.setProperty("--drag-x", 0);
+        newItem.style.setProperty("--drag-y", 0);
 
-        // reset dragging coordinate
-        try { dragging[0].value = 0, dragging[1].value = 0; } catch(e) {};
+        //
+        setCellAxis(cell, 0); setCellAxis(cell, 1);
     };
 
     //

@@ -97,14 +97,11 @@ export class TabbedBox extends UIElement {
     createTab(tabName: string) {
         if (!tabName) return;
         const self: any = this;
-        const tabButton = H`<label class="ui-tabbed-box-tab">${addPartProperty((self?.renderTabName?.bind?.(self) ?? renderTabName)?.(tabName) ?? tabName, tabName)}</label>`;
+        const tabLabel  = H`<span class="ui-tabbed-box-tab-label">${(self?.renderTabName?.bind?.(self) ?? renderTabName)?.(tabName) ?? tabName}</span>`;
+        const tabButton = H`<button slot="tabs" type="button" on:click=${(ev: Event)=>self.openTab(tabName, ev)} class="ui-tabbed-box-tab" role="tab" data-tab-name=${tabName}>${tabLabel}</button>`;
+        addPartProperty(tabButton, tabName);
 
-        if (tabButton) {
-            tabButton?.addEventListener("change", (ev) => self.openTab(tabName, ev));
-            tabButton?.addEventListener("click", (ev) => self.openTab(tabName, ev));
-            tabButton.slot = "tabs";
-        }
-
+        //
         self?.getProperty?.("currentTab")?.[$trigger]?.();
         return tabButton; //@ts-ignore
     }

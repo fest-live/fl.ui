@@ -114,36 +114,17 @@ export class TabbedSidebar extends UIElement {
         const rawLabel = renderLabel?.(tabName) ?? tabName;
         const readableLabel = typeof rawLabel === "string" ? rawLabel : renderTabName?.(String(tabName ?? "")) ?? String(tabName ?? "");
 
-        const tabButton = H`<label class="ui-tabbed-box-tab" role="tab" data-tab-name=${tabName}></label>`;
-        const tabLabel = H`<span class="ui-tabbed-box-tab-label"></span>`;
-        const closeButton = H`<button type="button" class="ui-tabbed-box-tab-close" aria-label=${`Close ${readableLabel}`} part="tab-close">
+        //
+        const tabLabel = H`<span class="ui-tabbed-box-tab-label">${rawLabel}</span>`;
+        const closeButton = H`<button type="button" on:click=${(event: Event)=>{event?.preventDefault?.(); event?.stopPropagation?.(); self.dispatchEvent(new TabCloseEvent("tab-close", { bubbles: true, composed: true }, tabName));}} class="ui-tabbed-box-tab-close" aria-label=${`Close ${readableLabel}`} part="tab-close">
             <ui-icon icon="x"></ui-icon>
         </button>`;
 
+        //
+        const tabButton = H`<div slot="tabs" on:click=${(ev: Event)=>self.openTab(tabName, ev)} class="ui-tabbed-box-tab" role="tab" data-tab-name=${tabName}>${tabLabel}${closeButton}</div>`;
         addPartProperty(tabButton, tabName);
 
-        if (tabLabel instanceof HTMLElement) {
-            if (rawLabel instanceof Node) {
-                tabLabel.append(rawLabel);
-            } else if (rawLabel != null) {
-                tabLabel.textContent = typeof rawLabel === "string" ? rawLabel : String(rawLabel);
-            }
-        }
-
-        tabButton?.append(tabLabel, closeButton);
-
-        if (tabButton) {
-            tabButton?.addEventListener("change", (ev) => self.openTab(tabName, ev));
-            tabButton?.addEventListener("click", (ev) => self.openTab(tabName, ev));
-            tabButton.slot = "tabs";
-        }
-
-        closeButton?.addEventListener("click", (event: Event) => {
-            event?.preventDefault?.();
-            event?.stopPropagation?.();
-            self.dispatchEvent(new TabCloseEvent("tab-close", { bubbles: true, composed: true }, tabName));
-        });
-
+        //
         self?.getProperty?.("currentTab")?.[$trigger]?.();
         return tabButton; //@ts-ignore
     }

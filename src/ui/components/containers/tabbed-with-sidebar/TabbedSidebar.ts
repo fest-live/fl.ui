@@ -79,10 +79,10 @@ class TabCloseEvent extends Event {
 // @ts-ignore
 @defineElement("ui-tabbed-with-sidebar")
 export class TabbedSidebar extends UIElement {
-    @property({ source: "attr" }) currentTab?: string = ""; //@ts-ignore
+    @property({ source: "attr", name: "current-tab" }) currentTab?: string = ""; //@ts-ignore
     @property({ source: "attr", name: "tab-position" }) tabPosition?: string = "top"; //@ts-ignore
-    @property({ source: "attr", name: "sidebar-as-drop-menu" }) sidebarAsDropMenu?: string | boolean = false; //@ts-ignore
-    sidebarOpened = booleanRef(false); //@ts-ignore
+    @property({ source: "attr", name: "sidebar-drop-menu" }) sidebarAsDropMenu?: string | boolean = ""; //@ts-ignore
+    @property({ source: "attr", name: "sidebar-opened" }) sidebarOpened?: string | boolean = false; //@ts-ignore
 
     //
     setTabs(tabs: Map<string, HTMLElement | string | any>) {
@@ -127,8 +127,8 @@ export class TabbedSidebar extends UIElement {
     constructor() { super(); }
     onInitialize() {
         super.onInitialize?.(); const self = this as any;
-        if (!self.getAttribute("sidebar-as-drop-menu")) { self.removeAttribute("sidebar-as-drop-menu"); }
-        if (!self.getAttribute("tab-position")) { self.removeAttribute("tab-position"); }
+        self.setAttribute("data-sidebar-drop-menu", "");
+        self.setAttribute("data-sidebar-opened", false);
 
         //
         self.addEventListener("keydown", (e: KeyboardEvent) => {
@@ -176,65 +176,64 @@ export class TabbedSidebar extends UIElement {
     onRender() {
         const self: any = this;
         makeClickOutsideTrigger(
-            self.sidebarOpened,
+            self.getProperty("sidebarOpened") ?? self.sidebarOpened,
             Q("button.open-sidebar", self?.shadowRoot),
             Q(".sidebar", self?.shadowRoot)
         );
 
         //
         Q("a")?.addEventListener?.("click", ()=>{
-            self.sidebarOpened.value = false;
+            self.sidebarOpened = false;
         });
 
         //
-        self.sidebarOpened.value = false;
+        self.sidebarOpened = false;
         if (!self.tabs || !self.currentTab) return;
         this.observeTabsOverflow?.();
     }
 
     //
-    private readonly sidebarUniqueId = `tabbed-sidebar-${Math.random().toString(36).slice(2)}`;
-    private tabsBox?: HTMLElement
-    private detachTabsOverflow?: () => void
-    private resizeObserver?: ResizeObserver
-    private observeTabsOverflow() {
+    protected readonly sidebarUniqueId = `tabbed-sidebar-${Math.random().toString(36).slice(2)}`;
+    protected tabsBox!: HTMLElement
+    protected detachTabsOverflow!: () => void
+    protected resizeObserver!: ResizeObserver
+    protected observeTabsOverflow() {
         const self: any = this;
-        this.tabsBox = self.shadowRoot?.querySelector?.(".ui-tabbed-box-tabs") ?? undefined;
-        const tabsBox = this.tabsBox;
-        if (!tabsBox) return;
+        self.tabsBox = self.shadowRoot?.querySelector?.(".ui-tabbed-box-tabs") ?? "";
+        if (!self.tabsBox) return;
 
-        this.detachTabsOverflow?.();
-        this.resizeObserver?.disconnect();
+        self.detachTabsOverflow?.();
+        self.resizeObserver?.disconnect();
 
         const updateIndicators = () => {
-            const maxScrollLeft = tabsBox.scrollWidth - tabsBox.clientWidth;
+            const maxScrollLeft = self.tabsBox.scrollWidth - self.tabsBox.clientWidth;
             const hasOverflow = maxScrollLeft > 1;
-            const startOverflow = tabsBox.scrollLeft > 1;
-            const endOverflow = tabsBox.scrollLeft < maxScrollLeft - 1;
+            const startOverflow = self.tabsBox.scrollLeft > 1;
+            const endOverflow = self.tabsBox.scrollLeft < maxScrollLeft - 1;
 
-            tabsBox.toggleAttribute("data-scrollable", hasOverflow);
-            tabsBox.toggleAttribute("data-scrollable-start", startOverflow);
-            tabsBox.toggleAttribute("data-scrollable-end", endOverflow);
+            self.tabsBox.toggleAttribute("data-scrollable", hasOverflow);
+            self.tabsBox.toggleAttribute("data-scrollable-start", startOverflow);
+            self.tabsBox.toggleAttribute("data-scrollable-end", endOverflow);
         };
 
         const onWheel = (event: WheelEvent) => {
             if (Math.abs(event.deltaX) < Math.abs(event.deltaY)) {
                 const delta = clamp(event.deltaY, -80, 80);
-                tabsBox.scrollLeft += delta;
+                self.tabsBox.scrollLeft += delta;
                 event.preventDefault();
             }
         };
 
         const onPointerUp = () => updateIndicators();
 
-        tabsBox.addEventListener("wheel", onWheel, { passive: false });
-        tabsBox.addEventListener("scroll", updateIndicators, { passive: true });
-        tabsBox.addEventListener("pointerup", onPointerUp, { passive: true });
+        self.tabsBox.addEventListener("wheel", onWheel, { passive: false });
+        self.tabsBox.addEventListener("scroll", updateIndicators, { passive: true });
+        self.tabsBox.addEventListener("pointerup", onPointerUp, { passive: true });
 
-        this.detachTabsOverflow = () => {
-            tabsBox.removeEventListener("wheel", onWheel);
-            tabsBox.removeEventListener("scroll", updateIndicators);
-            tabsBox.removeEventListener("pointerup", onPointerUp);
+        self.detachTabsOverflow = () => {
+            self.tabsBox.removeEventListener("wheel", onWheel);
+            self.tabsBox.removeEventListener("scroll", updateIndicators);
+            self.tabsBox.removeEventListener("pointerup", onPointerUp);
         };
 
         updateIndicators();
@@ -242,54 +241,29 @@ export class TabbedSidebar extends UIElement {
         requestAnimationFrame(updateIndicators);
 
         if (typeof ResizeObserver !== "undefined") {
-            this.resizeObserver = new ResizeObserver(updateIndicators);
-            this.resizeObserver.observe(tabsBox);
-        }
-    }
-
-    //
-    private getTabPositionSetting(): "top" | "bottom" {
-        return normalizeTabPosition(this.tabPosition || "top");
-    }
-
-    //
-    private hasSidebarDropMenu(): boolean {
-        return parseBooleanOption(this.sidebarAsDropMenu ?? false);
-    }
-
-    //
-    private syncHostFeatureAttributes(position: "top" | "bottom", dropMenu: boolean) {
-        const host = this as unknown as HTMLElement;
-        host?.setAttribute?.("data-tab-position", position);
-        if (dropMenu) {
-            host?.setAttribute?.("data-sidebar-drop-menu", "");
-        } else {
-            host?.removeAttribute?.("data-sidebar-drop-menu");
+            self.resizeObserver = new ResizeObserver(updateIndicators);
+            self.resizeObserver.observe(self.tabsBox);
         }
     }
 
     //
     styles = () => styled?.cloneNode?.(true);
     render = function () {
-        const self: any = this;
-        const tabPosition = self.getTabPositionSetting?.() || "top";
-        const dropMenu = self.hasSidebarDropMenu?.() ?? false;
-        self.syncHostFeatureAttributes?.(tabPosition, dropMenu);
-        const sidebarId = self.sidebarUniqueId;
+        const openedProperty = this.getProperty("sidebarOpened") ?? this.sidebarOpened;
         return H`<div part="bar" class="bar c2-surface">
             <button
                 part="open-sidebar"
                 class="open-sidebar c2-surface"
                 aria-haspopup="menu"
-                aria-controls=${sidebarId}
-                aria-expanded=${conditional(self.sidebarOpened, "true", "false")}
-                on:click=${() => { self.sidebarOpened.value = !self.sidebarOpened.value; }}
-            ><ui-icon icon="${conditional(self.sidebarOpened, 'text-outdent', 'list')}"></ui-icon></button>
-            <form class="ui-tabbed-box-tabs" part="tabs">${M(observableByMap(self.tabs ?? new Map()) ?? [], (key_value) => (key_value?.[0] != "home" ? self.createTab(key_value?.[0]) : null))}</form>
-            <form class="ui-tabbed-box-tabs pinned" part="pinned">${self.createTab("home")}</form>
+                aria-controls=${this.sidebarUniqueId}
+                aria-expanded=${conditional(openedProperty, "true", "false")}
+                on:click=${() => { this.sidebarOpened = !this.sidebarOpened; }}
+            ><ui-icon icon="${conditional(openedProperty, 'text-outdent', 'list')}"></ui-icon></button>
+            <form class="ui-tabbed-box-tabs" part="tabs">${M(observableByMap(this.tabs ?? new Map()) ?? [], (key_value) => (key_value?.[0] != "home" ? this.createTab(key_value?.[0]) : null))}</form>
+            <form class="ui-tabbed-box-tabs pinned" part="pinned">${this.createTab("home")}</form>
         </div>
         <div part="content-box" class="content-box">
-            <div part="sidebar" class="sidebar" id=${sidebarId} data-visible=${conditional(self.sidebarOpened, "true", "false")}><slot name="sidebar"></slot></div>
+            <div part="sidebar" class="sidebar" id=${this.sidebarUniqueId} data-visible=${conditional(openedProperty, "true", "false")}><slot name="sidebar"></slot></div>
             <div part="content" class="content"><slot></slot></div>
         </div>`;
     }

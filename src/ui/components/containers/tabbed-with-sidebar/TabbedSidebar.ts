@@ -3,22 +3,6 @@ import { preloadStyle } from "fest/dom"
 import { $trigger, booleanRef, conditional, observableByMap, stringRef, subscribe } from "fest/object"
 import { UIElement } from "@fl-design/base/UIElement"
 
-/*
- * Used for mobile applications
- * In desktop or widescreen sidebar can be statically visible
- * In mobile applications sidebar is hidden by default and can be opened by clicking on the button
- *
- * <ui-box-with-sidebar>
- *   <div slot="bar">
- *     <button part="open-sidebar" class="open-sidebar" on:click=${()=>{this.sidebarOpened.value = true;}}></button>
- *     <button class="open-sidebar" on:click=${()=>{this.sidebarOpened.value = true;}}></button>
- *     <slot name="bar"></slot>
- *   </div>
- *   <div part="sidebar" class="sidebar c2-surface" visibility="${this.sidebarOpened}"><slot name="sidebar"></slot></div>
- *   <div part="content" class="content"><slot></slot></div>
- * </ui-box-with-sidebar>
- */
-
 // @ts-ignore
 import styles from "./TabbedSidebar.scss?inline"
 const styled = preloadStyle(styles);
@@ -145,6 +129,47 @@ export class TabbedSidebar extends UIElement {
         super.onInitialize?.(); const self = this as any;
         if (!self.getAttribute("sidebar-as-drop-menu")) { self.removeAttribute("sidebar-as-drop-menu"); }
         if (!self.getAttribute("tab-position")) { self.removeAttribute("tab-position"); }
+
+        //
+        self.addEventListener("keydown", (e: KeyboardEvent) => {
+            const target  = e?.composedPath?.()?.[0] as HTMLElement;
+            const isInput = target?.tagName === "INPUT" || target?.tagName === "TEXTAREA" || target?.isContentEditable;
+            if (isInput) { return; }
+
+            //
+            if (e?.ctrlKey && (e?.key === "ArrowLeft" || e?.key === "ArrowRight") && self?.checkVisibility({
+                contentVisibilityAuto: true,
+                opacityProperty: true,
+                visibilityProperty: true
+            })) {
+                e?.preventDefault?.();
+                e?.stopPropagation?.();
+
+                //
+                const rawTabs = Array.from(self?.tabs?.keys?.() ?? []);
+                const tabs = rawTabs?.filter?.(k => k !== "home");
+
+                //
+                const currentIndex = tabs?.indexOf?.(self?.currentTab ?? "");
+                let newIndex = currentIndex;
+
+                //
+                if (newIndex === -1) { newIndex = 0; }
+
+                //
+                if (e?.key === "ArrowLeft") {
+                    newIndex = currentIndex - 1;
+                    if (newIndex < 0) { newIndex = tabs?.length - 1; }
+                } else {
+                    newIndex = currentIndex + 1;
+                    if (newIndex >= tabs?.length) { newIndex = 0; }
+                }
+
+                //
+                const newTab = tabs?.[newIndex];
+                self?.openTab?.(newTab);
+            }
+        });
     }
 
     //

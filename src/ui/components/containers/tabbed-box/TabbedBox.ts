@@ -78,6 +78,44 @@ export class TabbedBox extends UIElement {
         subscribe(self.getProperty("currentTab"), (_newVal)=>{
             self.dispatchEvent(new TabChangedEvent("tab-changed", { bubbles: true }, self.currentTab));
         });
+
+        //
+        self.addEventListener("keydown", (e: KeyboardEvent) => {
+            const target  = e?.composedPath?.()?.[0] as HTMLElement;
+            const isInput = target?.tagName === "INPUT" || target?.tagName === "TEXTAREA" || target?.isContentEditable;
+            if (isInput) { return; }
+
+            //
+            if ((e?.key === "ArrowLeft" || e?.key === "ArrowRight") && self?.checkVisibility({
+                contentVisibilityAuto: true,
+                opacityProperty: true,
+                visibilityProperty: true
+            })) {
+                e?.preventDefault?.();
+                e?.stopPropagation?.();
+
+                //
+                const tabs = Array.from(self?.tabs?.keys?.() ?? []);
+                if (!tabs?.length) { return; }
+
+                //
+                const currentIndex = tabs?.indexOf?.(self?.currentTab ?? "");
+                let newIndex = currentIndex;
+
+                //
+                if (e?.key === "ArrowLeft") {
+                    newIndex = currentIndex - 1;
+                    if (newIndex < 0) { newIndex = tabs?.length - 1; }
+                } else {
+                    newIndex = currentIndex + 1;
+                    if (newIndex >= tabs?.length) { newIndex = 0; }
+                }
+
+                //
+                const newTab = tabs?.[newIndex];
+                self?.openTab?.(newTab);
+            }
+        });
     }
 
     //
@@ -111,6 +149,10 @@ export class TabbedBox extends UIElement {
         if (!tabName) return;
         const self: any = this;
         if (tabName) {
+            const btn = self.shadowRoot?.querySelector(`[data-tab-name="${tabName}"]`);
+            if (btn instanceof HTMLElement) (btn as HTMLElement)?.focus?.();
+
+            //
             self.currentTab = tabName ?? self.currentTab;
             self.dispatchEvent(new TabChangedEvent("tab-changed", { bubbles: true }, self.currentTab));
         }

@@ -26,15 +26,53 @@
     // Font smoothing
     @media print {
         *, *::before, *::after {
+            scrollbar-width: none;
+            scrollbar-color: transparent transparent;
+            overflow: visible;
+            box-sizing: border-box;
+
+            //
             @include mixins.md-font-smoothing(never);
         }
 
+        math {
+            math-style: compact;
+            math-shift: compact;
+            math-depth: auto-add;
+        }
+
         :where(html, body) {
-            background-color: white !important;
+            background-color: white;
+            max-inline-size: 100dvi;
+            overflow-inline: hidden;
+            border: none 0px transparent;
+            outline: none 0px transparent;
+            padding: 0px;
+            margin: 0px;
         }
 
         :host {
-            background-color: transparent !important;
+            background-color: transparent;
+            max-inline-size: stretch;
+            overflow-inline: hidden;
+            scrollbar-width: none;
+            scrollbar-color: transparent transparent;
+            border: none 0px transparent;
+            outline: none 0px transparent;
+            padding: 0px;
+            margin: 0px;
+        }
+
+        :host,
+        :scope,
+        :root,
+        .markdown-body,
+        #markdown,
+        md-view {
+            & > * {
+                max-inline-size: 100cqi;
+                max-inline-size: stretch;
+            }
         }
 
         :where(html, body, :host) {
@@ -160,7 +198,7 @@
         :where(h1, h2, h3, h4, h5, h6) {
             &:has(+:where(hr, p, ul, ol, li, table, blockquote, pre, code)) {
                 break-before: auto;
-                break-after: verso;
+                break-after: avoid-page;
             }
         }
 

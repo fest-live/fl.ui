@@ -48,6 +48,12 @@
 
     :where(.markdown-body, #markdown, md-view, :host) {
 
+        math {
+            math-style: compact;
+            math-shift: compact;
+            math-depth: auto-add;
+        }
+
         // === Typography ===
 
         h1, h2, h3, h4, h5, h6 {
@@ -174,7 +180,7 @@
             border-spacing: 0;
             border-collapse: collapse;
             display: block;
-            inline-size: max-content;
+            inline-size: fit-content;
             max-inline-size: 100%;
             overflow: auto;
             margin-block-end: 1rem;

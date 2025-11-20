@@ -259,8 +259,8 @@ export class TabbedSidebar extends UIElement {
                 aria-expanded=${conditional(openedProperty, "true", "false")}
                 on:click=${() => { this.sidebarOpened = !this.sidebarOpened; }}
             ><ui-icon icon="${conditional(openedProperty, 'text-outdent', 'list')}"></ui-icon></button>
-            <form class="ui-tabbed-box-tabs" part="tabs">${M(observableByMap(this.tabs ?? new Map()) ?? [], (key_value) => (key_value?.[0] != "home" ? this.createTab(key_value?.[0]) : null))}</form>
             <form class="ui-tabbed-box-tabs pinned" part="pinned">${this.createTab("home")}</form>
+            <form class="ui-tabbed-box-tabs" part="tabs">${M(observableByMap(this.tabs ?? new Map()) ?? [], (key_value) => (key_value?.[0] != "home" ? this.createTab(key_value?.[0]) : null))}</form>
         </div>
         <div part="content-box" class="content-box">
             <div part="sidebar" class="sidebar" id=${this.sidebarUniqueId} data-visible=${conditional(openedProperty, "true", "false")}><slot name="sidebar"></slot></div>

@@ -106,7 +106,7 @@
             :where(.ui-tabbed-box-tabs) {
                 margin-block: 0;
                 //margin-block-end: var(--tabbed-tabs-block-gap);
-                grid-column: 3 / 3 span;
+                grid-column: content-col;
                 grid-row: 1 / 1 span;
 
                 //
@@ -119,7 +119,7 @@
                 align-items: center;
                 gap: var(--tabbed-tab-gap);
                 padding-block: calc(var(--tabbed-padding-block) * 0.65);
-                padding-inline: calc(var(--tabbed-padding-inline) * 0.5);
+                padding-inline: calc(var(--tabbed-padding-inline));
                 position: relative;
                 pointer-events: auto;
                 border-radius: 50cqmin;
@@ -144,7 +144,16 @@
 
                 //
                 &.pinned {
-                    grid-column: 4 / 4 span;
+                    grid-column: pinned-col;
+                    padding-inline: 0px;
+                    margin-inline: 0px;
+                    place-content: center;
+                    place-items: center;
+                    text-align: center;
+
+                    .ui-tabbed-box-tab {
+                        padding-inline: 0px;
+                    }
                 }
             }
 
@@ -199,14 +208,13 @@
                 flex-wrap: nowrap;
                 text-wrap: nowrap;
                 flex-shrink: 0;
-                gap: clamp(0.125rem, 0.35cqi, 0.35rem);
+                gap: clamp(0.5rem, 0.4cqi, 0.6rem);
 
                 //
                 position: relative;
                 border-radius: var(--radius-full);
                 padding-block: calc(var(--tabbed-padding-block) * 0.6);
-                padding-inline: calc(var(--tabbed-padding-inline) * 0.6);
-                padding-inline-end: calc(var(--tabbed-padding-inline) * 0.35);
+                padding-inline: calc(var(--tabbed-padding-inline) * 0.75);
                 letter-spacing: 0.01em;
                 cursor: pointer;
                 isolation: isolate;
@@ -214,9 +222,9 @@
                 background-color: transparent;
 
                 //
-                place-content: center flex-start;
-                place-items: center flex-start;
-                text-align: start;
+                place-content: center;
+                place-items: center;
+                text-align: center;
 
                 //
                 transition: color var(--duration-normal) var(--ease-out), transform var(--duration-fast) var(--ease-emphasized);
@@ -236,9 +244,8 @@
                     content: "";
                     position: absolute;
                     inset-inline: clamp(0.5rem, 4cqi, 1rem);
-                    inset-inline-end: 3rem;
+                    inset-inline-end: 3.5rem;
                     inset-block-end: calc(var(--tabbed-indicator-height) * -1);
-                    //inset-block-start: -0.125rem;
                     block-size: var(--tabbed-indicator-height);
                     border-radius: var(--tabbed-indicator-height);
                     background: currentColor;
@@ -345,12 +352,23 @@
             }
 
             .ui-tabbed-box-tabs.pinned {
+                .ui-tabbed-box-tab {
+                    gap: 0px !important;
+                    padding-inline: 0px !important;
+                    place-content: center !important;
+                    place-items: center !important;
+                    text-align: center !important;
+                    block-size: stretch !important;
+                }
+
                 .ui-tabbed-box-tab-close {
                     display: none !important;
+                    margin-inline: 0px !important;
                 }
 
                 &::after {
-                    inset-inline-end: clamp(0.5rem, 4cqi, 1rem);
+                    margin-inline: 0px !important;
+                    inset-inline-end: 0px !important;
                 }
             }
 

@@ -1,0 +1,85 @@
+@use "./config" as config;
+
+@mixin md-break($before: auto, $inside: auto, $after: auto) {
+    break-before: $before;
+    break-inside: $inside;
+    break-after: $after;
+}
+
+@mixin md-heading-print($scale, $padding: null) {
+    $resolved-padding: if($padding == null, config.md-config("heading", "padding"), $padding);
+    $line-height: config.md-config("layout", "line-height");
+    $h-size: calc(3 - clamp(1, sqrt($scale) * 0.9, 2));
+
+    font-weight: bold;
+    font-size: calc($h-size * 1em);
+    padding-inline: $resolved-padding;
+    margin-block-end: calc($h-size * 0.333em);
+    margin-block-start: calc($h-size * 0.5em);
+    display: block;
+    line-height: $line-height;
+    text-align: start;
+
+    @include md-break(auto, avoid-page, avoid-page);
+}
+
+@mixin md-table-cell($padding: null) {
+    $resolved-padding: if($padding == null, config.md-config("table", "cell-padding"), $padding);
+
+    padding: $resolved-padding;
+    white-space: normal;
+}
+
+@mixin md-font-smoothing($mode: always) {
+    font-smooth: $mode !important;
+    -webkit-font-smoothing: if($mode == always, subpixel-antialiased, antialiased) !important;
+    -moz-osx-font-smoothing: if($mode == always, auto, grayscale) !important;
+}
+
+@mixin md-interactive-area($align: null, $touch: manipulation) {
+    touch-action: $touch;
+    pointer-events: auto;
+    user-select: text;
+
+    @if $align != null {
+        text-align: $align;
+    }
+}
+
+@mixin md-surface-root($align: start, $touch: manipulation) {
+    color-scheme: inherit;
+    font-size: inherit;
+    isolation: isolate;
+
+    @include md-interactive-area($align, $touch);
+}
+
+@mixin md-children-inherit($selector, $block-size: auto 1em) {
+    #{$selector} {
+        color-scheme: inherit;
+        contain-intrinsic-block-size: $block-size;
+    }
+}
+
+@mixin md-scrollbars($size: null) {
+    $scroll-size: if($size == null, config.md-config("scrollbar", "size"), $size);
+    $radius: config.md-config("shape", "border-radius");
+
+    scrollbar-color: var(--color-scrollbar) transparent;
+    scrollbar-width: thin;
+
+    &::-webkit-scrollbar {
+        inline-size: $scroll-size;
+        block-size: $scroll-size;
+    }
+
+    &::-webkit-scrollbar-thumb {
+        background-color: var(--color-scrollbar);
+        border-radius: $radius;
+    }
+
+    &::-webkit-scrollbar-track {
+        background-color: transparent;
+    }
+}
+

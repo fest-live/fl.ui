@@ -100,12 +100,12 @@ export class TabbedSidebar extends UIElement {
 
         //
         const tabLabel = H`<span class="ui-tabbed-box-tab-label">${rawLabel}</span>`;
-        const closeButton = H`<button type="button" on:click=${(event: Event)=>{event?.preventDefault?.(); event?.stopPropagation?.(); self.dispatchEvent(new TabCloseEvent("tab-close", { bubbles: true, composed: true }, tabName));}} class="ui-tabbed-box-tab-close" aria-label=${`Close ${readableLabel}`} part="tab-close">
+        const closeButton = tabName != "home" ? H`<button type="button" on:click=${(event: Event)=>{event?.preventDefault?.(); event?.stopPropagation?.(); self.dispatchEvent(new TabCloseEvent("tab-close", { bubbles: true, composed: true }, tabName));}} class="ui-tabbed-box-tab-close" aria-label=${`Close ${readableLabel}`} part="tab-close">
             <ui-icon icon="x"></ui-icon>
-        </button>`;
+        </button>` : null;
 
         //
-        const tabButton = H`<div slot="tabs" on:click=${(ev: Event)=>self.openTab(tabName, ev)} class="ui-tabbed-box-tab" role="tab" data-tab-name=${tabName}>${tabLabel}${closeButton}</div>`;
+        const tabButton = H`<div on:click=${(ev: Event)=>self.openTab(tabName, ev)} class="ui-tabbed-box-tab" role="tab" data-tab-name=${tabName}>${tabLabel}${closeButton}</div>`;
         addPartProperty(tabButton, tabName);
 
         //

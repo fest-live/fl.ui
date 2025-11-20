@@ -6,10 +6,13 @@ import { provide, E, H } from "fest/lure";
 
 //
 import markedKatex from "marked-katex-extension";
+import { preloadStyle } from "fest/dom";
 marked?.use?.(markedKatex({ throwOnError: false, nonStandard: true }));
 
 //
-const preInit = URL.createObjectURL(new Blob([styles], { type: "text/css" }));
+const styled = preloadStyle(styles);
+
+
 export class MarkdownView extends HTMLElement {
     static observedAttributes = ["src"]; #view;
     constructor() { super(); this.createShadowRoot(); }
@@ -91,9 +94,7 @@ export class MarkdownView extends HTMLElement {
     //
     createShadowRoot() {
         const shadowRoot = this.attachShadow({ mode: "open" });
-        const style = document.createElement("style");
-        style.innerHTML = `@import url("${preInit}");`;
-        shadowRoot.append(style, this.#view = E("div.markdown-body", { dataset: { print: "" } })?.element);
+        shadowRoot.append(styled?.cloneNode?.(true) || document.createElement("style"), this.#view = E("div.markdown-body", { dataset: { print: "" } })?.element);
         requestAnimationFrame(() => this.renderMarkdown(this.getAttribute("src") || ""));
     }
 }

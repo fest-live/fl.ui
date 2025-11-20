@@ -41,6 +41,9 @@ export class FileOperative {
     #clipboard: { items: string[]; cut?: boolean } | null = null;
     #subscribed: any = null;
     #loaderDebounceTimer: any = null;
+    
+    //
+    public host: HTMLElement | null = null;
 
     //
     public pathRef = ref("/user/");
@@ -63,14 +66,26 @@ export class FileOperative {
     //
     itemAction(item: FileEntryItem) {
         const self: any = this;
+        
+        //
+        const detail = { path: (self.path || "/user/") + item?.name, item, originalEvent: null };
+        const event = new CustomEvent("open-item", { detail, bubbles: true, composed: true, cancelable: true });
+        this.host?.dispatchEvent(event);
+        if (event.defaultPrevented) return;
+
+        //
         if (item?.kind === "directory") {
             const next = (self.path?.endsWith?.("/") ? self.path : self.path + "/") + item?.name + "/";
             self.path = next;
         } else {
-            const detail = { path: (self.path || "/user/") + item?.name, item };
-            self.path = detail.path;
-            self.dispatchEvent?.(new CustomEvent("open", { detail, bubbles: true, composed: true }));
+            const openEvent = new CustomEvent("open", { detail, bubbles: true, composed: true });
+            this.host?.dispatchEvent(openEvent);
         }
+    }
+
+    //
+    async requestUse() {
+        // TODO: implement
     }
 
     //
@@ -153,6 +168,14 @@ export class FileOperative {
 
     //
     protected onRowClick = (item: FileEntryItem, ev: MouseEvent) => { ev.preventDefault(); this.itemAction(item); };
+    protected onRowDblClick = (item: FileEntryItem, ev: MouseEvent) => { ev.preventDefault(); this.itemAction(item); };
+    protected onRowDragStart = (item: FileEntryItem, ev: DragEvent) => {
+        if (!ev.dataTransfer) return;
+        ev.dataTransfer.effectAllowed = "copyMove";
+        const abs = (this.path || "/user/") + (item?.name || "");
+        ev.dataTransfer.setData("text/plain", abs);
+        ev.dataTransfer.setData("text/uri-list", abs);
+    };
 
     //
     protected async onMenuAction(item: FileEntryItem | null, actionId: string, ev: MouseEvent) {

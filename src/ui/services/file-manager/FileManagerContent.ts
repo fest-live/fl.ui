@@ -122,6 +122,7 @@ export class FileManagerContent extends UIElement {
     constructor() {
         super();
         this.operativeInstance ??= new FileOperative();
+        this.operativeInstance.host = this;
     }
 
     //
@@ -142,15 +143,16 @@ export class FileManagerContent extends UIElement {
 
         //
         const makeListElement = (item: FileEntryItem) => {
-            const itemEl = H`<div draggable="${computed(item, ()=>{ return item?.kind === "file"; })}" data-id=${propRef(item, "name")} class="row c2-surface"
+            const isFile = item?.kind === "file";
+            const itemEl = H`<div draggable="${isFile}" data-id=${propRef(item, "name")} class="row c2-surface"
                 on:click=${(ev: MouseEvent) => operative.onRowClick?.(item, ev)}
                 on:dblclick=${(ev: MouseEvent) => operative.onRowDblClick?.(item, ev)}
                 on:dragstart=${(ev: DragEvent) => operative.onRowDragStart?.(item, ev)}
             >
                 <div style="background-color: transparent;" class="c icon"><ui-icon icon=${computed(item, ()=>{ return iconFor(item); })} /></div>
                 <div style="background-color: transparent;" class="c name" title=${propRef(item, "name")}>${propRef(item, "name")}</div>
-                <div style="background-color: transparent;" class="c size">${conditionalRef(computed(item, ()=>{ return item?.kind == "file"; }), propRef(item, "size"), "")}</div>
-                <div style="background-color: transparent;" class="c date">${conditionalRef(computed(item, ()=>{ return item?.kind == "file"; }), computed(propRef(item, "lastModified"), (val)=>{ return getFormattedDate(val ?? 0); }), "")}</div>
+                <div style="background-color: transparent;" class="c size">${isFile ? propRef(item, "size") : ""}</div>
+                <div style="background-color: transparent;" class="c date">${isFile ? computed(propRef(item, "lastModified"), (val)=>{ return getFormattedDate(val ?? 0); }) : ""}</div>
                 <div style="background-color: transparent;" class="c actions">
                     <button class="action-btn" title="Copy Path" on:click=${(ev: MouseEvent) => { ev.stopPropagation(); operative.onMenuAction?.(item, "copyPath", ev); }}>
                         <ui-icon icon="copy" />

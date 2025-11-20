@@ -91,6 +91,15 @@ export class FileManager extends UIElement {
     }
 
     //
+    get content() { return (this as any)?.querySelector?.("ui-file-manager-content") as any; }
+    get operative() { return this.content?.operativeInstance; }
+
+    //
+    requestUpload() { this.operative?.requestUpload?.(); }
+    requestPaste() { this.operative?.requestPaste?.(); }
+    requestUse() { this.operative?.requestUse?.(); }
+
+    //
     render = function() {
         const sidebarVisible = this.showSidebar;
 

@@ -67,8 +67,8 @@ export class MarkdownView extends HTMLElement {
         };
 
         //
-        if (URL.canParse(file) || file?.startsWith?.("blob:")) {
-            file = await (await fetch(file))?.text?.();
+        if (URL.canParse(file?.trim?.()) || file?.trim?.()?.startsWith?.("blob:") || file?.trim?.()?.startsWith?.("/user/") || file?.trim?.()?.startsWith?.("./")) {
+            file = await (await provide(file))?.text?.();
         }
 
         //

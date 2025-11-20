@@ -121,7 +121,10 @@
 
             background-color: var(--surface-color, transparent);
 
-            &:hover { --color-shade: var(--hover-lift, 0.04); }
+            &:hover {
+                --color-shade: var(--hover-lift, 0.04);
+                background-color: var(--surface-hover, color-mix(in srgb, var(--surface-color, transparent), #888888 10%));
+            }
             &:active { --color-shade: var(--active-lift, 0.06); }
             &:is(:focus, :focus-visible) { --color-shade: var(--focus-lift, 0.02); }
 

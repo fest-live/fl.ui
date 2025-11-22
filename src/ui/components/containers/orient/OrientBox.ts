@@ -1,5 +1,6 @@
 import { elementPointerMap, bindWith, attrRef } from "fest/lure";
 import { handleStyleChange, DOMMixin } from "fest/dom";
+import { numberRef } from "fest/object";
 
 //
 export class UIOrientBox extends DOMMixin {
@@ -7,25 +8,30 @@ export class UIOrientBox extends DOMMixin {
 
     // @ts-ignore
     connect(ws) {
-        const self: any = ws?.deref?.();
+        const self: any = ws?.deref?.() ?? ws;
         self.classList.add("ui-orientbox");
 
         //
-        const zoom = attrRef(self, "zoom", 1), orient = attrRef(self, "orient", 0);
-        bindWith(self, "--zoom", zoom, handleStyleChange, null);
-        bindWith(self, "--orient", orient, handleStyleChange, null);
+        //const zoom = attrRef(self, "zoom", 1), orient = attrRef(self, "orient", 0);
+        const zoom = numberRef(1), orient = numberRef(0);
+
+        // TODO: broken, fix later
+        //bindWith(self, "--zoom", zoom, handleStyleChange, null);
+        //bindWith(self, "--orient", orient, handleStyleChange, null);
 
         // settings size is illogical! and not implemented!
         Object.defineProperty(self, "size", { get: () => size });
+
+        //
         Object.defineProperty(self, "zoom", {
             get: () => parseFloat(zoom.value) || 1,
-            set: (value) => { zoom.value = value; }
+            set: (value) => { zoom.value = value; self.style.setProperty("--zoom", value); }
         });
 
         //
         Object.defineProperty(self, "orient", {
             get: () => parseInt(orient.value) || 0,
-            set: (value) => { orient.value = value; }
+            set: (value) => { orient.value = value; self.style.setProperty("--orient", value); }
         });
 
         //

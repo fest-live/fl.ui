@@ -27,6 +27,14 @@
             gap: 0px;
             user-select: none;
             -webkit-tap-highlight-color: transparent;
+
+            //
+            min-inline-size: 0px;
+            min-block-size: 0px;
+
+            //
+            max-inline-size: stretch;
+            max-block-size: stretch;
         }
 
         //
@@ -61,7 +69,8 @@
             //
             grid-row: tabs-row;
             inline-size: stretch;
-            block-size: max-content;
+            block-size: fit-content;
+            min-block-size: 3rem;
             display: flex !important;
             flex-wrap: nowrap;
             flex-direction: row;
@@ -149,12 +158,12 @@
                 overflow: visible;
 
                 //
-                @include container-clamped(max-content, fit-content);
+                @include container-clamped(fit-content, fit-content);
                 @include button-text(primary, false);
                 @include button-overlays(var(--md3-primary));
 
                 //
-                & { min-inline-size: 4rem; inline-size: max-content; max-inline-size: none; }
+                & { min-inline-size: 4rem; inline-size: fit-content; max-inline-size: none; }
 
                 //
                 &::after {
@@ -224,6 +233,11 @@
         }
 
         .ui-tabbed-box-content {
+            content-visibility: auto;
+            contain: strict;
+            perspective: 1000;
+            transform: translateZ(0px);
+
             grid-row: content-row;
             grid-column: 1 / -1;
             display: grid;
@@ -234,6 +248,11 @@
             grid-template-columns: minmax(0px, 1fr);
             grid-template-rows: minmax(0px, 1fr);
             will-change: contents;
+
+            max-inline-size: stretch;
+            max-block-size: stretch;
+            min-inline-size: 0px;
+            min-block-size: 0px;
 
             @include surface(var(--surface-opacity-subtle));
             @include container-clamped(stretch, stretch);

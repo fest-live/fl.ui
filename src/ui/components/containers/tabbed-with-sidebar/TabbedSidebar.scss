@@ -37,6 +37,14 @@
             -webkit-tap-highlight-color: transparent;
             content-visibility: visible;
             gap: 0px;
+
+            //
+            min-inline-size: 0px;
+            min-block-size: 0px;
+
+            //
+            max-inline-size: stretch;
+            max-block-size: stretch;
         }
 
         & {
@@ -71,6 +79,14 @@
             //
             padding-block-start: var(--padding-md);
             border-radius: var(--radius-lg, 0.75rem);
+
+            //
+            min-inline-size: 0px;
+            min-block-size: 0px;
+
+            //
+            max-inline-size: stretch;
+            max-block-size: stretch;
         }
 
         // bar
@@ -112,7 +128,7 @@
                 //
                 inline-size: stretch;
                 block-size: stretch;
-                min-block-size: 0px;
+                min-block-size: 3rem;
                 display: flex;
                 flex-direction: row;
                 align-items: center;
@@ -173,8 +189,9 @@
                         overflow: hidden;
                         block-size: stretch;
                         inline-size: fit-content;
-                        min-block-size: fit-content;
-                        max-block-size: 2rem;
+                        min-inline-size: 0px;
+                        min-block-size: 0px;
+                        max-block-size: 3rem;
                         inset: 0px;
                         display: grid;
                         grid-template-columns: minmax(0px, 1fr);
@@ -278,12 +295,12 @@
                 overflow: visible;
 
                 //
-                @include container-clamped(max-content, fit-content);
+                @include container-clamped(fit-content, fit-content);
                 @include button-text(primary, false);
                 @include button-overlays(var(--md3-primary));
 
                 //
-                & { min-inline-size: 3.5rem; inline-size: max-content; max-inline-size: none; min-block-size: fit-content; }
+                & { min-inline-size: 3.5rem; inline-size: fit-content; max-inline-size: none; min-block-size: fit-content; }
 
                 //
                 &::after {
@@ -438,7 +455,7 @@
                 aspect-ratio: 1 / 1;
                 min-block-size: 1rem;
                 block-size: stretch;
-                inline-size: fit-content;;
+                inline-size: fit-content;
                 box-sizing: border-box;
                 place-content: center;
                 place-items: center;
@@ -581,12 +598,16 @@
             flex-direction: column;
 
             //
+            min-inline-size: 0px;
+            min-block-size: 0px;
+
+            //
             inline-size: stretch;
             block-size: stretch;
 
             //
-            max-inline-size: none;
-            max-block-size: none;
+            max-inline-size: stretch;
+            max-block-size: stretch;
 
             //
             grid-template-columns: subgrid;
@@ -611,12 +632,17 @@
             background-color: transparent;
 
             box-shadow: none;
-            contain: none;
             gap: 0px;
 
             container-type: inline-size;
             border-radius: calc(var(--tabbed-radius) * 1.1);
             align-content: start;
+
+            content-visibility: auto;
+            contain: strict;
+            perspective: 1000;
+            transform: translateZ(0px);
+
 
             @include surface(var(--surface-opacity-subtle));
             @include container-clamped(stretch, stretch);

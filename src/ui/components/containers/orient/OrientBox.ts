@@ -1,5 +1,5 @@
-import { elementPointerMap, bindWith, attrRef } from "fest/lure";
-import { handleStyleChange, DOMMixin } from "fest/dom";
+import { elementPointerMap, bindWith, attrRef, orientRef } from "fest/lure";
+import { handleStyleChange, DOMMixin, getCorrectOrientation, orientationNumberMap } from "fest/dom";
 import { numberRef } from "fest/object";
 
 //
@@ -13,7 +13,9 @@ export class UIOrientBox extends DOMMixin {
 
         //
         //const zoom = attrRef(self, "zoom", 1), orient = attrRef(self, "orient", 0);
-        const zoom = numberRef(1), orient = numberRef(0);
+        const zoom = numberRef(1), orient = numberRef(orientationNumberMap?.[getCorrectOrientation()] || 0);
+        self.style.setProperty("--zoom", zoom.value);
+        self.style.setProperty("--orient", orient.value);
 
         // TODO: broken, fix later
         //bindWith(self, "--zoom", zoom, handleStyleChange, null);

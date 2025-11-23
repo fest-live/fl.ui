@@ -8,7 +8,7 @@
         --tabbed-radius: var(--radius-lg, 0.75rem);
         --tabbed-padding-inline: clamp(0.5rem, 1cqi + 0.5rem, 1.25rem);
         --tabbed-padding-block: clamp(0.5rem, 1cqb + 0.25rem, 1rem);
-        --tabbed-tab-gap: var(--gap-xs, 0.375rem);
+        --tabbed-tab-gap: var(--gap-md, 0.375rem);
         --tabbed-indicator-height: 0.2rem;
         --tabbed-indicator-ease: var(--ease-emphasized, cubic-bezier(0.2, 0, 0, 1));
         --tabbed-indicator-duration: var(--duration-normal, 160ms);
@@ -94,10 +94,11 @@
             display: grid;
             flex-direction: row;
             inline-size: stretch;
-            min-block-size: fit-content;
-            block-size: var(--tabbed-min-bar-size);
+            block-size: fit-content;
             max-block-size: var(--tabbed-min-bar-size);
             box-sizing: border-box;
+            min-block-size: 4rem;
+            padding-block: 0.5rem;
 
             grid-column: 1 / -1;
             grid-row: bar-row;
@@ -126,10 +127,10 @@
                 grid-row: 1 / 1 span;
 
                 //
-                inline-size: stretch;
-                block-size: stretch;
-                min-block-size: 3rem;
                 display: flex;
+                inline-size: stretch;
+                block-size: fit-content;
+                min-block-size: 3rem;
                 flex-direction: row;
                 align-items: center;
                 gap: var(--tabbed-tab-gap);

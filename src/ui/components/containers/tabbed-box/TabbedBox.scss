@@ -67,11 +67,12 @@
             margin-block-start: var(--tabbed-tabs-block-gap);
 
             //
+            display: flex;
             grid-row: tabs-row;
             inline-size: stretch;
-            block-size: fit-content;
+            block-size: stretch;
+            max-block-size: stretch;
             min-block-size: 3rem;
-            display: flex !important;
             flex-wrap: nowrap;
             flex-direction: row;
             align-items: center;

@@ -52,7 +52,7 @@ export const createItemCtxMenu = async (fileManager: any, onMenuAction: (item: F
         ],
         defaultAction: (initiator: HTMLElement, menuItem: any, ev: MouseEvent) => {
             const rowFromCompose = Array.from(ev?.composedPath?.() || []).find((element: any) => element?.classList?.contains?.(".row")) || MOCElement(initiator, ".row");
-            onMenuAction?.((entries?.value as FileEntryItem[])?.find?.(item => (item?.name === (rowFromCompose as any)?.getAttribute?.("data-id"))), menuItem?.id, ev);
+            requestAnimationFrame(() => onMenuAction?.((entries?.value as FileEntryItem[])?.find?.(item => (item?.name === (rowFromCompose as any)?.getAttribute?.("data-id"))), menuItem?.id, ev));
         }
     };
 

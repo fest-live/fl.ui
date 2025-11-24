@@ -107,16 +107,16 @@ export class FileManager extends UIElement {
         const content = H`<div part="content" class="fm-content"><slot></slot></div>`
         const toolbar = H`<div part="toolbar" class="fm-toolbar">
             <div class="fm-toolbar-left">
-                <button class="btn" title="Up" on:click=${() => this.goUp()}><ui-icon icon="arrow-up"/></button>
-                <button class="btn" title="Refresh" on:click=${() => this.navigate(this.path)}><ui-icon icon="arrow-clockwise"/></button>
+                <button class="btn" title="Up" on:click=${() => requestAnimationFrame(() => this.goUp())}><ui-icon icon="arrow-up"/></button>
+                <button class="btn" title="Refresh" on:click=${() => requestAnimationFrame(() => this.navigate(this.path))}><ui-icon icon="arrow-clockwise"/></button>
             </div>
             <div class="fm-toolbar-center">
                 <input class="address c2-surface" autocomplete="off" type="text" name="address" />
             </div>
             <div class="fm-toolbar-right">
-                <button class="btn" title="Add" on:click=${() => this.requestUpload?.()}><ui-icon icon="upload"/></button>
-                <button class="btn" title="Paste" on:click=${() => this.requestPaste?.()}><ui-icon icon="clipboard"/></button>
-                <button class="btn" title="Use" on:click=${() => this.requestUse?.()}><ui-icon icon="hand-withdraw"/></button>
+                <button class="btn" title="Add" on:click=${() => requestAnimationFrame(() => this.requestUpload?.())}><ui-icon icon="upload"/></button>
+                <button class="btn" title="Paste" on:click=${() => requestAnimationFrame(() => this.requestPaste?.())}><ui-icon icon="clipboard"/></button>
+                <button class="btn" title="Use" on:click=${() => requestAnimationFrame(() => this.requestUse?.())}><ui-icon icon="hand-withdraw"/></button>
             </div>
         </div>`
 

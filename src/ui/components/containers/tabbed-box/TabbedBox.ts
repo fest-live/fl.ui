@@ -196,14 +196,24 @@ export class TabbedBox extends UIElement {
         this.resizeObserver?.disconnect();
 
         const updateIndicators = () => {
-            const maxScrollLeft = tabsBox.scrollWidth - tabsBox.clientWidth;
-            const hasOverflow = maxScrollLeft > 1;
-            const startOverflow = tabsBox.scrollLeft > 1;
-            const endOverflow = tabsBox.scrollLeft < maxScrollLeft - 1;
+            requestAnimationFrame(() => {
+                if (tabsBox) {
+                    const maxScrollLeft = tabsBox.scrollWidth - tabsBox.clientWidth;
+                    const hasOverflow = maxScrollLeft > 1;
+                    const startOverflow = tabsBox.scrollLeft > 1;
+                    const endOverflow = tabsBox.scrollLeft < maxScrollLeft - 1;
 
-            tabsBox.toggleAttribute("data-scrollable", hasOverflow);
-            tabsBox.toggleAttribute("data-scrollable-start", startOverflow);
-            tabsBox.toggleAttribute("data-scrollable-end", endOverflow);
+                    if (tabsBox.hasAttribute("data-scrollable") !== hasOverflow) {
+                        tabsBox.toggleAttribute("data-scrollable", hasOverflow);
+                    }
+                    if (tabsBox.hasAttribute("data-scrollable-start") !== startOverflow) {
+                        tabsBox.toggleAttribute("data-scrollable-start", startOverflow);
+                    }
+                    if (tabsBox.hasAttribute("data-scrollable-end") !== endOverflow) {
+                        tabsBox.toggleAttribute("data-scrollable-end", endOverflow);
+                    }
+                }
+            });
         };
 
         const onWheel = (event: WheelEvent) => {

@@ -206,14 +206,24 @@ export class TabbedSidebar extends UIElement {
         self.resizeObserver?.disconnect();
 
         const updateIndicators = () => {
-            const maxScrollLeft = self.tabsBox.scrollWidth - self.tabsBox.clientWidth;
-            const hasOverflow = maxScrollLeft > 1;
-            const startOverflow = self.tabsBox.scrollLeft > 1;
-            const endOverflow = self.tabsBox.scrollLeft < maxScrollLeft - 1;
+            requestAnimationFrame(() => {
+                if (self.tabsBox) {
+                    const maxScrollLeft = self.tabsBox.scrollWidth - self.tabsBox.clientWidth;
+                    const hasOverflow = maxScrollLeft > 1;
+                    const startOverflow = self.tabsBox.scrollLeft > 1;
+                    const endOverflow = self.tabsBox.scrollLeft < maxScrollLeft - 1;
 
-            self.tabsBox.toggleAttribute("data-scrollable", hasOverflow);
-            self.tabsBox.toggleAttribute("data-scrollable-start", startOverflow);
-            self.tabsBox.toggleAttribute("data-scrollable-end", endOverflow);
+                    if (self.tabsBox.hasAttribute("data-scrollable") !== hasOverflow) {
+                        self.tabsBox.toggleAttribute("data-scrollable", hasOverflow);
+                    }
+                    if (self.tabsBox.hasAttribute("data-scrollable-start") !== startOverflow) {
+                        self.tabsBox.toggleAttribute("data-scrollable-start", startOverflow);
+                    }
+                    if (self.tabsBox.hasAttribute("data-scrollable-end") !== endOverflow) {
+                        self.tabsBox.toggleAttribute("data-scrollable-end", endOverflow);
+                    }
+                }
+            });
         };
 
         const onWheel = (event: WheelEvent) => {

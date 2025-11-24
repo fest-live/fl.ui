@@ -103,6 +103,7 @@ export class FileOperative {
             const rel = path; // openDirectory can consume absolute-like parts (it filters Booleans)
 
             //
+            if (this.#dirProxy?.dispose) { this.#dirProxy.dispose(); }
             this.#dirProxy = openDirectory(this.#fsRoot, rel, { create: false }); await this.#dirProxy;
 
             //

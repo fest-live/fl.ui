@@ -71,7 +71,7 @@
             scrollbar-gutter: auto;
 
             scrollbar-width: thin;
-            scrollbar-color: --c2-on-surface(0.0, var(--current, currentColor)) transparent;
+            scrollbar-color: var(--on-surface-color, currentColor) transparent;
 
             inline-size: stretch;
             block-size: stretch;
@@ -119,14 +119,11 @@
             gap: 0.25rem;
             flex-wrap: nowrap;
 
-            background-color: var(--surface-color, transparent);
+            background-color: var(--surface-color, transparent) !important;
 
-            &:hover {
-                --color-shade: var(--hover-lift, 0.04);
-                background-color: var(--surface-hover, color-mix(in srgb, var(--surface-color, transparent), #888888 10%));
-            }
-            &:active { --color-shade: var(--active-lift, 0.06); }
-            &:is(:focus, :focus-visible) { --color-shade: var(--focus-lift, 0.02); }
+            &:hover                      { --_color-shade: calc(var(--color-shade, 0) + var(--hover-lift, 0.03)); }
+            &:active                     { --_color-shade: calc(var(--color-shade, 0) + var(--active-lift, 0.04)); }
+            &:is(:focus, :focus-visible) { --_color-shade: calc(var(--color-shade, 0) + var(--focus-lift, 0.02)); }
 
             ui-icon {
                 inline-size: 1.25rem;
@@ -136,11 +133,11 @@
             }
 
             a, span {
-                background-color: transparent;
+                background-color: transparent !important;
             }
 
             & > * {
-                background-color: transparent;
+                background-color: transparent !important;
             }
         }
 

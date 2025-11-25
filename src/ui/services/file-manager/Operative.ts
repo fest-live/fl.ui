@@ -24,6 +24,7 @@ export interface FileEntryItem {
     size?: number;
     lastModified?: number;
     handle?: any;
+    file?: File;
 }
 
 //
@@ -41,7 +42,7 @@ export class FileOperative {
     #clipboard: { items: string[]; cut?: boolean } | null = null;
     #subscribed: any = null;
     #loaderDebounceTimer: any = null;
-    
+
     //
     public host: HTMLElement | null = null;
 
@@ -66,7 +67,7 @@ export class FileOperative {
     //
     itemAction(item: FileEntryItem) {
         const self: any = this;
-        
+
         //
         const detail = { path: (self.path || "/user/") + item?.name, item, originalEvent: null };
         const event = new CustomEvent("open-item", { detail, bubbles: true, composed: true, cancelable: true });
@@ -125,11 +126,10 @@ export class FileOperative {
                                 Promise.try(async () => {
                                     try {
                                         const f = await handle?.getFile?.();
-                                        if (item) {
-                                            item.size = f?.size;
-                                            item.lastModified = f?.lastModified;
-                                            item.type = f?.type || item.type;
-                                        }
+                                        item.file = f;
+                                        item.size = f?.size;
+                                        item.lastModified = f?.lastModified;
+                                        item.type = f?.type || item.type;
                                     } catch { }
                                 }).catch?.(console.warn.bind(console));
                             }
@@ -173,9 +173,15 @@ export class FileOperative {
     protected onRowDragStart = (item: FileEntryItem, ev: DragEvent) => {
         if (!ev.dataTransfer) return;
         ev.dataTransfer.effectAllowed = "copyMove";
+
+        //
         const abs = (this.path || "/user/") + (item?.name || "");
         ev.dataTransfer.setData("text/plain", abs);
         ev.dataTransfer.setData("text/uri-list", abs);
+        if (item?.file) {
+            ev.dataTransfer.setData("DownloadURL", item?.file?.type + ":" + item?.file?.name + ":" + URL.createObjectURL(item?.file as any));
+            ev.dataTransfer.items.add(item?.file as any);
+        }
     };
 
     //

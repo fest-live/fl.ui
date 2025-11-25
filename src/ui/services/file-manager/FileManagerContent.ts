@@ -143,17 +143,18 @@ export class FileManagerContent extends UIElement {
 
         //
         const makeListElement = (item: FileEntryItem) => {
-            const isFile = item?.kind === "file";
+            const isFile = item?.kind === "file" || item?.file;
             const itemEl = H`<div draggable="${isFile}" data-id=${propRef(item, "name")} class="row c2-surface"
                 on:click=${(ev: MouseEvent) => requestAnimationFrame(() => operative.onRowClick?.(item, ev))}
                 on:dblclick=${(ev: MouseEvent) => requestAnimationFrame(() => operative.onRowDblClick?.(item, ev))}
                 on:dragstart=${(ev: DragEvent) => operative.onRowDragStart?.(item, ev)}
+                style="-webkit-user-drag: element;"
             >
-                <div style="background-color: transparent;" class="c icon"><ui-icon icon=${computed(item, ()=>{ return iconFor(item); })} /></div>
-                <div style="background-color: transparent;" class="c name" title=${propRef(item, "name")}>${propRef(item, "name")}</div>
-                <div style="background-color: transparent;" class="c size">${isFile ? propRef(item, "size") : ""}</div>
-                <div style="background-color: transparent;" class="c date">${isFile ? computed(propRef(item, "lastModified"), (val)=>{ return getFormattedDate(val ?? 0); }) : ""}</div>
-                <div style="background-color: transparent;" class="c actions">
+                <div style="pointer-events: none; background-color: transparent;" class="c icon"><ui-icon icon=${computed(item, ()=>{ return iconFor(item); })} /></div>
+                <div style="pointer-events: none; background-color: transparent;" class="c name" title=${propRef(item, "name")}>${propRef(item, "name")}</div>
+                <div style="pointer-events: none; background-color: transparent;" class="c size">${isFile ? propRef(item, "size") : ""}</div>
+                <div style="pointer-events: none; background-color: transparent;" class="c date">${isFile ? computed(propRef(item, "lastModified"), (val)=>{ return getFormattedDate(val ?? 0); }) : ""}</div>
+                <div style="pointer-events: none; background-color: transparent;" class="c actions">
                     <button class="action-btn" title="Copy Path" on:click=${(ev: MouseEvent) => { ev.stopPropagation(); requestAnimationFrame(() => operative.onMenuAction?.(item, "copyPath", ev)); }}>
                         <ui-icon icon="copy" />
                     </button>

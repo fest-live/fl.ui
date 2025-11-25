@@ -122,7 +122,7 @@ export class FileManagerContent extends UIElement {
     constructor() {
         super();
         this.operativeInstance ??= new FileOperative();
-        this.operativeInstance.host = this;
+        this.operativeInstance.host = this as any;
     }
 
     //
@@ -149,6 +149,7 @@ export class FileManagerContent extends UIElement {
                 on:dblclick=${(ev: MouseEvent) => requestAnimationFrame(() => operative.onRowDblClick?.(item, ev))}
                 on:dragstart=${(ev: DragEvent) => operative.onRowDragStart?.(item, ev)}
                 style="-webkit-user-drag: element;"
+                data-id=${propRef(item, "name")}
             >
                 <div style="pointer-events: none; background-color: transparent;" class="c icon"><ui-icon icon=${computed(item, ()=>{ return iconFor(item); })} /></div>
                 <div style="pointer-events: none; background-color: transparent;" class="c name" title=${propRef(item, "name")}>${propRef(item, "name")}</div>

@@ -12,7 +12,9 @@ import {
     getDirectoryHandle,
     copyFromOneHandlerToAnother,
     attachFile,
-    provide
+    provide,
+    readFile,
+    uploadDirectory
 } from "fest/lure";
 
 //
@@ -187,16 +189,17 @@ export class FileOperative {
     //
     protected async onMenuAction(item: FileEntryItem | null, actionId: string, ev: MouseEvent) {
         try {
-            if (!actionId) return; const abs = (this.path || "/user/") + (item?.name || ""); switch (actionId) {
+            const itemName = item?.name;
+            if (!actionId) return; const abs = (this.path || "/user/") + (itemName || ""); switch (actionId) {
                 case "open":
                     this.itemAction(item as FileEntryItem);
                     break;
                 case "download":
                     Promise.try(async () => {
                         if (item?.kind === "file") {
-                            await downloadFile(await this.#dirProxy?.getFileHandle?.(item?.name, { create: false }));
+                            await downloadFile(await getFileHandle(this.#fsRoot, abs, { create: false }));
                         } else {
-                            await downloadFile(await this.#dirProxy?.getDirectoryHandle?.(item?.name, { create: false }));
+                            await downloadFile(await getDirectoryHandle(this.#fsRoot, abs, { create: false }));
                         }
                     }).catch(console.warn);
                      break;
@@ -205,9 +208,9 @@ export class FileOperative {
                     break;
                 case "rename":
                     if (item?.kind === "file") {
-                        const next = prompt("Rename to:", item?.name);
-                        if (next && next !== item?.name) {
-                            await this.renameFile(item?.name, next);
+                        const next = prompt("Rename to:", itemName);
+                        if (next && next !== itemName) {
+                            await this.renameFile(abs ?? "", next ?? "");
                         }
                     }
                     break;
@@ -228,21 +231,28 @@ export class FileOperative {
 
     //
     protected async renameFile(oldName: string, newName: string) {
-        const fromHandle = await this.#dirProxy?.getFileHandle?.(oldName, { create: false });
+        const fromHandle = await getFileHandle(this.#fsRoot, oldName, { create: false });
         const file = await fromHandle?.getFile?.();
         if (!file) return;
-        const target = await this.#dirProxy?.getFileHandle?.(newName, { create: true }).catch(() => null);
+        const target = await getFileHandle(this.#fsRoot, newName, { create: true }).catch(() => null);
         if (!target) {
-            await writeFile(this.#fsRoot, (this.path || "/user/") + newName, file);
+            await writeFile(this.#fsRoot, this.path + newName, file);
         } else {
-            await writeFile(this.#fsRoot, (this.path || "/user/") + newName, file);
+            await writeFile(this.#fsRoot, this.path + newName, file);
         }
-        await remove(this.#fsRoot, (this.path || "/user/") + oldName);
+        await remove(this.#fsRoot, this.path + oldName);
     }
 
     //
     async requestUpload() {
         try {
+            if ((window as any)?.showDirectoryPicker) {
+                /*const confirmed = confirm("Upload directory?");
+                if (confirmed) {
+                    await uploadDirectory(this.path, null);
+                    return;
+                }*/
+            }
             await uploadFile(this.path, null);
         } catch (e) { console.warn(e); }
     }
@@ -272,22 +282,57 @@ export class FileOperative {
     }
 
     //
-    public onDrop(ev: DragEvent) {
+    public async onDrop(ev: DragEvent) {
         ev.preventDefault();
         const dt = ev.dataTransfer;
         if (!dt) return;
-        const files = dt.files;
+
         const tasks: Promise<any>[] = [];
-        for (let i = 0; i < files.length; i++) {
-            const f = files[i];
-            tasks.push(writeFile(this.#fsRoot, (this.path || "/user/") + f.name, f));
+
+        // 1. Handle standard files and directories via webkitGetAsEntry / getAsEntry
+        const items = Array.from(dt.items || []);
+        for (const item of items) {
+            console.log(item);
+            /*
+            const entry = item.webkitGetAsEntry?.() || (item as any).getAsEntry?.();
+            if (entry) {
+                tasks.push(this.handleEntry(entry, (this.path || "/user/")));
+                continue;
+            }*/
+            // Fallback for simple files if getAsEntry not supported/available
+            /*if (item.kind === 'file') {
+                const f = item.getAsFile();
+                if (f) tasks.push(writeFile(this.#fsRoot, (this.path || "/user/") + f.name, f));
+            } else*/
+            if (item.kind === 'file') {
+                // @ts-ignore
+                const d = await (item as any)?.getAsFileSystemHandle?.();
+                if (d instanceof FileSystemDirectoryHandle) {
+                    const nwd = await getDirectoryHandle(this.#fsRoot, (this.path || "/user/") + ((item as any)?.name || (d as any)?.name)?.trim?.()?.replace?.(/\s+/g, '-'), { create: true });
+                    if (nwd) tasks.push(copyFromOneHandlerToAnother(d as any, nwd as any, { create: true }));
+                } else if (d instanceof FileSystemFileHandle) {
+                    const file = await d.getFile();
+                    tasks.push(writeFile(this.#fsRoot, (this.path || "/user/") + ((file as any)?.name || (file as any)?.name)?.trim?.()?.replace?.(/\s+/g, '-'), file as any));
+                }
+            }
         }
 
-        // URLs
+        // 2. Handle fallback files if items API was empty/failed
+        if (tasks.length === 0 && dt.files.length > 0) {
+            for (let i = 0; i < dt.files.length; i++) {
+                const f = dt.files[i];
+                tasks.push(writeFile(this.#fsRoot, (this.path || "/user/") + f.name, f));
+            }
+        }
+
+        // 3. URLs
         const uriList = dt.getData("text/uri-list") || dt.getData("text/plain");
         if (uriList) {
             const urls = uriList.split(/\r?\n/).filter(Boolean);
             for (const url of urls) {
+                // Skip if it looks like a local file path we might have already processed
+                if (url.startsWith("file://")) continue;
+
                 tasks.push(Promise.try(async () => {
                     const file = await provide(url);
                     if (file) await writeFile(this.#fsRoot, (this.path || "/user/") + file.name, file);
@@ -295,6 +340,30 @@ export class FileOperative {
             }
         }
         Promise.allSettled(tasks).catch(console.warn.bind(console));
+    }
+
+    // Recursive entry handler
+    private async handleEntry(entry: any, targetPath: string) {
+        if (entry.isFile) {
+            const file = await new Promise<File>((resolve, reject) => entry.file(resolve, reject));
+            await writeFile(this.#fsRoot, targetPath + entry.name, file);
+        } else if (entry.isDirectory) {
+            const newDir = targetPath + entry.name + "/";
+            // Ensure directory exists (writeFile handles parent dirs, but explicitly creating empty dirs is good)
+            // Assuming writeFile/openDirectory logic handles creation implicitly or explicit mkdir needed
+            // Here we just rely on writing files *into* it, or could explicitly create:
+            await openDirectory(this.#fsRoot, newDir, { create: true });
+
+            const reader = entry.createReader();
+            const readEntries = async () => {
+                const entries = await new Promise<any[]>((resolve, reject) => reader.readEntries(resolve, reject));
+                if (entries.length > 0) {
+                    await Promise.all(entries.map(e => this.handleEntry(e, newDir)));
+                    await readEntries(); // Continue reading (readEntries might not return all at once)
+                }
+            };
+            await readEntries();
+        }
     }
 
 

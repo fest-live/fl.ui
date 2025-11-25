@@ -90,7 +90,7 @@
             slot { display: contents !important; }
         }
 
-        .row, ::slotted(.row) {
+        :where(.row) {
             @include solid-colorize("&");
 
             display: grid;
@@ -119,11 +119,7 @@
             gap: 0.25rem;
             flex-wrap: nowrap;
 
-            background-color: var(--surface-color, transparent) !important;
-
-            &:hover                      { --_color-shade: calc(var(--color-shade, 0) + var(--hover-lift, 0.03)); }
-            &:active                     { --_color-shade: calc(var(--color-shade, 0) + var(--active-lift, 0.04)); }
-            &:is(:focus, :focus-visible) { --_color-shade: calc(var(--color-shade, 0) + var(--focus-lift, 0.02)); }
+            background-color: var(--surface-color, transparent);
 
             ui-icon {
                 inline-size: 1.25rem;
@@ -139,6 +135,16 @@
             & > * {
                 background-color: transparent !important;
             }
+        }
+
+        .row:is(:focus, :focus-visible) {
+            --_color-shade: calc(var(--color-shade, 0) + var(--focus-lift, 0.02));
+        }
+        .row:hover {
+            --_color-shade: calc(var(--color-shade, 0) + var(--hover-lift, 0.03));
+        }
+        .row:active {
+            --_color-shade: calc(var(--color-shade, 0) + var(--active-lift, 0.04));
         }
 
         .c {

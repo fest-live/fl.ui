@@ -100,12 +100,24 @@ export class TabbedSidebar extends UIElement {
 
         //
         const tabLabel = H`<span class="ui-tabbed-box-tab-label">${rawLabel}</span>`;
-        const closeButton = tabName != "home" ? H`<button type="button" on:click=${(event: Event)=>{event?.preventDefault?.(); event?.stopPropagation?.(); self.dispatchEvent(new TabCloseEvent("tab-close", { bubbles: true, composed: true }, tabName));}} class="ui-tabbed-box-tab-close" aria-label=${`Close ${readableLabel}`} part="tab-close">
+        const closeButton = tabName != "home" ? H`<button type="button" on:click=${(ev: Event) => {
+            ev?.preventDefault?.();
+            ev?.stopPropagation?.();
+            if (ev?.target == ev?.currentTarget) {
+                self?.dispatchEvent?.(new TabCloseEvent("tab-close", { bubbles: true, composed: true }, tabName));
+            }
+        }} class="ui-tabbed-box-tab-close" aria-label=${`Close ${readableLabel}`} part="tab-close">
             <ui-icon icon="x"></ui-icon>
         </button>` : null;
 
         //
-        const tabButton = H`<div on:click=${(ev: Event)=>self.openTab(tabName, ev)} class="ui-tabbed-box-tab" role="tab" data-tab-name=${tabName}>${tabLabel}${closeButton}</div>`;
+        const tabButton = H`<div on:click=${(ev: Event) => {
+            ev?.preventDefault?.();
+            ev?.stopPropagation?.();
+            if (ev?.target == ev?.currentTarget) {
+                self?.openTab?.(tabName, ev);
+            }
+        }} class="ui-tabbed-box-tab" role="tab" data-tab-name=${tabName}>${tabLabel}${closeButton}</div>`;
         addPartProperty(tabButton, tabName);
 
         //
@@ -117,9 +129,9 @@ export class TabbedSidebar extends UIElement {
     openTab(tabName: string, ev?: any) {
         if (!tabName) return;
         const self: any = this;
-        if (tabName) {
-            self.currentTab = tabName ?? self.currentTab;
-            self.dispatchEvent(new TabChangedEvent("tab-changed", { bubbles: true }, self.currentTab));
+        if (tabName && tabName != self?.currentTab) {
+            self.currentTab = tabName ?? self?.currentTab;
+            self?.dispatchEvent?.(new TabChangedEvent("tab-changed", { bubbles: true, composed: true }, self.currentTab));
         }
     }
 

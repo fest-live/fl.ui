@@ -47,7 +47,7 @@ export class BoxWithSidebar extends UIElement {
         const sidebarEl = Q(".sidebar", self?.shadowRoot);
         if (sidebarEl) {
             registerSidebar(sidebarEl as HTMLElement, self.sidebarOpened);
-        }
+            }
     }
 
     //

@@ -132,11 +132,11 @@ export class TabbedBox extends UIElement {
     }
 
     //
-    createTab(tabName: string) {
+    createTab(tabName: string, idx?: number) {
         if (!tabName) return;
         const self: any = this;
         const tabLabel  = H`<span class="ui-tabbed-box-tab-label">${(self?.renderTabName?.bind?.(self) ?? renderTabName)?.(tabName) ?? tabName}</span>`;
-        const tabButton = H`<button slot="tabs" type="button" on:click=${(ev: Event)=>self.openTab(tabName, ev)} class="ui-tabbed-box-tab" role="tab" data-tab-name=${tabName}>${tabLabel}</button>`;
+        const tabButton = H`<button slot="tabs" type="button" on:click=${(ev: Event)=>self.openTab(tabName, ev)} class="ui-tabbed-box-tab" role="tab" data-tab-name=${tabName} data-tab-index=${idx}>${tabLabel}</button>`;
         addPartProperty(tabButton, tabName);
 
         //
@@ -166,7 +166,7 @@ export class TabbedBox extends UIElement {
         const dropMenu = self.hasSidebarDropMenu?.() ?? false;
         this.syncHostFeatureAttributes?.(tabPosition, dropMenu);
         const root = H`
-        <form class="ui-tabbed-box-tabs" part="tabs">${M(observableByMap(self.tabs ?? new Map()) ?? [], (key_value) => this.createTab(key_value?.[0]))}</form>
+        <form class="ui-tabbed-box-tabs" part="tabs">${M(observableByMap(self.tabs ?? new Map()), ([key, _], idx) => this.createTab(key, idx))}</form>
         <div class="ui-tabbed-box-content" part="content"><slot></slot></div>`
         return root;
     }

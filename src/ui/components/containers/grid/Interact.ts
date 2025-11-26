@@ -1,5 +1,5 @@
 import { RAFBehavior, orientOf, getBoundingOrientRect, addEvents } from "fest/dom";
-import { makeObjectAssignable, makeReactive, subscribe, autoRef } from "fest/object";
+import { makeObjectAssignable, makeReactive, subscribe, autoRef, numberRef } from "fest/object";
 import { LongPressHandler, makeShiftTrigger, E, bindDraggable } from "fest/lure";
 import { convertOrientPxToCX, redirectCell, floorNearest, ceilNearest, roundNearest } from "fest/core";
 import type { GridArgsType as GridArgsType, GridItemType } from "fest/core";
@@ -271,15 +271,15 @@ export const makeDragEvents = async (
         const cell = ctx?.cell;
 
         //
-        setStyleProperty(newItem, "--p-cell-x", currentCell?.[0]?.value);
-        setStyleProperty(newItem, "--p-cell-y", currentCell?.[1]?.value);
+        setStyleProperty(newItem, "--p-cell-x", currentCell?.[0]?.value ?? item?.cell?.[0] ?? cell?.[0]);
+        setStyleProperty(newItem, "--p-cell-y", currentCell?.[1]?.value ?? item?.cell?.[1] ?? cell?.[1]);
         syncDragStyles?.(true);
 
         //
         if (cell) {
             setCell(cell);
-            setStyleProperty(newItem, "--cell-x", cell?.[0]);
-            setStyleProperty(newItem, "--cell-y", cell?.[1]);
+            setStyleProperty(newItem, "--cell-x", cell?.[0] ?? currentCell?.[0]?.value ?? item?.cell?.[0] ?? 0);
+            setStyleProperty(newItem, "--cell-y", cell?.[1] ?? currentCell?.[1]?.value ?? item?.cell?.[1] ?? 0);
         }
 
         //
@@ -299,10 +299,10 @@ export const makeDragEvents = async (
 
             //
             if (cell) {
-                setStyleProperty(newItem, "--p-cell-x", cell?.[0]);
-                setStyleProperty(newItem, "--p-cell-y", cell?.[1]);
-                setStyleProperty(newItem, "--cell-x", cell?.[0]);
-                setStyleProperty(newItem, "--cell-y", cell?.[1]);
+                setStyleProperty(newItem, "--p-cell-x", cell?.[0] ?? currentCell?.[0]?.value ?? item?.cell?.[0] ?? 0);
+                setStyleProperty(newItem, "--p-cell-y", cell?.[1] ?? currentCell?.[1]?.value ?? item?.cell?.[1] ?? 0);
+                setStyleProperty(newItem, "--cell-x", cell?.[0] ?? currentCell?.[0]?.value ?? item?.cell?.[0] ?? 0);
+                setStyleProperty(newItem, "--cell-y", cell?.[1] ?? currentCell?.[1]?.value ?? item?.cell?.[1] ?? 0);
             }
         });
 
@@ -330,11 +330,11 @@ export const bindInteraction = (newItem: HTMLElement, pArgs: any): [any, any] =>
 
     //
     const { item, items, list } = pArgs, layout = [pArgs?.layout?.columns || pArgs?.layout?.[0] || 4, pArgs?.layout?.rows || pArgs?.layout?.[1] || 8];
-    const dragging: [any, any] = [ autoRef(0, RAFBehavior()), autoRef(0, RAFBehavior()) ], currentCell: [any, any] = [ autoRef(item?.cell?.[0] || 0), autoRef(item?.cell?.[1] || 0) ];
+    const dragging: [any, any] = [ numberRef(0, RAFBehavior()), numberRef(0, RAFBehavior()) ], currentCell: [any, any] = [ numberRef(item?.cell?.[0] || 0), numberRef(item?.cell?.[1] || 0) ];
 
     //
-    setStyleProperty(newItem, "--cell-x", currentCell?.[0]?.value);
-    setStyleProperty(newItem, "--cell-y", currentCell?.[1]?.value);
+    setStyleProperty(newItem, "--cell-x", currentCell?.[0]?.value || 0);
+    setStyleProperty(newItem, "--cell-y", currentCell?.[1]?.value || 0);
 
     //
     const applyDragStyles = (): void => {

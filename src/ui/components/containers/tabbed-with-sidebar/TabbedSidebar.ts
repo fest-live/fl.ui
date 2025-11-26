@@ -91,7 +91,7 @@ export class TabbedSidebar extends UIElement {
     }
 
     //
-    createTab(tabName: string) {
+    createTab(tabName: string, idx?: number) {
         if (!tabName) return;
         const self: any = this; if (self?.shadowRoot?.querySelector(`[data-tab-name="${tabName}"]`)) return;
         const renderLabel = self?.renderTabName?.bind?.(self) ?? renderTabName;
@@ -176,7 +176,7 @@ export class TabbedSidebar extends UIElement {
     onRender() {
         const self: any = this;
         const sidebarOpenedRef = self.getProperty("sidebarOpened") ?? self.sidebarOpened;
-        
+
         makeClickOutsideTrigger(
             sidebarOpenedRef,
             Q("button.open-sidebar", self?.shadowRoot),
@@ -279,7 +279,7 @@ export class TabbedSidebar extends UIElement {
                 on:click=${() => { this.sidebarOpened = !this.sidebarOpened; }}
             ><ui-icon icon="${conditional(openedProperty, 'text-outdent', 'list')}"></ui-icon></button>
             <form class="ui-tabbed-box-tabs pinned" part="pinned">${this.createTab("home")}</form>
-            <form class="ui-tabbed-box-tabs" part="tabs">${M(observableByMap(this.tabs ?? new Map()) ?? [], (key_value) => (key_value?.[0] != "home" ? this.createTab(key_value?.[0]) : null))}</form>
+            <form class="ui-tabbed-box-tabs" part="tabs">${M(observableByMap(this.tabs ?? new Map()), ([key, _], idx) => (key != "home" && (typeof key == "string") ? this.createTab(key) : null))}</form>
         </div>
         <div part="content-box" class="content-box">
             <div part="sidebar" class="sidebar" id=${this.sidebarUniqueId} data-visible=${conditional(openedProperty, "true", "false")}><slot name="sidebar"></slot></div>

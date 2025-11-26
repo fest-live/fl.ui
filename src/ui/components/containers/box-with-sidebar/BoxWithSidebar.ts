@@ -1,4 +1,4 @@
-import { defineElement, Q, H, makeClickOutsideTrigger } from "fest/lure"
+import { defineElement, Q, H, makeClickOutsideTrigger, registerSidebar } from "fest/lure"
 import { preloadStyle } from "fest/dom"
 import { booleanRef, conditional, subscribe } from "fest/object"
 import { UIElement } from "@fl-design/base/UIElement"
@@ -43,14 +43,11 @@ export class BoxWithSidebar extends UIElement {
         //
         self.sidebarOpened.value = false;
 
-        // debug triggering
-        /*subscribe(self.sidebarOpened, (opened) => {
-            if (opened) {
-                console.log("sidebar opened");
-            } else {
-                console.log("sidebar closed");
-            }
-        });*/
+        // Register sidebar with back navigation for mobile back gesture support
+        const sidebarEl = Q(".sidebar", self?.shadowRoot);
+        if (sidebarEl) {
+            registerSidebar(sidebarEl as HTMLElement, self.sidebarOpened);
+        }
     }
 
     //

@@ -1,4 +1,4 @@
-import { defineElement, Q, H, makeClickOutsideTrigger, M, property } from "fest/lure"
+import { defineElement, Q, H, makeClickOutsideTrigger, M, property, registerSidebar } from "fest/lure"
 import { preloadStyle } from "fest/dom"
 import { $trigger, booleanRef, conditional, observableByMap, stringRef, subscribe } from "fest/object"
 import { UIElement } from "@fl-design/base/UIElement"
@@ -175,8 +175,10 @@ export class TabbedSidebar extends UIElement {
     //
     onRender() {
         const self: any = this;
+        const sidebarOpenedRef = self.getProperty("sidebarOpened") ?? self.sidebarOpened;
+        
         makeClickOutsideTrigger(
-            self.getProperty("sidebarOpened") ?? self.sidebarOpened,
+            sidebarOpenedRef,
             Q("button.open-sidebar", self?.shadowRoot),
             Q(".sidebar", self?.shadowRoot)
         );
@@ -188,6 +190,13 @@ export class TabbedSidebar extends UIElement {
 
         //
         self.sidebarOpened = false;
+
+        // Register sidebar with back navigation for mobile back gesture support
+        const sidebarEl = Q(".sidebar", self?.shadowRoot);
+        if (sidebarEl && sidebarOpenedRef) {
+            registerSidebar(sidebarEl as HTMLElement, sidebarOpenedRef);
+        }
+
         if (!self.tabs || !self.currentTab) return;
         this.observeTabsOverflow?.();
     }

@@ -137,14 +137,10 @@
             }
         }
 
-        .row:is(:focus, :focus-visible) {
-            --_color-shade: calc(var(--color-shade, 0) + var(--focus-lift, 0.02));
-        }
-        .row:hover {
-            --_color-shade: calc(var(--color-shade, 0) + var(--hover-lift, 0.03));
-        }
-        .row:active {
-            --_color-shade: calc(var(--color-shade, 0) + var(--active-lift, 0.04));
+        .row {
+            @include when-hover { --color-shade: 0.04; }
+            @include when-active { --color-shade: 0.05; }
+            @include when-focus-visible { --color-shade: 0.03; }
         }
 
         .c {

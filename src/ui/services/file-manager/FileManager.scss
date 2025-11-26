@@ -55,6 +55,10 @@
             padding: 0.25rem;
             line-height: 0;
 
+            button, input {
+                @include solid-colorize("&", ("shade": 0.06, "tint": 0.0, "scope": "selector", "global-targets": true));
+            }
+
             .btn {
                 transition: background 0.1s ease-in-out;
                 appearance: none;
@@ -84,7 +88,7 @@
             }
 
             & .fm-toolbar-left, & .fm-toolbar-right {
-                border-radius: var(--radius-md, 0.25rem);
+                border-radius: var(--radius-lg, 0.25rem);
             }
 
             & .fm-toolbar-center {

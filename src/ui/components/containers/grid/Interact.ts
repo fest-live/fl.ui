@@ -1,8 +1,10 @@
-import { getPropertyValue, RAFBehavior, orientOf, getBoundingOrientRect, addEvents } from "fest/dom";
+import { RAFBehavior, orientOf, getBoundingOrientRect, addEvents } from "fest/dom";
 import { makeObjectAssignable, makeReactive, subscribe, autoRef } from "fest/object";
 import { LongPressHandler, makeShiftTrigger, E, bindDraggable } from "fest/lure";
-import { convertOrientPxToCX, redirectCell } from "fest/core";
+import { convertOrientPxToCX, redirectCell, floorNearest, ceilNearest, roundNearest } from "fest/core";
+import type { GridArgsType as GridArgsType, GridItemType } from "fest/core";
 
+//
 [   // @ts-ignore
     { name: "--drag-x", syntax: "<number>", inherits: false, initialValue: "0" },
     { name: "--drag-y", syntax: "<number>", inherits: false, initialValue: "0" },
@@ -31,8 +33,9 @@ import { convertOrientPxToCX, redirectCell } from "fest/core";
 });
 
 //
-const setStyleProperty = (item, prop, value)=>{
-    item?.style?.setProperty?.(prop, value);
+const setStyleProperty = (item, prop, value) => {
+    if (value == null || item?.style?.getPropertyValue?.(prop) === String(value)) { return; }
+    return item?.style?.setProperty?.(prop, value);
 }
 
 //
@@ -52,7 +55,6 @@ export const animationSequence = (DragCoord = 0, axis = "x") => {
         { [rvProp]: `var(${gridProp})`, [drag]: 0 }
     ];
 };
-
 
 //
 export const doAnimate = async (newItem, axis: any = "x", animate = false, signal?: AbortSignal)=>{
@@ -98,33 +100,79 @@ export const doAnimate = async (newItem, axis: any = "x", animate = false, signa
 
 
 //
-export const reflectCell = async (newItem: any, pArgs: any, withAnimate = false)=>{ // @ts-ignore
-    const layout = [pArgs?.layout?.columns || pArgs?.layout?.[0] || 4, pArgs?.layout?.rows || pArgs?.layout?.[1] || 8];
+export const reflectCell = async (newItem: HTMLElement, pArgs: GridArgsType, withAnimate = false): Promise<void> => {
+    const layout: [number, number] = [(pArgs?.layout as any)?.columns || pArgs?.layout?.[0] || 4, (pArgs?.layout as any)?.rows || pArgs?.layout?.[1] || 8];
     const {item, list, items} = pArgs;
     await new Promise((r)=>requestAnimationFrame(r));
     return subscribe?.(item, (state, property)=>{
         const gridSystem = newItem?.parentElement;
-        layout[0] = parseInt(gridSystem?.getAttribute?.("data-grid-columns")) || layout[0];
-        layout[1] = parseInt(gridSystem?.getAttribute?.("data-grid-rows")) || layout[1];
+        layout[0] = parseInt(gridSystem?.getAttribute?.("data-grid-columns") || "4") || layout[0];
+        layout[1] = parseInt(gridSystem?.getAttribute?.("data-grid-rows") || "8") || layout[1];
         const args = {item, list, items, layout, size: [gridSystem?.clientWidth, gridSystem?.clientHeight]};
         if (item && !item?.cell) { item.cell = makeObjectAssignable(makeReactive([0, 0])); }; // @ts-ignore
-        if (item && args) { const nc = redirectCell(item?.cell, args);
-        if (nc[0] != item?.cell?.[0] || nc[1] != item?.cell?.[1]) { item.cell = nc; } }; // @ts-ignore
-        if (property == "cell") { redirectCell(item?.cell, args); }
+        if (property == "cell") {
+            const nc = redirectCell(item?.cell || [0, 0], args as GridArgsType);
+            if (nc[0] != item?.cell?.[0] && item?.cell) { item.cell[0] = nc?.[0]; }
+            if (nc[1] != item?.cell?.[1] && item?.cell) { item.cell[1] = nc?.[1]; }
+            setStyleProperty(newItem, "--p-cell-x", nc?.[0]);
+            setStyleProperty(newItem, "--p-cell-y", nc?.[1]);
+            setStyleProperty(newItem, "--cell-x", nc?.[0]);
+            setStyleProperty(newItem, "--cell-y", nc?.[1]);
+        }
     });
 }
 
 //
-export const makeDragEvents = async (newItem, {layout, dragging, currentCell, syncDragStyles}, {item, items, list})=>{ // @ts-ignore
-    const $updateLayout = (newItem)=>{
-        const gridSystem = newItem?.parentElement;
-        layout[0] = parseInt(gridSystem?.getAttribute?.("data-grid-columns")) || layout[0];
-        layout[1] = parseInt(gridSystem?.getAttribute?.("data-grid-rows")) || layout[1];
-        return layout;
-    }
+const clampCell = (CXa: [number, number], layout: [number, number]): [number, number] => [
+    Math.max(Math.min(CXa?.[0], (layout?.[0] || 1)-1), 0),
+    Math.max(Math.min(CXa?.[1], (layout?.[1] || 1)-1), 0)
+];
+
+//
+const floorCell = (CXa: [number, number], N = 1): [number, number] => [
+    floorNearest(CXa?.[0] || 0, N),
+    floorNearest(CXa?.[1] || 0, N)
+];
+
+//
+const ceilCell = (CXa: [number, number], N = 1): [number, number] => [
+    ceilNearest(CXa?.[0] || 0, N),
+    ceilNearest(CXa?.[1] || 0, N)
+];
+
+//
+const roundCell = (CXa: [number, number], N = 1): [number, number] => [
+    roundNearest(CXa?.[0] || 0, N),
+    roundNearest(CXa?.[1] || 0, N)
+];
+
+//
+export const makeDragEvents = async (
+    newItem: HTMLElement,
+    { layout, dragging, currentCell, syncDragStyles }: {
+        layout: [number, number],
+        dragging: [any, any],
+        currentCell: [any, any],
+        syncDragStyles: (flush: boolean) => void
+    },
+    { item, items, list }: {
+        item: GridItemType,
+        items: Map<string, GridItemType> | Set<GridItemType> | GridItemType[],
+        list: Set<string> | string[]
+    }): Promise<{ dispose: () => void, draggable: any, process: (ev: MouseEvent, el: HTMLElement) => Promise<unknown> } | undefined> => {
 
     //
-    const getSpanOffset = (bounds, layoutSnapshot: [number, number], size: [number, number], orient: number): [number, number] => {
+    const $updateLayout = (newItem: HTMLElement): [number, number] => {
+        const gridSystem = newItem?.parentElement as HTMLElement | null;
+        if (!gridSystem) { return layout; }
+        layout[0] = parseInt(gridSystem.getAttribute?.("data-grid-columns") as string || "4") || layout[0];
+        layout[1] = parseInt(gridSystem.getAttribute?.("data-grid-rows") as string || "8") || layout[1];
+        return layout;
+    };
+
+    //
+    const getSpanOffset = (bounds: DOMRect | null, layoutSnapshot: [number, number] | null, size: [number, number] | null, orient: number | null): [number, number] => {
+        if (!bounds || !layoutSnapshot || !size || orient == null) { return [0, 0]; }
         const safeLayout: [number, number] = [
             Math.max(layoutSnapshot?.[0] || 0, 1),
             Math.max(layoutSnapshot?.[1] || 0, 1)
@@ -139,13 +187,18 @@ export const makeDragEvents = async (newItem, {layout, dragging, currentCell, sy
         return [(spanX - 1) / 2, (spanY - 1) / 2];
     };
 
-    const computeCellFromBounds = () => {
+    //
+    const computeCellFromBounds = (): { inset?: [number, number], cell?: [number, number] } | null => {
         const gridSystem = newItem?.parentElement as HTMLElement | null;
         if (!gridSystem) { return null; }
+
+        //
         const orient = orientOf(gridSystem);
         const cbox = getBoundingOrientRect(newItem, orient) ?? newItem?.getBoundingClientRect?.();
         const pbox = getBoundingOrientRect(gridSystem, orient) ?? gridSystem?.getBoundingClientRect?.();
         if (!cbox || !pbox) { return null; }
+
+        //
         const layoutSnapshot = [...$updateLayout(newItem)] as [number, number];
         const parentRect = gridSystem.getBoundingClientRect?.();
         const gridSize: [number, number] = [
@@ -159,51 +212,50 @@ export const makeDragEvents = async (newItem, {layout, dragging, currentCell, sy
             (((cbox.top + cbox.bottom) / 2) - pbox.top)
         ];
         const args = { item, items, list, layout: layoutSnapshot as [number, number], size: gridSize };
-        const spanOffset = getSpanOffset(cbox, layoutSnapshot as [number, number], gridSize, orient);
+        const spanOffset = getSpanOffset(cbox as unknown as DOMRect, layoutSnapshot as [number, number], gridSize, orient);
         const projected = convertOrientPxToCX(inset, args, orient);
         projected[0] -= spanOffset[0];
         projected[1] -= spanOffset[1];
         return {
             inset: [inset[0] - dragging?.[0]?.value, inset[1] - dragging?.[1]?.value],
-            cell: redirectCell(clamped(projected, layoutSnapshot as [number, number]), args)
-        };
+            cell: clampCell(redirectCell(floorCell(projected as [number, number]), args), layoutSnapshot as [number, number])
+        } as { inset?: [number, number], cell?: [number, number] };
     };
 
     //
-    const setCellAxis = (cell, axis = 0)=> {
+    const setCellAxis = (cell: [number, number] | null, axis = 0): void => {
+        if (!cell) { return; }
         if (currentCell?.[axis]?.value != cell?.[axis]) {
             try { currentCell[axis].value = cell[axis]; } catch(e){};
         };
     };
-    const setCell = (cell)=>{
-        setCellAxis(cell, 0); setCellAxis(cell, 1);
-    }
-    const clamped = (CXa, layout): [number, number]=>[
-        Math.max(Math.min(Math.floor(CXa[0]), layout[0]-1), 0),
-        Math.max(Math.min(Math.floor(CXa[1]), layout[1]-1), 0)
-    ];
 
     //
-    const syncInsetVars = (inset?: [number, number])=>{
+    const setCell = (cell: [number, number]): void => {
+        const args = {item, items, list, layout, size: [newItem?.clientWidth || 0, newItem?.clientHeight || 0] as [number, number]};
+        cell = clampCell(redirectCell(cell, args as GridArgsType), layout as [number, number]);
+        setCellAxis(cell, 0); setCellAxis(cell, 1);
+    };
+
+    //
+    const syncInsetVars = (inset?: [number, number]): void => {
         if (!inset) { return; }
         setStyleProperty(newItem, "--cs-inset-x", `${inset[0] || 0}px`);
         setStyleProperty(newItem, "--cs-inset-y", `${inset[1] || 0}px`);
     };
 
     //
-    const correctOffset = (dragging)=>{
+    const correctOffset = (dragging: [any, any]): [number, number] => {
         // compute correct cell with span awareness
-        const ctx = computeCellFromBounds();
+        const ctx = computeCellFromBounds() as { inset: [number, number], cell: [number, number] } | null;
         if (ctx?.cell) { setCell(ctx.cell); }
         syncInsetVars((ctx?.inset || [0, 0]) as [number, number]);
 
         //
-        setStyleProperty(newItem, "--p-cell-x", currentCell[0]?.value || 0);
-        setStyleProperty(newItem, "--p-cell-y", currentCell[1]?.value || 0);
-
-        //
-        setStyleProperty(newItem, "--cell-x", currentCell[0]?.value || 0);
-        setStyleProperty(newItem, "--cell-y", currentCell[1]?.value || 0);
+        setStyleProperty(newItem, "--p-cell-x", currentCell?.[0]?.value || 0);
+        setStyleProperty(newItem, "--p-cell-y", currentCell?.[1]?.value || 0);
+        setStyleProperty(newItem, "--cell-x", currentCell?.[0]?.value || 0);
+        setStyleProperty(newItem, "--cell-y", currentCell?.[1]?.value || 0);
 
         // reset dragging offset
         try { dragging[0].value = 0, dragging[1].value = 0; } catch(e) {};
@@ -213,21 +265,21 @@ export const makeDragEvents = async (newItem, {layout, dragging, currentCell, sy
     };
 
     //
-    const resolveDragging = async (dragging) => {
+    const resolveDragging = (dragging: [any, any]): [number, number] => {
         // compute correct cell
-        const ctx = computeCellFromBounds();
+        const ctx = computeCellFromBounds() as { inset: [number, number], cell: [number, number] } | null;
         const cell = ctx?.cell;
 
         //
-        setStyleProperty(newItem, "--p-cell-x", currentCell[0].value);
-        setStyleProperty(newItem, "--p-cell-y", currentCell[1].value);
+        setStyleProperty(newItem, "--p-cell-x", currentCell?.[0]?.value);
+        setStyleProperty(newItem, "--p-cell-y", currentCell?.[1]?.value);
         syncDragStyles?.(true);
 
         //
         if (cell) {
             setCell(cell);
-            setStyleProperty(newItem, "--cell-x", cell[0]);
-            setStyleProperty(newItem, "--cell-y", cell[1]);
+            setStyleProperty(newItem, "--cell-x", cell?.[0]);
+            setStyleProperty(newItem, "--cell-y", cell?.[1]);
         }
 
         //
@@ -242,19 +294,24 @@ export const makeDragEvents = async (newItem, {layout, dragging, currentCell, sy
             newItem?.removeAttribute?.("data-dragging");
 
             //
-            if (cell) {
-                setStyleProperty(newItem, "--p-cell-x", cell[0]);
-                setStyleProperty(newItem, "--p-cell-y", cell[1]);
-            }
-
-            //
             try { dragging[0].value = 0, dragging[1].value = 0; } catch(e) {};
             syncDragStyles?.(true);
+
+            //
+            if (cell) {
+                setStyleProperty(newItem, "--p-cell-x", cell?.[0]);
+                setStyleProperty(newItem, "--p-cell-y", cell?.[1]);
+                setStyleProperty(newItem, "--cell-x", cell?.[0]);
+                setStyleProperty(newItem, "--cell-y", cell?.[1]);
+            }
         });
+
+        //
+        return [0, 0];
     };
 
     //
-    const customTrigger = (doGrab)=>new LongPressHandler(newItem, {
+    const customTrigger = (doGrab: (ev: MouseEvent, newItem: HTMLElement) => void): LongPressHandler => new LongPressHandler(newItem, {
         handler: "*",
         anyPointer: true,
         mouseImmediate: true,
@@ -268,43 +325,43 @@ export const makeDragEvents = async (newItem, {layout, dragging, currentCell, sy
 
 // shifting - reactive basis
 export const ROOT = document.documentElement;
-export const bindInteraction = async (newItem: any, pArgs: any)=>{
-    await new Promise((r)=>requestAnimationFrame(r));
+export const bindInteraction = (newItem: HTMLElement, pArgs: any): [any, any] => {
     reflectCell(newItem, pArgs, true);
 
     //
     const { item, items, list } = pArgs, layout = [pArgs?.layout?.columns || pArgs?.layout?.[0] || 4, pArgs?.layout?.rows || pArgs?.layout?.[1] || 8];
-    const dragging = [ autoRef(0, RAFBehavior()), autoRef(0, RAFBehavior()) ], currentCell = [ autoRef(item?.cell?.[0] || 0), autoRef(item?.cell?.[1] || 0) ];
+    const dragging: [any, any] = [ autoRef(0, RAFBehavior()), autoRef(0, RAFBehavior()) ], currentCell: [any, any] = [ autoRef(item?.cell?.[0] || 0), autoRef(item?.cell?.[1] || 0) ];
 
     //
-    /*E(newItem, { style: {
-        "--cell-x": currentCell[0],
-        "--cell-y": currentCell[1]
-    } });*/
-
-    setStyleProperty(newItem, "--cell-x", currentCell[0].value);
-    setStyleProperty(newItem, "--cell-y", currentCell[1].value);
+    setStyleProperty(newItem, "--cell-x", currentCell?.[0]?.value);
+    setStyleProperty(newItem, "--cell-y", currentCell?.[1]?.value);
 
     //
-    const applyDragStyles = ()=>{
-        if (dragging[0]?.value != null) setStyleProperty(newItem, "--drag-x", dragging[0]?.value || 0);
-        if (dragging[1]?.value != null) setStyleProperty(newItem, "--drag-y", dragging[1]?.value || 0);
+    const applyDragStyles = (): void => {
+        if (dragging?.[0]?.value != null) setStyleProperty(newItem, "--drag-x", dragging?.[0]?.value || 0);
+        if (dragging?.[1]?.value != null) setStyleProperty(newItem, "--drag-y", dragging?.[1]?.value || 0);
     };
+
+    //
     let dragStyleRaf = 0;
-    const syncDragStyles = (flush = false)=>{
+    const syncDragStyles = (flush = false): void => {
         if (flush) applyDragStyles(); else
         if (!dragStyleRaf) {
             applyDragStyles(); dragStyleRaf = 1;
             requestAnimationFrame(()=>dragStyleRaf = 0);
         }
     };
-    subscribe(dragging[0], ()=>syncDragStyles());
-    subscribe(dragging[1], ()=>syncDragStyles());
+
+    //
+    subscribe(dragging?.[0], (val, prop) => { if (prop == "value") syncDragStyles(); });
+    subscribe(dragging?.[1], (val, prop) => { if (prop == "value") syncDragStyles(); });
     syncDragStyles(true);
 
     //
-    subscribe(currentCell?.[0], (idx)=>{ item.cell[0] = idx; });
-    subscribe(currentCell?.[1], (idx)=>{ item.cell[1] = idx; });
-    makeDragEvents(newItem, {layout, currentCell, dragging, syncDragStyles}, {item, items, list});
-    return currentCell;
+    subscribe(currentCell?.[0], (idx, prop) => { if (prop == "value") item.cell[0] = idx; });
+    subscribe(currentCell?.[1], (idx, prop) => { if (prop == "value") item.cell[1] = idx; });
+
+    //
+    makeDragEvents(newItem, {layout: layout as [number, number], currentCell, dragging, syncDragStyles}, {item, items, list});
+    return currentCell as [any, any];
 }

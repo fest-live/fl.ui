@@ -104,8 +104,8 @@ export const reflectCell = async (newItem: any, pArgs: any, withAnimate = false)
     await new Promise((r)=>requestAnimationFrame(r));
     return subscribe?.(item, (state, property)=>{
         const gridSystem = newItem?.parentElement;
-        layout[0] = parseInt(gridSystem?.style?.getPropertyValue?.("--layout-c")) || layout[0];
-        layout[1] = parseInt(gridSystem?.style?.getPropertyValue?.("--layout-r")) || layout[1];
+        layout[0] = parseInt(gridSystem?.getAttribute?.("data-grid-columns")) || layout[0];
+        layout[1] = parseInt(gridSystem?.getAttribute?.("data-grid-rows")) || layout[1];
         const args = {item, list, items, layout, size: [gridSystem?.clientWidth, gridSystem?.clientHeight]};
         if (item && !item?.cell) { item.cell = makeObjectAssignable(makeReactive([0, 0])); }; // @ts-ignore
         if (item && args) { const nc = redirectCell(item?.cell, args);
@@ -118,8 +118,8 @@ export const reflectCell = async (newItem: any, pArgs: any, withAnimate = false)
 export const makeDragEvents = async (newItem, {layout, dragging, currentCell, syncDragStyles}, {item, items, list})=>{ // @ts-ignore
     const $updateLayout = (newItem)=>{
         const gridSystem = newItem?.parentElement;
-        layout[0] = parseInt(getPropertyValue(gridSystem, "--layout-c")) || layout[0];
-        layout[1] = parseInt(getPropertyValue(gridSystem, "--layout-r")) || layout[1];
+        layout[0] = parseInt(gridSystem?.getAttribute?.("data-grid-columns")) || layout[0];
+        layout[1] = parseInt(gridSystem?.getAttribute?.("data-grid-rows")) || layout[1];
         return layout;
     }
 

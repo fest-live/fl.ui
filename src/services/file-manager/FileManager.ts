@@ -5,7 +5,7 @@ import { addEvent, preloadStyle } from "fest/dom";
 import FileManagerContent from "./FileManagerContent";
 
 //
-import UIElement from "@fl-design/base/UIElement";
+import UIElement from "@fl-ui/base/UIElement";
 
 // @ts-ignore
 import fmCss from "./FileManager.scss?inline";

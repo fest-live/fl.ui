@@ -1,11 +1,10 @@
 import { property, defineElement, Q, H, appendAsOverlay } from "fest/lure"
 import { DOMMixin, preloadStyle } from "fest/dom"
-import { ScrollBar } from "../scrollbar/ScrollBar"
-import { UIElement } from "@fl-design/base/UIElement"
+import { UIElement } from "@fl-ui/base/UIElement"
 
 // @ts-ignore
-import styles from "./ScrollFrame.scss?inline"
-const styled = preloadStyle(styles);
+//import styles from "./ScrollFrame.scss?inline"
+//const styled = preloadStyle(styles);
 
 //
 const withScrollbars = new WeakMap();
@@ -40,10 +39,12 @@ export class ScrollBoxed extends UIElement {
         if (content) {
             const self = this as any;
             withScrollbars?.set?.(content, self);
+
+            /* TODO: fix scrollbars implementation
             this.#connected?.promise?.then(()=>{
                 this.#x ??= new ScrollBar({ holder: self, scrollbar: self.shadowRoot?.querySelector?.(".ui-scrollbar[axis=\"x\"]"), content, inputChange }, 0);
                 this.#y ??= new ScrollBar({ holder: self, scrollbar: self.shadowRoot?.querySelector?.(".ui-scrollbar[axis=\"y\"]"), content, inputChange }, 1);
-            });
+            });*/
 
             //
             content.style.scrollbarGutter = "auto";

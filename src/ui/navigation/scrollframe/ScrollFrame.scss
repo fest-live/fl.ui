@@ -1,4 +1,4 @@
-@use "../scrollbar/ScrollBar.scss" as sb;
+@use "veela-lib" as sb;
 
 //
 @property --max-size { syntax: "<length-percentage>"; initial-value: 0px; inherits: true; };

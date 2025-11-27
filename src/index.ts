@@ -11,5 +11,8 @@ loadInlineStyle(styles);
 
 //
 export * from "./ui/index";
-export * from "./design/index";
 export const styled = preloadStyle(styles);
+
+//
+export * from "./services/file-manager/FileManager";
+export * from "./services/markdown-view/Markdown";

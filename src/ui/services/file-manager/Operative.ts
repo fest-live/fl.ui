@@ -14,7 +14,8 @@ import {
     attachFile,
     provide,
     readFile,
-    uploadDirectory
+    uploadDirectory,
+    handleIncomingEntries
 } from "fest/lure";
 
 //
@@ -260,112 +261,81 @@ export class FileOperative {
     //
     async requestPaste() {
         try {
-            let sources: string[] = [];
-            // try system clipboard
+            // 1. Try modern Async Clipboard API first (images, files)
             try {
-                const txt = await navigator.clipboard?.readText?.();
-                if (txt && txt.startsWith("/user/")) sources = txt.split(/\n+/).map(s => s.trim()).filter(Boolean);
-            } catch { }
-            if (!sources?.length && this.#clipboard?.items?.length) sources = this.#clipboard.items;
-            if (!sources?.length) return;
-
-            // copy/move
-            for (const src of sources) {
-                const isDir = src.endsWith("/"); // write file now i unified
-                await writeFile(this.#fsRoot, this.path + src, isDir ? await getDirectoryHandle(this.#fsRoot, src, { create: false }) : (await getFileHandle(this.#fsRoot, src, { create: false })));
-                if (this.#clipboard?.cut) { await remove(this.#fsRoot, src); }
+                // @ts-ignore
+                const clipboardItems = await navigator.clipboard.read();
+                if (clipboardItems && clipboardItems.length > 0) {
+                     await handleIncomingEntries(clipboardItems, this.path || "/user/");
+                     return;
+                }
+            } catch (e) {
+                // Fallback or permission denied
             }
 
-            //
-            this.#clipboard = null;
+            // 2. Try System Clipboard Text
+            let systemText = "";
+            try {
+                systemText = await navigator.clipboard?.readText?.();
+            } catch { }
+
+            // 3. Check internal clipboard
+            const internalItems = this.#clipboard?.items || [];
+
+            // Determine sources: Prefer internal if valid and no system text override (simple heuristic)
+            // Actually, unified handling:
+            if (systemText) {
+                await handleIncomingEntries({
+                    getData: (type: string) => type === "text/plain" ? systemText : ""
+                }, this.path || "/user/");
+                return;
+            }
+
+            if (internalItems.length > 0) {
+                const txt = internalItems.join("\n");
+                await handleIncomingEntries({
+                    getData: (type: string) => type === "text/plain" ? txt : ""
+                }, this.path || "/user/");
+
+                if (this.#clipboard?.cut) {
+                    for (const src of internalItems) {
+                         await remove(this.#fsRoot, src);
+                    }
+                    this.#clipboard = null;
+                }
+            }
         } catch (e) { console.warn(e); }
+    }
+
+    //
+    public onPaste(ev: ClipboardEvent) {
+        ev.preventDefault();
+
+        // Try to read from event first
+        if (ev.clipboardData || (ev as any).dataTransfer) {
+            handleIncomingEntries(ev.clipboardData || (ev as any).dataTransfer, this.path || "/user/");
+            return;
+        }
+
+        //
+        this.requestPaste();
+    }
+
+    //
+    public onCopy(ev: ClipboardEvent) {
+        // Not implemented selection tracking yet
     }
 
     //
     public async onDrop(ev: DragEvent) {
         ev.preventDefault();
-        const dt = ev.dataTransfer;
-        if (!dt) return;
 
-        const tasks: Promise<any>[] = [];
-
-        // 1. Handle standard files and directories via webkitGetAsEntry / getAsEntry
-        const items = Array.from(dt.items || []);
-        for (const item of items) {
-            console.log(item);
-            /*
-            const entry = item.webkitGetAsEntry?.() || (item as any).getAsEntry?.();
-            if (entry) {
-                tasks.push(this.handleEntry(entry, (this.path || "/user/")));
-                continue;
-            }*/
-            // Fallback for simple files if getAsEntry not supported/available
-            /*if (item.kind === 'file') {
-                const f = item.getAsFile();
-                if (f) tasks.push(writeFile(this.#fsRoot, (this.path || "/user/") + f.name, f));
-            } else*/
-            if (item.kind === 'file') {
-                // @ts-ignore
-                const d = await (item as any)?.getAsFileSystemHandle?.();
-                if (d instanceof FileSystemDirectoryHandle) {
-                    const nwd = await getDirectoryHandle(this.#fsRoot, (this.path || "/user/") + ((item as any)?.name || (d as any)?.name)?.trim?.()?.replace?.(/\s+/g, '-'), { create: true });
-                    if (nwd) tasks.push(copyFromOneHandlerToAnother(d as any, nwd as any, { create: true }));
-                } else if (d instanceof FileSystemFileHandle) {
-                    const file = await d.getFile();
-                    tasks.push(writeFile(this.#fsRoot, (this.path || "/user/") + ((file as any)?.name || (file as any)?.name)?.trim?.()?.replace?.(/\s+/g, '-'), file as any));
-                }
-            }
-        }
-
-        // 2. Handle fallback files if items API was empty/failed
-        if (tasks.length === 0 && dt.files.length > 0) {
-            for (let i = 0; i < dt.files.length; i++) {
-                const f = dt.files[i];
-                tasks.push(writeFile(this.#fsRoot, (this.path || "/user/") + f.name, f));
-            }
-        }
-
-        // 3. URLs
-        const uriList = dt.getData("text/uri-list") || dt.getData("text/plain");
-        if (uriList) {
-            const urls = uriList.split(/\r?\n/).filter(Boolean);
-            for (const url of urls) {
-                // Skip if it looks like a local file path we might have already processed
-                if (url.startsWith("file://")) continue;
-
-                tasks.push(Promise.try(async () => {
-                    const file = await provide(url);
-                    if (file) await writeFile(this.#fsRoot, (this.path || "/user/") + file.name, file);
-                }));
-            }
-        }
-        Promise.allSettled(tasks).catch(console.warn.bind(console));
-    }
-
-    // Recursive entry handler
-    private async handleEntry(entry: any, targetPath: string) {
-        if (entry.isFile) {
-            const file = await new Promise<File>((resolve, reject) => entry.file(resolve, reject));
-            await writeFile(this.#fsRoot, targetPath + entry.name, file);
-        } else if (entry.isDirectory) {
-            const newDir = targetPath + entry.name + "/";
-            // Ensure directory exists (writeFile handles parent dirs, but explicitly creating empty dirs is good)
-            // Assuming writeFile/openDirectory logic handles creation implicitly or explicit mkdir needed
-            // Here we just rely on writing files *into* it, or could explicitly create:
-            await openDirectory(this.#fsRoot, newDir, { create: true });
-
-            const reader = entry.createReader();
-            const readEntries = async () => {
-                const entries = await new Promise<any[]>((resolve, reject) => reader.readEntries(resolve, reject));
-                if (entries.length > 0) {
-                    await Promise.all(entries.map(e => this.handleEntry(e, newDir)));
-                    await readEntries(); // Continue reading (readEntries might not return all at once)
-                }
-            };
-            await readEntries();
+        //
+        if ((ev as any).clipboardData || (ev as any).dataTransfer) {
+            handleIncomingEntries((ev as any).clipboardData || (ev as any).dataTransfer, this.path || "/user/");
+            return;
         }
     }
-
 
 }
 

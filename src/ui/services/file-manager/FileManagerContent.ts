@@ -1,5 +1,5 @@
-import { property, defineElement, H, M, E, C, bindWith } from "fest/lure";
-import { addEvent, handleStyleChange, preloadStyle } from "fest/dom";
+import { property, defineElement, H, M, E, C, bindWith, initGlobalClipboard } from "fest/lure";
+import { addEvent, handleStyleChange, isInFocus, preloadStyle } from "fest/dom";
 import { computed, conditionalRef, propRef, ref } from "fest/object";
 
 //
@@ -11,6 +11,9 @@ import { FileEntryItem, FileOperative } from "./Operative";
 
 //
 import { createItemCtxMenu } from "./ContextMenu";
+
+//
+initGlobalClipboard();
 
 //
 const styled = preloadStyle(fmCss);
@@ -96,17 +99,40 @@ export class FileManagerContent extends UIElement {
     protected bindDropHandlers() {
         const container = this;
         if (!container) return;
-        addEvent(container, "dragover", (ev: DragEvent) => { ev?.preventDefault?.(); (ev.dataTransfer as DataTransfer)!.dropEffect = "copy"; });
-        addEvent(container, "drop", (ev: DragEvent) => {
-            ev?.preventDefault?.();
-            ev?.stopImmediatePropagation?.();
-            this.operativeInstance?.onDrop?.(ev)
+        addEvent(container, "dragover", (ev: DragEvent) => {
+            if (isInFocus(ev?.target as HTMLElement, "ui-file-manager-content, ui-file-manager")) {
+                ev?.preventDefault?.();
+                if (ev.dataTransfer) {
+                    ev.dataTransfer.dropEffect = "copy";
+                }
+            }
         });
-        addEvent(this, "keydown", (ev: KeyboardEvent) => {
+        addEvent(container, "drop", (ev: DragEvent) => {
+            if (isInFocus(ev?.target as HTMLElement, "ui-file-manager-content, ui-file-manager")) {
+                ev?.preventDefault?.();
+                ev?.stopImmediatePropagation?.();
+                this.operativeInstance?.onDrop?.(ev)
+            }
+        });
+        /*addEvent(this, "keydown", (ev: KeyboardEvent) => {
             if ((ev.ctrlKey || ev.metaKey) && ev.key.toLowerCase() === "v") {
                 ev.preventDefault(); this.operativeInstance?.requestPaste?.();
             }
-        });
+        });*/
+    }
+
+    //
+    public onPaste(ev: ClipboardEvent) {
+        if (isInFocus(ev?.target as HTMLElement, "ui-file-manager-content, ui-file-manager")) {
+            if (this.operativeInstance) this.operativeInstance.onPaste(ev);
+        }
+    }
+
+    //
+    public onCopy(ev: ClipboardEvent) {
+        if (isInFocus(ev?.target as HTMLElement, "ui-file-manager-content, ui-file-manager")) {
+            if (this.operativeInstance) this.operativeInstance.onCopy(ev);
+        }
     }
 
     //

@@ -44,10 +44,10 @@ export class BoxWithSidebar extends UIElement {
         self.sidebarOpened.value = false;
 
         // Register sidebar with back navigation for mobile back gesture support
-        const sidebarEl = Q(".sidebar", self?.shadowRoot);
+        /*const sidebarEl = Q(".sidebar", self?.shadowRoot);
         if (sidebarEl) {
             registerSidebar(sidebarEl as HTMLElement, self.sidebarOpened);
-            }
+        }*/
     }
 
     //

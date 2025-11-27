@@ -204,7 +204,7 @@ export class TabbedSidebar extends UIElement {
         self.sidebarOpened = false;
 
         // Register sidebar with back navigation for mobile back gesture support
-        const sidebarEl = Q(".sidebar", self?.shadowRoot);
+        const sidebarEl = self?.shadowRoot?.querySelector?.(".sidebar") as HTMLElement;
         if (sidebarEl && sidebarOpenedRef) {
             (sidebarEl as any)._backUnreg = registerSidebar(sidebarEl as HTMLElement, sidebarOpenedRef, () => {
                 self.sidebarOpened = false;

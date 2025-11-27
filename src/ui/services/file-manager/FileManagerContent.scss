@@ -109,6 +109,8 @@
             pointer-events: auto;
             touch-action: manipulation;
             block-size: 3rem;
+            user-drag: none;
+            -webkit-user-drag: none;
 
             text-align: start;
             text-wrap: nowrap;
@@ -120,6 +122,12 @@
             flex-wrap: nowrap;
 
             background-color: var(--surface-color, transparent);
+
+            // no draggable available on mobile (touch devices currently)
+            @media (hover: hover) and (pointer: fine) {
+                user-drag: element;
+                -webkit-user-drag: element;
+            }
 
             ui-icon {
                 inline-size: 1.25rem;

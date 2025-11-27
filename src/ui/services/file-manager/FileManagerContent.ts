@@ -174,7 +174,6 @@ export class FileManagerContent extends UIElement {
                 on:click=${(ev: MouseEvent) => requestAnimationFrame(() => operative.onRowClick?.(item, ev))}
                 on:dblclick=${(ev: MouseEvent) => requestAnimationFrame(() => operative.onRowDblClick?.(item, ev))}
                 on:dragstart=${(ev: DragEvent) => operative.onRowDragStart?.(item, ev)}
-                style="-webkit-user-drag: element;"
                 data-id=${propRef(item, "name")}
             >
                 <div style="pointer-events: none; background-color: transparent;" class="c icon"><ui-icon icon=${computed(item, ()=>{ return iconFor(item); })} /></div>

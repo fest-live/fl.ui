@@ -416,7 +416,7 @@
                 }
             }
 
-            .ui-tabbed-box-tabs.pinned {
+            .ui-tabbed-box-tabs.pinned, button {
                 .ui-tabbed-box-tab {
                     gap: 0px !important;
                     padding-inline: 0px !important;
@@ -437,6 +437,50 @@
                 }
             }
 
+            //
+            button {
+                & {
+                    display: flex;
+                    flex-direction: row;
+                    gap: 0rem;
+                    aspect-ratio: 1 / 1;
+                    min-block-size: 1rem;
+                    block-size: stretch;
+                    inline-size: fit-content;
+                    box-sizing: border-box;
+                    place-content: center;
+                    place-items: center;
+                    padding: 0.66666rem;
+                    transition: background-color 0.12s linear;
+                    border-radius: 50cqmin;
+                    border: 0px none transparent;
+                    outline: 0px none transparent;
+                    cursor: pointer;
+                    grid-column: 1 / 2 span;
+                    grid-row: 1 / 1 span;
+                    pointer-events: auto;
+                }
+
+                & {
+                    @include solid-colorize("&", ("shade": var(--state-opacity-subtle, 0.02)));
+                    background-color: --c2-surface(var(--_color-shade), var(--current, currentColor));
+                }
+
+                //
+                span {
+                    display: block;
+                    font-size: 0.8rem;
+                    font-weight: 400;
+                    padding-inline-end: 0.333rem;
+                }
+            }
+
+            :where(.ui-tabbed-box-tab) button {
+                @include solid-colorize("&", ("shade": var(--state-opacity-subtle, 0.02)));
+
+                padding: 0.5rem;
+            }
+
             .ui-tabbed-box-handle {
                 inline-size: 0;
                 block-size: 0;
@@ -446,40 +490,6 @@
                 place-content: center;
                 place-items: center;
                 overflow: visible;
-            }
-
-            //
-            button {
-                display: flex;
-                flex-direction: row;
-                gap: 0rem;
-                aspect-ratio: 1 / 1;
-                min-block-size: 1rem;
-                block-size: stretch;
-                inline-size: fit-content;
-                box-sizing: border-box;
-                place-content: center;
-                place-items: center;
-                padding: 0.5rem;
-                transition: background-color 0.12s linear;
-                border-radius: 1rem;
-                border: 0px none transparent;
-                outline: 0px none transparent;
-                cursor: pointer;
-                grid-column: 1 / 2 span;
-                grid-row: 1 / 1 span;
-                pointer-events: auto;
-
-                //
-                @include surface(-0.1);
-
-                //
-                span {
-                    display: block;
-                    font-size: 0.8rem;
-                    font-weight: 400;
-                    padding-inline-end: 0.333rem;
-                }
             }
 
             ui-icon {

@@ -28,8 +28,7 @@ export class MarkdownView extends HTMLElement {
     async setHTML(doc = "") {
         const view = this.#view;
         if (view) {
-            view.innerHTML = ``; console.log(doc);
-            view.append(H(DOMPurify?.sanitize?.((await doc)?.trim?.() || "") || view?.innerHTML || ""));
+            view.innerHTML = DOMPurify?.sanitize?.((await doc)?.trim?.() || "") || view?.innerHTML || "";
         }
         document.dispatchEvent(new CustomEvent("ext-ready", {}));
     }

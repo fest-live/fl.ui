@@ -73,6 +73,10 @@
             perspective: 1000;
 
             //
+            overflow: hidden !important;
+            contain: strict !important;
+
+            //
             place-content: space-evenly !important;
             place-items: center !important;
 

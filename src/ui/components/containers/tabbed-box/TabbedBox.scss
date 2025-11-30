@@ -48,6 +48,10 @@
             container-type: inline-size;
             padding: 0px;
             perspective: 1000;
+
+            //
+            overflow: hidden !important;
+            contain: strict !important;
         }
 
         &[data-tab-position="top"] {

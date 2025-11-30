@@ -102,6 +102,11 @@
             @include surface(var(--surface-opacity-subtle));
 
             //
+            &, & *, & button {
+                touch-action: pan-x;
+            }
+
+            //
             &::before,
             &::after {
                 content: "";
@@ -137,6 +142,7 @@
                 text-wrap: nowrap;
                 flex-shrink: 0;
                 grid-column: 1 / -1;
+                touch-action: pan-x;
 
                 //
                 position: relative;
@@ -217,6 +223,12 @@
                 place-content: center;
                 place-items: center;
                 overflow: visible;
+                touch-action: pan-x;
+            }
+
+            ui-icon {
+                pointer-events: none;
+                touch-action: pan-x;
             }
         }
 

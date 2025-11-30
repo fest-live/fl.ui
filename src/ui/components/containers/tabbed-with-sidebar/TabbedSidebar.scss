@@ -268,6 +268,10 @@
                 }
             }
 
+            &, & *, & button {
+                touch-action: pan-x;
+            }
+
             :where(.ui-tabbed-box-tab) {
                 display: flex;
                 flex-direction: row;
@@ -285,6 +289,7 @@
                 color: color-mix(in oklch, var(--md3-on-surface) 85%, transparent);
                 background-color: transparent;
                 block-size: stretch;
+                touch-action: pan-x;
 
                 //
                 place-content: center;
@@ -459,6 +464,7 @@
                     grid-column: 1 / 2 span;
                     grid-row: 1 / 1 span;
                     pointer-events: auto;
+                    touch-action: pan-x;
                 }
 
                 & {
@@ -479,6 +485,7 @@
                 @include solid-colorize("&", ("shade": var(--state-opacity-subtle, 0.02)));
 
                 padding: 0.5rem;
+                touch-action: pan-x;
             }
 
             .ui-tabbed-box-handle {
@@ -490,9 +497,11 @@
                 place-content: center;
                 place-items: center;
                 overflow: visible;
+                touch-action: pan-x;
             }
 
             ui-icon {
+                pointer-events: none;
                 color: --c2-on-surface(0.0, var(--current, currentColor));
                 --icon-color: --c2-on-surface(0.0, var(--current, currentColor));
             }

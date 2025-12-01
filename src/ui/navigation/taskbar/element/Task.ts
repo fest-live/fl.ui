@@ -16,7 +16,7 @@ export class UITask extends UIElement {
 
     //
     constructor() { super(); }
-    styles = () => styled?.cloneNode?.(true);
+    styles = () => styled;
     render = function () {
         return H`
             <div part="icon" class="task-icon c2-contrast c2-transparent"><ui-icon class="c2-contrast c2-transparent" part="icon" icon="${this.icon}"></ui-icon></div>

@@ -26,7 +26,7 @@ export class FileManager extends UIElement {
     @property({ source: "inline-size" }) inlineSize?: number;
 
     // refs/state
-    styles = () => styled?.cloneNode?.(true);
+    styles = () => styled;
     constructor() { super(); }
 
     //

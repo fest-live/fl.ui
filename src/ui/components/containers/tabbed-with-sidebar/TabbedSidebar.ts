@@ -280,7 +280,7 @@ export class TabbedSidebar extends UIElement {
     }
 
     //
-    styles = () => styled?.cloneNode?.(true);
+    styles = () => styled;
     render = function () {
         const openedProperty = this.getProperty("sidebarOpened") ?? this.sidebarOpened;
         return H`<div part="bar" class="bar c2-surface">

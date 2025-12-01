@@ -111,7 +111,7 @@ export class LongTextInput extends UIElement {
     }
 
     //
-    styles = function () { return styled?.cloneNode?.(true); }
+    styles = function () { return styled; }
     render = function () { return H`<div class="box-layer" part="box-layer"><slot></slot></div>`; };
 }
 

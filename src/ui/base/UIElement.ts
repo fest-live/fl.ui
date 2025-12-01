@@ -1,9 +1,9 @@
-import { preloadStyle } from "fest/dom";
+import { preloadStyle, loadAsAdopted } from "fest/dom";
 import { defineElement, GLitElement, H, property } from "fest/lure";
+import { ensureStyleSheet } from "fest/icon";
 
 // @ts-ignore
-import styles from "fest/veela";
-const styled = preloadStyle(styles);
+import {runtimeStyles} from "fest/veela";
 
 // @ts-ignore
 @defineElement("ui-element")
@@ -30,7 +30,8 @@ export class UIElement extends GLitElement() {
     onInitialize() {
         super.onInitialize();
         const self : any = this;
-        self.loadStyleLibrary(styled?.cloneNode?.(true));
+        self.loadStyleLibrary(runtimeStyles);
+        self.loadStyleLibrary(ensureStyleSheet());
     }
 }
 

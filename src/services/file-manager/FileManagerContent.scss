@@ -91,7 +91,7 @@
         }
 
         :where(.row) {
-            @include solid-colorize("&");
+            @include solid-colorize("&", ("shade": 0));
 
             display: grid;
             grid-template-rows: 2.5rem !important;

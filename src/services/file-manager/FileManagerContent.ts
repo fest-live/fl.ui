@@ -152,7 +152,7 @@ export class FileManagerContent extends UIElement {
     }
 
     //
-    styles = () => styled?.cloneNode?.(true);
+    styles = () => styled;
     render = function () {
         const self: any = this;
         const fileHeader = H`<div class="fm-grid-header">

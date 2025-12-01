@@ -70,7 +70,6 @@ export class ScrollBoxed extends UIElement {
     }
 
     //
-    styles = () => styled?.cloneNode?.(true);
     render = () => H`
 <slot></slot>
 <div class="ui-scrollbar" axis="x"><div class="ui-thumb"></div></div>

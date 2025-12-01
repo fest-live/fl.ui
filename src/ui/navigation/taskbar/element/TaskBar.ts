@@ -13,6 +13,6 @@ const styled = preloadStyle(styles);
 @defineElement("ui-taskbar")
 export class UITaskBar extends UIElement {
     constructor() { super(); }
-    styles = () => styled?.cloneNode?.(true);
+    styles = () => styled;
     render = () => H`<div part="taskbar" class="taskbar"><slot></slot></div>`;
 }

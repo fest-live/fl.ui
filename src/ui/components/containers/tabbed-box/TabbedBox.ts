@@ -159,7 +159,7 @@ export class TabbedBox extends UIElement {
     }
 
     //
-    styles = () => styled?.cloneNode?.(true);
+    styles = () => styled;
     render = function () {
         const self: any = this;
         const tabPosition = normalizeTabPosition(self.tabPosition);

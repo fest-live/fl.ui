@@ -1,19 +1,19 @@
 @use "veela-lib" as m;
 
 // sizes
-@property --ui-slider-track-size { syntax: "<percentage> | <length>"; inherits: true; initial-value: 0.125rem; }
-@property --ui-slider-thumb-size { syntax: "<percentage> | <length>"; inherits: true; initial-value: 1rem; }
+@property --ui-slider-track-size { syntax: "<percentage> | <length>"; inherits: true; initial-value: 0px; }
+@property --ui-slider-thumb-size { syntax: "<percentage> | <length>"; inherits: true; initial-value: 0px; }
 
 // radius
-@property --ui-slider-track-radius { syntax: "<percentage> | <length>"; inherits: true; initial-value: 0.0625rem; }
-@property --ui-slider-thumb-radius { syntax: "<percentage> | <length>"; inherits: true; initial-value: 0.5rem; }
+@property --ui-slider-track-radius { syntax: "<percentage> | <length>"; inherits: true; initial-value: 0px; }
+@property --ui-slider-thumb-radius { syntax: "<percentage> | <length>"; inherits: true; initial-value: 0px; }
 // gap between thumb edge and track end caps (horizontal)
-@property --ui-slider-gap { syntax: "<length>"; inherits: true; initial-value: 0rem; }
+@property --ui-slider-gap { syntax: "<length>"; inherits: true; initial-value: 0px; }
 
 // colors
-@property --ui-slider-track-color { syntax: "<color>"; inherits: true; initial-value: #111; }
-@property --ui-slider-thumb-color { syntax: "<color>"; inherits: true; initial-value: #222; }
-@property --ui-slider-active-color { syntax: "<color>"; inherits: true; initial-value: #4c9fff; }
+@property --ui-slider-track-color { syntax: "<color>"; inherits: true; initial-value: #0000; }
+@property --ui-slider-thumb-color { syntax: "<color>"; inherits: true; initial-value: #0000; }
+@property --ui-slider-active-color { syntax: "<color>"; inherits: true; initial-value: #0000; }
 
 //
 @layer ui-slider {

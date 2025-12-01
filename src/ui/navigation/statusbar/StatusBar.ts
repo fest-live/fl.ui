@@ -15,7 +15,7 @@ export class StatusBar extends UIElement {
     constructor() { super(); }
 
     //
-    styles = () => styled?.cloneNode?.(true);
+    styles = () => styled;
     render = () => {
         return H`
 <div style="background-color: transparent;" part="left"   class="left"  ><slot name="left"  ></slot></div>

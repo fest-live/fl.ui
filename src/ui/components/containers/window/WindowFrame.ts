@@ -105,7 +105,7 @@ export class WindowFrame extends UIElement {
     }
 
     //
-    styles = function () { return styled?.cloneNode?.(true); }
+    styles = function () { return styled; }
     render = function () { return H`
         <div class="ui-window-frame-titlebar" part="titlebar">
             <span class="ui-window-frame-titlebar-handle" part="handle">

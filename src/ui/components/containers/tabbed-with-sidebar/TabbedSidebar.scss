@@ -12,7 +12,9 @@
         --tabbed-indicator-height: 0.2rem;
         --tabbed-indicator-ease: var(--ease-emphasized, cubic-bezier(0.2, 0, 0, 1));
         --tabbed-indicator-duration: var(--duration-normal, 160ms);
-        --tabbed-close-size: clamp(1.5rem, 1cqi + 0.5rem, 1.9rem);
+        --tabbed-button-size: var(--tabbed-min-bar-size, 3rem);
+        --tabbed-icon-size: clamp(1.25rem, 1cqi, 1.5rem);
+        --tabbed-close-size: clamp(2rem, 1cqi, 3rem);
         --tabbed-close-color: color-mix(in oklch, var(--md3-on-surface) 65%, transparent);
         --tabbed-bar-block-size: clamp(3.5rem, 1cqb + 2.5rem, 4.25rem);
         --tabbed-grid-rows:
@@ -52,14 +54,14 @@
         }
 
         & {
-            --button-inline-size: var(--tabbed-min-bar-size);
-            --sidebar-inline-grid-size: 0px;//max-content;
+            --button-inline-size: var(--tabbed-button-size, 3rem);
+            --sidebar-inline-grid-size: 0px;
 
             //
             display: grid !important;
             grid-template-columns:
-                [sidebar-col] minmax(0px, var(--sidebar-inline-grid-size))
-                [button-col] minmax(0px, var(--button-inline-size))
+                [sidebar-col] minmax(0px, var(--sidebar-inline-grid-size, 0px))
+                [button-col] minmax(0px, var(--button-inline-size, 3rem))
                 [content-col] minmax(0px, 1fr) !important;
             grid-template-rows: var(--tabbed-grid-rows) !important;
 
@@ -117,19 +119,25 @@
             gap: var(--space-sm);
 
             /*grid-template-columns: subgrid;*/
-            grid-template-rows: minmax(0px, max-content);
+            grid-template-rows: 1fr;
+            grid-auto-rows: 0;
             pointer-events: none;
             grid-template-columns:
-                [sidebar-col] minmax(0px, var(--sidebar-inline-grid-size))
-                [button-col] minmax(0px, var(--button-inline-size))
+                [sidebar-col] minmax(0px, var(--sidebar-inline-grid-size, 0px))
+                [button-col] minmax(0px, var(--button-inline-size, 3rem))
                 [content-col] minmax(0px, 1fr)
                 [pinned-col] minmax(3.5rem, max-content);
+
+            /* */
+            & > :where(*) {
+                grid-row: 1;
+            }
 
             /* */
             :where(.ui-tabbed-box-tabs) {
                 margin-block: 0;
                 grid-column: content-col;
-                grid-row: 1 / 1 span;
+                grid-row: 1;
 
                 //
                 display: flex;
@@ -215,13 +223,17 @@
 
                 //
                 ui-icon {
+                    color: --c2-on-surface(0.0, var(--current, currentColor));
+                    --icon-color: --c2-on-surface(0.0, var(--current, currentColor));
+
                     padding: 0px;
-                    inline-size: 1rem;
-                    block-size: 1rem;
+                    inline-size: var(--tabbed-icon-size);
+                    block-size: var(--tabbed-icon-size);
                     aspect-ratio: 1 / 1;
                     max-inline-size: stretch;
                     max-block-size: stretch;
 
+                    content-visibility: visible;
                     place-content: center;
                     place-items: center;
                     text-align: center;
@@ -241,7 +253,7 @@
                 place-items: center;
                 flex-grow: 1;
                 grid-column: 3 / -1;
-                grid-row: 1 / 1 span;
+                grid-row: 1;
             }
 
             //
@@ -282,6 +294,7 @@
                 flex-direction: row;
                 flex-shrink: 0;
                 gap: clamp(0.5rem, 0.4cqi, 0.6rem);
+                content-visibility: visible;
 
                 //
                 position: relative;
@@ -372,15 +385,25 @@
                     pointer-events: none;
                     text-align: inherit;
                     line-height: var(--leading-tight, 1.1);
+                    content-visibility: visible;
                 }
 
                 :where(.ui-tabbed-box-tab-close) {
+                    @include button-icon(var(--tabbed-close-size));
+                    @include button-overlays(var(--tabbed-close-color));
+
+                    //
+                    content-visibility: visible;
+                    box-sizing: border-box;
                     display: inline-flex;
                     align-items: center;
                     justify-content: center;
-                    inline-size: var(--tabbed-close-size);
-                    block-size: var(--tabbed-close-size);
-                    min-inline-size: var(--tabbed-close-size);
+                    inline-size: stretch;
+                    block-size: stretch;
+                    min-inline-size: 0px;
+                    min-block-size: 0px;
+                    max-inline-size: min(var(--tabbed-close-size), 100%);
+                    max-block-size: min(var(--tabbed-close-size), 100%);
                     border-radius: var(--radius-full);
                     margin-inline-start: clamp(0.1rem, 0.5cqi, 0.3rem);
                     color: var(--tabbed-close-color);
@@ -393,14 +416,14 @@
                         transform var(--duration-fast) var(--ease-emphasized);
                     cursor: pointer;
                     aspect-ratio: 1 / 1;
-                    padding: 0.125rem;
-
-                    @include button-icon(var(--tabbed-close-size));
-                    @include button-overlays(var(--tabbed-close-color));
+                    padding: 0.5rem !important;
 
                     ui-icon {
-                        color: currentColor;
-                        --icon-color: currentColor;
+                        content-visibility: visible;
+                        color: --c2-on-surface(0.0, var(--current, currentColor));
+                        --icon-color: --c2-on-surface(0.0, var(--current, currentColor));
+                        inline-size: calc(var(--tabbed-close-size) * 0.5);
+                        block-size: calc(var(--tabbed-close-size) * 0.5);
                     }
 
                     &:focus-visible {
@@ -426,7 +449,7 @@
                 }
             }
 
-            .ui-tabbed-box-tabs.pinned, button {
+            .ui-tabbed-box-tabs.pinned {
                 .ui-tabbed-box-tab {
                     gap: 0px !important;
                     padding-inline: 0px !important;
@@ -445,44 +468,66 @@
                     margin-inline: 0px !important;
                     inset-inline-end: 0px !important;
                 }
+
+                ui-icon {
+                    padding: 0px;
+                    inline-size: var(--tabbed-icon-size);
+                    block-size: var(--tabbed-icon-size);
+                }
             }
 
             //
-            button {
-                & {
-                    display: flex;
-                    flex-direction: row;
-                    gap: 0rem;
+            button.open-sidebar {
+                display: flex;
+                grid-column: button-col;
+                flex-direction: row;
+                align-items: center;
+                justify-content: center;
+                gap: 0rem;
+                aspect-ratio: 1 / 1;
+                min-block-size: fit-content;
+                block-size: var(--tabbed-button-size);
+                inline-size: var(--tabbed-button-size);
+                min-inline-size: var(--tabbed-button-size);
+                max-inline-size: var(--tabbed-button-size);
+                box-sizing: border-box;
+                place-content: center;
+                place-items: center;
+                padding: clamp(0.125rem, 1cqi, 0.25rem);
+                transition: background-color var(--duration-normal, 160ms) var(--ease-out, ease);
+                border-radius: 50cqmin;
+                border: 0px none transparent;
+                outline: 0px none transparent;
+                cursor: pointer;
+                grid-row: 1;
+                pointer-events: auto;
+                touch-action: pan-x;
+                background-color: transparent;
+
+                @include solid-colorize("&", ("shade": 0));
+                background-color: --c2-surface(var(--_color-shade), var(--current, currentColor));
+
+                ui-icon {
+                    inline-size: var(--tabbed-icon-size);
+                    block-size: var(--tabbed-icon-size);
+                    min-inline-size: var(--tabbed-icon-size);
+                    min-block-size: var(--tabbed-icon-size);
+                    max-inline-size: var(--tabbed-icon-size);
+                    max-block-size: var(--tabbed-icon-size);
                     aspect-ratio: 1 / 1;
-                    min-block-size: 1rem;
-                    block-size: stretch;
-                    inline-size: fit-content;
-                    box-sizing: border-box;
-                    place-content: center;
-                    place-items: center;
-                    padding: 0.66666rem;
-                    transition: background-color 0.12s linear;
-                    border-radius: 50cqmin;
-                    border: 0px none transparent;
-                    outline: 0px none transparent;
-                    cursor: pointer;
-                    grid-column: 1 / 2 span;
-                    grid-row: 1 / 1 span;
-                    pointer-events: auto;
-                    touch-action: pan-x;
+                    flex-shrink: 0;
                 }
 
-                & {
-                    @include solid-colorize("&", ("shade": var(--state-opacity-subtle, 0.02)));
-                    background-color: --c2-surface(var(--_color-shade), var(--current, currentColor));
-                }
-
-                //
                 span {
                     display: block;
                     font-size: 0.8rem;
                     font-weight: 400;
                     padding-inline-end: 0.333rem;
+                }
+
+                &:focus-visible {
+                    outline: 2px solid color-mix(in oklch, currentColor 35%, transparent);
+                    outline-offset: 2px;
                 }
             }
 
@@ -506,9 +551,12 @@
             }
 
             ui-icon {
+                content-visibility: visible;
                 pointer-events: none;
                 color: --c2-on-surface(0.0, var(--current, currentColor));
                 --icon-color: --c2-on-surface(0.0, var(--current, currentColor));
+                inline-size: var(--tabbed-icon-size);
+                block-size: var(--tabbed-icon-size);
             }
         }
 
@@ -650,7 +698,7 @@
             //
             grid-template-columns:
                 [sidebar-col] minmax(0px, 0px)
-                [button-col] minmax(0px, var(--button-inline-size))
+                [button-col] minmax(0px, var(--button-inline-size, 3rem))
                 [content-col] minmax(0px, 1fr);
 
             //
@@ -797,7 +845,7 @@
                 position: relative;
             }
 
-            .bar button {
+            .bar button.open-sidebar {
                 display: none;
             }
         }
@@ -857,7 +905,7 @@
             --sidebar-inline-grid-size: 0px;
 
             //
-            .bar button {
+            .bar button.open-sidebar {
                 display: flex !important;
             }
 
@@ -899,4 +947,5 @@
             }
         }
     }
+
 }

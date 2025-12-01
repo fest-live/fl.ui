@@ -62,8 +62,17 @@
                 [button-col] minmax(0px, var(--button-inline-size))
                 [content-col] minmax(0px, 1fr) !important;
             grid-template-rows: var(--tabbed-grid-rows) !important;
+
             inline-size: stretch;
             block-size: stretch;
+
+            min-inline-size: 0px;
+            min-block-size: 0px;
+
+            max-inline-size: stretch !important;
+            max-block-size: stretch !important;
+            box-sizing: border-box !important;
+
             position: relative;
             background-color: transparent;
             background: none;
@@ -83,14 +92,6 @@
             //
             padding-block-start: var(--padding-md);
             border-radius: var(--radius-lg, 0.75rem);
-
-            //
-            min-inline-size: 0px;
-            min-block-size: 0px;
-
-            //
-            max-inline-size: stretch;
-            max-block-size: stretch;
         }
 
         // bar
@@ -535,6 +536,15 @@
             background-color: transparent;
 
             @include container-clamped(stretch, stretch);
+
+            inline-size: stretch;
+            block-size: stretch;
+
+            min-inline-size: 0px;
+            min-block-size: 0px;
+
+            max-inline-size: stretch;
+            max-block-size: stretch;
         }
 
         &[data-sidebar-drop-menu] {
@@ -671,24 +681,38 @@
             @include surface(var(--surface-opacity-subtle));
             @include container-clamped(stretch, stretch);
 
-            & { max-block-size: none; }
-
             & {
                 background: none;
                 background-color: transparent;
                 will-change: contents;
+
+                inline-size: stretch;
+                block-size: stretch;
+
+                min-inline-size: 0px;
+                min-block-size: 0px;
+
+                max-inline-size: stretch;
+                max-block-size: stretch;
             }
 
             //
             &::slotted(*) {
                 display: grid;
-                inline-size: stretch;
-                block-size: stretch;
                 flex-grow: 1;
                 place-content: center;
                 place-items: center;
                 box-shadow: none;
                 gap: 0px;
+
+                inline-size: stretch;
+                block-size: stretch;
+
+                min-inline-size: 0px;
+                min-block-size: 0px;
+
+                max-inline-size: stretch;
+                max-block-size: stretch;
 
                 //
                 flex-direction: column;

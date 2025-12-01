@@ -71,8 +71,8 @@
             min-inline-size: 0px;
             min-block-size: 0px;
 
-            max-inline-size: stretch !important;
-            max-block-size: stretch !important;
+            max-inline-size: min(100%, min(100cqi, 100dvi)) !important;
+            max-block-size: min(100%, min(100cqb, 100dvb)) !important;
             box-sizing: border-box !important;
 
             position: relative;
@@ -119,7 +119,7 @@
             gap: var(--space-sm);
 
             /*grid-template-columns: subgrid;*/
-            grid-template-rows: 1fr;
+            grid-template-rows: minmax(0px, 1fr);
             grid-auto-rows: 0;
             pointer-events: none;
             grid-template-columns:

@@ -14,7 +14,7 @@ async function makeWallpaper() {
 }
 
 //
-const BACKGROUND_IMAGE = "./assets/imgs/test.jpg";
+const BACKGROUND_IMAGE = "./assets/imgs/test.webp";
 
 //
 async function createCtxMenu() {

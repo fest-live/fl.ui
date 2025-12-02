@@ -6,11 +6,11 @@
 
 # Class: UITask
 
-Defined in: [fl.ui/src/ui/navigation/taskbar/element/Task.ts:13](https://github.com/fest-live/fl.ui/blob/fdaa30e4543210d849317cc43587fbd62174c32b/src/ui/navigation/taskbar/element/Task.ts#L13)
+Defined in: [fl.ui/src/ui/navigation/taskbar/element/Task.ts:13](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/navigation/taskbar/element/Task.ts#L13)
 
 ## Extends
 
-- [`UIElement`](UIElement.md)
+- `UIElement`
 
 ## Constructors
 
@@ -20,7 +20,7 @@ Defined in: [fl.ui/src/ui/navigation/taskbar/element/Task.ts:13](https://github.
 new UITask(): UITask;
 ```
 
-Defined in: [fl.ui/src/ui/navigation/taskbar/element/Task.ts:18](https://github.com/fest-live/fl.ui/blob/fdaa30e4543210d849317cc43587fbd62174c32b/src/ui/navigation/taskbar/element/Task.ts#L18)
+Defined in: [fl.ui/src/ui/navigation/taskbar/element/Task.ts:18](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/navigation/taskbar/element/Task.ts#L18)
 
 #### Returns
 
@@ -28,7 +28,9 @@ Defined in: [fl.ui/src/ui/navigation/taskbar/element/Task.ts:18](https://github.
 
 #### Overrides
 
-[`UIElement`](UIElement.md).[`constructor`](UIElement.md#constructor)
+```ts
+UIElement.constructor
+```
 
 ## Properties
 
@@ -38,7 +40,7 @@ Defined in: [fl.ui/src/ui/navigation/taskbar/element/Task.ts:18](https://github.
 optional icon: string = "github";
 ```
 
-Defined in: [fl.ui/src/ui/navigation/taskbar/element/Task.ts:15](https://github.com/fest-live/fl.ui/blob/fdaa30e4543210d849317cc43587fbd62174c32b/src/ui/navigation/taskbar/element/Task.ts#L15)
+Defined in: [fl.ui/src/ui/navigation/taskbar/element/Task.ts:15](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/navigation/taskbar/element/Task.ts#L15)
 
 ***
 
@@ -48,7 +50,7 @@ Defined in: [fl.ui/src/ui/navigation/taskbar/element/Task.ts:15](https://github.
 render: () => any;
 ```
 
-Defined in: [fl.ui/src/ui/navigation/taskbar/element/Task.ts:20](https://github.com/fest-live/fl.ui/blob/fdaa30e4543210d849317cc43587fbd62174c32b/src/ui/navigation/taskbar/element/Task.ts#L20)
+Defined in: [fl.ui/src/ui/navigation/taskbar/element/Task.ts:20](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/navigation/taskbar/element/Task.ts#L20)
 
 #### Returns
 
@@ -56,7 +58,9 @@ Defined in: [fl.ui/src/ui/navigation/taskbar/element/Task.ts:20](https://github.
 
 #### Overrides
 
-[`UIElement`](UIElement.md).[`render`](UIElement.md#render)
+```ts
+UIElement.render
+```
 
 ***
 
@@ -66,11 +70,13 @@ Defined in: [fl.ui/src/ui/navigation/taskbar/element/Task.ts:20](https://github.
 theme: string = "default";
 ```
 
-Defined in: [fl.ui/src/design/base/UIElement.ts:13](https://github.com/fest-live/fl.ui/blob/fdaa30e4543210d849317cc43587fbd62174c32b/src/design/base/UIElement.ts#L13)
+Defined in: [fl.ui/src/ui/base/UIElement.ts:11](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/base/UIElement.ts#L11)
 
 #### Inherited from
 
-[`UIElement`](UIElement.md).[`theme`](UIElement.md#theme)
+```ts
+UIElement.theme
+```
 
 ***
 
@@ -80,7 +86,7 @@ Defined in: [fl.ui/src/design/base/UIElement.ts:13](https://github.com/fest-live
 optional title: string = "Task";
 ```
 
-Defined in: [fl.ui/src/ui/navigation/taskbar/element/Task.ts:14](https://github.com/fest-live/fl.ui/blob/fdaa30e4543210d849317cc43587fbd62174c32b/src/ui/navigation/taskbar/element/Task.ts#L14)
+Defined in: [fl.ui/src/ui/navigation/taskbar/element/Task.ts:14](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/navigation/taskbar/element/Task.ts#L14)
 
 ## Methods
 
@@ -90,7 +96,7 @@ Defined in: [fl.ui/src/ui/navigation/taskbar/element/Task.ts:14](https://github.
 connectedCallback(): void;
 ```
 
-Defined in: [fl.ui/src/design/base/UIElement.ts:27](https://github.com/fest-live/fl.ui/blob/fdaa30e4543210d849317cc43587fbd62174c32b/src/design/base/UIElement.ts#L27)
+Defined in: [fl.ui/src/ui/base/UIElement.ts:25](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/base/UIElement.ts#L25)
 
 #### Returns
 
@@ -98,7 +104,9 @@ Defined in: [fl.ui/src/design/base/UIElement.ts:27](https://github.com/fest-live
 
 #### Inherited from
 
-[`UIElement`](UIElement.md).[`connectedCallback`](UIElement.md#connectedcallback)
+```ts
+UIElement.connectedCallback
+```
 
 ***
 
@@ -108,7 +116,7 @@ Defined in: [fl.ui/src/design/base/UIElement.ts:27](https://github.com/fest-live
 onInitialize(): void;
 ```
 
-Defined in: [fl.ui/src/design/base/UIElement.ts:32](https://github.com/fest-live/fl.ui/blob/fdaa30e4543210d849317cc43587fbd62174c32b/src/design/base/UIElement.ts#L32)
+Defined in: [fl.ui/src/ui/base/UIElement.ts:30](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/base/UIElement.ts#L30)
 
 #### Returns
 
@@ -116,7 +124,9 @@ Defined in: [fl.ui/src/design/base/UIElement.ts:32](https://github.com/fest-live
 
 #### Inherited from
 
-[`UIElement`](UIElement.md).[`onInitialize`](UIElement.md#oninitialize)
+```ts
+UIElement.onInitialize
+```
 
 ***
 
@@ -126,7 +136,7 @@ Defined in: [fl.ui/src/design/base/UIElement.ts:32](https://github.com/fest-live
 onRender(): void;
 ```
 
-Defined in: [fl.ui/src/design/base/UIElement.ts:22](https://github.com/fest-live/fl.ui/blob/fdaa30e4543210d849317cc43587fbd62174c32b/src/design/base/UIElement.ts#L22)
+Defined in: [fl.ui/src/ui/base/UIElement.ts:20](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/base/UIElement.ts#L20)
 
 #### Returns
 
@@ -134,18 +144,20 @@ Defined in: [fl.ui/src/design/base/UIElement.ts:22](https://github.com/fest-live
 
 #### Inherited from
 
-[`UIElement`](UIElement.md).[`onRender`](UIElement.md#onrender)
+```ts
+UIElement.onRender
+```
 
 ***
 
 ### styles()
 
 ```ts
-styles(): undefined | Node;
+styles(): any;
 ```
 
-Defined in: [fl.ui/src/ui/navigation/taskbar/element/Task.ts:19](https://github.com/fest-live/fl.ui/blob/fdaa30e4543210d849317cc43587fbd62174c32b/src/ui/navigation/taskbar/element/Task.ts#L19)
+Defined in: [fl.ui/src/ui/navigation/taskbar/element/Task.ts:19](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/navigation/taskbar/element/Task.ts#L19)
 
 #### Returns
 
-`undefined` \| `Node`
+`any`

@@ -6,11 +6,11 @@
 
 # Class: SliderInput
 
-Defined in: [fl.ui/src/ui/components/inputs/slider/Slider.ts:30](https://github.com/fest-live/fl.ui/blob/fdaa30e4543210d849317cc43587fbd62174c32b/src/ui/components/inputs/slider/Slider.ts#L30)
+Defined in: [fl.ui/src/ui/components/inputs/slider/Slider.ts:30](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/components/inputs/slider/Slider.ts#L30)
 
 ## Extends
 
-- [`UIElement`](UIElement.md)
+- `UIElement`
 
 ## Constructors
 
@@ -20,7 +20,7 @@ Defined in: [fl.ui/src/ui/components/inputs/slider/Slider.ts:30](https://github.
 new SliderInput(): SliderInput;
 ```
 
-Defined in: [fl.ui/src/ui/components/inputs/slider/Slider.ts:52](https://github.com/fest-live/fl.ui/blob/fdaa30e4543210d849317cc43587fbd62174c32b/src/ui/components/inputs/slider/Slider.ts#L52)
+Defined in: [fl.ui/src/ui/components/inputs/slider/Slider.ts:52](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/components/inputs/slider/Slider.ts#L52)
 
 #### Returns
 
@@ -28,7 +28,9 @@ Defined in: [fl.ui/src/ui/components/inputs/slider/Slider.ts:52](https://github.
 
 #### Overrides
 
-[`UIElement`](UIElement.md).[`constructor`](UIElement.md#constructor)
+```ts
+UIElement.constructor
+```
 
 ## Properties
 
@@ -38,7 +40,7 @@ Defined in: [fl.ui/src/ui/components/inputs/slider/Slider.ts:52](https://github.
 optional disabled: boolean = false;
 ```
 
-Defined in: [fl.ui/src/ui/components/inputs/slider/Slider.ts:45](https://github.com/fest-live/fl.ui/blob/fdaa30e4543210d849317cc43587fbd62174c32b/src/ui/components/inputs/slider/Slider.ts#L45)
+Defined in: [fl.ui/src/ui/components/inputs/slider/Slider.ts:45](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/components/inputs/slider/Slider.ts#L45)
 
 ***
 
@@ -48,7 +50,7 @@ Defined in: [fl.ui/src/ui/components/inputs/slider/Slider.ts:45](https://github.
 optional handle: HTMLElement;
 ```
 
-Defined in: [fl.ui/src/ui/components/inputs/slider/Slider.ts:38](https://github.com/fest-live/fl.ui/blob/fdaa30e4543210d849317cc43587fbd62174c32b/src/ui/components/inputs/slider/Slider.ts#L38)
+Defined in: [fl.ui/src/ui/components/inputs/slider/Slider.ts:38](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/components/inputs/slider/Slider.ts#L38)
 
 ***
 
@@ -58,7 +60,7 @@ Defined in: [fl.ui/src/ui/components/inputs/slider/Slider.ts:38](https://github.
 optional input: HTMLInputElement;
 ```
 
-Defined in: [fl.ui/src/ui/components/inputs/slider/Slider.ts:36](https://github.com/fest-live/fl.ui/blob/fdaa30e4543210d849317cc43587fbd62174c32b/src/ui/components/inputs/slider/Slider.ts#L36)
+Defined in: [fl.ui/src/ui/components/inputs/slider/Slider.ts:36](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/components/inputs/slider/Slider.ts#L36)
 
 ***
 
@@ -68,7 +70,7 @@ Defined in: [fl.ui/src/ui/components/inputs/slider/Slider.ts:36](https://github.
 optional max: string = "100";
 ```
 
-Defined in: [fl.ui/src/ui/components/inputs/slider/Slider.ts:42](https://github.com/fest-live/fl.ui/blob/fdaa30e4543210d849317cc43587fbd62174c32b/src/ui/components/inputs/slider/Slider.ts#L42)
+Defined in: [fl.ui/src/ui/components/inputs/slider/Slider.ts:42](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/components/inputs/slider/Slider.ts#L42)
 
 ***
 
@@ -78,7 +80,7 @@ Defined in: [fl.ui/src/ui/components/inputs/slider/Slider.ts:42](https://github.
 optional min: string = "0";
 ```
 
-Defined in: [fl.ui/src/ui/components/inputs/slider/Slider.ts:41](https://github.com/fest-live/fl.ui/blob/fdaa30e4543210d849317cc43587fbd62174c32b/src/ui/components/inputs/slider/Slider.ts#L41)
+Defined in: [fl.ui/src/ui/components/inputs/slider/Slider.ts:41](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/components/inputs/slider/Slider.ts#L41)
 
 ***
 
@@ -88,7 +90,7 @@ Defined in: [fl.ui/src/ui/components/inputs/slider/Slider.ts:41](https://github.
 optional name: string = "";
 ```
 
-Defined in: [fl.ui/src/ui/components/inputs/slider/Slider.ts:39](https://github.com/fest-live/fl.ui/blob/fdaa30e4543210d849317cc43587fbd62174c32b/src/ui/components/inputs/slider/Slider.ts#L39)
+Defined in: [fl.ui/src/ui/components/inputs/slider/Slider.ts:39](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/components/inputs/slider/Slider.ts#L39)
 
 ***
 
@@ -98,7 +100,7 @@ Defined in: [fl.ui/src/ui/components/inputs/slider/Slider.ts:39](https://github.
 optional step: string = "1";
 ```
 
-Defined in: [fl.ui/src/ui/components/inputs/slider/Slider.ts:43](https://github.com/fest-live/fl.ui/blob/fdaa30e4543210d849317cc43587fbd62174c32b/src/ui/components/inputs/slider/Slider.ts#L43)
+Defined in: [fl.ui/src/ui/components/inputs/slider/Slider.ts:43](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/components/inputs/slider/Slider.ts#L43)
 
 ***
 
@@ -108,11 +110,13 @@ Defined in: [fl.ui/src/ui/components/inputs/slider/Slider.ts:43](https://github.
 theme: string = "default";
 ```
 
-Defined in: [fl.ui/src/design/base/UIElement.ts:13](https://github.com/fest-live/fl.ui/blob/fdaa30e4543210d849317cc43587fbd62174c32b/src/design/base/UIElement.ts#L13)
+Defined in: [fl.ui/src/ui/base/UIElement.ts:11](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/base/UIElement.ts#L11)
 
 #### Inherited from
 
-[`UIElement`](UIElement.md).[`theme`](UIElement.md#theme)
+```ts
+UIElement.theme
+```
 
 ***
 
@@ -122,7 +126,7 @@ Defined in: [fl.ui/src/design/base/UIElement.ts:13](https://github.com/fest-live
 optional thumb: HTMLElement;
 ```
 
-Defined in: [fl.ui/src/ui/components/inputs/slider/Slider.ts:37](https://github.com/fest-live/fl.ui/blob/fdaa30e4543210d849317cc43587fbd62174c32b/src/ui/components/inputs/slider/Slider.ts#L37)
+Defined in: [fl.ui/src/ui/components/inputs/slider/Slider.ts:37](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/components/inputs/slider/Slider.ts#L37)
 
 ***
 
@@ -132,17 +136,17 @@ Defined in: [fl.ui/src/ui/components/inputs/slider/Slider.ts:37](https://github.
 optional type: string;
 ```
 
-Defined in: [fl.ui/src/ui/components/inputs/slider/Slider.ts:44](https://github.com/fest-live/fl.ui/blob/fdaa30e4543210d849317cc43587fbd62174c32b/src/ui/components/inputs/slider/Slider.ts#L44)
+Defined in: [fl.ui/src/ui/components/inputs/slider/Slider.ts:44](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/components/inputs/slider/Slider.ts#L44)
 
 ***
 
 ### value?
 
 ```ts
-optional value: null | string = null;
+optional value: string | null = null;
 ```
 
-Defined in: [fl.ui/src/ui/components/inputs/slider/Slider.ts:40](https://github.com/fest-live/fl.ui/blob/fdaa30e4543210d849317cc43587fbd62174c32b/src/ui/components/inputs/slider/Slider.ts#L40)
+Defined in: [fl.ui/src/ui/components/inputs/slider/Slider.ts:40](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/components/inputs/slider/Slider.ts#L40)
 
 ***
 
@@ -152,7 +156,7 @@ Defined in: [fl.ui/src/ui/components/inputs/slider/Slider.ts:40](https://github.
 optional variant: string;
 ```
 
-Defined in: [fl.ui/src/ui/components/inputs/slider/Slider.ts:46](https://github.com/fest-live/fl.ui/blob/fdaa30e4543210d849317cc43587fbd62174c32b/src/ui/components/inputs/slider/Slider.ts#L46)
+Defined in: [fl.ui/src/ui/components/inputs/slider/Slider.ts:46](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/components/inputs/slider/Slider.ts#L46)
 
 ***
 
@@ -162,7 +166,7 @@ Defined in: [fl.ui/src/ui/components/inputs/slider/Slider.ts:46](https://github.
 static formAssociated: boolean = true;
 ```
 
-Defined in: [fl.ui/src/ui/components/inputs/slider/Slider.ts:49](https://github.com/fest-live/fl.ui/blob/fdaa30e4543210d849317cc43587fbd62174c32b/src/ui/components/inputs/slider/Slider.ts#L49)
+Defined in: [fl.ui/src/ui/components/inputs/slider/Slider.ts:49](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/components/inputs/slider/Slider.ts#L49)
 
 ## Accessors
 
@@ -174,7 +178,7 @@ Defined in: [fl.ui/src/ui/components/inputs/slider/Slider.ts:49](https://github.
 get valueAsNumber(): number;
 ```
 
-Defined in: [fl.ui/src/ui/components/inputs/slider/Slider.ts:31](https://github.com/fest-live/fl.ui/blob/fdaa30e4543210d849317cc43587fbd62174c32b/src/ui/components/inputs/slider/Slider.ts#L31)
+Defined in: [fl.ui/src/ui/components/inputs/slider/Slider.ts:31](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/components/inputs/slider/Slider.ts#L31)
 
 ##### Returns
 
@@ -188,7 +192,7 @@ Defined in: [fl.ui/src/ui/components/inputs/slider/Slider.ts:31](https://github.
 connectedCallback(): void;
 ```
 
-Defined in: [fl.ui/src/design/base/UIElement.ts:27](https://github.com/fest-live/fl.ui/blob/fdaa30e4543210d849317cc43587fbd62174c32b/src/design/base/UIElement.ts#L27)
+Defined in: [fl.ui/src/ui/base/UIElement.ts:25](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/base/UIElement.ts#L25)
 
 #### Returns
 
@@ -196,7 +200,9 @@ Defined in: [fl.ui/src/design/base/UIElement.ts:27](https://github.com/fest-live
 
 #### Inherited from
 
-[`UIElement`](UIElement.md).[`connectedCallback`](UIElement.md#connectedcallback)
+```ts
+UIElement.connectedCallback
+```
 
 ***
 
@@ -206,7 +212,7 @@ Defined in: [fl.ui/src/design/base/UIElement.ts:27](https://github.com/fest-live
 initializeInput(): void;
 ```
 
-Defined in: [fl.ui/src/ui/components/inputs/slider/Slider.ts:75](https://github.com/fest-live/fl.ui/blob/fdaa30e4543210d849317cc43587fbd62174c32b/src/ui/components/inputs/slider/Slider.ts#L75)
+Defined in: [fl.ui/src/ui/components/inputs/slider/Slider.ts:75](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/components/inputs/slider/Slider.ts#L75)
 
 #### Returns
 
@@ -220,7 +226,7 @@ Defined in: [fl.ui/src/ui/components/inputs/slider/Slider.ts:75](https://github.
 onInitialize(): void;
 ```
 
-Defined in: [fl.ui/src/ui/components/inputs/slider/Slider.ts:99](https://github.com/fest-live/fl.ui/blob/fdaa30e4543210d849317cc43587fbd62174c32b/src/ui/components/inputs/slider/Slider.ts#L99)
+Defined in: [fl.ui/src/ui/components/inputs/slider/Slider.ts:99](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/components/inputs/slider/Slider.ts#L99)
 
 #### Returns
 
@@ -228,7 +234,9 @@ Defined in: [fl.ui/src/ui/components/inputs/slider/Slider.ts:99](https://github.
 
 #### Overrides
 
-[`UIElement`](UIElement.md).[`onInitialize`](UIElement.md#oninitialize)
+```ts
+UIElement.onInitialize
+```
 
 ***
 
@@ -238,7 +246,7 @@ Defined in: [fl.ui/src/ui/components/inputs/slider/Slider.ts:99](https://github.
 onRender(): void;
 ```
 
-Defined in: [fl.ui/src/ui/components/inputs/slider/Slider.ts:68](https://github.com/fest-live/fl.ui/blob/fdaa30e4543210d849317cc43587fbd62174c32b/src/ui/components/inputs/slider/Slider.ts#L68)
+Defined in: [fl.ui/src/ui/components/inputs/slider/Slider.ts:68](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/components/inputs/slider/Slider.ts#L68)
 
 #### Returns
 
@@ -246,7 +254,9 @@ Defined in: [fl.ui/src/ui/components/inputs/slider/Slider.ts:68](https://github.
 
 #### Overrides
 
-[`UIElement`](UIElement.md).[`onRender`](UIElement.md#onrender)
+```ts
+UIElement.onRender
+```
 
 ***
 
@@ -256,7 +266,7 @@ Defined in: [fl.ui/src/ui/components/inputs/slider/Slider.ts:68](https://github.
 render(): any;
 ```
 
-Defined in: [fl.ui/src/ui/components/inputs/slider/Slider.ts:59](https://github.com/fest-live/fl.ui/blob/fdaa30e4543210d849317cc43587fbd62174c32b/src/ui/components/inputs/slider/Slider.ts#L59)
+Defined in: [fl.ui/src/ui/components/inputs/slider/Slider.ts:59](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/components/inputs/slider/Slider.ts#L59)
 
 #### Returns
 
@@ -273,11 +283,11 @@ UIElement.render
 ### styles()
 
 ```ts
-styles(): undefined | Node;
+styles(): any;
 ```
 
-Defined in: [fl.ui/src/ui/components/inputs/slider/Slider.ts:58](https://github.com/fest-live/fl.ui/blob/fdaa30e4543210d849317cc43587fbd62174c32b/src/ui/components/inputs/slider/Slider.ts#L58)
+Defined in: [fl.ui/src/ui/components/inputs/slider/Slider.ts:58](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/components/inputs/slider/Slider.ts#L58)
 
 #### Returns
 
-`undefined` \| `Node`
+`any`

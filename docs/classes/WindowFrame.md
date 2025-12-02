@@ -6,11 +6,11 @@
 
 # Class: WindowFrame
 
-Defined in: [fl.ui/src/ui/components/containers/window/WindowFrame.ts:16](https://github.com/fest-live/fl.ui/blob/fdaa30e4543210d849317cc43587fbd62174c32b/src/ui/components/containers/window/WindowFrame.ts#L16)
+Defined in: [fl.ui/src/ui/components/containers/window/WindowFrame.ts:16](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/components/containers/window/WindowFrame.ts#L16)
 
 ## Extends
 
-- [`UIElement`](UIElement.md)
+- `UIElement`
 
 ## Constructors
 
@@ -20,7 +20,7 @@ Defined in: [fl.ui/src/ui/components/containers/window/WindowFrame.ts:16](https:
 new WindowFrame(): WindowFrame;
 ```
 
-Defined in: [fl.ui/src/ui/components/containers/window/WindowFrame.ts:45](https://github.com/fest-live/fl.ui/blob/fdaa30e4543210d849317cc43587fbd62174c32b/src/ui/components/containers/window/WindowFrame.ts#L45)
+Defined in: [fl.ui/src/ui/components/containers/window/WindowFrame.ts:45](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/components/containers/window/WindowFrame.ts#L45)
 
 #### Returns
 
@@ -28,7 +28,9 @@ Defined in: [fl.ui/src/ui/components/containers/window/WindowFrame.ts:45](https:
 
 #### Overrides
 
-[`UIElement`](UIElement.md).[`constructor`](UIElement.md#constructor)
+```ts
+UIElement.constructor
+```
 
 ## Properties
 
@@ -38,7 +40,7 @@ Defined in: [fl.ui/src/ui/components/containers/window/WindowFrame.ts:45](https:
 optional appIconEl: HTMLSpanElement;
 ```
 
-Defined in: [fl.ui/src/ui/components/containers/window/WindowFrame.ts:32](https://github.com/fest-live/fl.ui/blob/fdaa30e4543210d849317cc43587fbd62174c32b/src/ui/components/containers/window/WindowFrame.ts#L32)
+Defined in: [fl.ui/src/ui/components/containers/window/WindowFrame.ts:32](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/components/containers/window/WindowFrame.ts#L32)
 
 ***
 
@@ -48,7 +50,7 @@ Defined in: [fl.ui/src/ui/components/containers/window/WindowFrame.ts:32](https:
 optional closeEl: HTMLButtonElement;
 ```
 
-Defined in: [fl.ui/src/ui/components/containers/window/WindowFrame.ts:36](https://github.com/fest-live/fl.ui/blob/fdaa30e4543210d849317cc43587fbd62174c32b/src/ui/components/containers/window/WindowFrame.ts#L36)
+Defined in: [fl.ui/src/ui/components/containers/window/WindowFrame.ts:36](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/components/containers/window/WindowFrame.ts#L36)
 
 ***
 
@@ -58,7 +60,7 @@ Defined in: [fl.ui/src/ui/components/containers/window/WindowFrame.ts:36](https:
 optional closeIcon: string = "x";
 ```
 
-Defined in: [fl.ui/src/ui/components/containers/window/WindowFrame.ts:24](https://github.com/fest-live/fl.ui/blob/fdaa30e4543210d849317cc43587fbd62174c32b/src/ui/components/containers/window/WindowFrame.ts#L24)
+Defined in: [fl.ui/src/ui/components/containers/window/WindowFrame.ts:24](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/components/containers/window/WindowFrame.ts#L24)
 
 ***
 
@@ -68,7 +70,7 @@ Defined in: [fl.ui/src/ui/components/containers/window/WindowFrame.ts:24](https:
 optional contentEl: HTMLElement;
 ```
 
-Defined in: [fl.ui/src/ui/components/containers/window/WindowFrame.ts:29](https://github.com/fest-live/fl.ui/blob/fdaa30e4543210d849317cc43587fbd62174c32b/src/ui/components/containers/window/WindowFrame.ts#L29)
+Defined in: [fl.ui/src/ui/components/containers/window/WindowFrame.ts:29](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/components/containers/window/WindowFrame.ts#L29)
 
 ***
 
@@ -78,7 +80,7 @@ Defined in: [fl.ui/src/ui/components/containers/window/WindowFrame.ts:29](https:
 optional icon: string = "app-window";
 ```
 
-Defined in: [fl.ui/src/ui/components/containers/window/WindowFrame.ts:19](https://github.com/fest-live/fl.ui/blob/fdaa30e4543210d849317cc43587fbd62174c32b/src/ui/components/containers/window/WindowFrame.ts#L19)
+Defined in: [fl.ui/src/ui/components/containers/window/WindowFrame.ts:19](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/components/containers/window/WindowFrame.ts#L19)
 
 ***
 
@@ -88,7 +90,7 @@ Defined in: [fl.ui/src/ui/components/containers/window/WindowFrame.ts:19](https:
 optional maximizeEl: HTMLButtonElement;
 ```
 
-Defined in: [fl.ui/src/ui/components/containers/window/WindowFrame.ts:38](https://github.com/fest-live/fl.ui/blob/fdaa30e4543210d849317cc43587fbd62174c32b/src/ui/components/containers/window/WindowFrame.ts#L38)
+Defined in: [fl.ui/src/ui/components/containers/window/WindowFrame.ts:38](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/components/containers/window/WindowFrame.ts#L38)
 
 ***
 
@@ -98,7 +100,7 @@ Defined in: [fl.ui/src/ui/components/containers/window/WindowFrame.ts:38](https:
 optional maximizeIcon: string = "corners-out";
 ```
 
-Defined in: [fl.ui/src/ui/components/containers/window/WindowFrame.ts:26](https://github.com/fest-live/fl.ui/blob/fdaa30e4543210d849317cc43587fbd62174c32b/src/ui/components/containers/window/WindowFrame.ts#L26)
+Defined in: [fl.ui/src/ui/components/containers/window/WindowFrame.ts:26](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/components/containers/window/WindowFrame.ts#L26)
 
 ***
 
@@ -108,7 +110,7 @@ Defined in: [fl.ui/src/ui/components/containers/window/WindowFrame.ts:26](https:
 optional minimizeEl: HTMLButtonElement;
 ```
 
-Defined in: [fl.ui/src/ui/components/containers/window/WindowFrame.ts:37](https://github.com/fest-live/fl.ui/blob/fdaa30e4543210d849317cc43587fbd62174c32b/src/ui/components/containers/window/WindowFrame.ts#L37)
+Defined in: [fl.ui/src/ui/components/containers/window/WindowFrame.ts:37](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/components/containers/window/WindowFrame.ts#L37)
 
 ***
 
@@ -118,7 +120,7 @@ Defined in: [fl.ui/src/ui/components/containers/window/WindowFrame.ts:37](https:
 optional minimizeIcon: string = "minus";
 ```
 
-Defined in: [fl.ui/src/ui/components/containers/window/WindowFrame.ts:25](https://github.com/fest-live/fl.ui/blob/fdaa30e4543210d849317cc43587fbd62174c32b/src/ui/components/containers/window/WindowFrame.ts#L25)
+Defined in: [fl.ui/src/ui/components/containers/window/WindowFrame.ts:25](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/components/containers/window/WindowFrame.ts#L25)
 
 ***
 
@@ -128,17 +130,17 @@ Defined in: [fl.ui/src/ui/components/containers/window/WindowFrame.ts:25](https:
 optional name: string = "";
 ```
 
-Defined in: [fl.ui/src/ui/components/containers/window/WindowFrame.ts:18](https://github.com/fest-live/fl.ui/blob/fdaa30e4543210d849317cc43587fbd62174c32b/src/ui/components/containers/window/WindowFrame.ts#L18)
+Defined in: [fl.ui/src/ui/components/containers/window/WindowFrame.ts:18](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/components/containers/window/WindowFrame.ts#L18)
 
 ***
 
 ### reflect?
 
 ```ts
-optional reflect: null | TaskStateReflect;
+optional reflect: TaskStateReflect | null;
 ```
 
-Defined in: [fl.ui/src/ui/components/containers/window/WindowFrame.ts:42](https://github.com/fest-live/fl.ui/blob/fdaa30e4543210d849317cc43587fbd62174c32b/src/ui/components/containers/window/WindowFrame.ts#L42)
+Defined in: [fl.ui/src/ui/components/containers/window/WindowFrame.ts:42](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/components/containers/window/WindowFrame.ts#L42)
 
 ***
 
@@ -148,7 +150,7 @@ Defined in: [fl.ui/src/ui/components/containers/window/WindowFrame.ts:42](https:
 render: () => any;
 ```
 
-Defined in: [fl.ui/src/ui/components/containers/window/WindowFrame.ts:109](https://github.com/fest-live/fl.ui/blob/fdaa30e4543210d849317cc43587fbd62174c32b/src/ui/components/containers/window/WindowFrame.ts#L109)
+Defined in: [fl.ui/src/ui/components/containers/window/WindowFrame.ts:109](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/components/containers/window/WindowFrame.ts#L109)
 
 #### Returns
 
@@ -156,7 +158,9 @@ Defined in: [fl.ui/src/ui/components/containers/window/WindowFrame.ts:109](https
 
 #### Overrides
 
-[`UIElement`](UIElement.md).[`render`](UIElement.md#render)
+```ts
+UIElement.render
+```
 
 ***
 
@@ -166,21 +170,21 @@ Defined in: [fl.ui/src/ui/components/containers/window/WindowFrame.ts:109](https
 optional resizeHandleEl: HTMLElement;
 ```
 
-Defined in: [fl.ui/src/ui/components/containers/window/WindowFrame.ts:33](https://github.com/fest-live/fl.ui/blob/fdaa30e4543210d849317cc43587fbd62174c32b/src/ui/components/containers/window/WindowFrame.ts#L33)
+Defined in: [fl.ui/src/ui/components/containers/window/WindowFrame.ts:33](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/components/containers/window/WindowFrame.ts#L33)
 
 ***
 
 ### styles()
 
 ```ts
-styles: () => undefined | Node;
+styles: () => any;
 ```
 
-Defined in: [fl.ui/src/ui/components/containers/window/WindowFrame.ts:108](https://github.com/fest-live/fl.ui/blob/fdaa30e4543210d849317cc43587fbd62174c32b/src/ui/components/containers/window/WindowFrame.ts#L108)
+Defined in: [fl.ui/src/ui/components/containers/window/WindowFrame.ts:108](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/components/containers/window/WindowFrame.ts#L108)
 
 #### Returns
 
-`undefined` \| `Node`
+`any`
 
 ***
 
@@ -190,17 +194,17 @@ Defined in: [fl.ui/src/ui/components/containers/window/WindowFrame.ts:108](https
 optional subtitle: string = "WINDOW_FRAME_SUBTITLE";
 ```
 
-Defined in: [fl.ui/src/ui/components/containers/window/WindowFrame.ts:21](https://github.com/fest-live/fl.ui/blob/fdaa30e4543210d849317cc43587fbd62174c32b/src/ui/components/containers/window/WindowFrame.ts#L21)
+Defined in: [fl.ui/src/ui/components/containers/window/WindowFrame.ts:21](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/components/containers/window/WindowFrame.ts#L21)
 
 ***
 
 ### task
 
 ```ts
-task: null | ITask = null;
+task: ITask | null = null;
 ```
 
-Defined in: [fl.ui/src/ui/components/containers/window/WindowFrame.ts:41](https://github.com/fest-live/fl.ui/blob/fdaa30e4543210d849317cc43587fbd62174c32b/src/ui/components/containers/window/WindowFrame.ts#L41)
+Defined in: [fl.ui/src/ui/components/containers/window/WindowFrame.ts:41](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/components/containers/window/WindowFrame.ts#L41)
 
 ***
 
@@ -210,11 +214,13 @@ Defined in: [fl.ui/src/ui/components/containers/window/WindowFrame.ts:41](https:
 theme: string = "default";
 ```
 
-Defined in: [fl.ui/src/design/base/UIElement.ts:13](https://github.com/fest-live/fl.ui/blob/fdaa30e4543210d849317cc43587fbd62174c32b/src/design/base/UIElement.ts#L13)
+Defined in: [fl.ui/src/ui/base/UIElement.ts:11](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/base/UIElement.ts#L11)
 
 #### Inherited from
 
-[`UIElement`](UIElement.md).[`theme`](UIElement.md#theme)
+```ts
+UIElement.theme
+```
 
 ***
 
@@ -224,7 +230,7 @@ Defined in: [fl.ui/src/design/base/UIElement.ts:13](https://github.com/fest-live
 optional title: string = "WINDOW_FRAME_TITLE";
 ```
 
-Defined in: [fl.ui/src/ui/components/containers/window/WindowFrame.ts:20](https://github.com/fest-live/fl.ui/blob/fdaa30e4543210d849317cc43587fbd62174c32b/src/ui/components/containers/window/WindowFrame.ts#L20)
+Defined in: [fl.ui/src/ui/components/containers/window/WindowFrame.ts:20](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/components/containers/window/WindowFrame.ts#L20)
 
 ***
 
@@ -234,7 +240,7 @@ Defined in: [fl.ui/src/ui/components/containers/window/WindowFrame.ts:20](https:
 optional titlebarEl: HTMLElement;
 ```
 
-Defined in: [fl.ui/src/ui/components/containers/window/WindowFrame.ts:30](https://github.com/fest-live/fl.ui/blob/fdaa30e4543210d849317cc43587fbd62174c32b/src/ui/components/containers/window/WindowFrame.ts#L30)
+Defined in: [fl.ui/src/ui/components/containers/window/WindowFrame.ts:30](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/components/containers/window/WindowFrame.ts#L30)
 
 ***
 
@@ -244,7 +250,7 @@ Defined in: [fl.ui/src/ui/components/containers/window/WindowFrame.ts:30](https:
 optional titlebarHandleEl: HTMLElement;
 ```
 
-Defined in: [fl.ui/src/ui/components/containers/window/WindowFrame.ts:31](https://github.com/fest-live/fl.ui/blob/fdaa30e4543210d849317cc43587fbd62174c32b/src/ui/components/containers/window/WindowFrame.ts#L31)
+Defined in: [fl.ui/src/ui/components/containers/window/WindowFrame.ts:31](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/components/containers/window/WindowFrame.ts#L31)
 
 ***
 
@@ -254,7 +260,7 @@ Defined in: [fl.ui/src/ui/components/containers/window/WindowFrame.ts:31](https:
 optional titleTextEl: HTMLSpanElement;
 ```
 
-Defined in: [fl.ui/src/ui/components/containers/window/WindowFrame.ts:34](https://github.com/fest-live/fl.ui/blob/fdaa30e4543210d849317cc43587fbd62174c32b/src/ui/components/containers/window/WindowFrame.ts#L34)
+Defined in: [fl.ui/src/ui/components/containers/window/WindowFrame.ts:34](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/components/containers/window/WindowFrame.ts#L34)
 
 ***
 
@@ -264,7 +270,7 @@ Defined in: [fl.ui/src/ui/components/containers/window/WindowFrame.ts:34](https:
 optional titleTextSubEl: HTMLSpanElement;
 ```
 
-Defined in: [fl.ui/src/ui/components/containers/window/WindowFrame.ts:35](https://github.com/fest-live/fl.ui/blob/fdaa30e4543210d849317cc43587fbd62174c32b/src/ui/components/containers/window/WindowFrame.ts#L35)
+Defined in: [fl.ui/src/ui/components/containers/window/WindowFrame.ts:35](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/components/containers/window/WindowFrame.ts#L35)
 
 ## Methods
 
@@ -274,13 +280,13 @@ Defined in: [fl.ui/src/ui/components/containers/window/WindowFrame.ts:35](https:
 bindWithTask(task): WindowFrame;
 ```
 
-Defined in: [fl.ui/src/ui/components/containers/window/WindowFrame.ts:79](https://github.com/fest-live/fl.ui/blob/fdaa30e4543210d849317cc43587fbd62174c32b/src/ui/components/containers/window/WindowFrame.ts#L79)
+Defined in: [fl.ui/src/ui/components/containers/window/WindowFrame.ts:79](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/components/containers/window/WindowFrame.ts#L79)
 
 #### Parameters
 
 ##### task
 
-`null` | `ITask`
+`ITask` | `null`
 
 #### Returns
 
@@ -294,7 +300,7 @@ Defined in: [fl.ui/src/ui/components/containers/window/WindowFrame.ts:79](https:
 connectedCallback(): void;
 ```
 
-Defined in: [fl.ui/src/design/base/UIElement.ts:27](https://github.com/fest-live/fl.ui/blob/fdaa30e4543210d849317cc43587fbd62174c32b/src/design/base/UIElement.ts#L27)
+Defined in: [fl.ui/src/ui/base/UIElement.ts:25](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/base/UIElement.ts#L25)
 
 #### Returns
 
@@ -302,7 +308,9 @@ Defined in: [fl.ui/src/design/base/UIElement.ts:27](https://github.com/fest-live
 
 #### Inherited from
 
-[`UIElement`](UIElement.md).[`connectedCallback`](UIElement.md#connectedcallback)
+```ts
+UIElement.connectedCallback
+```
 
 ***
 
@@ -312,7 +320,7 @@ Defined in: [fl.ui/src/design/base/UIElement.ts:27](https://github.com/fest-live
 doCenter(): void;
 ```
 
-Defined in: [fl.ui/src/ui/components/containers/window/WindowFrame.ts:95](https://github.com/fest-live/fl.ui/blob/fdaa30e4543210d849317cc43587fbd62174c32b/src/ui/components/containers/window/WindowFrame.ts#L95)
+Defined in: [fl.ui/src/ui/components/containers/window/WindowFrame.ts:95](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/components/containers/window/WindowFrame.ts#L95)
 
 #### Returns
 
@@ -326,7 +334,7 @@ Defined in: [fl.ui/src/ui/components/containers/window/WindowFrame.ts:95](https:
 onInitialize(): void;
 ```
 
-Defined in: [fl.ui/src/ui/components/containers/window/WindowFrame.ts:46](https://github.com/fest-live/fl.ui/blob/fdaa30e4543210d849317cc43587fbd62174c32b/src/ui/components/containers/window/WindowFrame.ts#L46)
+Defined in: [fl.ui/src/ui/components/containers/window/WindowFrame.ts:46](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/components/containers/window/WindowFrame.ts#L46)
 
 #### Returns
 
@@ -334,7 +342,9 @@ Defined in: [fl.ui/src/ui/components/containers/window/WindowFrame.ts:46](https:
 
 #### Overrides
 
-[`UIElement`](UIElement.md).[`onInitialize`](UIElement.md#oninitialize)
+```ts
+UIElement.onInitialize
+```
 
 ***
 
@@ -344,7 +354,7 @@ Defined in: [fl.ui/src/ui/components/containers/window/WindowFrame.ts:46](https:
 onRender(): void;
 ```
 
-Defined in: [fl.ui/src/ui/components/containers/window/WindowFrame.ts:88](https://github.com/fest-live/fl.ui/blob/fdaa30e4543210d849317cc43587fbd62174c32b/src/ui/components/containers/window/WindowFrame.ts#L88)
+Defined in: [fl.ui/src/ui/components/containers/window/WindowFrame.ts:88](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/components/containers/window/WindowFrame.ts#L88)
 
 #### Returns
 
@@ -352,4 +362,6 @@ Defined in: [fl.ui/src/ui/components/containers/window/WindowFrame.ts:88](https:
 
 #### Overrides
 
-[`UIElement`](UIElement.md).[`onRender`](UIElement.md#onrender)
+```ts
+UIElement.onRender
+```

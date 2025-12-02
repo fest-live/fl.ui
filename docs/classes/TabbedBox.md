@@ -6,11 +6,11 @@
 
 # Class: TabbedBox
 
-Defined in: [fl.ui/src/ui/components/containers/tabbed-box/TabbedBox.ts:41](https://github.com/fest-live/fl.ui/blob/fdaa30e4543210d849317cc43587fbd62174c32b/src/ui/components/containers/tabbed-box/TabbedBox.ts#L41)
+Defined in: [fl.ui/src/ui/components/containers/tabbed-box/TabbedBox.ts:60](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/components/containers/tabbed-box/TabbedBox.ts#L60)
 
 ## Extends
 
-- [`UIElement`](UIElement.md)
+- `UIElement`
 
 ## Constructors
 
@@ -20,7 +20,7 @@ Defined in: [fl.ui/src/ui/components/containers/tabbed-box/TabbedBox.ts:41](http
 new TabbedBox(): TabbedBox;
 ```
 
-Defined in: [fl.ui/src/ui/components/containers/tabbed-box/TabbedBox.ts:53](https://github.com/fest-live/fl.ui/blob/fdaa30e4543210d849317cc43587fbd62174c32b/src/ui/components/containers/tabbed-box/TabbedBox.ts#L53)
+Defined in: [fl.ui/src/ui/components/containers/tabbed-box/TabbedBox.ts:65](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/components/containers/tabbed-box/TabbedBox.ts#L65)
 
 #### Returns
 
@@ -28,7 +28,9 @@ Defined in: [fl.ui/src/ui/components/containers/tabbed-box/TabbedBox.ts:53](http
 
 #### Overrides
 
-[`UIElement`](UIElement.md).[`constructor`](UIElement.md#constructor)
+```ts
+UIElement.constructor
+```
 
 ## Properties
 
@@ -38,7 +40,7 @@ Defined in: [fl.ui/src/ui/components/containers/tabbed-box/TabbedBox.ts:53](http
 optional currentTab: string = "";
 ```
 
-Defined in: [fl.ui/src/ui/components/containers/tabbed-box/TabbedBox.ts:42](https://github.com/fest-live/fl.ui/blob/fdaa30e4543210d849317cc43587fbd62174c32b/src/ui/components/containers/tabbed-box/TabbedBox.ts#L42)
+Defined in: [fl.ui/src/ui/components/containers/tabbed-box/TabbedBox.ts:61](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/components/containers/tabbed-box/TabbedBox.ts#L61)
 
 ***
 
@@ -48,7 +50,7 @@ Defined in: [fl.ui/src/ui/components/containers/tabbed-box/TabbedBox.ts:42](http
 render: () => any;
 ```
 
-Defined in: [fl.ui/src/ui/components/containers/tabbed-box/TabbedBox.ts:103](https://github.com/fest-live/fl.ui/blob/fdaa30e4543210d849317cc43587fbd62174c32b/src/ui/components/containers/tabbed-box/TabbedBox.ts#L103)
+Defined in: [fl.ui/src/ui/components/containers/tabbed-box/TabbedBox.ts:163](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/components/containers/tabbed-box/TabbedBox.ts#L163)
 
 #### Returns
 
@@ -56,27 +58,19 @@ Defined in: [fl.ui/src/ui/components/containers/tabbed-box/TabbedBox.ts:103](htt
 
 #### Overrides
 
-[`UIElement`](UIElement.md).[`render`](UIElement.md#render)
+```ts
+UIElement.render
+```
 
 ***
 
-### renderTabName()
+### tabPosition?
 
 ```ts
-renderTabName: (tabName) => string;
+optional tabPosition: string = "bottom";
 ```
 
-Defined in: [fl.ui/src/ui/components/containers/tabbed-box/TabbedBox.ts:50](https://github.com/fest-live/fl.ui/blob/fdaa30e4543210d849317cc43587fbd62174c32b/src/ui/components/containers/tabbed-box/TabbedBox.ts#L50)
-
-#### Parameters
-
-##### tabName
-
-`string`
-
-#### Returns
-
-`string`
+Defined in: [fl.ui/src/ui/components/containers/tabbed-box/TabbedBox.ts:62](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/components/containers/tabbed-box/TabbedBox.ts#L62)
 
 ***
 
@@ -86,11 +80,13 @@ Defined in: [fl.ui/src/ui/components/containers/tabbed-box/TabbedBox.ts:50](http
 theme: string = "default";
 ```
 
-Defined in: [fl.ui/src/design/base/UIElement.ts:13](https://github.com/fest-live/fl.ui/blob/fdaa30e4543210d849317cc43587fbd62174c32b/src/design/base/UIElement.ts#L13)
+Defined in: [fl.ui/src/ui/base/UIElement.ts:11](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/base/UIElement.ts#L11)
 
 #### Inherited from
 
-[`UIElement`](UIElement.md).[`theme`](UIElement.md#theme)
+```ts
+UIElement.theme
+```
 
 ## Methods
 
@@ -100,7 +96,7 @@ Defined in: [fl.ui/src/design/base/UIElement.ts:13](https://github.com/fest-live
 connectedCallback(): void;
 ```
 
-Defined in: [fl.ui/src/design/base/UIElement.ts:27](https://github.com/fest-live/fl.ui/blob/fdaa30e4543210d849317cc43587fbd62174c32b/src/design/base/UIElement.ts#L27)
+Defined in: [fl.ui/src/ui/base/UIElement.ts:25](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/base/UIElement.ts#L25)
 
 #### Returns
 
@@ -108,23 +104,29 @@ Defined in: [fl.ui/src/design/base/UIElement.ts:27](https://github.com/fest-live
 
 #### Inherited from
 
-[`UIElement`](UIElement.md).[`connectedCallback`](UIElement.md#connectedcallback)
+```ts
+UIElement.connectedCallback
+```
 
 ***
 
 ### createTab()
 
 ```ts
-createTab(tabName): any;
+createTab(tabName, idx?): any;
 ```
 
-Defined in: [fl.ui/src/ui/components/containers/tabbed-box/TabbedBox.ts:77](https://github.com/fest-live/fl.ui/blob/fdaa30e4543210d849317cc43587fbd62174c32b/src/ui/components/containers/tabbed-box/TabbedBox.ts#L77)
+Defined in: [fl.ui/src/ui/components/containers/tabbed-box/TabbedBox.ts:135](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/components/containers/tabbed-box/TabbedBox.ts#L135)
 
 #### Parameters
 
 ##### tabName
 
 `string`
+
+##### idx?
+
+`number`
 
 #### Returns
 
@@ -138,7 +140,7 @@ Defined in: [fl.ui/src/ui/components/containers/tabbed-box/TabbedBox.ts:77](http
 onInitialize(): void;
 ```
 
-Defined in: [fl.ui/src/ui/components/containers/tabbed-box/TabbedBox.ts:54](https://github.com/fest-live/fl.ui/blob/fdaa30e4543210d849317cc43587fbd62174c32b/src/ui/components/containers/tabbed-box/TabbedBox.ts#L54)
+Defined in: [fl.ui/src/ui/components/containers/tabbed-box/TabbedBox.ts:66](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/components/containers/tabbed-box/TabbedBox.ts#L66)
 
 #### Returns
 
@@ -146,7 +148,9 @@ Defined in: [fl.ui/src/ui/components/containers/tabbed-box/TabbedBox.ts:54](http
 
 #### Overrides
 
-[`UIElement`](UIElement.md).[`onInitialize`](UIElement.md#oninitialize)
+```ts
+UIElement.onInitialize
+```
 
 ***
 
@@ -156,7 +160,7 @@ Defined in: [fl.ui/src/ui/components/containers/tabbed-box/TabbedBox.ts:54](http
 onRender(): void;
 ```
 
-Defined in: [fl.ui/src/ui/components/containers/tabbed-box/TabbedBox.ts:70](https://github.com/fest-live/fl.ui/blob/fdaa30e4543210d849317cc43587fbd62174c32b/src/ui/components/containers/tabbed-box/TabbedBox.ts#L70)
+Defined in: [fl.ui/src/ui/components/containers/tabbed-box/TabbedBox.ts:128](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/components/containers/tabbed-box/TabbedBox.ts#L128)
 
 #### Returns
 
@@ -164,7 +168,9 @@ Defined in: [fl.ui/src/ui/components/containers/tabbed-box/TabbedBox.ts:70](http
 
 #### Overrides
 
-[`UIElement`](UIElement.md).[`onRender`](UIElement.md#onrender)
+```ts
+UIElement.onRender
+```
 
 ***
 
@@ -174,7 +180,7 @@ Defined in: [fl.ui/src/ui/components/containers/tabbed-box/TabbedBox.ts:70](http
 openTab(tabName, ev?): void;
 ```
 
-Defined in: [fl.ui/src/ui/components/containers/tabbed-box/TabbedBox.ts:91](https://github.com/fest-live/fl.ui/blob/fdaa30e4543210d849317cc43587fbd62174c32b/src/ui/components/containers/tabbed-box/TabbedBox.ts#L91)
+Defined in: [fl.ui/src/ui/components/containers/tabbed-box/TabbedBox.ts:148](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/components/containers/tabbed-box/TabbedBox.ts#L148)
 
 #### Parameters
 
@@ -198,7 +204,7 @@ Defined in: [fl.ui/src/ui/components/containers/tabbed-box/TabbedBox.ts:91](http
 setTabs(tabs): void;
 ```
 
-Defined in: [fl.ui/src/ui/components/containers/tabbed-box/TabbedBox.ts:64](https://github.com/fest-live/fl.ui/blob/fdaa30e4543210d849317cc43587fbd62174c32b/src/ui/components/containers/tabbed-box/TabbedBox.ts#L64)
+Defined in: [fl.ui/src/ui/components/containers/tabbed-box/TabbedBox.ts:122](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/components/containers/tabbed-box/TabbedBox.ts#L122)
 
 #### Parameters
 
@@ -215,11 +221,11 @@ Defined in: [fl.ui/src/ui/components/containers/tabbed-box/TabbedBox.ts:64](http
 ### styles()
 
 ```ts
-styles(): undefined | Node;
+styles(): any;
 ```
 
-Defined in: [fl.ui/src/ui/components/containers/tabbed-box/TabbedBox.ts:100](https://github.com/fest-live/fl.ui/blob/fdaa30e4543210d849317cc43587fbd62174c32b/src/ui/components/containers/tabbed-box/TabbedBox.ts#L100)
+Defined in: [fl.ui/src/ui/components/containers/tabbed-box/TabbedBox.ts:162](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/components/containers/tabbed-box/TabbedBox.ts#L162)
 
 #### Returns
 
-`undefined` \| `Node`
+`any`

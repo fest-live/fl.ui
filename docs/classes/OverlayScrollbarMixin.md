@@ -6,7 +6,7 @@
 
 # Class: OverlayScrollbarMixin
 
-Defined in: [fl.ui/src/ui/components/overlays/scrollframe/ScrollFrame.ts:80](https://github.com/fest-live/fl.ui/blob/fdaa30e4543210d849317cc43587fbd62174c32b/src/ui/components/overlays/scrollframe/ScrollFrame.ts#L80)
+Defined in: [fl.ui/src/ui/navigation/scrollframe/ScrollFrame.ts:80](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/navigation/scrollframe/ScrollFrame.ts#L80)
 
 ## Extends
 
@@ -20,7 +20,7 @@ Defined in: [fl.ui/src/ui/components/overlays/scrollframe/ScrollFrame.ts:80](htt
 new OverlayScrollbarMixin(name?): OverlayScrollbarMixin;
 ```
 
-Defined in: [fl.ui/src/ui/components/overlays/scrollframe/ScrollFrame.ts:81](https://github.com/fest-live/fl.ui/blob/fdaa30e4543210d849317cc43587fbd62174c32b/src/ui/components/overlays/scrollframe/ScrollFrame.ts#L81)
+Defined in: [fl.ui/src/ui/navigation/scrollframe/ScrollFrame.ts:81](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/navigation/scrollframe/ScrollFrame.ts#L81)
 
 #### Parameters
 
@@ -48,7 +48,7 @@ DOMMixin.constructor
 get elements(): any;
 ```
 
-Defined in: dom.ts/src/mixin/Mixins.ts:134
+Defined in: [dom.ts/src/mixin/Mixins.ts:134](https://github.com/fest-live/dom.ts/blob/f3b6f31d65ad2492ce149f3b113044e1f4209407/src/mixin/Mixins.ts#L134)
 
 ##### Returns
 
@@ -67,20 +67,18 @@ DOMMixin.elements
 #### Get Signature
 
 ```ts
-get name(): undefined | string;
+get name(): string | undefined;
 ```
 
-Defined in: dom.ts/src/mixin/Mixins.ts:136
+Defined in: [dom.ts/src/mixin/Mixins.ts:136](https://github.com/fest-live/dom.ts/blob/f3b6f31d65ad2492ce149f3b113044e1f4209407/src/mixin/Mixins.ts#L136)
 
 ##### Returns
 
-`undefined` \| `string`
+`string` \| `undefined`
 
 #### Inherited from
 
-```ts
-DOMMixin.name
-```
+[`DesktopTaskbar`](DesktopTaskbar.md).[`name`](DesktopTaskbar.md#name)
 
 ***
 
@@ -89,14 +87,14 @@ DOMMixin.name
 #### Get Signature
 
 ```ts
-get storage(): undefined | WeakMap<any, any>;
+get storage(): WeakMap<any, any> | undefined;
 ```
 
-Defined in: dom.ts/src/mixin/Mixins.ts:135
+Defined in: [dom.ts/src/mixin/Mixins.ts:135](https://github.com/fest-live/dom.ts/blob/f3b6f31d65ad2492ce149f3b113044e1f4209407/src/mixin/Mixins.ts#L135)
 
 ##### Returns
 
-`undefined` \| `WeakMap`\<`any`, `any`\>
+`WeakMap`\<`any`, `any`\> \| `undefined`
 
 #### Inherited from
 
@@ -112,7 +110,7 @@ DOMMixin.storage
 connect(ws): void;
 ```
 
-Defined in: [fl.ui/src/ui/components/overlays/scrollframe/ScrollFrame.ts:84](https://github.com/fest-live/fl.ui/blob/fdaa30e4543210d849317cc43587fbd62174c32b/src/ui/components/overlays/scrollframe/ScrollFrame.ts#L84)
+Defined in: [fl.ui/src/ui/navigation/scrollframe/ScrollFrame.ts:84](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/navigation/scrollframe/ScrollFrame.ts#L84)
 
 #### Parameters
 
@@ -141,7 +139,7 @@ disconnect(
    related): OverlayScrollbarMixin;
 ```
 
-Defined in: dom.ts/src/mixin/Mixins.ts:127
+Defined in: [dom.ts/src/mixin/Mixins.ts:127](https://github.com/fest-live/dom.ts/blob/f3b6f31d65ad2492ce149f3b113044e1f4209407/src/mixin/Mixins.ts#L127)
 
 #### Parameters
 
@@ -175,7 +173,7 @@ DOMMixin.disconnect
 relatedForElement(element): object;
 ```
 
-Defined in: dom.ts/src/mixin/Mixins.ts:131
+Defined in: [dom.ts/src/mixin/Mixins.ts:131](https://github.com/fest-live/dom.ts/blob/f3b6f31d65ad2492ce149f3b113044e1f4209407/src/mixin/Mixins.ts#L131)
 
 #### Parameters
 
@@ -196,7 +194,7 @@ behaviorSet: any;
 ##### mixinSet
 
 ```ts
-mixinSet: undefined | WeakSet<any>;
+mixinSet: WeakSet<any> | undefined;
 ```
 
 ##### storeSet
@@ -219,7 +217,7 @@ DOMMixin.relatedForElement
 storeForElement(element): any;
 ```
 
-Defined in: dom.ts/src/mixin/Mixins.ts:130
+Defined in: [dom.ts/src/mixin/Mixins.ts:130](https://github.com/fest-live/dom.ts/blob/f3b6f31d65ad2492ce149f3b113044e1f4209407/src/mixin/Mixins.ts#L130)
 
 #### Parameters
 

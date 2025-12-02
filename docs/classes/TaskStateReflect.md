@@ -6,7 +6,7 @@
 
 # Class: TaskStateReflect
 
-Defined in: [fl.ui/src/ui/misc/TaskStateReflect.ts:6](https://github.com/fest-live/fl.ui/blob/fdaa30e4543210d849317cc43587fbd62174c32b/src/ui/misc/TaskStateReflect.ts#L6)
+Defined in: [fl.ui/src/ui/navigation/misc/TaskStateReflect.ts:6](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/navigation/misc/TaskStateReflect.ts#L6)
 
 ## Constructors
 
@@ -16,7 +16,7 @@ Defined in: [fl.ui/src/ui/misc/TaskStateReflect.ts:6](https://github.com/fest-li
 new TaskStateReflect(element, task): TaskStateReflect;
 ```
 
-Defined in: [fl.ui/src/ui/misc/TaskStateReflect.ts:28](https://github.com/fest-live/fl.ui/blob/fdaa30e4543210d849317cc43587fbd62174c32b/src/ui/misc/TaskStateReflect.ts#L28)
+Defined in: [fl.ui/src/ui/navigation/misc/TaskStateReflect.ts:28](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/navigation/misc/TaskStateReflect.ts#L28)
 
 #### Parameters
 
@@ -26,7 +26,7 @@ Defined in: [fl.ui/src/ui/misc/TaskStateReflect.ts:28](https://github.com/fest-l
 
 ##### task
 
-`null` | `ITask`
+`ITask` | `null`
 
 #### Returns
 
@@ -38,7 +38,6 @@ Defined in: [fl.ui/src/ui/misc/TaskStateReflect.ts:28](https://github.com/fest-l
 
 ```ts
 optional bindings: 
-  | null
   | {
   focus?: any;
   icon?: any;
@@ -46,10 +45,11 @@ optional bindings:
   orderSub?: any;
   title?: any;
   visible?: any;
-};
+}
+  | null;
 ```
 
-Defined in: [fl.ui/src/ui/misc/TaskStateReflect.ts:18](https://github.com/fest-live/fl.ui/blob/fdaa30e4543210d849317cc43587fbd62174c32b/src/ui/misc/TaskStateReflect.ts#L18)
+Defined in: [fl.ui/src/ui/navigation/misc/TaskStateReflect.ts:18](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/navigation/misc/TaskStateReflect.ts#L18)
 
 ***
 
@@ -59,7 +59,7 @@ Defined in: [fl.ui/src/ui/misc/TaskStateReflect.ts:18](https://github.com/fest-l
 optional element: any;
 ```
 
-Defined in: [fl.ui/src/ui/misc/TaskStateReflect.ts:8](https://github.com/fest-live/fl.ui/blob/fdaa30e4543210d849317cc43587fbd62174c32b/src/ui/misc/TaskStateReflect.ts#L8)
+Defined in: [fl.ui/src/ui/navigation/misc/TaskStateReflect.ts:8](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/navigation/misc/TaskStateReflect.ts#L8)
 
 ***
 
@@ -67,7 +67,6 @@ Defined in: [fl.ui/src/ui/misc/TaskStateReflect.ts:8](https://github.com/fest-li
 
 ```ts
 optional listeners: 
-  | null
   | {
   blur?: any;
   click?: any;
@@ -76,20 +75,21 @@ optional listeners:
   keydown?: any;
   maximize?: any;
   minimize?: any;
-};
+}
+  | null;
 ```
 
-Defined in: [fl.ui/src/ui/misc/TaskStateReflect.ts:9](https://github.com/fest-live/fl.ui/blob/fdaa30e4543210d849317cc43587fbd62174c32b/src/ui/misc/TaskStateReflect.ts#L9)
+Defined in: [fl.ui/src/ui/navigation/misc/TaskStateReflect.ts:9](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/navigation/misc/TaskStateReflect.ts#L9)
 
 ***
 
 ### task?
 
 ```ts
-optional task: null | ITask;
+optional task: ITask | null;
 ```
 
-Defined in: [fl.ui/src/ui/misc/TaskStateReflect.ts:7](https://github.com/fest-live/fl.ui/blob/fdaa30e4543210d849317cc43587fbd62174c32b/src/ui/misc/TaskStateReflect.ts#L7)
+Defined in: [fl.ui/src/ui/navigation/misc/TaskStateReflect.ts:7](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/navigation/misc/TaskStateReflect.ts#L7)
 
 ## Methods
 
@@ -99,7 +99,7 @@ Defined in: [fl.ui/src/ui/misc/TaskStateReflect.ts:7](https://github.com/fest-li
 bind(element): TaskStateReflect;
 ```
 
-Defined in: [fl.ui/src/ui/misc/TaskStateReflect.ts:60](https://github.com/fest-live/fl.ui/blob/fdaa30e4543210d849317cc43587fbd62174c32b/src/ui/misc/TaskStateReflect.ts#L60)
+Defined in: [fl.ui/src/ui/navigation/misc/TaskStateReflect.ts:60](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/navigation/misc/TaskStateReflect.ts#L60)
 
 #### Parameters
 
@@ -119,7 +119,7 @@ Defined in: [fl.ui/src/ui/misc/TaskStateReflect.ts:60](https://github.com/fest-l
 unbind(): void;
 ```
 
-Defined in: [fl.ui/src/ui/misc/TaskStateReflect.ts:40](https://github.com/fest-live/fl.ui/blob/fdaa30e4543210d849317cc43587fbd62174c32b/src/ui/misc/TaskStateReflect.ts#L40)
+Defined in: [fl.ui/src/ui/navigation/misc/TaskStateReflect.ts:40](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/navigation/misc/TaskStateReflect.ts#L40)
 
 #### Returns
 
@@ -133,7 +133,7 @@ Defined in: [fl.ui/src/ui/misc/TaskStateReflect.ts:40](https://github.com/fest-l
 update(element, task): TaskStateReflect;
 ```
 
-Defined in: [fl.ui/src/ui/misc/TaskStateReflect.ts:33](https://github.com/fest-live/fl.ui/blob/fdaa30e4543210d849317cc43587fbd62174c32b/src/ui/misc/TaskStateReflect.ts#L33)
+Defined in: [fl.ui/src/ui/navigation/misc/TaskStateReflect.ts:33](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/navigation/misc/TaskStateReflect.ts#L33)
 
 #### Parameters
 
@@ -143,7 +143,7 @@ Defined in: [fl.ui/src/ui/misc/TaskStateReflect.ts:33](https://github.com/fest-l
 
 ##### task
 
-`null` | `ITask`
+`ITask` | `null`
 
 #### Returns
 

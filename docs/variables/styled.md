@@ -7,7 +7,7 @@
 # Variable: styled
 
 ```ts
-const styled: null | HTMLStyleElement;
+const styled: any;
 ```
 
-Defined in: [fl.ui/src/index.ts:15](https://github.com/fest-live/fl.ui/blob/fdaa30e4543210d849317cc43587fbd62174c32b/src/index.ts#L15)
+Defined in: [fl.ui/src/index.ts:14](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/index.ts#L14)

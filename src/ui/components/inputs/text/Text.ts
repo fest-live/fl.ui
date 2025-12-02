@@ -1,7 +1,7 @@
 import { bindWith, defineElement, property, H } from "fest/lure";
 import { addEvent, preloadStyle, handleProperty } from "fest/dom";
 import { UIElement } from "@fl-ui/base/UIElement";
-import { assign } from "fest/object";
+import { assign, propRef } from "fest/object";
 
 /* **
  * @module ui/inputs/text/Text
@@ -91,12 +91,12 @@ export class LongTextInput extends UIElement {
             newInput.value ||= self?.value;
 
             //
-            bindWith(newInput, "value", self.getProperty("value"), handleProperty, null, true);
-            bindWith(newInput, "name", self?.getProperty("name"), handleProperty);
-            bindWith(newInput, "placeholder", self?.getProperty("placeholder"), handleProperty);
-            bindWith(newInput, "disabled", self?.getProperty("disabled"), handleProperty);
-            bindWith(newInput, "readOnly", self.getProperty("readOnly"), handleProperty);
-            bindWith(newInput, "required", self.getProperty("required"), handleProperty);
+            bindWith(newInput, "value", propRef(self as any, "value"), handleProperty, null, true);
+            bindWith(newInput, "name", propRef(self as any, "name"), handleProperty);
+            bindWith(newInput, "placeholder", propRef(self as any, "placeholder"), handleProperty);
+            bindWith(newInput, "disabled", propRef(self as any, "disabled"), handleProperty);
+            bindWith(newInput, "readOnly", propRef(self as any, "readOnly"), handleProperty);
+            bindWith(newInput, "required", propRef(self as any, "required"), handleProperty);
         }
     }
 

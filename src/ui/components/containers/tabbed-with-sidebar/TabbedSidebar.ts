@@ -1,6 +1,6 @@
 import { defineElement, Q, H, makeClickOutsideTrigger, M, property, registerSidebar } from "fest/lure"
 import { preloadStyle } from "fest/dom"
-import { $trigger, booleanRef, conditional, observableByMap, stringRef, subscribe } from "fest/object"
+import { $trigger, booleanRef, conditional, observableByMap, propRef, stringRef, subscribe } from "fest/object"
 import { UIElement } from "@fl-ui/base/UIElement"
 
 // @ts-ignore
@@ -119,9 +119,7 @@ export class TabbedSidebar extends UIElement {
             }
         }} class="ui-tabbed-box-tab" role="tab" data-tab-name=${tabName}>${tabLabel}${closeButton}</div>`;
         addPartProperty(tabButton, tabName);
-
-        //
-        self?.getProperty?.("currentTab")?.[$trigger]?.();
+        propRef(self as any, "currentTab")?.[$trigger]?.();
         return tabButton; //@ts-ignore
     }
 
@@ -187,7 +185,7 @@ export class TabbedSidebar extends UIElement {
     //
     onRender() {
         const self: any = this;
-        const sidebarOpenedRef = self.getProperty("sidebarOpened") ?? self.sidebarOpened;
+        const sidebarOpenedRef = propRef(self as any, "sidebarOpened") ?? self.sidebarOpened;
 
         makeClickOutsideTrigger(
             sidebarOpenedRef,
@@ -282,7 +280,7 @@ export class TabbedSidebar extends UIElement {
     //
     styles = () => styled;
     render = function () {
-        const openedProperty = this.getProperty("sidebarOpened") ?? this.sidebarOpened;
+        const openedProperty = propRef(this as any, "sidebarOpened") ?? this.sidebarOpened;
         return H`<div part="bar" class="bar c2-surface">
             <button
                 part="open-sidebar"

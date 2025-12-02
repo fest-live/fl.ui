@@ -1,6 +1,6 @@
 import { defineElement, H, E, M, I, property } from "fest/lure"
 import { preloadStyle } from "fest/dom"
-import { $trigger, observableByMap, subscribe } from "fest/object";
+import { $trigger, observableByMap, propRef, subscribe } from "fest/object";
 
 //
 import { UIElement } from "@fl-ui/base/UIElement"
@@ -72,10 +72,10 @@ export class TabbedBox extends UIElement {
         console.log(self.currentTab);
 
         //
-        E(self, {}, [I({ current: self.getProperty("currentTab"), mapped: self.tabs })])
+        E(self, {}, [I({ current: propRef(self as any, "currentTab"), mapped: self.tabs })])
 
         //
-        subscribe(self.getProperty("currentTab"), (_newVal)=>{
+        subscribe(propRef(self as any, "currentTab"), (_newVal)=>{
             self.dispatchEvent(new TabChangedEvent("tab-changed", { bubbles: true }, self.currentTab));
         });
 
@@ -138,9 +138,7 @@ export class TabbedBox extends UIElement {
         const tabLabel  = H`<span class="ui-tabbed-box-tab-label">${(self?.renderTabName?.bind?.(self) ?? renderTabName)?.(tabName) ?? tabName}</span>`;
         const tabButton = H`<button slot="tabs" type="button" on:click=${(ev: Event)=>self.openTab(tabName, ev)} class="ui-tabbed-box-tab" role="tab" data-tab-name=${tabName} data-tab-index=${idx}>${tabLabel}</button>`;
         addPartProperty(tabButton, tabName);
-
-        //
-        self?.getProperty?.("currentTab")?.[$trigger]?.();
+        propRef(self as any, "currentTab")?.[$trigger]?.();
         return tabButton; //@ts-ignore
     }
 

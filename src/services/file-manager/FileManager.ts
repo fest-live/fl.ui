@@ -9,6 +9,7 @@ import UIElement from "@fl-ui/base/UIElement";
 
 // @ts-ignore
 import fmCss from "./FileManager.scss?inline";
+import { propRef } from "fest/object";
 
 //
 const styled = preloadStyle(fmCss);
@@ -68,7 +69,7 @@ export class FileManager extends UIElement {
         const force = String(this.sidebar ?? "auto").toLowerCase();
         if (force === "true" || force === "1") return true;
         if (force === "false" || force === "0") return false;
-        const width = (this as any).getProperty?.("inlineSize")?.value ?? this.inlineSize ?? 0;
+        const width = propRef(this as any, "inlineSize")?.value ?? this.inlineSize ?? 0;
         return width >= 720; // container-query based threshold
     }
 

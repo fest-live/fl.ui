@@ -16,7 +16,7 @@
 //
 import { attrRef, defineElement, H, property, valueAsNumberRef, valueRef, dragSlider, getInputValues, Q, bindWith } from "fest/lure";
 import { preloadStyle, handleProperty } from "fest/dom";
-import { computed, assign } from "fest/object";
+import { computed, assign, propRef } from "fest/object";
 
 //
 import { UIElement } from "@fl-ui/base/UIElement";
@@ -85,13 +85,13 @@ export class SliderInput extends UIElement {
             self.type = newInput.type || self?.type;
 
             // Bind properties to input element
-            bindWith(newInput, "value", self.getProperty("value"), handleProperty, null, true);
-            bindWith(newInput, "name", self?.getProperty("name"), handleProperty);
-            bindWith(newInput, "min", self?.getProperty("min"), handleProperty);
-            bindWith(newInput, "max", self?.getProperty("max"), handleProperty);
-            bindWith(newInput, "step", self?.getProperty("step"), handleProperty);
-            bindWith(newInput, "type", self?.getProperty("type"), handleProperty);
-            bindWith(newInput, "disabled", self?.getProperty("disabled"), handleProperty);
+            bindWith(newInput, "value", propRef(self as any, "value"), handleProperty, null, true);
+            bindWith(newInput, "name", propRef(self as any, "name"), handleProperty);
+            bindWith(newInput, "min", propRef(self as any, "min"), handleProperty);
+            bindWith(newInput, "max", propRef(self as any, "max"), handleProperty);
+            bindWith(newInput, "step", propRef(self as any, "step"), handleProperty);
+            bindWith(newInput, "type", propRef(self as any, "type"), handleProperty);
+            bindWith(newInput, "disabled", propRef(self as any, "disabled"), handleProperty);
         }
     }
 

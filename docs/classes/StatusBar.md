@@ -1,8 +1,8 @@
-[**@fest/fl-ui v0.0.0**](../README.md)
+[**@fest-lib/fl-ui v0.0.0**](../README.md)
 
 ***
 
-[@fest/fl-ui](../README.md) / StatusBar
+[@fest-lib/fl-ui](../README.md) / StatusBar
 
 # Class: StatusBar
 

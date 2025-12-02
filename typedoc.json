@@ -12,7 +12,7 @@
   "skipErrorChecking": true,
   "plugin": ["typedoc-plugin-markdown"],
   "theme": "default",
-  "name": "@fest/fl-ui API Documentation",
+  "name": "@fest-lib/fl-ui API Documentation",
   "categorizeByGroup": true,
   "categoryOrder": [
     "FL-UI API",

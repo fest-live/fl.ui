@@ -1,5 +1,5 @@
 {
-    "name": "@fest/fl-ui",
+    "name": "@fest-lib/fl-ui",
     "description": "FL-UI UI Components and Utilities API",
     "version": "0.0.0",
     "private": false,

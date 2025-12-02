@@ -1,8 +1,8 @@
-[**@fest/fl-ui v0.0.0**](../README.md)
+[**@fest-lib/fl-ui v0.0.0**](../README.md)
 
 ***
 
-[@fest/fl-ui](../README.md) / makeDragEvents
+[@fest-lib/fl-ui](../README.md) / makeDragEvents
 
 # Function: makeDragEvents()
 

@@ -6,7 +6,7 @@
 
 # Class: MarkdownView
 
-Defined in: [fl.ui/src/services/markdown-view/Markdown.ts:16](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/services/markdown-view/Markdown.ts#L16)
+Defined in: [fl.ui/src/services/markdown-view/Markdown.ts:16](https://github.com/fest-live/fl.ui/blob/0d5540e32c0778f58f31d954bd75662104eddb32/src/services/markdown-view/Markdown.ts#L16)
 
 ## Extends
 
@@ -20,7 +20,7 @@ Defined in: [fl.ui/src/services/markdown-view/Markdown.ts:16](https://github.com
 new MarkdownView(): MarkdownView;
 ```
 
-Defined in: [fl.ui/src/services/markdown-view/Markdown.ts:18](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/services/markdown-view/Markdown.ts#L18)
+Defined in: [fl.ui/src/services/markdown-view/Markdown.ts:18](https://github.com/fest-live/fl.ui/blob/0d5540e32c0778f58f31d954bd75662104eddb32/src/services/markdown-view/Markdown.ts#L18)
 
 #### Returns
 
@@ -40,7 +40,7 @@ HTMLElement.constructor
 static observedAttributes: string[];
 ```
 
-Defined in: [fl.ui/src/services/markdown-view/Markdown.ts:17](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/services/markdown-view/Markdown.ts#L17)
+Defined in: [fl.ui/src/services/markdown-view/Markdown.ts:17](https://github.com/fest-live/fl.ui/blob/0d5540e32c0778f58f31d954bd75662104eddb32/src/services/markdown-view/Markdown.ts#L17)
 
 ## Methods
 
@@ -50,7 +50,7 @@ Defined in: [fl.ui/src/services/markdown-view/Markdown.ts:17](https://github.com
 attributeChangedCallback(name, oldValue): void;
 ```
 
-Defined in: [fl.ui/src/services/markdown-view/Markdown.ts:86](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/services/markdown-view/Markdown.ts#L86)
+Defined in: [fl.ui/src/services/markdown-view/Markdown.ts:86](https://github.com/fest-live/fl.ui/blob/0d5540e32c0778f58f31d954bd75662104eddb32/src/services/markdown-view/Markdown.ts#L86)
 
 #### Parameters
 
@@ -74,7 +74,7 @@ Defined in: [fl.ui/src/services/markdown-view/Markdown.ts:86](https://github.com
 connectedCallback(): void;
 ```
 
-Defined in: [fl.ui/src/services/markdown-view/Markdown.ts:21](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/services/markdown-view/Markdown.ts#L21)
+Defined in: [fl.ui/src/services/markdown-view/Markdown.ts:21](https://github.com/fest-live/fl.ui/blob/0d5540e32c0778f58f31d954bd75662104eddb32/src/services/markdown-view/Markdown.ts#L21)
 
 #### Returns
 
@@ -88,7 +88,7 @@ Defined in: [fl.ui/src/services/markdown-view/Markdown.ts:21](https://github.com
 createShadowRoot(): void;
 ```
 
-Defined in: [fl.ui/src/services/markdown-view/Markdown.ts:94](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/services/markdown-view/Markdown.ts#L94)
+Defined in: [fl.ui/src/services/markdown-view/Markdown.ts:94](https://github.com/fest-live/fl.ui/blob/0d5540e32c0778f58f31d954bd75662104eddb32/src/services/markdown-view/Markdown.ts#L94)
 
 #### Returns
 
@@ -102,7 +102,7 @@ Defined in: [fl.ui/src/services/markdown-view/Markdown.ts:94](https://github.com
 loadFromCache(): Promise<any>;
 ```
 
-Defined in: [fl.ui/src/services/markdown-view/Markdown.ts:37](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/services/markdown-view/Markdown.ts#L37)
+Defined in: [fl.ui/src/services/markdown-view/Markdown.ts:37](https://github.com/fest-live/fl.ui/blob/0d5540e32c0778f58f31d954bd75662104eddb32/src/services/markdown-view/Markdown.ts#L37)
 
 #### Returns
 
@@ -116,7 +116,7 @@ Defined in: [fl.ui/src/services/markdown-view/Markdown.ts:37](https://github.com
 renderMarkdown(file): any;
 ```
 
-Defined in: [fl.ui/src/services/markdown-view/Markdown.ts:57](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/services/markdown-view/Markdown.ts#L57)
+Defined in: [fl.ui/src/services/markdown-view/Markdown.ts:57](https://github.com/fest-live/fl.ui/blob/0d5540e32c0778f58f31d954bd75662104eddb32/src/services/markdown-view/Markdown.ts#L57)
 
 #### Parameters
 
@@ -136,7 +136,7 @@ Defined in: [fl.ui/src/services/markdown-view/Markdown.ts:57](https://github.com
 setHTML(doc): Promise<void>;
 ```
 
-Defined in: [fl.ui/src/services/markdown-view/Markdown.ts:28](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/services/markdown-view/Markdown.ts#L28)
+Defined in: [fl.ui/src/services/markdown-view/Markdown.ts:28](https://github.com/fest-live/fl.ui/blob/0d5540e32c0778f58f31d954bd75662104eddb32/src/services/markdown-view/Markdown.ts#L28)
 
 #### Parameters
 
@@ -156,7 +156,7 @@ Defined in: [fl.ui/src/services/markdown-view/Markdown.ts:28](https://github.com
 writeToCache(text): Promise<void>;
 ```
 
-Defined in: [fl.ui/src/services/markdown-view/Markdown.ts:45](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/services/markdown-view/Markdown.ts#L45)
+Defined in: [fl.ui/src/services/markdown-view/Markdown.ts:45](https://github.com/fest-live/fl.ui/blob/0d5540e32c0778f58f31d954bd75662104eddb32/src/services/markdown-view/Markdown.ts#L45)
 
 #### Parameters
 

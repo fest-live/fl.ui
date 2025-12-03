@@ -6,7 +6,7 @@
 
 # Class: LongTextInput
 
-Defined in: [fl.ui/src/ui/components/inputs/text/Text.ts:27](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/components/inputs/text/Text.ts#L27)
+Defined in: [fl.ui/src/ui/components/inputs/text/Text.ts:27](https://github.com/fest-live/fl.ui/blob/0d5540e32c0778f58f31d954bd75662104eddb32/src/ui/components/inputs/text/Text.ts#L27)
 
 ## Extends
 
@@ -20,7 +20,7 @@ Defined in: [fl.ui/src/ui/components/inputs/text/Text.ts:27](https://github.com/
 new LongTextInput(): LongTextInput;
 ```
 
-Defined in: [fl.ui/src/ui/components/inputs/text/Text.ts:42](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/components/inputs/text/Text.ts#L42)
+Defined in: [fl.ui/src/ui/components/inputs/text/Text.ts:42](https://github.com/fest-live/fl.ui/blob/0d5540e32c0778f58f31d954bd75662104eddb32/src/ui/components/inputs/text/Text.ts#L42)
 
 #### Returns
 
@@ -40,7 +40,7 @@ UIElement.constructor
 optional box: HTMLElement;
 ```
 
-Defined in: [fl.ui/src/ui/components/inputs/text/Text.ts:29](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/components/inputs/text/Text.ts#L29)
+Defined in: [fl.ui/src/ui/components/inputs/text/Text.ts:29](https://github.com/fest-live/fl.ui/blob/0d5540e32c0778f58f31d954bd75662104eddb32/src/ui/components/inputs/text/Text.ts#L29)
 
 ***
 
@@ -50,7 +50,7 @@ Defined in: [fl.ui/src/ui/components/inputs/text/Text.ts:29](https://github.com/
 optional disabled: boolean = false;
 ```
 
-Defined in: [fl.ui/src/ui/components/inputs/text/Text.ts:33](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/components/inputs/text/Text.ts#L33)
+Defined in: [fl.ui/src/ui/components/inputs/text/Text.ts:33](https://github.com/fest-live/fl.ui/blob/0d5540e32c0778f58f31d954bd75662104eddb32/src/ui/components/inputs/text/Text.ts#L33)
 
 ***
 
@@ -60,7 +60,7 @@ Defined in: [fl.ui/src/ui/components/inputs/text/Text.ts:33](https://github.com/
 optional input: HTMLInputElement;
 ```
 
-Defined in: [fl.ui/src/ui/components/inputs/text/Text.ts:28](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/components/inputs/text/Text.ts#L28)
+Defined in: [fl.ui/src/ui/components/inputs/text/Text.ts:28](https://github.com/fest-live/fl.ui/blob/0d5540e32c0778f58f31d954bd75662104eddb32/src/ui/components/inputs/text/Text.ts#L28)
 
 ***
 
@@ -70,7 +70,7 @@ Defined in: [fl.ui/src/ui/components/inputs/text/Text.ts:28](https://github.com/
 optional name: string = "";
 ```
 
-Defined in: [fl.ui/src/ui/components/inputs/text/Text.ts:30](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/components/inputs/text/Text.ts#L30)
+Defined in: [fl.ui/src/ui/components/inputs/text/Text.ts:30](https://github.com/fest-live/fl.ui/blob/0d5540e32c0778f58f31d954bd75662104eddb32/src/ui/components/inputs/text/Text.ts#L30)
 
 ***
 
@@ -80,7 +80,7 @@ Defined in: [fl.ui/src/ui/components/inputs/text/Text.ts:30](https://github.com/
 optional placeholder: string = "";
 ```
 
-Defined in: [fl.ui/src/ui/components/inputs/text/Text.ts:32](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/components/inputs/text/Text.ts#L32)
+Defined in: [fl.ui/src/ui/components/inputs/text/Text.ts:32](https://github.com/fest-live/fl.ui/blob/0d5540e32c0778f58f31d954bd75662104eddb32/src/ui/components/inputs/text/Text.ts#L32)
 
 ***
 
@@ -90,7 +90,7 @@ Defined in: [fl.ui/src/ui/components/inputs/text/Text.ts:32](https://github.com/
 optional readOnly: boolean = false;
 ```
 
-Defined in: [fl.ui/src/ui/components/inputs/text/Text.ts:34](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/components/inputs/text/Text.ts#L34)
+Defined in: [fl.ui/src/ui/components/inputs/text/Text.ts:34](https://github.com/fest-live/fl.ui/blob/0d5540e32c0778f58f31d954bd75662104eddb32/src/ui/components/inputs/text/Text.ts#L34)
 
 ***
 
@@ -100,7 +100,7 @@ Defined in: [fl.ui/src/ui/components/inputs/text/Text.ts:34](https://github.com/
 render: () => any;
 ```
 
-Defined in: [fl.ui/src/ui/components/inputs/text/Text.ts:115](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/components/inputs/text/Text.ts#L115)
+Defined in: [fl.ui/src/ui/components/inputs/text/Text.ts:115](https://github.com/fest-live/fl.ui/blob/0d5540e32c0778f58f31d954bd75662104eddb32/src/ui/components/inputs/text/Text.ts#L115)
 
 #### Returns
 
@@ -120,7 +120,7 @@ UIElement.render
 optional required: boolean = false;
 ```
 
-Defined in: [fl.ui/src/ui/components/inputs/text/Text.ts:35](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/components/inputs/text/Text.ts#L35)
+Defined in: [fl.ui/src/ui/components/inputs/text/Text.ts:35](https://github.com/fest-live/fl.ui/blob/0d5540e32c0778f58f31d954bd75662104eddb32/src/ui/components/inputs/text/Text.ts#L35)
 
 ***
 
@@ -130,7 +130,7 @@ Defined in: [fl.ui/src/ui/components/inputs/text/Text.ts:35](https://github.com/
 styles: () => any;
 ```
 
-Defined in: [fl.ui/src/ui/components/inputs/text/Text.ts:114](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/components/inputs/text/Text.ts#L114)
+Defined in: [fl.ui/src/ui/components/inputs/text/Text.ts:114](https://github.com/fest-live/fl.ui/blob/0d5540e32c0778f58f31d954bd75662104eddb32/src/ui/components/inputs/text/Text.ts#L114)
 
 #### Returns
 
@@ -144,7 +144,7 @@ Defined in: [fl.ui/src/ui/components/inputs/text/Text.ts:114](https://github.com
 theme: string = "default";
 ```
 
-Defined in: [fl.ui/src/ui/base/UIElement.ts:11](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/base/UIElement.ts#L11)
+Defined in: [fl.ui/src/ui/base/UIElement.ts:11](https://github.com/fest-live/fl.ui/blob/0d5540e32c0778f58f31d954bd75662104eddb32/src/ui/base/UIElement.ts#L11)
 
 #### Inherited from
 
@@ -160,7 +160,7 @@ UIElement.theme
 optional value: string | null = null;
 ```
 
-Defined in: [fl.ui/src/ui/components/inputs/text/Text.ts:31](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/components/inputs/text/Text.ts#L31)
+Defined in: [fl.ui/src/ui/components/inputs/text/Text.ts:31](https://github.com/fest-live/fl.ui/blob/0d5540e32c0778f58f31d954bd75662104eddb32/src/ui/components/inputs/text/Text.ts#L31)
 
 ***
 
@@ -170,7 +170,7 @@ Defined in: [fl.ui/src/ui/components/inputs/text/Text.ts:31](https://github.com/
 static formAssociated: boolean = true;
 ```
 
-Defined in: [fl.ui/src/ui/components/inputs/text/Text.ts:38](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/components/inputs/text/Text.ts#L38)
+Defined in: [fl.ui/src/ui/components/inputs/text/Text.ts:38](https://github.com/fest-live/fl.ui/blob/0d5540e32c0778f58f31d954bd75662104eddb32/src/ui/components/inputs/text/Text.ts#L38)
 
 ## Methods
 
@@ -180,7 +180,7 @@ Defined in: [fl.ui/src/ui/components/inputs/text/Text.ts:38](https://github.com/
 connectedCallback(): void;
 ```
 
-Defined in: [fl.ui/src/ui/base/UIElement.ts:25](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/base/UIElement.ts#L25)
+Defined in: [fl.ui/src/ui/base/UIElement.ts:25](https://github.com/fest-live/fl.ui/blob/0d5540e32c0778f58f31d954bd75662104eddb32/src/ui/base/UIElement.ts#L25)
 
 #### Returns
 
@@ -200,7 +200,7 @@ UIElement.connectedCallback
 initializeInput(): void;
 ```
 
-Defined in: [fl.ui/src/ui/components/inputs/text/Text.ts:82](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/components/inputs/text/Text.ts#L82)
+Defined in: [fl.ui/src/ui/components/inputs/text/Text.ts:82](https://github.com/fest-live/fl.ui/blob/0d5540e32c0778f58f31d954bd75662104eddb32/src/ui/components/inputs/text/Text.ts#L82)
 
 #### Returns
 
@@ -214,7 +214,7 @@ Defined in: [fl.ui/src/ui/components/inputs/text/Text.ts:82](https://github.com/
 onInitialize(): void;
 ```
 
-Defined in: [fl.ui/src/ui/components/inputs/text/Text.ts:104](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/components/inputs/text/Text.ts#L104)
+Defined in: [fl.ui/src/ui/components/inputs/text/Text.ts:104](https://github.com/fest-live/fl.ui/blob/0d5540e32c0778f58f31d954bd75662104eddb32/src/ui/components/inputs/text/Text.ts#L104)
 
 #### Returns
 
@@ -234,7 +234,7 @@ UIElement.onInitialize
 onRender(): void;
 ```
 
-Defined in: [fl.ui/src/ui/components/inputs/text/Text.ts:49](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/components/inputs/text/Text.ts#L49)
+Defined in: [fl.ui/src/ui/components/inputs/text/Text.ts:49](https://github.com/fest-live/fl.ui/blob/0d5540e32c0778f58f31d954bd75662104eddb32/src/ui/components/inputs/text/Text.ts#L49)
 
 #### Returns
 

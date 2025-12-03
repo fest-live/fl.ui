@@ -124,7 +124,7 @@ export class FileManager extends UIElement {
         //
         const input = toolbar.querySelector("input");
         if (input) {
-            requestAnimationFrame(() => {
+            queueMicrotask(() => {
                 input.value = this.path;
                 valueLink(input, this.pathRef);
             });

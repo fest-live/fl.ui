@@ -227,7 +227,7 @@ export class TabbedSidebar extends UIElement {
         self.resizeObserver?.disconnect();
 
         const updateIndicators = () => {
-            requestAnimationFrame(() => {
+            queueMicrotask(() => {
                 if (self.tabsBox) {
                     const maxScrollLeft = self.tabsBox.scrollWidth - self.tabsBox.clientWidth;
                     const hasOverflow = maxScrollLeft > 1;
@@ -269,7 +269,6 @@ export class TabbedSidebar extends UIElement {
 
         updateIndicators();
         queueMicrotask(updateIndicators);
-        requestAnimationFrame(updateIndicators);
 
         if (typeof ResizeObserver !== "undefined") {
             self.resizeObserver = new ResizeObserver(updateIndicators);

@@ -21,7 +21,7 @@ export class ScrollBoxed extends UIElement {
     constructor() { super(); this.#connected = Promise.withResolvers(); }
     onInitialize() { //@ts-ignore
         super.onInitialize?.(); //@ts-ignore
-        requestAnimationFrame(()=>{
+        queueMicrotask(()=>{
             this.#connected.resolve(true);
         });
     }

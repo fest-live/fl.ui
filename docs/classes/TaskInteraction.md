@@ -6,7 +6,7 @@
 
 # Class: TaskInteraction
 
-Defined in: [fl.ui/src/ui/navigation/misc/TaskInteraction.ts:5](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/navigation/misc/TaskInteraction.ts#L5)
+Defined in: [fl.ui/src/ui/navigation/misc/TaskInteraction.ts:5](https://github.com/fest-live/fl.ui/blob/0d5540e32c0778f58f31d954bd75662104eddb32/src/ui/navigation/misc/TaskInteraction.ts#L5)
 
 ## Constructors
 
@@ -16,7 +16,7 @@ Defined in: [fl.ui/src/ui/navigation/misc/TaskInteraction.ts:5](https://github.c
 new TaskInteraction(taskbar, list): TaskInteraction;
 ```
 
-Defined in: [fl.ui/src/ui/navigation/misc/TaskInteraction.ts:10](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/navigation/misc/TaskInteraction.ts#L10)
+Defined in: [fl.ui/src/ui/navigation/misc/TaskInteraction.ts:10](https://github.com/fest-live/fl.ui/blob/0d5540e32c0778f58f31d954bd75662104eddb32/src/ui/navigation/misc/TaskInteraction.ts#L10)
 
 #### Parameters
 
@@ -40,7 +40,7 @@ Defined in: [fl.ui/src/ui/navigation/misc/TaskInteraction.ts:10](https://github.
 list: any = [];
 ```
 
-Defined in: [fl.ui/src/ui/navigation/misc/TaskInteraction.ts:6](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/navigation/misc/TaskInteraction.ts#L6)
+Defined in: [fl.ui/src/ui/navigation/misc/TaskInteraction.ts:6](https://github.com/fest-live/fl.ui/blob/0d5540e32c0778f58f31d954bd75662104eddb32/src/ui/navigation/misc/TaskInteraction.ts#L6)
 
 ***
 
@@ -50,7 +50,7 @@ Defined in: [fl.ui/src/ui/navigation/misc/TaskInteraction.ts:6](https://github.c
 taskbar: any;
 ```
 
-Defined in: [fl.ui/src/ui/navigation/misc/TaskInteraction.ts:7](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/navigation/misc/TaskInteraction.ts#L7)
+Defined in: [fl.ui/src/ui/navigation/misc/TaskInteraction.ts:7](https://github.com/fest-live/fl.ui/blob/0d5540e32c0778f58f31d954bd75662104eddb32/src/ui/navigation/misc/TaskInteraction.ts#L7)
 
 ## Methods
 
@@ -60,7 +60,7 @@ Defined in: [fl.ui/src/ui/navigation/misc/TaskInteraction.ts:7](https://github.c
 bindInteraction(taskbar): TaskInteraction;
 ```
 
-Defined in: [fl.ui/src/ui/navigation/misc/TaskInteraction.ts:16](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/navigation/misc/TaskInteraction.ts#L16)
+Defined in: [fl.ui/src/ui/navigation/misc/TaskInteraction.ts:16](https://github.com/fest-live/fl.ui/blob/0d5540e32c0778f58f31d954bd75662104eddb32/src/ui/navigation/misc/TaskInteraction.ts#L16)
 
 #### Parameters
 

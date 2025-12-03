@@ -97,7 +97,7 @@ export class FileOperative {
         const self: any = this;
 
         //
-        if (this.#loadLock) { return setTimeout(() => this.loadPath(path), 1000); };
+        if (this.#loadLock) { return requestIdleCallback(() => this.loadPath(path), { timeout: 1000 }); };
         this.#loadLock = true;
 
         //

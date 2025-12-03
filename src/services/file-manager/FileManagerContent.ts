@@ -213,7 +213,7 @@ export class FileManagerContent extends UIElement {
         fileRows = H`<div class="fm-grid-rows" style="will-change: contents;">${renderedEntries}</div>`
         renderedEntries.boundParent = fileRows;
         createItemCtxMenu?.(fileRows, operative.onMenuAction.bind(operative), operative.entries);
-        requestAnimationFrame(() => this.bindDropHandlers());
+        queueMicrotask(() => this.bindDropHandlers());
 
         //
         const rendered = H`<div class="fm-grid" part="grid">

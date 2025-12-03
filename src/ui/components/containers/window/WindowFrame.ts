@@ -88,7 +88,7 @@ export class WindowFrame extends UIElement {
     onRender() {
         // @ts-ignore
         super.onRender(); //this.doCenter();
-        requestAnimationFrame(()=>{ this.doCenter(); });
+        queueMicrotask(()=>{ this.doCenter(); });
     }
 
     //

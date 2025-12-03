@@ -69,7 +69,7 @@ export class SliderInput extends UIElement {
         super.onRender();
 
         // Initialize input after render
-        requestAnimationFrame(() => this.initializeInput());
+        queueMicrotask(() => this.initializeInput());
     }
 
     initializeInput() {
@@ -107,7 +107,7 @@ export class SliderInput extends UIElement {
         }
 
         // Initialize drag functionality after input is ready
-        requestAnimationFrame(() => {
+        queueMicrotask(() => {
             if (this.input && this.thumb && this.handle) {
                 dragSlider(this.thumb, this.handle, this.input);
             }

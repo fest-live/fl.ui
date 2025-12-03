@@ -68,7 +68,7 @@ export class LongTextInput extends UIElement {
         });
 
         // fix scrolling by horizontal
-        requestAnimationFrame(() => {
+        queueMicrotask(() => {
             this.initializeInput();
 
             //

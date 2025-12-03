@@ -6,7 +6,7 @@
 
 # Class: StatusBar
 
-Defined in: [fl.ui/src/ui/navigation/statusbar/StatusBar.ts:14](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/navigation/statusbar/StatusBar.ts#L14)
+Defined in: [fl.ui/src/ui/navigation/statusbar/StatusBar.ts:14](https://github.com/fest-live/fl.ui/blob/0d5540e32c0778f58f31d954bd75662104eddb32/src/ui/navigation/statusbar/StatusBar.ts#L14)
 
 ## Extends
 
@@ -20,7 +20,7 @@ Defined in: [fl.ui/src/ui/navigation/statusbar/StatusBar.ts:14](https://github.c
 new StatusBar(): StatusBar;
 ```
 
-Defined in: [fl.ui/src/ui/navigation/statusbar/StatusBar.ts:15](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/navigation/statusbar/StatusBar.ts#L15)
+Defined in: [fl.ui/src/ui/navigation/statusbar/StatusBar.ts:15](https://github.com/fest-live/fl.ui/blob/0d5540e32c0778f58f31d954bd75662104eddb32/src/ui/navigation/statusbar/StatusBar.ts#L15)
 
 #### Returns
 
@@ -40,7 +40,7 @@ UIElement.constructor
 theme: string = "default";
 ```
 
-Defined in: [fl.ui/src/ui/base/UIElement.ts:11](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/base/UIElement.ts#L11)
+Defined in: [fl.ui/src/ui/base/UIElement.ts:11](https://github.com/fest-live/fl.ui/blob/0d5540e32c0778f58f31d954bd75662104eddb32/src/ui/base/UIElement.ts#L11)
 
 #### Inherited from
 
@@ -56,7 +56,7 @@ UIElement.theme
 connectedCallback(): void;
 ```
 
-Defined in: [fl.ui/src/ui/base/UIElement.ts:25](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/base/UIElement.ts#L25)
+Defined in: [fl.ui/src/ui/base/UIElement.ts:25](https://github.com/fest-live/fl.ui/blob/0d5540e32c0778f58f31d954bd75662104eddb32/src/ui/base/UIElement.ts#L25)
 
 #### Returns
 
@@ -76,7 +76,7 @@ UIElement.connectedCallback
 onInitialize(): void;
 ```
 
-Defined in: [fl.ui/src/ui/base/UIElement.ts:30](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/base/UIElement.ts#L30)
+Defined in: [fl.ui/src/ui/base/UIElement.ts:30](https://github.com/fest-live/fl.ui/blob/0d5540e32c0778f58f31d954bd75662104eddb32/src/ui/base/UIElement.ts#L30)
 
 #### Returns
 
@@ -96,7 +96,7 @@ UIElement.onInitialize
 onRender(): void;
 ```
 
-Defined in: [fl.ui/src/ui/base/UIElement.ts:20](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/base/UIElement.ts#L20)
+Defined in: [fl.ui/src/ui/base/UIElement.ts:20](https://github.com/fest-live/fl.ui/blob/0d5540e32c0778f58f31d954bd75662104eddb32/src/ui/base/UIElement.ts#L20)
 
 #### Returns
 
@@ -116,7 +116,7 @@ UIElement.onRender
 render(): any;
 ```
 
-Defined in: [fl.ui/src/ui/navigation/statusbar/StatusBar.ts:19](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/navigation/statusbar/StatusBar.ts#L19)
+Defined in: [fl.ui/src/ui/navigation/statusbar/StatusBar.ts:19](https://github.com/fest-live/fl.ui/blob/0d5540e32c0778f58f31d954bd75662104eddb32/src/ui/navigation/statusbar/StatusBar.ts#L19)
 
 #### Returns
 
@@ -136,7 +136,7 @@ UIElement.render
 styles(): any;
 ```
 
-Defined in: [fl.ui/src/ui/navigation/statusbar/StatusBar.ts:18](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/navigation/statusbar/StatusBar.ts#L18)
+Defined in: [fl.ui/src/ui/navigation/statusbar/StatusBar.ts:18](https://github.com/fest-live/fl.ui/blob/0d5540e32c0778f58f31d954bd75662104eddb32/src/ui/navigation/statusbar/StatusBar.ts#L18)
 
 #### Returns
 

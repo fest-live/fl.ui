@@ -193,7 +193,7 @@ export class TabbedBox extends UIElement {
         this.resizeObserver?.disconnect();
 
         const updateIndicators = () => {
-            requestAnimationFrame(() => {
+            queueMicrotask(() => {
                 if (tabsBox) {
                     const maxScrollLeft = tabsBox.scrollWidth - tabsBox.clientWidth;
                     const hasOverflow = maxScrollLeft > 1;
@@ -235,7 +235,6 @@ export class TabbedBox extends UIElement {
 
         updateIndicators();
         queueMicrotask(updateIndicators);
-        requestAnimationFrame(updateIndicators);
 
         if (typeof ResizeObserver !== "undefined") {
             this.resizeObserver = new ResizeObserver(updateIndicators);

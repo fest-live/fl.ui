@@ -6,7 +6,7 @@
 
 # Class: TabbedSidebar
 
-Defined in: [fl.ui/src/ui/components/containers/tabbed-with-sidebar/TabbedSidebar.ts:81](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/components/containers/tabbed-with-sidebar/TabbedSidebar.ts#L81)
+Defined in: [fl.ui/src/ui/components/containers/tabbed-with-sidebar/TabbedSidebar.ts:81](https://github.com/fest-live/fl.ui/blob/0d5540e32c0778f58f31d954bd75662104eddb32/src/ui/components/containers/tabbed-with-sidebar/TabbedSidebar.ts#L81)
 
 ## Extends
 
@@ -20,7 +20,7 @@ Defined in: [fl.ui/src/ui/components/containers/tabbed-with-sidebar/TabbedSideba
 new TabbedSidebar(): TabbedSidebar;
 ```
 
-Defined in: [fl.ui/src/ui/components/containers/tabbed-with-sidebar/TabbedSidebar.ts:139](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/components/containers/tabbed-with-sidebar/TabbedSidebar.ts#L139)
+Defined in: [fl.ui/src/ui/components/containers/tabbed-with-sidebar/TabbedSidebar.ts:137](https://github.com/fest-live/fl.ui/blob/0d5540e32c0778f58f31d954bd75662104eddb32/src/ui/components/containers/tabbed-with-sidebar/TabbedSidebar.ts#L137)
 
 #### Returns
 
@@ -40,7 +40,7 @@ UIElement.constructor
 optional currentTab: string = "";
 ```
 
-Defined in: [fl.ui/src/ui/components/containers/tabbed-with-sidebar/TabbedSidebar.ts:82](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/components/containers/tabbed-with-sidebar/TabbedSidebar.ts#L82)
+Defined in: [fl.ui/src/ui/components/containers/tabbed-with-sidebar/TabbedSidebar.ts:82](https://github.com/fest-live/fl.ui/blob/0d5540e32c0778f58f31d954bd75662104eddb32/src/ui/components/containers/tabbed-with-sidebar/TabbedSidebar.ts#L82)
 
 ***
 
@@ -50,7 +50,7 @@ Defined in: [fl.ui/src/ui/components/containers/tabbed-with-sidebar/TabbedSideba
 render: () => any;
 ```
 
-Defined in: [fl.ui/src/ui/components/containers/tabbed-with-sidebar/TabbedSidebar.ts:284](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/components/containers/tabbed-with-sidebar/TabbedSidebar.ts#L284)
+Defined in: [fl.ui/src/ui/components/containers/tabbed-with-sidebar/TabbedSidebar.ts:281](https://github.com/fest-live/fl.ui/blob/0d5540e32c0778f58f31d954bd75662104eddb32/src/ui/components/containers/tabbed-with-sidebar/TabbedSidebar.ts#L281)
 
 #### Returns
 
@@ -70,7 +70,7 @@ UIElement.render
 optional sidebarAsDropMenu: string | boolean = "";
 ```
 
-Defined in: [fl.ui/src/ui/components/containers/tabbed-with-sidebar/TabbedSidebar.ts:84](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/components/containers/tabbed-with-sidebar/TabbedSidebar.ts#L84)
+Defined in: [fl.ui/src/ui/components/containers/tabbed-with-sidebar/TabbedSidebar.ts:84](https://github.com/fest-live/fl.ui/blob/0d5540e32c0778f58f31d954bd75662104eddb32/src/ui/components/containers/tabbed-with-sidebar/TabbedSidebar.ts#L84)
 
 ***
 
@@ -80,7 +80,7 @@ Defined in: [fl.ui/src/ui/components/containers/tabbed-with-sidebar/TabbedSideba
 optional sidebarOpened: string | boolean = false;
 ```
 
-Defined in: [fl.ui/src/ui/components/containers/tabbed-with-sidebar/TabbedSidebar.ts:85](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/components/containers/tabbed-with-sidebar/TabbedSidebar.ts#L85)
+Defined in: [fl.ui/src/ui/components/containers/tabbed-with-sidebar/TabbedSidebar.ts:85](https://github.com/fest-live/fl.ui/blob/0d5540e32c0778f58f31d954bd75662104eddb32/src/ui/components/containers/tabbed-with-sidebar/TabbedSidebar.ts#L85)
 
 ***
 
@@ -90,7 +90,7 @@ Defined in: [fl.ui/src/ui/components/containers/tabbed-with-sidebar/TabbedSideba
 optional tabPosition: string = "top";
 ```
 
-Defined in: [fl.ui/src/ui/components/containers/tabbed-with-sidebar/TabbedSidebar.ts:83](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/components/containers/tabbed-with-sidebar/TabbedSidebar.ts#L83)
+Defined in: [fl.ui/src/ui/components/containers/tabbed-with-sidebar/TabbedSidebar.ts:83](https://github.com/fest-live/fl.ui/blob/0d5540e32c0778f58f31d954bd75662104eddb32/src/ui/components/containers/tabbed-with-sidebar/TabbedSidebar.ts#L83)
 
 ***
 
@@ -100,7 +100,7 @@ Defined in: [fl.ui/src/ui/components/containers/tabbed-with-sidebar/TabbedSideba
 theme: string = "default";
 ```
 
-Defined in: [fl.ui/src/ui/base/UIElement.ts:11](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/base/UIElement.ts#L11)
+Defined in: [fl.ui/src/ui/base/UIElement.ts:11](https://github.com/fest-live/fl.ui/blob/0d5540e32c0778f58f31d954bd75662104eddb32/src/ui/base/UIElement.ts#L11)
 
 #### Inherited from
 
@@ -116,7 +116,7 @@ UIElement.theme
 connectedCallback(): void;
 ```
 
-Defined in: [fl.ui/src/ui/base/UIElement.ts:25](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/base/UIElement.ts#L25)
+Defined in: [fl.ui/src/ui/base/UIElement.ts:25](https://github.com/fest-live/fl.ui/blob/0d5540e32c0778f58f31d954bd75662104eddb32/src/ui/base/UIElement.ts#L25)
 
 #### Returns
 
@@ -136,7 +136,7 @@ UIElement.connectedCallback
 createTab(tabName, idx?): any;
 ```
 
-Defined in: [fl.ui/src/ui/components/containers/tabbed-with-sidebar/TabbedSidebar.ts:94](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/components/containers/tabbed-with-sidebar/TabbedSidebar.ts#L94)
+Defined in: [fl.ui/src/ui/components/containers/tabbed-with-sidebar/TabbedSidebar.ts:94](https://github.com/fest-live/fl.ui/blob/0d5540e32c0778f58f31d954bd75662104eddb32/src/ui/components/containers/tabbed-with-sidebar/TabbedSidebar.ts#L94)
 
 #### Parameters
 
@@ -160,7 +160,7 @@ Defined in: [fl.ui/src/ui/components/containers/tabbed-with-sidebar/TabbedSideba
 onInitialize(): void;
 ```
 
-Defined in: [fl.ui/src/ui/components/containers/tabbed-with-sidebar/TabbedSidebar.ts:140](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/components/containers/tabbed-with-sidebar/TabbedSidebar.ts#L140)
+Defined in: [fl.ui/src/ui/components/containers/tabbed-with-sidebar/TabbedSidebar.ts:138](https://github.com/fest-live/fl.ui/blob/0d5540e32c0778f58f31d954bd75662104eddb32/src/ui/components/containers/tabbed-with-sidebar/TabbedSidebar.ts#L138)
 
 #### Returns
 
@@ -180,7 +180,7 @@ UIElement.onInitialize
 onRender(): void;
 ```
 
-Defined in: [fl.ui/src/ui/components/containers/tabbed-with-sidebar/TabbedSidebar.ts:188](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/components/containers/tabbed-with-sidebar/TabbedSidebar.ts#L188)
+Defined in: [fl.ui/src/ui/components/containers/tabbed-with-sidebar/TabbedSidebar.ts:186](https://github.com/fest-live/fl.ui/blob/0d5540e32c0778f58f31d954bd75662104eddb32/src/ui/components/containers/tabbed-with-sidebar/TabbedSidebar.ts#L186)
 
 #### Returns
 
@@ -200,7 +200,7 @@ UIElement.onRender
 openTab(tabName, ev?): void;
 ```
 
-Defined in: [fl.ui/src/ui/components/containers/tabbed-with-sidebar/TabbedSidebar.ts:129](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/components/containers/tabbed-with-sidebar/TabbedSidebar.ts#L129)
+Defined in: [fl.ui/src/ui/components/containers/tabbed-with-sidebar/TabbedSidebar.ts:127](https://github.com/fest-live/fl.ui/blob/0d5540e32c0778f58f31d954bd75662104eddb32/src/ui/components/containers/tabbed-with-sidebar/TabbedSidebar.ts#L127)
 
 #### Parameters
 
@@ -224,7 +224,7 @@ Defined in: [fl.ui/src/ui/components/containers/tabbed-with-sidebar/TabbedSideba
 setTabs(tabs): void;
 ```
 
-Defined in: [fl.ui/src/ui/components/containers/tabbed-with-sidebar/TabbedSidebar.ts:88](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/components/containers/tabbed-with-sidebar/TabbedSidebar.ts#L88)
+Defined in: [fl.ui/src/ui/components/containers/tabbed-with-sidebar/TabbedSidebar.ts:88](https://github.com/fest-live/fl.ui/blob/0d5540e32c0778f58f31d954bd75662104eddb32/src/ui/components/containers/tabbed-with-sidebar/TabbedSidebar.ts#L88)
 
 #### Parameters
 
@@ -244,7 +244,7 @@ Defined in: [fl.ui/src/ui/components/containers/tabbed-with-sidebar/TabbedSideba
 styles(): any;
 ```
 
-Defined in: [fl.ui/src/ui/components/containers/tabbed-with-sidebar/TabbedSidebar.ts:283](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/components/containers/tabbed-with-sidebar/TabbedSidebar.ts#L283)
+Defined in: [fl.ui/src/ui/components/containers/tabbed-with-sidebar/TabbedSidebar.ts:280](https://github.com/fest-live/fl.ui/blob/0d5540e32c0778f58f31d954bd75662104eddb32/src/ui/components/containers/tabbed-with-sidebar/TabbedSidebar.ts#L280)
 
 #### Returns
 

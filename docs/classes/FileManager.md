@@ -6,7 +6,7 @@
 
 # Class: FileManager
 
-Defined in: [fl.ui/src/services/file-manager/FileManager.ts:18](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/services/file-manager/FileManager.ts#L18)
+Defined in: [fl.ui/src/services/file-manager/FileManager.ts:19](https://github.com/fest-live/fl.ui/blob/0d5540e32c0778f58f31d954bd75662104eddb32/src/services/file-manager/FileManager.ts#L19)
 
 ## Extends
 
@@ -20,7 +20,7 @@ Defined in: [fl.ui/src/services/file-manager/FileManager.ts:18](https://github.c
 new FileManager(): FileManager;
 ```
 
-Defined in: [fl.ui/src/services/file-manager/FileManager.ts:30](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/services/file-manager/FileManager.ts#L30)
+Defined in: [fl.ui/src/services/file-manager/FileManager.ts:31](https://github.com/fest-live/fl.ui/blob/0d5540e32c0778f58f31d954bd75662104eddb32/src/services/file-manager/FileManager.ts#L31)
 
 #### Returns
 
@@ -40,7 +40,7 @@ UIElement.constructor
 optional gridEl: HTMLElement;
 ```
 
-Defined in: [fl.ui/src/services/file-manager/FileManager.ts:20](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/services/file-manager/FileManager.ts#L20)
+Defined in: [fl.ui/src/services/file-manager/FileManager.ts:21](https://github.com/fest-live/fl.ui/blob/0d5540e32c0778f58f31d954bd75662104eddb32/src/services/file-manager/FileManager.ts#L21)
 
 ***
 
@@ -50,7 +50,7 @@ Defined in: [fl.ui/src/services/file-manager/FileManager.ts:20](https://github.c
 optional gridRowsEl: HTMLElement;
 ```
 
-Defined in: [fl.ui/src/services/file-manager/FileManager.ts:19](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/services/file-manager/FileManager.ts#L19)
+Defined in: [fl.ui/src/services/file-manager/FileManager.ts:20](https://github.com/fest-live/fl.ui/blob/0d5540e32c0778f58f31d954bd75662104eddb32/src/services/file-manager/FileManager.ts#L20)
 
 ***
 
@@ -60,7 +60,7 @@ Defined in: [fl.ui/src/services/file-manager/FileManager.ts:19](https://github.c
 optional inlineSize: number;
 ```
 
-Defined in: [fl.ui/src/services/file-manager/FileManager.ts:26](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/services/file-manager/FileManager.ts#L26)
+Defined in: [fl.ui/src/services/file-manager/FileManager.ts:27](https://github.com/fest-live/fl.ui/blob/0d5540e32c0778f58f31d954bd75662104eddb32/src/services/file-manager/FileManager.ts#L27)
 
 ***
 
@@ -70,7 +70,7 @@ Defined in: [fl.ui/src/services/file-manager/FileManager.ts:26](https://github.c
 render: () => any;
 ```
 
-Defined in: [fl.ui/src/services/file-manager/FileManager.ts:103](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/services/file-manager/FileManager.ts#L103)
+Defined in: [fl.ui/src/services/file-manager/FileManager.ts:104](https://github.com/fest-live/fl.ui/blob/0d5540e32c0778f58f31d954bd75662104eddb32/src/services/file-manager/FileManager.ts#L104)
 
 #### Returns
 
@@ -90,7 +90,7 @@ UIElement.render
 optional sidebar: any = "auto";
 ```
 
-Defined in: [fl.ui/src/services/file-manager/FileManager.ts:23](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/services/file-manager/FileManager.ts#L23)
+Defined in: [fl.ui/src/services/file-manager/FileManager.ts:24](https://github.com/fest-live/fl.ui/blob/0d5540e32c0778f58f31d954bd75662104eddb32/src/services/file-manager/FileManager.ts#L24)
 
 ***
 
@@ -100,7 +100,7 @@ Defined in: [fl.ui/src/services/file-manager/FileManager.ts:23](https://github.c
 theme: string = "default";
 ```
 
-Defined in: [fl.ui/src/ui/base/UIElement.ts:11](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/base/UIElement.ts#L11)
+Defined in: [fl.ui/src/ui/base/UIElement.ts:11](https://github.com/fest-live/fl.ui/blob/0d5540e32c0778f58f31d954bd75662104eddb32/src/ui/base/UIElement.ts#L11)
 
 #### Inherited from
 
@@ -118,7 +118,7 @@ UIElement.theme
 get content(): any;
 ```
 
-Defined in: [fl.ui/src/services/file-manager/FileManager.ts:94](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/services/file-manager/FileManager.ts#L94)
+Defined in: [fl.ui/src/services/file-manager/FileManager.ts:95](https://github.com/fest-live/fl.ui/blob/0d5540e32c0778f58f31d954bd75662104eddb32/src/services/file-manager/FileManager.ts#L95)
 
 ##### Returns
 
@@ -134,7 +134,7 @@ Defined in: [fl.ui/src/services/file-manager/FileManager.ts:94](https://github.c
 get operative(): any;
 ```
 
-Defined in: [fl.ui/src/services/file-manager/FileManager.ts:95](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/services/file-manager/FileManager.ts#L95)
+Defined in: [fl.ui/src/services/file-manager/FileManager.ts:96](https://github.com/fest-live/fl.ui/blob/0d5540e32c0778f58f31d954bd75662104eddb32/src/services/file-manager/FileManager.ts#L96)
 
 ##### Returns
 
@@ -150,7 +150,7 @@ Defined in: [fl.ui/src/services/file-manager/FileManager.ts:95](https://github.c
 get path(): string;
 ```
 
-Defined in: [fl.ui/src/services/file-manager/FileManager.ts:34](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/services/file-manager/FileManager.ts#L34)
+Defined in: [fl.ui/src/services/file-manager/FileManager.ts:35](https://github.com/fest-live/fl.ui/blob/0d5540e32c0778f58f31d954bd75662104eddb32/src/services/file-manager/FileManager.ts#L35)
 
 ##### Returns
 
@@ -162,7 +162,7 @@ Defined in: [fl.ui/src/services/file-manager/FileManager.ts:34](https://github.c
 set path(value): void;
 ```
 
-Defined in: [fl.ui/src/services/file-manager/FileManager.ts:35](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/services/file-manager/FileManager.ts#L35)
+Defined in: [fl.ui/src/services/file-manager/FileManager.ts:36](https://github.com/fest-live/fl.ui/blob/0d5540e32c0778f58f31d954bd75662104eddb32/src/services/file-manager/FileManager.ts#L36)
 
 ##### Parameters
 
@@ -184,7 +184,7 @@ Defined in: [fl.ui/src/services/file-manager/FileManager.ts:35](https://github.c
 get pathRef(): any;
 ```
 
-Defined in: [fl.ui/src/services/file-manager/FileManager.ts:33](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/services/file-manager/FileManager.ts#L33)
+Defined in: [fl.ui/src/services/file-manager/FileManager.ts:34](https://github.com/fest-live/fl.ui/blob/0d5540e32c0778f58f31d954bd75662104eddb32/src/services/file-manager/FileManager.ts#L34)
 
 ##### Returns
 
@@ -200,7 +200,7 @@ Defined in: [fl.ui/src/services/file-manager/FileManager.ts:33](https://github.c
 get showSidebar(): boolean;
 ```
 
-Defined in: [fl.ui/src/services/file-manager/FileManager.ts:67](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/services/file-manager/FileManager.ts#L67)
+Defined in: [fl.ui/src/services/file-manager/FileManager.ts:68](https://github.com/fest-live/fl.ui/blob/0d5540e32c0778f58f31d954bd75662104eddb32/src/services/file-manager/FileManager.ts#L68)
 
 ##### Returns
 
@@ -214,7 +214,7 @@ Defined in: [fl.ui/src/services/file-manager/FileManager.ts:67](https://github.c
 connectedCallback(): void;
 ```
 
-Defined in: [fl.ui/src/ui/base/UIElement.ts:25](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/base/UIElement.ts#L25)
+Defined in: [fl.ui/src/ui/base/UIElement.ts:25](https://github.com/fest-live/fl.ui/blob/0d5540e32c0778f58f31d954bd75662104eddb32/src/ui/base/UIElement.ts#L25)
 
 #### Returns
 
@@ -234,7 +234,7 @@ UIElement.connectedCallback
 goUp(): Promise<void>;
 ```
 
-Defined in: [fl.ui/src/services/file-manager/FileManager.ts:82](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/services/file-manager/FileManager.ts#L82)
+Defined in: [fl.ui/src/services/file-manager/FileManager.ts:83](https://github.com/fest-live/fl.ui/blob/0d5540e32c0778f58f31d954bd75662104eddb32/src/services/file-manager/FileManager.ts#L83)
 
 #### Returns
 
@@ -248,7 +248,7 @@ Defined in: [fl.ui/src/services/file-manager/FileManager.ts:82](https://github.c
 navigate(toPath): Promise<void>;
 ```
 
-Defined in: [fl.ui/src/services/file-manager/FileManager.ts:76](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/services/file-manager/FileManager.ts#L76)
+Defined in: [fl.ui/src/services/file-manager/FileManager.ts:77](https://github.com/fest-live/fl.ui/blob/0d5540e32c0778f58f31d954bd75662104eddb32/src/services/file-manager/FileManager.ts#L77)
 
 #### Parameters
 
@@ -268,7 +268,7 @@ Defined in: [fl.ui/src/services/file-manager/FileManager.ts:76](https://github.c
 onInitialize(): void;
 ```
 
-Defined in: [fl.ui/src/services/file-manager/FileManager.ts:41](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/services/file-manager/FileManager.ts#L41)
+Defined in: [fl.ui/src/services/file-manager/FileManager.ts:42](https://github.com/fest-live/fl.ui/blob/0d5540e32c0778f58f31d954bd75662104eddb32/src/services/file-manager/FileManager.ts#L42)
 
 #### Returns
 
@@ -288,7 +288,7 @@ UIElement.onInitialize
 onRender(): void;
 ```
 
-Defined in: [fl.ui/src/services/file-manager/FileManager.ts:51](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/services/file-manager/FileManager.ts#L51)
+Defined in: [fl.ui/src/services/file-manager/FileManager.ts:52](https://github.com/fest-live/fl.ui/blob/0d5540e32c0778f58f31d954bd75662104eddb32/src/services/file-manager/FileManager.ts#L52)
 
 #### Returns
 
@@ -308,7 +308,7 @@ UIElement.onRender
 requestPaste(): void;
 ```
 
-Defined in: [fl.ui/src/services/file-manager/FileManager.ts:99](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/services/file-manager/FileManager.ts#L99)
+Defined in: [fl.ui/src/services/file-manager/FileManager.ts:100](https://github.com/fest-live/fl.ui/blob/0d5540e32c0778f58f31d954bd75662104eddb32/src/services/file-manager/FileManager.ts#L100)
 
 #### Returns
 
@@ -322,7 +322,7 @@ Defined in: [fl.ui/src/services/file-manager/FileManager.ts:99](https://github.c
 requestUpload(): void;
 ```
 
-Defined in: [fl.ui/src/services/file-manager/FileManager.ts:98](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/services/file-manager/FileManager.ts#L98)
+Defined in: [fl.ui/src/services/file-manager/FileManager.ts:99](https://github.com/fest-live/fl.ui/blob/0d5540e32c0778f58f31d954bd75662104eddb32/src/services/file-manager/FileManager.ts#L99)
 
 #### Returns
 
@@ -336,7 +336,7 @@ Defined in: [fl.ui/src/services/file-manager/FileManager.ts:98](https://github.c
 requestUse(): void;
 ```
 
-Defined in: [fl.ui/src/services/file-manager/FileManager.ts:100](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/services/file-manager/FileManager.ts#L100)
+Defined in: [fl.ui/src/services/file-manager/FileManager.ts:101](https://github.com/fest-live/fl.ui/blob/0d5540e32c0778f58f31d954bd75662104eddb32/src/services/file-manager/FileManager.ts#L101)
 
 #### Returns
 
@@ -350,7 +350,7 @@ Defined in: [fl.ui/src/services/file-manager/FileManager.ts:100](https://github.
 styles(): any;
 ```
 
-Defined in: [fl.ui/src/services/file-manager/FileManager.ts:29](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/services/file-manager/FileManager.ts#L29)
+Defined in: [fl.ui/src/services/file-manager/FileManager.ts:30](https://github.com/fest-live/fl.ui/blob/0d5540e32c0778f58f31d954bd75662104eddb32/src/services/file-manager/FileManager.ts#L30)
 
 #### Returns
 

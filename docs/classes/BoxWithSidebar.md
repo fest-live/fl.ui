@@ -6,7 +6,7 @@
 
 # Class: BoxWithSidebar
 
-Defined in: [fl.ui/src/ui/components/containers/box-with-sidebar/BoxWithSidebar.ts:28](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/components/containers/box-with-sidebar/BoxWithSidebar.ts#L28)
+Defined in: [fl.ui/src/ui/components/containers/box-with-sidebar/BoxWithSidebar.ts:28](https://github.com/fest-live/fl.ui/blob/0d5540e32c0778f58f31d954bd75662104eddb32/src/ui/components/containers/box-with-sidebar/BoxWithSidebar.ts#L28)
 
 ## Extends
 
@@ -20,7 +20,7 @@ Defined in: [fl.ui/src/ui/components/containers/box-with-sidebar/BoxWithSidebar.
 new BoxWithSidebar(): BoxWithSidebar;
 ```
 
-Defined in: [fl.ui/src/ui/components/containers/box-with-sidebar/BoxWithSidebar.ts:32](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/components/containers/box-with-sidebar/BoxWithSidebar.ts#L32)
+Defined in: [fl.ui/src/ui/components/containers/box-with-sidebar/BoxWithSidebar.ts:32](https://github.com/fest-live/fl.ui/blob/0d5540e32c0778f58f31d954bd75662104eddb32/src/ui/components/containers/box-with-sidebar/BoxWithSidebar.ts#L32)
 
 #### Returns
 
@@ -40,7 +40,7 @@ UIElement.constructor
 render: () => any;
 ```
 
-Defined in: [fl.ui/src/ui/components/containers/box-with-sidebar/BoxWithSidebar.ts:55](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/components/containers/box-with-sidebar/BoxWithSidebar.ts#L55)
+Defined in: [fl.ui/src/ui/components/containers/box-with-sidebar/BoxWithSidebar.ts:55](https://github.com/fest-live/fl.ui/blob/0d5540e32c0778f58f31d954bd75662104eddb32/src/ui/components/containers/box-with-sidebar/BoxWithSidebar.ts#L55)
 
 #### Returns
 
@@ -60,7 +60,7 @@ UIElement.render
 sidebarOpened: any;
 ```
 
-Defined in: [fl.ui/src/ui/components/containers/box-with-sidebar/BoxWithSidebar.ts:29](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/components/containers/box-with-sidebar/BoxWithSidebar.ts#L29)
+Defined in: [fl.ui/src/ui/components/containers/box-with-sidebar/BoxWithSidebar.ts:29](https://github.com/fest-live/fl.ui/blob/0d5540e32c0778f58f31d954bd75662104eddb32/src/ui/components/containers/box-with-sidebar/BoxWithSidebar.ts#L29)
 
 ***
 
@@ -70,7 +70,7 @@ Defined in: [fl.ui/src/ui/components/containers/box-with-sidebar/BoxWithSidebar.
 theme: string = "default";
 ```
 
-Defined in: [fl.ui/src/ui/base/UIElement.ts:11](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/base/UIElement.ts#L11)
+Defined in: [fl.ui/src/ui/base/UIElement.ts:11](https://github.com/fest-live/fl.ui/blob/0d5540e32c0778f58f31d954bd75662104eddb32/src/ui/base/UIElement.ts#L11)
 
 #### Inherited from
 
@@ -86,7 +86,7 @@ UIElement.theme
 connectedCallback(): void;
 ```
 
-Defined in: [fl.ui/src/ui/base/UIElement.ts:25](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/base/UIElement.ts#L25)
+Defined in: [fl.ui/src/ui/base/UIElement.ts:25](https://github.com/fest-live/fl.ui/blob/0d5540e32c0778f58f31d954bd75662104eddb32/src/ui/base/UIElement.ts#L25)
 
 #### Returns
 
@@ -106,7 +106,7 @@ UIElement.connectedCallback
 onInitialize(): void;
 ```
 
-Defined in: [fl.ui/src/ui/components/containers/box-with-sidebar/BoxWithSidebar.ts:33](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/components/containers/box-with-sidebar/BoxWithSidebar.ts#L33)
+Defined in: [fl.ui/src/ui/components/containers/box-with-sidebar/BoxWithSidebar.ts:33](https://github.com/fest-live/fl.ui/blob/0d5540e32c0778f58f31d954bd75662104eddb32/src/ui/components/containers/box-with-sidebar/BoxWithSidebar.ts#L33)
 
 #### Returns
 
@@ -126,7 +126,7 @@ UIElement.onInitialize
 onRender(): void;
 ```
 
-Defined in: [fl.ui/src/ui/components/containers/box-with-sidebar/BoxWithSidebar.ts:34](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/components/containers/box-with-sidebar/BoxWithSidebar.ts#L34)
+Defined in: [fl.ui/src/ui/components/containers/box-with-sidebar/BoxWithSidebar.ts:34](https://github.com/fest-live/fl.ui/blob/0d5540e32c0778f58f31d954bd75662104eddb32/src/ui/components/containers/box-with-sidebar/BoxWithSidebar.ts#L34)
 
 #### Returns
 
@@ -146,7 +146,7 @@ UIElement.onRender
 styles(): any;
 ```
 
-Defined in: [fl.ui/src/ui/components/containers/box-with-sidebar/BoxWithSidebar.ts:54](https://github.com/fest-live/fl.ui/blob/67bc202eb6fd2da9130a07e296747a1636c8ca57/src/ui/components/containers/box-with-sidebar/BoxWithSidebar.ts#L54)
+Defined in: [fl.ui/src/ui/components/containers/box-with-sidebar/BoxWithSidebar.ts:54](https://github.com/fest-live/fl.ui/blob/0d5540e32c0778f58f31d954bd75662104eddb32/src/ui/components/containers/box-with-sidebar/BoxWithSidebar.ts#L54)
 
 #### Returns
 

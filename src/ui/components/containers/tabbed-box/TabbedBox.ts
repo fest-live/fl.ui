@@ -69,7 +69,6 @@ export class TabbedBox extends UIElement {
 
         //
         self.currentTab ||= [...self?.tabs?.keys?.() ?? []]?.[0] || "";
-        console.log(self.currentTab);
 
         //
         E(self, {}, [I({ current: propRef(self as any, "currentTab"), mapped: self.tabs })])

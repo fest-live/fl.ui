@@ -50,16 +50,28 @@ class TabChangedEvent extends Event {
 
 
 //
-const normalizeTabPosition = (value?: string): "top" | "bottom" => {
-    const normalized = String(value ?? "bottom").trim().toLowerCase();
-    return normalized === "top" ? "top" : "bottom";
+const normalizeOrient = (value?: string | number): 0 | 2 => {
+    if (typeof value === "number") {
+        const numeric = Number.isFinite(value) ? Math.trunc(value) : 0;
+        return numeric === 2 ? 2 : 0;
+    }
+    if (typeof value === "string") {
+        const normalized = value.trim().toLowerCase();
+        if (!normalized.length) { return 0; }
+        if (normalized === "2" || normalized === "top") { return 2; }
+        if (normalized === "0" || normalized === "bottom") { return 0; }
+        const parsed = Number.parseInt(normalized, 10);
+        if (Number.isFinite(parsed) && parsed === 2) { return 2; }
+        return 0;
+    }
+    return 0;
 }
 
 // @ts-ignore
 @defineElement("ui-tabbed-box")
 export class TabbedBox extends UIElement {
     @property({ source: "attr", name: "current-tab" }) currentTab?: string = "";
-    @property({ source: "attr", name: "tab-position" }) tabPosition?: string = "bottom";
+    @property({ source: "attr", name: "orient" }) orient?: string | number = 0;
 
     //
     constructor() { super(); const self: any = this; self.currentTab ??= ""; }
@@ -159,9 +171,9 @@ export class TabbedBox extends UIElement {
     styles = () => styled;
     render = function () {
         const self: any = this;
-        const tabPosition = normalizeTabPosition(self.tabPosition);
+        const orient = normalizeOrient(self.orient);
         const dropMenu = self.hasSidebarDropMenu?.() ?? false;
-        this.syncHostFeatureAttributes?.(tabPosition, dropMenu);
+        this.syncHostFeatureAttributes?.(orient, dropMenu);
         const root = H`
         <form class="ui-tabbed-box-tabs" part="tabs">${M(observableByMap(self.tabs ?? new Map()), ([key, _], idx) => this.createTab(key, idx))}</form>
         <div class="ui-tabbed-box-content" part="content"><slot></slot></div>`
@@ -169,8 +181,10 @@ export class TabbedBox extends UIElement {
     }
 
     //
-    protected syncHostFeatureAttributes?(position: "top" | "bottom", dropMenu: boolean) {
+    protected syncHostFeatureAttributes?(orient: 0 | 2, dropMenu: boolean) {
         const host = this as unknown as HTMLElement;
+        host?.setAttribute?.("data-orient", String(orient));
+        const position = orient === 2 ? "top" : "bottom";
         host?.setAttribute?.("data-tab-position", position);
         if (dropMenu) {
             host?.setAttribute?.("data-drop-menu", "");

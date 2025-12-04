@@ -54,7 +54,7 @@
             contain: strict !important;
         }
 
-        &[data-tab-position="top"] {
+        &[data-orient="2"] {
             --tabbed-grid-rows:
                 [tabs-row] minmax(0px, var(--tabbed-bar-block-size))
                 [content-row] minmax(0px, 1fr);
@@ -236,14 +236,14 @@
             }
         }
 
-        &[data-tab-position="top"] {
+        &[data-orient="2"] {
             .ui-tabbed-box-tabs {
                 margin-block-start: 0;
                 margin-block-end: var(--tabbed-tabs-block-gap);
             }
         }
 
-        &[data-tab-position="bottom"] .ui-tabbed-box-tab::after {
+        &[data-orient="0"] .ui-tabbed-box-tab::after {
             inset-block-start: calc(var(--tabbed-indicator-height) * -1);
             inset-block-end: auto;
             transform: translate3d(0, -50%, 0) scaleX(0.6);

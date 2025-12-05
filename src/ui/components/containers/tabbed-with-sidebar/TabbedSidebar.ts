@@ -128,10 +128,9 @@ export class TabbedSidebar extends UIElement {
     openTab(tabName: string, ev?: any) {
         if (!tabName) return;
         const self: any = this;
-        if (tabName && tabName != self?.currentTab) {
-            self.currentTab = tabName ?? self?.currentTab;
-            self?.dispatchEvent?.(new TabChangedEvent("tab-changed", { bubbles: true, composed: true }, self.currentTab));
-        }
+        if (tabName && tabName != self?.currentTab)
+            { self.currentTab = tabName ?? self?.currentTab; }
+        self?.dispatchEvent?.(new TabChangedEvent("tab-changed", { bubbles: true, composed: true }, self.currentTab));
     }
 
     //

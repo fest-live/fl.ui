@@ -33,14 +33,17 @@
 
                 // Visual
                 background: none;
-                background-color: --c2-surface(0.15, var(--current, currentColor));
                 box-shadow: none;
                 border-radius: 0px;
-                overflow: hidden !important;
+                overflow: visible;
 
                 // Transform & Animation
                 transform: translateX(0px);
+                background-color: transparent;
                 transition-behavior: allow-discrete;
+
+                //
+                filter: drop-shadow(0 1.5rem 1rem color-mix(in oklch, #000 22%, transparent));
             }
 
             // ================================================================
@@ -77,151 +80,104 @@
             @at-root :host(:not([sidebar-drop-menu])) {
                 --sidebar-inline-grid-size: 0px;
 
-                transition:
-                    --sidebar-inline-grid-size var(--transition-medium, 0.28s) ease;
-                will-change: --sidebar-inline-grid-size;
-
-                @container (min-inline-size: 800px) {
-                    --sidebar-inline-grid-size: 0px;
-
-                    //
-                    &:has(#{$selector}:is([sidebar-opened="true"], [sidebar-opened=""])) {
-                        --sidebar-inline-grid-size: clamp(min(20rem, 100%), max(16rem, 10cqi), 100cqi);
-
-                        @starting-style {
-                            will-change: --sidebar-inline-grid-size;
-                            --sidebar-inline-grid-size: 0px;
-                        }
-                    }
-
-                    //
-                    #{$selector} {
+                //
+                #{$selector} {
+                    & {
                         will-change: inline-size;
                         grid-column: 1 / 2 span;
-                        transform: translateX(0px);
                         position: relative;
-                        inline-size: var(--sidebar-inline-grid-size, 0px);
                         min-inline-size: 0px;
-                        max-inline-size: stretch;
+                        inline-size: clamp(min(20rem, 100%), max(16rem, 10cqi), 100cqi);
+                        max-inline-size: none;
+                        transform: translate3d(-100%, 0, 0);
+                        transition: transform var(--transition-medium, 0.28s) ease,
+                                    box-shadow var(--transition-medium, 0.28s) ease;
+                        pointer-events: none;
+                        block-size: stretch;
+                        max-block-size: stretch;
+                    }
 
-                        // Visible state
-                        &:is([sidebar-opened="true"], [sidebar-opened=""]) {
-                            will-change: inline-size;
-                            max-inline-size: none;
-                        }
+                    // Hidden state
+                    &:is([sidebar-opened="false"], :not([sidebar-opened="true"], [sidebar-opened=""])) {
+                        pointer-events: none;
+                        transform: translate3d(-100%, 0, 0);
+                    }
+
+                    // Visible state
+                    &:is([sidebar-opened="true"], [sidebar-opened=""]) {
+                        transform: translate3d(0, 0, 0);
+                        pointer-events: auto;
 
                         @starting-style {
-                            will-change: inline-size;
-                            inline-size: 0px;
+                            transform: translate3d(-100%, 0, 0);
+                            box-shadow: none;
                         }
                     }
-                }
-
-            }
-
-            //
-            /*@container (min-inline-size: 800px) {
-                grid-row: 1 / -1;
-            }*/
-
-            // ================================================================
-            // Mobile Layout (<800px)
-            // ================================================================
-            @container (max-inline-size: 800px) {
-                --sidebar-inline-grid-size: 0px;
-
-                & {
-                    inline-size: clamp(min(20rem, 100%), max(16rem, 10cqi), 100cqi);
-                    max-inline-size: none;
-                    transform: translate3d(-100%, 0, 0);
-                    transition: transform var(--transition-medium, 0.28s) ease,
-                                box-shadow var(--transition-medium, 0.28s) ease;
-                    pointer-events: none;
-                }
-
-                // Visible state
-                &:is([sidebar-opened="true"], [sidebar-opened=""]) {
-                    transform: translate3d(0, 0, 0);
-                    pointer-events: auto;
-
-                    @starting-style {
-                        transform: translate3d(-100%, 0, 0);
-                        box-shadow: none;
-                    }
-                }
-
-                // Hidden state
-                &:is([sidebar-opened="false"], :not([sidebar-opened="true"], [sidebar-opened=""])) {
-                    pointer-events: none;
-                }
-
-                // Drop menu mode sizing
-                @at-root :host([sidebar-drop-menu]) #{$selector} {
-                    max-block-size: stretch;
-                    block-size: stretch;
                 }
             }
 
             // ================================================================
             // Drop Menu Mode
             // ================================================================
-            @at-root :host([sidebar-drop-menu]) #{$selector} {
+            @at-root :host([sidebar-drop-menu]) {
                 --sidebar-inline-grid-size: 0px;
 
-                & {
-                    // Grid positioning
-                    grid-column: sidebar-col !important;
-                    grid-row: 2 / -1;
-                    z-index: 5;
+                #{$selector} {
+                    & {
+                        // Grid positioning
+                        grid-column: sidebar-col !important;
+                        grid-row: 2 / -1;
+                        z-index: 5;
 
-                    // Sizing
-                    inline-size: min(26rem, 80cqi);
-                    min-inline-size: clamp(16rem, 32cqi, 24rem);
-                    block-size: stretch;
-                    max-block-size: min(48rem, 100cqb);
+                        // Sizing
+                        inline-size: min(26rem, 80cqi);
+                        min-inline-size: clamp(16rem, 32cqi, 24rem);
+                        block-size: stretch;
+                        max-block-size: min(48rem, 100cqb);
 
-                    // Spacing
-                    padding-block: clamp(0.75rem, 1cqb + 0.5rem, 1.25rem);
-                    padding-inline: clamp(0.75rem, 1cqi + 0.75rem, 1.5rem);
+                        // Spacing
+                        padding-block: clamp(0.75rem, 1cqb + 0.5rem, 1.25rem);
+                        padding-inline: clamp(0.75rem, 1cqi + 0.75rem, 1.5rem);
 
-                    // Visual
-                    background-color: color-mix(in oklch, var(--surface-color) 96%, transparent);
-                    border: 1px solid color-mix(in oklch, var(--md3-outline) 40%, transparent);
-                    border-radius: 0px;
-                    box-shadow: 0 1.5rem 3rem color-mix(in oklch, #000 22%, transparent);
+                        // Visual
+                        background-color: color-mix(in oklch, var(--surface-color) 96%, transparent);
+                        border: 1px solid color-mix(in oklch, var(--md3-outline) 40%, transparent);
+                        border-radius: 0px;
+                        box-shadow: 0 1.5rem 3rem color-mix(in oklch, #000 22%, transparent);
 
-                    // Transform & Animation
-                    transform-origin: top center;
-                    transform: translate3d(0, -20%, 0);
-                    transition-behavior: allow-discrete;
-                    transition:
-                        visibility var(--transition-medium, 0.3s) steps(1, jump-both),
-                        transform var(--transition-medium, 0.3s) var(--ease-emphasized),
-                        opacity var(--transition-medium, 0.3s) var(--ease-out),
-                        box-shadow var(--transition-medium, 0.3s) var(--ease-emphasized);
-
-                    // Initial state
-                    pointer-events: none;
-                    visibility: hidden;
-                    opacity: 0;
-                }
-
-                // Visible state
-                &:is([sidebar-opened=""], [sidebar-opened="true"]) {
-                    opacity: 1;
-                    pointer-events: auto;
-                    transform: translate3d(0, 0, 0);
-                    visibility: visible;
-
-                    @starting-style {
+                        // Transform & Animation
+                        transform-origin: top center;
                         transform: translate3d(0, -20%, 0);
-                    }
-                }
+                        transition-behavior: allow-discrete;
+                        transition:
+                            visibility var(--transition-medium, 0.3s) steps(1, jump-both),
+                            transform var(--transition-medium, 0.3s) var(--ease-emphasized),
+                            opacity var(--transition-medium, 0.3s) var(--ease-out),
+                            box-shadow var(--transition-medium, 0.3s) var(--ease-emphasized);
 
-                // Backdrop overlay
-                &:has([sidebar-opened="true"]) .content-box::after {
-                    opacity: 0.6;
-                    pointer-events: auto;
+                        // Initial state
+                        pointer-events: none;
+                        visibility: hidden;
+                        opacity: 0;
+                    }
+
+                    // Visible state
+                    &:is([sidebar-opened=""], [sidebar-opened="true"]) {
+                        opacity: 1;
+                        pointer-events: auto;
+                        transform: translate3d(0, 0, 0);
+                        visibility: visible;
+
+                        @starting-style {
+                            transform: translate3d(0, -20%, 0);
+                        }
+                    }
+
+                    // Backdrop overlay
+                    &:has([sidebar-opened="true"]) .content-box::after {
+                        opacity: 0.6;
+                        pointer-events: auto;
+                    }
                 }
             }
 

@@ -83,7 +83,7 @@ export class TabbedSidebar extends UIElement {
     @property({ source: "attr", name: "tab-position" }) tabPosition?: string = "top"; //@ts-ignore
     @property({ source: "attr", name: "sidebar-drop-menu" }) sidebarAsDropMenu?: string | boolean = null; //@ts-ignore
     @property({ source: "attr", name: "sidebar-opened" }) sidebarOpened?: string | boolean = false; //@ts-ignore
-    @property({ source: "attr", name: "toolbar-opened" }) toolbarOpened?: string | boolean = true; //@ts-ignore
+    @property({ source: "attr", name: "toolbar-opened" }) toolbarOpened?: string | boolean = false; //@ts-ignore
 
     //
     setTabs(tabs: Map<string, HTMLElement | string | any>) {
@@ -138,14 +138,15 @@ export class TabbedSidebar extends UIElement {
     constructor() { super(); }
     onInitialize() {
         super.onInitialize?.(); const self = this as any;
-        self.setAttribute("sidebar-opened", false);
+        self.removeAttribute("sidebar-opened");
+        self.removeAttribute("toolbar-opened");
         self.removeAttribute("sidebar-drop-menu");
 
         //
         requestAnimationFrame(() => {
             self.removeAttribute("sidebar-drop-menu");
             self.removeAttribute("sidebar-opened");
-            self.setAttribute("toolbar-opened", true);
+            self.removeAttribute("toolbar-opened");
         });
 
         //

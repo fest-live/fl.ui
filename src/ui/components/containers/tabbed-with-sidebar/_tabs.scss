@@ -1,0 +1,441 @@
+@use "sass:string";
+@use "veela-lib" as *;
+
+// ============================================================================
+// Tabs Component Styles
+// ============================================================================
+@mixin tabbed-box-tabs($selector: ".ui-tabbed-box-tabs") {
+    @at-root :host {
+        #{$selector} {
+            // ================================================================
+            // Base Layout
+            // ================================================================
+            & {
+                display: flex;
+                flex-direction: row;
+                align-items: center;
+
+                // Grid positioning
+                grid-column: content-col;
+                grid-row: 1;
+
+                // Sizing
+                inline-size: stretch;
+                block-size: stretch;
+                min-block-size: 0px;
+
+                // Spacing
+                margin-block: 0;
+                gap: var(--tabbed-tab-gap);
+                padding-block: calc(var(--tabbed-padding-block) * 0.65);
+                padding-inline: calc(var(--tabbed-padding-inline));
+
+                // Visual
+                border-radius: 50cqmin;
+                overflow: hidden;
+                position: relative;
+
+                // Scrolling
+                scrollbar-gutter: stable;
+                overscroll-behavior-inline: contain;
+                scroll-behavior: smooth;
+                @include scrollable("x");
+
+                // Interaction
+                pointer-events: auto;
+                touch-action: pan-x;
+
+                // Alignment
+                place-content: center flex-start;
+                place-items: center flex-start;
+                text-align: start;
+                justify-content: safe flex-start;
+                justify-items: safe flex-start;
+
+                // Surface styling
+                @include surface(var(--surface-opacity-subtle));
+            }
+
+            // ================================================================
+            // Pinned State
+            // ================================================================
+            &.pinned {
+                display: grid;
+                grid-template-columns: minmax(0px, 1fr);
+                grid-template-rows: minmax(0px, 1fr);
+                grid-column: pinned-col;
+
+                // Sizing
+                inline-size: max-content;
+                block-size: stretch;
+                overflow: visible;
+
+                // Spacing
+                padding: 0px;
+                padding-inline: 0px;
+                margin-inline: 0px;
+                gap: 0px;
+                margin-inline-start: var(--space-sm);
+
+                // Visual
+                background-color: transparent;
+                border-radius: 0px;
+                line-height: 0;
+                font-size: 0px;
+
+                // Alignment
+                place-content: center !important;
+                place-items: center !important;
+                text-align: center !important;
+
+                .ui-tabbed-box-tab {
+                    display: grid;
+                    grid-template-columns: minmax(0px, 1fr);
+                    grid-template-rows: minmax(0px, 1fr);
+
+                    // Sizing
+                    inline-size: fit-content;
+                    block-size: stretch;
+                    min-inline-size: 0px;
+                    min-block-size: 0px;
+                    max-block-size: 3rem;
+                    aspect-ratio: 1 / 1;
+                    inset: 0px;
+                    overflow: hidden;
+
+                    // Spacing
+                    padding-inline: 0px;
+
+                    // Visual
+                    border-radius: 50cqmin;
+                    font-size: 0px;
+                    line-height: 0;
+
+                    // Alignment
+                    place-content: center !important;
+                    place-items: center !important;
+                    text-align: center !important;
+
+                    // Surface styling
+                    @include surface(var(--surface-opacity-subtle));
+
+                    & > * {
+                        grid-row: 1 / -1;
+                        grid-column: 1 / -1;
+                    }
+                }
+            }
+
+            // ================================================================
+            // Icons
+            // ================================================================
+            ui-icon {
+                color: --c2-on-surface(0.0, var(--current, currentColor));
+                --icon-color: --c2-on-surface(0.0, var(--current, currentColor));
+
+                // Sizing
+                inline-size: var(--tabbed-icon-size);
+                block-size: var(--tabbed-icon-size);
+                aspect-ratio: 1 / 1;
+                max-inline-size: stretch;
+                max-block-size: stretch;
+                padding: 0px;
+
+                // Layout
+                content-visibility: visible;
+                place-content: center;
+                place-items: center;
+                text-align: center;
+            }
+        }
+
+        // ================================================================
+        // Spacing by Tab Position
+        // ================================================================
+        @at-root :host([tab-position="bottom"]) #{$selector} & {
+            margin-block-start: var(--tabbed-tabs-block-gap);
+            margin-block-end: 0;
+        }
+
+        // ================================================================
+        // Slotted Bar Content
+        // ================================================================
+        ::slotted([slot="bar"]) {
+            // Grid positioning
+            grid-column: 3 / -1;
+            grid-row: 1;
+
+            // Sizing
+            inline-size: stretch;
+            block-size: stretch;
+            flex-grow: 1;
+
+            // Alignment
+            place-content: center;
+            place-items: center;
+        }
+
+        // ================================================================
+        // Scroll Gradients
+        // ================================================================
+        &::before,
+        &::after {
+            content: "";
+            position: absolute;
+            inset-block: 0;
+            inline-size: min(1.75rem, 8%);
+            pointer-events: none;
+            opacity: clamp(0, calc(var(--scroll-gradient, 0)), 1);
+            transition: opacity var(--duration-normal) var(--ease-out);
+            background: linear-gradient(90deg, color-mix(in oklch, var(--md3-surface) 70%, transparent) 0%, transparent 100%);
+        }
+
+        &::before {
+            inset-inline-start: 0;
+            transform: scaleX(-1);
+            --scroll-gradient: attr(data-scrollable-start number, 0);
+        }
+
+        &::after {
+            inset-inline-end: 0;
+            --scroll-gradient: attr(data-scrollable-end number, 0);
+        }
+
+        // Mask for scrollable tabs
+        @supports (mask-image: linear-gradient(#0000, #000)) {
+            &[data-scrollable="true"] {
+                mask-image: linear-gradient(to right, transparent 0%, black min(2.5rem, 18%), black calc(100% - min(2.5rem, 18%)), transparent 100%);
+            }
+        }
+
+        // ================================================================
+        // Touch Actions
+        // ================================================================
+        &, & *, & button {
+            touch-action: pan-x;
+        }
+
+        // ================================================================
+        // Tab Items
+        // ================================================================
+        & :where(.ui-tabbed-box-tab) {
+            display: flex;
+            flex-direction: row;
+            flex-shrink: 0;
+            position: relative;
+            isolation: isolate;
+
+            // Sizing
+            min-inline-size: 3.5rem;
+            inline-size: fit-content;
+            max-inline-size: none;
+            min-block-size: fit-content;
+            block-size: stretch;
+            @include container-clamped(fit-content, fit-content);
+
+            // Spacing
+            gap: clamp(0.5rem, 0.4cqi, 0.6rem);
+            padding-block: calc(var(--tabbed-padding-block) * 0.6);
+            padding-inline: calc(var(--tabbed-padding-inline) * 0.75);
+
+            // Visual
+            border-radius: 50cqmin;
+            background-color: transparent;
+            color: color-mix(in oklch, var(--md3-on-surface) 85%, transparent);
+            letter-spacing: 0.01em;
+            overflow: visible;
+
+            // Interaction
+            cursor: pointer;
+            touch-action: pan-x;
+            transition: color var(--duration-normal) var(--ease-out),
+                        transform var(--duration-fast) var(--ease-emphasized);
+
+            // Alignment
+            place-content: center;
+            place-items: center;
+            text-align: center;
+
+            // Performance
+            content-visibility: visible;
+
+            // Button styling
+            @include button-text(primary, false);
+            @include button-overlays(var(--md3-primary));
+
+            // ============================================================
+            // Active Indicator
+            // ============================================================
+            &::after {
+                content: "";
+                position: absolute;
+                inset-inline: clamp(0.5rem, 4cqi, 1rem);
+                inset-inline-end: 3.5rem;
+                inset-block-end: calc(var(--tabbed-indicator-height) * -1);
+                block-size: var(--tabbed-indicator-height);
+                border-radius: var(--tabbed-indicator-height);
+                background: currentColor;
+                opacity: 0;
+                transform: translate3d(0, 50%, 0) scaleX(0.6);
+                transition: transform var(--tabbed-indicator-duration) var(--tabbed-indicator-ease),
+                            opacity var(--tabbed-indicator-duration) var(--tabbed-indicator-ease);
+                overflow: visible;
+                place-content: center;
+                place-items: center;
+                text-align: center;
+            }
+
+            // Bottom position: indicator on top
+            :host([tab-position="bottom"]) &::after {
+                inset-block-start: calc(var(--tabbed-indicator-height) * -1);
+                inset-block-end: auto;
+                transform: translate3d(0, -50%, 0) scaleX(0.6);
+            }
+
+            // ============================================================
+            // Active State
+            // ============================================================
+            &:where([aria-selected="true"], [active], .is-active, .active) {
+                color: var(--md3-on-primary);
+                transform: translateY(-2px);
+                place-content: center;
+                place-items: center;
+                text-align: center;
+
+                @include button-filled(primary, false);
+
+                &::after {
+                    opacity: 1;
+                    transform: translate3d(0, 0, 0) scaleX(1);
+                    background: var(--md3-on-primary);
+                }
+            }
+
+            // ============================================================
+            // Disabled State
+            // ============================================================
+            &:disabled {
+                opacity: var(--state-opacity-disabled, 0.38);
+            }
+
+            // ============================================================
+            // Tab Label
+            // ============================================================
+            :where(.ui-tabbed-box-tab-label) {
+                display: inline-flex;
+                align-items: center;
+                justify-content: flex-start;
+                gap: var(--gap-3xs, 0.2rem);
+                color: inherit;
+                pointer-events: none;
+                text-align: inherit;
+                line-height: var(--leading-tight, 1.1);
+                content-visibility: visible;
+            }
+
+            // ============================================================
+            // Close Button
+            // ============================================================
+            :where(.ui-tabbed-box-tab-close) {
+                @include button-icon(var(--tabbed-close-size));
+                @include button-overlays(var(--tabbed-close-color));
+
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                box-sizing: border-box;
+                aspect-ratio: 1 / 1;
+                flex-shrink: 0;
+
+                // Sizing
+                inline-size: stretch;
+                block-size: stretch;
+                min-inline-size: 0px;
+                min-block-size: 0px;
+                max-inline-size: min(var(--tabbed-close-size), 100%);
+                max-block-size: min(var(--tabbed-close-size), 100%);
+                padding: 0.5rem !important;
+
+                // Spacing
+                margin-inline-start: clamp(0.1rem, 0.5cqi, 0.3rem);
+
+                // Visual
+                border-radius: var(--radius-full);
+                background-color: transparent;
+                border: none;
+                outline: none;
+                color: var(--tabbed-close-color);
+
+                // Interaction
+                cursor: pointer;
+                transition: color var(--duration-normal) var(--ease-out),
+                            transform var(--duration-fast) var(--ease-emphasized);
+
+                // Performance
+                content-visibility: visible;
+
+                // Icon
+                ui-icon {
+                    content-visibility: visible;
+                    color: --c2-on-surface(0.0, var(--current, currentColor));
+                    --icon-color: --c2-on-surface(0.0, var(--current, currentColor));
+                    inline-size: calc(var(--tabbed-close-size) * 0.5);
+                    block-size: calc(var(--tabbed-close-size) * 0.5);
+                }
+
+                // States
+                &:focus-visible {
+                    outline: 2px solid color-mix(in oklch, currentColor 35%, transparent);
+                    outline-offset: 2px;
+                }
+
+                &:hover {
+                    color: color-mix(in oklch, var(--md3-on-surface) 92%, transparent);
+                }
+
+                &:active {
+                    transform: scale(0.9);
+                }
+            }
+
+            // Active tab: close button styling
+            &:where([aria-selected="true"], [active], .is-active, .active) {
+                .ui-tabbed-box-tab-close {
+                    color: color-mix(in oklch, var(--surface-on-primary) 85%, transparent);
+                    --icon-color: color-mix(in oklch, var(--surface-on-primary) 85%, transparent);
+                    @include button-overlays(var(--surface-on-primary));
+                }
+            }
+
+            // ============================================================
+            // Pinned State: Tab Adjustments
+            // ============================================================
+            &.pinned {
+                .ui-tabbed-box-tab {
+                    gap: 0px !important;
+                    padding-inline: 0px !important;
+                    block-size: stretch !important;
+                    place-content: center !important;
+                    place-items: center !important;
+                    text-align: center !important;
+                }
+
+                .ui-tabbed-box-tab-close {
+                    display: none !important;
+                    margin-inline: 0px !important;
+                }
+
+                &::after {
+                    margin-inline: 0px !important;
+                    inset-inline-end: 0px !important;
+                }
+
+                ui-icon {
+                    padding: 0px;
+                    inline-size: var(--tabbed-icon-size);
+                    block-size: var(--tabbed-icon-size);
+                }
+            }
+        }
+    }
+}

@@ -81,7 +81,7 @@ class TabCloseEvent extends Event {
 export class TabbedSidebar extends UIElement {
     @property({ source: "attr", name: "current-tab" }) currentTab?: string = ""; //@ts-ignore
     @property({ source: "attr", name: "tab-position" }) tabPosition?: string = "top"; //@ts-ignore
-    @property({ source: "attr", name: "sidebar-drop-menu" }) sidebarAsDropMenu?: string | boolean = ""; //@ts-ignore
+    @property({ source: "attr", name: "sidebar-drop-menu" }) sidebarAsDropMenu?: string | boolean = null; //@ts-ignore
     @property({ source: "attr", name: "sidebar-opened" }) sidebarOpened?: string | boolean = false; //@ts-ignore
 
     //
@@ -137,8 +137,14 @@ export class TabbedSidebar extends UIElement {
     constructor() { super(); }
     onInitialize() {
         super.onInitialize?.(); const self = this as any;
-        self.setAttribute("data-sidebar-drop-menu", "");
-        self.setAttribute("data-sidebar-opened", false);
+        self.setAttribute("sidebar-opened", false);
+        self.removeAttribute("sidebar-drop-menu");
+
+        //
+        requestAnimationFrame(() => {
+            self.removeAttribute("sidebar-drop-menu");
+            self.removeAttribute("sidebar-opened");
+        });
 
         //
         self.addEventListener("keydown", (e: KeyboardEvent) => {
@@ -290,10 +296,12 @@ export class TabbedSidebar extends UIElement {
                 on:click=${() => { this.sidebarOpened = !this.sidebarOpened; }}
             ><ui-icon icon="${conditional(openedProperty, 'text-outdent', 'list')}"></ui-icon></button>
             <form class="ui-tabbed-box-tabs pinned" part="pinned">${this.createTab("home")}</form>
+            <div class="toolbar-slot"><slot name="bar"></slot></div>
             <form class="ui-tabbed-box-tabs" part="tabs">${M(observableByMap(this.tabs ?? new Map()), ([key, _], idx) => (key != "home" && (typeof key == "string") ? this.createTab(key) : null))}</form>
         </div>
+        <div part="underlay" class="ui-underlay"><slot name="underlay"></slot></div>
         <div part="content-box" class="content-box">
-            <div part="sidebar" class="sidebar" id=${this.sidebarUniqueId} data-visible=${conditional(openedProperty, "true", "false")}><slot name="sidebar"></slot></div>
+            <div part="sidebar" class="sidebar" id=${this.sidebarUniqueId} sidebar-opened=${conditional(openedProperty, "true", "false")}><slot name="sidebar"></slot></div>
             <div part="content" class="content"><slot></slot></div>
         </div>`;
     }

@@ -30,7 +30,7 @@ const renderTabName = (tabName: any) => {
 const addPartProperty = (element: HTMLElement | string, name: string = "") => {
     if (typeof element == "string") { return element; }
     if (element instanceof HTMLElement) {
-        element?.setAttribute?.(`data-tab`, name);
+        element?.setAttribute?.(`tab`, name);
         element?.setAttribute?.(`part`, "tab");
     }
     return element;
@@ -71,7 +71,7 @@ const normalizeOrient = (value?: string | number): 0 | 2 => {
 @defineElement("ui-tabbed-box")
 export class TabbedBox extends UIElement {
     @property({ source: "attr", name: "current-tab" }) currentTab?: string = "";
-    @property({ source: "attr", name: "orient" }) orient?: string | number = 0;
+    @property({ source: "attr", name: "orient" }) orient?: string | number = 1;
 
     //
     constructor() { super(); const self: any = this; self.currentTab ??= ""; }
@@ -88,6 +88,11 @@ export class TabbedBox extends UIElement {
         //
         subscribe(propRef(self as any, "currentTab"), (_newVal)=>{
             self.dispatchEvent(new TabChangedEvent("tab-changed", { bubbles: true }, self.currentTab));
+        });
+
+        //
+        requestAnimationFrame(() => {
+            self.setAttribute("orient", "1");
         });
 
         //
@@ -147,7 +152,7 @@ export class TabbedBox extends UIElement {
         if (!tabName) return;
         const self: any = this;
         const tabLabel  = H`<span class="ui-tabbed-box-tab-label">${(self?.renderTabName?.bind?.(self) ?? renderTabName)?.(tabName) ?? tabName}</span>`;
-        const tabButton = H`<button slot="tabs" type="button" on:click=${(ev: Event)=>self.openTab(tabName, ev)} class="ui-tabbed-box-tab" role="tab" data-tab-name=${tabName} data-tab-index=${idx}>${tabLabel}</button>`;
+        const tabButton = H`<button slot="tabs" type="button" on:click=${(ev: Event)=>self.openTab(tabName, ev)} class="ui-tabbed-box-tab" role="tab" tab-name=${tabName} tab-index=${idx}>${tabLabel}</button>`;
         addPartProperty(tabButton, tabName);
         propRef(self as any, "currentTab")?.[$trigger]?.();
         return tabButton; //@ts-ignore
@@ -158,7 +163,7 @@ export class TabbedBox extends UIElement {
         if (!tabName) return;
         const self: any = this;
         if (tabName) {
-            const btn = self.shadowRoot?.querySelector(`[data-tab-name="${tabName}"]`);
+            const btn = self.shadowRoot?.querySelector(`[tab-name="${tabName}"]`);
             if (btn instanceof HTMLElement) (btn as HTMLElement)?.focus?.();
 
             //
@@ -183,13 +188,13 @@ export class TabbedBox extends UIElement {
     //
     protected syncHostFeatureAttributes?(orient: 0 | 2, dropMenu: boolean) {
         const host = this as unknown as HTMLElement;
-        host?.setAttribute?.("data-orient", String(orient));
+        host?.setAttribute?.("orient", String(orient));
         const position = orient === 2 ? "top" : "bottom";
-        host?.setAttribute?.("data-tab-position", position);
+        host?.setAttribute?.("tab-position", position);
         if (dropMenu) {
-            host?.setAttribute?.("data-drop-menu", "");
+            host?.setAttribute?.("drop-menu", "");
         } else {
-            host?.removeAttribute?.("data-drop-menu");
+            host?.removeAttribute?.("drop-menu");
         }
     }
 
@@ -214,14 +219,14 @@ export class TabbedBox extends UIElement {
                     const startOverflow = tabsBox.scrollLeft > 1;
                     const endOverflow = tabsBox.scrollLeft < maxScrollLeft - 1;
 
-                    if (tabsBox.hasAttribute("data-scrollable") !== hasOverflow) {
-                        tabsBox.toggleAttribute("data-scrollable", hasOverflow);
+                    if (tabsBox.hasAttribute("scrollable") !== hasOverflow) {
+                        tabsBox.toggleAttribute("scrollable", hasOverflow);
                     }
-                    if (tabsBox.hasAttribute("data-scrollable-start") !== startOverflow) {
-                        tabsBox.toggleAttribute("data-scrollable-start", startOverflow);
+                    if (tabsBox.hasAttribute("scrollable-start") !== startOverflow) {
+                        tabsBox.toggleAttribute("scrollable-start", startOverflow);
                     }
-                    if (tabsBox.hasAttribute("data-scrollable-end") !== endOverflow) {
-                        tabsBox.toggleAttribute("data-scrollable-end", endOverflow);
+                    if (tabsBox.hasAttribute("scrollable-end") !== endOverflow) {
+                        tabsBox.toggleAttribute("scrollable-end", endOverflow);
                     }
                 }
             });

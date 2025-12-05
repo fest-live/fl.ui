@@ -91,9 +91,9 @@ export class TabbedBox extends UIElement {
         });
 
         //
-        requestAnimationFrame(() => {
+        /*requestAnimationFrame(() => {
             self.setAttribute("orient", "1");
-        });
+        });*/
 
         //
         self.addEventListener("keydown", (e: KeyboardEvent) => {
@@ -151,8 +151,8 @@ export class TabbedBox extends UIElement {
     createTab(tabName: string, idx?: number) {
         if (!tabName) return;
         const self: any = this;
-        const tabLabel  = H`<span class="ui-tabbed-box-tab-label">${(self?.renderTabName?.bind?.(self) ?? renderTabName)?.(tabName) ?? tabName}</span>`;
-        const tabButton = H`<button slot="tabs" type="button" on:click=${(ev: Event)=>self.openTab(tabName, ev)} class="ui-tabbed-box-tab" role="tab" tab-name=${tabName} tab-index=${idx}>${tabLabel}</button>`;
+        const tabLabel  = H`<span part="tab-label" class="ui-tabbed-box-tab-label">${(self?.renderTabName?.bind?.(self) ?? renderTabName)?.(tabName) ?? tabName}</span>`;
+        const tabButton = H`<button part="tab" slot="tabs" type="button" on:click=${(ev: Event)=>self.openTab(tabName, ev)} class="ui-tabbed-box-tab" role="tab" tab-name=${tabName} tab-index=${idx}>${tabLabel}</button>`;
         addPartProperty(tabButton, tabName);
         propRef(self as any, "currentTab")?.[$trigger]?.();
         return tabButton; //@ts-ignore
@@ -176,26 +176,10 @@ export class TabbedBox extends UIElement {
     styles = () => styled;
     render = function () {
         const self: any = this;
-        const orient = normalizeOrient(self.orient);
-        const dropMenu = self.hasSidebarDropMenu?.() ?? false;
-        this.syncHostFeatureAttributes?.(orient, dropMenu);
         const root = H`
         <form class="ui-tabbed-box-tabs" part="tabs">${M(observableByMap(self.tabs ?? new Map()), ([key, _], idx) => this.createTab(key, idx))}</form>
         <div class="ui-tabbed-box-content" part="content"><slot></slot></div>`
         return root;
-    }
-
-    //
-    protected syncHostFeatureAttributes?(orient: 0 | 2, dropMenu: boolean) {
-        const host = this as unknown as HTMLElement;
-        host?.setAttribute?.("orient", String(orient));
-        const position = orient === 2 ? "top" : "bottom";
-        host?.setAttribute?.("tab-position", position);
-        if (dropMenu) {
-            host?.setAttribute?.("drop-menu", "");
-        } else {
-            host?.removeAttribute?.("drop-menu");
-        }
     }
 
     //

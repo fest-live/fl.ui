@@ -79,6 +79,7 @@
             .toolbar-slot {
                 padding: 0rem;
                 grid-row: 1 / 1 span;
+                padding-inline-end: 1rem;
                 grid-column: content-col;
                 max-inline-size: stretch;
                 max-block-size: stretch;
@@ -92,8 +93,19 @@
                 align-items: center;
                 gap: 0rem;
                 z-index: 3;
-                border-radius: 0px;
-                overflow: visible;
+                border-radius: 50cqmin;
+                overflow: hidden;
+                opacity: 0;
+                visibility: hidden;
+                pointer-events: none;
+                transition: opacity var(--duration-normal, 160ms) var(--ease-out, ease),
+                            visibility var(--duration-normal, 160ms) var(--ease-out, ease);
+
+                &[toolbar-opened="true"] {
+                    opacity: 1;
+                    visibility: visible;
+                    pointer-events: auto;
+                }
             }
 
             // ================================================================

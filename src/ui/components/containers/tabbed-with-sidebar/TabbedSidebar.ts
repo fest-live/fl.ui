@@ -83,6 +83,7 @@ export class TabbedSidebar extends UIElement {
     @property({ source: "attr", name: "tab-position" }) tabPosition?: string = "top"; //@ts-ignore
     @property({ source: "attr", name: "sidebar-drop-menu" }) sidebarAsDropMenu?: string | boolean = null; //@ts-ignore
     @property({ source: "attr", name: "sidebar-opened" }) sidebarOpened?: string | boolean = false; //@ts-ignore
+    @property({ source: "attr", name: "toolbar-opened" }) toolbarOpened?: string | boolean = true; //@ts-ignore
 
     //
     setTabs(tabs: Map<string, HTMLElement | string | any>) {
@@ -144,6 +145,7 @@ export class TabbedSidebar extends UIElement {
         requestAnimationFrame(() => {
             self.removeAttribute("sidebar-drop-menu");
             self.removeAttribute("sidebar-opened");
+            self.setAttribute("toolbar-opened", true);
         });
 
         //
@@ -286,7 +288,8 @@ export class TabbedSidebar extends UIElement {
     styles = () => styled;
     render = function () {
         const openedProperty = propRef(this as any, "sidebarOpened") ?? this.sidebarOpened;
-        return H`<div part="bar" class="bar c2-surface">
+        const toolbarOpenedProperty = propRef(this as any, "toolbarOpened") ?? this.toolbarOpened;
+        return H`<div part="bar" class="bar">
             <button
                 part="open-sidebar"
                 class="open-sidebar c2-surface"
@@ -296,8 +299,23 @@ export class TabbedSidebar extends UIElement {
                 on:click=${() => { this.sidebarOpened = !this.sidebarOpened; }}
             ><ui-icon icon="${conditional(openedProperty, 'text-outdent', 'list')}"></ui-icon></button>
             <form class="ui-tabbed-box-tabs pinned" part="pinned">${this.createTab("home")}</form>
-            <div class="toolbar-slot"><slot name="bar"></slot></div>
-            <form class="ui-tabbed-box-tabs" part="tabs">${M(observableByMap(this.tabs ?? new Map()), ([key, _], idx) => (key != "home" && (typeof key == "string") ? this.createTab(key) : null))}</form>
+            <div class="toolbar-slot" toolbar-opened=${conditional(toolbarOpenedProperty, "true", "false")}><slot name="bar"></slot></div>
+            <form class="ui-tabbed-box-tabs" part="tabs">${M(observableByMap(this.tabs ?? new Map()), ([key, _], idx) => (key != "home" && (typeof key == "string") ? this.createTab(key) : null))}
+                <button
+                    type="button"
+                    part="toggle-toolbar"
+                    class="toggle-toolbar c2-surface"
+                    aria-label="Toggle toolbar"
+                    aria-expanded=${conditional(toolbarOpenedProperty, "true", "false")}
+                    on:click=${(ev: Event) => {
+                        ev?.preventDefault?.();
+                        ev?.stopPropagation?.();
+                        if (ev?.target == ev?.currentTarget) {
+                            this.toolbarOpened = !this.toolbarOpened;
+                        }
+                    }}
+                ><ui-icon icon="${conditional(toolbarOpenedProperty, 'caret-right', 'caret-left')}"></ui-icon></button>
+            </form>
         </div>
         <div part="underlay" class="ui-underlay"><slot name="underlay"></slot></div>
         <div part="content-box" class="content-box">

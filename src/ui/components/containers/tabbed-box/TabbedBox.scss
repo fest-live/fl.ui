@@ -10,16 +10,16 @@
     :host {
         --tabbed-gap: var(--gap-sm, 0.5rem);
         --tabbed-radius: var(--radius-lg, 0.75rem);
-        --tabbed-padding-inline: clamp(0.5rem, 1cqi + 0.5rem, 1.25rem);
-        --tabbed-padding-block: clamp(0.5rem, 1cqb + 0.25rem, 1rem);
+        --tabbed-padding-inline: clamp(0.25rem, 1cqi + 0.25rem, 1rem);
+        --tabbed-padding-block: clamp(0.25rem, 1cqb + 0.25rem, 0.75rem);
         --tabbed-tab-gap: var(--gap-xs, 0.375rem);
         --tabbed-indicator-height: 0.2rem;
         --tabbed-indicator-ease: var(--ease-emphasized, cubic-bezier(0.2, 0, 0, 1));
         --tabbed-indicator-duration: var(--duration-normal, 160ms);
         --tabbed-bar-block-size: clamp(3.5rem, 1cqb + 2.5rem, 4.25rem);
-        --tabbed-bar-inline-size: clamp(3.5rem, 1cqb + 2.5rem, 4.25rem);
         --tabbed-grid-columns: minmax(0px, 1fr);
         --tabbed-tabs-block-gap: var(--padding-sm, 0.75rem);
+        --tabbed-bar-column-size: clamp(4rem, 2cqb + 2.5rem, 4.5rem);
         --tabbed-grid-rows: minmax(0px, 1fr) minmax(0px, var(--tabbed-bar-block-size));
 
         //
@@ -68,14 +68,14 @@
 
         //
         @at-root #{$at-host-orient-1} {
-            --tabbed-grid-columns: minmax(0px, var(--tabbed-bar-block-size)) minmax(0px, 1fr);
+            --tabbed-grid-columns: minmax(0px, var(--tabbed-bar-column-size)) minmax(0px, 1fr);
             --tabbed-grid-rows: minmax(0px, 1fr);
             grid-template-areas: "tabs content" !important;
         }
 
         //
         @at-root #{$at-host-orient-3} {
-            --tabbed-grid-columns: minmax(0px, 1fr) minmax(0px, var(--tabbed-bar-block-size));
+            --tabbed-grid-columns: minmax(0px, 1fr) minmax(0px, var(--tabbed-bar-column-size));
             --tabbed-grid-rows: minmax(0px, 1fr);
             grid-template-areas: "content tabs" !important;
         }
@@ -83,15 +83,15 @@
         //
         @at-root #{$at-host-orient-0} {
             --tabbed-grid-columns: minmax(0px, 1fr);
-            --tabbed-grid-rows: minmax(0px, var(--tabbed-bar-block-size)) minmax(0px, 1fr);
-            grid-template-areas: "tabs" "content" !important;
+            --tabbed-grid-rows: minmax(0px, 1fr) minmax(0px, var(--tabbed-bar-block-size));
+            grid-template-areas: "content" "tabs" !important;
         }
 
         //
         @at-root #{$at-host-orient-2} {
             --tabbed-grid-columns: minmax(0px, 1fr);
-            --tabbed-grid-rows: minmax(0px, 1fr) minmax(0px, var(--tabbed-bar-block-size));
-            grid-template-areas: "content" "tabs" !important;
+            --tabbed-grid-rows: minmax(0px, var(--tabbed-bar-block-size)) minmax(0px, 1fr);
+            grid-template-areas: "tabs" "content" !important;
         }
 
         //
@@ -122,6 +122,7 @@
             touch-action: pan-x;
             scroll-behavior: smooth;
             overflow: visible;
+            z-index: 99;
 
             //
             place-content: center;
@@ -141,13 +142,164 @@
                 touch-action: pan-x;
             }
 
-            //
-            @at-root #{$at-host-orient-3} .ui-tabbed-box-tabs {
-                writing-mode: vertical-rl;
+            & {
+                background-color: --c2-surface(0.15, var(--current, currentColor));
             }
 
-            @at-root #{$at-host-orient-1} .ui-tabbed-box-tabs {
+            /*& {
+                background-color: transparent;
+                background-image: none;
+            }*/
+
+            //
+            @at-root #{$at-host-orient-3} .ui-tabbed-box-tabs, #{$at-host-orient-1} .ui-tabbed-box-tabs {
                 writing-mode: vertical-rl;
+                flex-direction: row;
+                align-items: stretch;
+                justify-content: flex-start;
+                gap: var(--tabbed-tab-gap);
+                padding-block: calc(var(--tabbed-padding-inline) * 0.5);
+                padding-inline: calc(var(--tabbed-padding-block) * 0.65);
+                min-inline-size: var(--tabbed-bar-block-size);
+                max-inline-size: stretch;
+                max-block-size: var(--tabbed-bar-column-size);
+                block-size: var(--tabbed-bar-column-size);
+                min-block-size: var(--tabbed-bar-column-size);
+                touch-action: pan-y;
+                scroll-behavior: smooth;
+                overflow-x: hidden;
+                overflow-y: auto;
+                @include scrollable("x");
+                inline-size: stretch;
+                border-radius: 0px;
+
+                &, & *, & button {
+                    touch-action: pan-y;
+                }
+
+                // Vertical scroll gradients
+                &::before,
+                &::after {
+                    inset-inline: 0;
+                    block-size: min(1.75rem, 8%);
+                    inline-size: stretch;
+                    background: linear-gradient(180deg, color-mix(in oklch, var(--md3-surface) 70%, transparent) 0%, transparent 100%);
+                }
+
+                &::before {
+                    inset-block-start: 0;
+                    transform: scaleY(-1);
+                    --scroll-gradient: attr(data-scrollable-start number, 0);
+                }
+
+                &::after {
+                    inset-block-end: 0;
+                    --scroll-gradient: attr(data-scrollable-end number, 0);
+                }
+
+                // Vertical scroll mask
+                @supports (mask-image: linear-gradient(#0000, #000)) {
+                    &[data-scrollable="true"] {
+                        mask-image: linear-gradient(to bottom, transparent 0%, black min(2.5rem, 18%), black calc(100% - min(2.5rem, 18%)), transparent 100%);
+                    }
+                }
+
+                // Tab items for vertical orientation
+                .ui-tabbed-box-tab {
+                    writing-mode: horizontal-tb;
+                    min-inline-size: stretch;
+                    inline-size: stretch;
+                    max-inline-size: stretch;
+                    min-block-size: 3.5rem;
+                    block-size: fit-content;
+                    max-block-size: 3.5rem;
+                    padding-inline: 0px;/*calc(var(--tabbed-padding-block) * 0.75)*/;
+                    padding-block: calc(var(--tabbed-padding-inline) * 0.75);
+                    flex-direction: column;
+                    align-items: center;
+                    gap: clamp(0.25rem, 0.3cqb, 0.5rem);
+                    word-break: break-word;
+                    overflow: hidden;
+                    overflow-wrap: normal;
+                    display: flex;
+
+                    place-content: center;
+                    place-items: center;
+                    text-align: center;
+                    font-size: 0.5rem;
+                    text-overflow: ellipsis;
+
+                    justify-content: safe center;
+                    justify-items: safe center;
+                    border-radius: var(--radius-sm);
+
+                    // Tab label styling for vertical
+                    .ui-tabbed-box-tab-label {
+                        display: block;
+                        flex-direction: column;
+                        align-items: center;
+                        justify-content: center;
+                        text-align: center;
+                        line-height: var(--leading-tight, 1.2);
+                        overflow-wrap: break-word;
+                        text-overflow: ellipsis;
+                        word-break: break-word;
+                        overflow: hidden;
+                        inline-size: stretch;
+                        max-inline-size: stretch;
+                        min-inline-size: 0px;
+                        block-size: fit-content;
+                    }
+
+                    span {
+                        overflow: hidden;
+                        text-overflow: ellipsis;
+                        word-break: break-word;
+                    }
+
+                    // Icon styling for vertical tabs
+                    ui-icon {
+                        flex-shrink: 0;
+                        inline-size: clamp(1.25rem, 1.5cqb, 1.75rem);
+                        block-size: clamp(1.25rem, 1.5cqb, 1.75rem);
+                    }
+
+                    // Vertical indicator (on the side)
+                    &::after {
+                        inset-inline-start: calc(var(--tabbed-indicator-height) * -1);
+                        inset-inline-end: auto;
+                        inset-block: clamp(0.5rem, 2cqb, 1rem);
+                        inline-size: var(--tabbed-indicator-height);
+                        block-size: auto;
+                        transform: translate3d(-50%, 0, 0) scaleY(0.6);
+                        border-radius: calc(var(--tabbed-indicator-height) / 2);
+                    }
+
+                    &:where([aria-selected="true"], [data-active], .is-active, .active) {
+                        transform: translateX(-2px);
+
+                        &::after {
+                            transform: translate3d(0, 0, 0) scaleY(1);
+                        }
+                    }
+                }
+
+                // Orient 1 specific: indicator on left
+                @at-root #{$at-host-orient-1} .ui-tabbed-box-tabs .ui-tabbed-box-tab::after {
+                    inset-inline-start: calc(var(--tabbed-indicator-height) * -1);
+                    inset-inline-end: auto;
+                }
+
+                // Orient 3 specific: indicator on right
+                @at-root #{$at-host-orient-3} .ui-tabbed-box-tabs .ui-tabbed-box-tab::after {
+                    inset-inline-start: auto;
+                    inset-inline-end: calc(var(--tabbed-indicator-height) * -1);
+                    transform: translate3d(50%, 0, 0) scaleY(0.6);
+                }
+
+                @at-root #{$at-host-orient-3} .ui-tabbed-box-tabs .ui-tabbed-box-tab:where([aria-selected="true"], [data-active], .is-active, .active)::after {
+                    transform: translate3d(0, 0, 0) scaleY(1);
+                }
             }
 
             //
@@ -306,6 +458,7 @@
             grid-template-columns: minmax(0px, 1fr);
             grid-template-rows: minmax(0px, 1fr);
             will-change: contents;
+            grid-column: 1 / -1;
 
             max-inline-size: stretch;
             max-block-size: stretch;
@@ -316,7 +469,7 @@
             @include surface(var(--surface-opacity-subtle));
             @include container-clamped(stretch, stretch);
 
-            & { max-block-size: none; }
+            & { max-block-size: none; background-color: transparent; background-image: none; }
 
             &::slotted(*) {
                 inline-size: stretch;

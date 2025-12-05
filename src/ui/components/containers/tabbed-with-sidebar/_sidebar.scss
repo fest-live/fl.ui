@@ -33,7 +33,7 @@
 
                 // Visual
                 background: none;
-                background-color: var(--surface-color, transparent);
+                background-color: --c2-surface(0.15, var(--current, currentColor));
                 box-shadow: none;
                 border-radius: 0px;
                 overflow: hidden !important;
@@ -102,13 +102,11 @@
                         position: relative;
                         inline-size: var(--sidebar-inline-grid-size, 0px);
                         min-inline-size: 0px;
-                        transition:
-                            --sidebar-inline-grid-size var(--transition-medium, 0.28s) ease,
-                            inline-size var(--transition-medium, 0.28s) ease;
                         max-inline-size: stretch;
 
                         // Visible state
                         &:is([sidebar-opened="true"], [sidebar-opened=""]) {
+                            will-change: inline-size;
                             max-inline-size: none;
                         }
 

@@ -31,6 +31,8 @@
 
             touch-action: manipulation;
             pointer-events: auto;
+            border-radius: 0.5rem;
+            margin: 0px;
 
             @include solid-colorize("&");
         }

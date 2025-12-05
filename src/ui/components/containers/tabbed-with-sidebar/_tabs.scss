@@ -20,6 +20,8 @@
                 grid-row: 1;
 
                 // Sizing
+                max-inline-size: stretch;
+                max-block-size: stretch;
                 inline-size: stretch;
                 block-size: stretch;
                 min-block-size: 0px;
@@ -102,6 +104,7 @@
                     aspect-ratio: 1 / 1;
                     inset: 0px;
                     overflow: hidden;
+                    pointer-events: auto;
 
                     // Spacing
                     padding-inline: 0px;
@@ -215,6 +218,7 @@
             touch-action: pan-x;
         }
 
+
         // ================================================================
         // Tab Items
         // ================================================================
@@ -231,6 +235,8 @@
             max-inline-size: none;
             min-block-size: fit-content;
             block-size: stretch;
+            pointer-events: auto;
+
             @include container-clamped(fit-content, fit-content);
 
             // Spacing
@@ -436,6 +442,12 @@
                     block-size: var(--tabbed-icon-size);
                 }
             }
+
+
+
+
         }
+
+
     }
 }

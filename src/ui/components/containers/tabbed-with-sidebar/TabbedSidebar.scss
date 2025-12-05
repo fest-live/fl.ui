@@ -71,8 +71,8 @@ $at-host-orient-2: ":host([data-orient=\"2\"])";
         & {
             --tabbed-min-bar-size: 3rem;
             --tabbed-gap: var(--gap-sm, 0.5rem);
-            --tabbed-padding-inline: clamp(0.5rem, 1cqi + 0.5rem, 1.25rem);
-            --tabbed-padding-block: clamp(0.5rem, 1cqb + 0.25rem, 1rem);
+            --tabbed-padding-inline: clamp(0.25rem, 1cqi + 0.25rem, 1rem);
+            --tabbed-padding-block: clamp(0.25rem, 1cqb + 0.25rem, 0.75rem);
             --tabbed-tab-gap: var(--gap-md, 0.375rem);
             --tabbed-indicator-height: 0.2rem;
             --tabbed-indicator-ease: var(--ease-emphasized, cubic-bezier(0.2, 0, 0, 1));
@@ -86,6 +86,15 @@ $at-host-orient-2: ":host([data-orient=\"2\"])";
             --ui-shadow-soft: #0002;
             --button-inline-size: var(--tabbed-button-size, 3rem);
             --sidebar-inline-grid-size: 0px;
+        }
+
+        button {
+            outline: none;
+            border: none;
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            pointer-events: auto;
         }
 
         // ====================================================================
@@ -169,6 +178,98 @@ $at-host-orient-2: ":host([data-orient=\"2\"])";
             max-inline-size: stretch;
             max-block-size: stretch;
             position: relative;
+        }
+
+        // ================================================================
+        // Toggle Toolbar Button
+        // ================================================================
+        .toggle-toolbar {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: center;
+            place-content: center;
+            place-items: center;
+            flex-shrink: 0;
+            position: absolute !important;
+            inset: auto;
+            inset-inline-end: 0;
+            isolation: isolate;
+            float: end;
+            justify-self: end;
+            z-index: 99;
+
+            // Sizing
+            min-inline-size: 1.25rem;
+            inline-size: 1.25rem;
+            max-inline-size: 1.25rem;
+            min-block-size: fit-content;
+            block-size: 2.5rem;
+            max-block-size: 2.5rem;
+            aspect-ratio: 1 / 2;
+
+            // Spacing
+            gap: 0px;
+            padding: calc(var(--tabbed-padding-block) * 0.6);
+            margin-inline-start: var(--tabbed-tab-gap);
+
+            // Visual
+            border-radius: 50cqmin;
+            background-color: transparent;
+            color: color-mix(in oklch, var(--md3-on-surface) 85%, transparent);
+            border: none;
+            outline: none;
+            overflow: visible;
+
+            // Interaction
+            cursor: pointer;
+            touch-action: pan-x;
+            transition: color var(--duration-normal) var(--ease-out),
+                        transform var(--duration-fast) var(--ease-emphasized),
+                        background-color var(--duration-normal) var(--ease-out);
+
+            // Alignment
+            text-align: center;
+
+            // Performance
+            content-visibility: visible;
+
+            // Button styling
+            @include button-text(primary, false);
+            @include button-overlays(var(--md3-primary));
+
+            // Icon
+            ui-icon {
+                inline-size: var(--tabbed-icon-size);
+                block-size: var(--tabbed-icon-size);
+                min-inline-size: var(--tabbed-icon-size);
+                min-block-size: var(--tabbed-icon-size);
+                max-inline-size: var(--tabbed-icon-size);
+                max-block-size: var(--tabbed-icon-size);
+                aspect-ratio: 1 / 1;
+                flex-shrink: 0;
+                color: inherit;
+                --icon-color: inherit;
+            }
+
+            // States
+            &:hover {
+                color: color-mix(in oklch, var(--md3-on-surface) 92%, transparent);
+            }
+
+            &:active {
+                transform: scale(0.9);
+            }
+
+            &:focus-visible {
+                outline: 2px solid color-mix(in oklch, currentColor 35%, transparent);
+                outline-offset: 2px;
+            }
+
+            &[aria-expanded="true"] {
+                @include button-filled(primary, false);
+                color: var(--md3-on-primary);
+            }
         }
     }
 

@@ -35,6 +35,7 @@
             box-shadow: none;
             overflow: hidden;
             position: relative;
+            pointer-events: none;
 
             // Containment
             contain: none;
@@ -80,6 +81,7 @@
             border-radius: 0px;
             box-shadow: none;
             align-content: start;
+            pointer-events: none;
 
             // Performance
             container-type: inline-size;

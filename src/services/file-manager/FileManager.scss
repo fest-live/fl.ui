@@ -26,17 +26,20 @@
             inline-size: stretch;
             block-size: stretch;
             content-visibility: auto;
-            border-radius: 0.5rem;
+            border-radius: 0px;
             overflow: hidden;
+            margin: 0px;
 
             @include solid-colorize("&");
+
+            background-color: transparent;
         }
 
         .fm-root {
+            gap: 0.125rem;
             display: grid;
             grid-template-columns: [content-col] minmax(0px, 1fr); //[sidebar-col] minmax(0px, max-content);
             grid-template-rows: auto minmax(0px, 1fr);
-            gap: 0.5rem;
             inline-size: stretch;
             block-size: stretch;
             overflow: hidden;

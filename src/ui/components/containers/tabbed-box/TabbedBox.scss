@@ -100,7 +100,7 @@
         }
 
         //
-        .ui-tabbed-box-tabs {
+        .ui-tabbed-box-tabs-container {
             margin-block: 0;
             display: flex;
             grid-area: tabs;
@@ -111,18 +111,19 @@
             flex-wrap: nowrap;
             flex-direction: row;
             align-items: center;
-            gap: var(--tabbed-tab-gap);
-            padding-block: calc(var(--tabbed-padding-block) * 0.65);
-            padding-inline: calc(var(--tabbed-padding-inline) * 0.5);
+            justify-content: center;
+            gap: 0px;
+            padding: 0px;
             position: relative;
-            pointer-events: auto;
+            pointer-events: none;
             border-radius: 0px;
-            scrollbar-gutter: stable;
-            overscroll-behavior-inline: contain;
-            touch-action: pan-x;
-            scroll-behavior: smooth;
             overflow: visible;
             z-index: 99;
+            background-color: transparent;
+            background-image: none;
+
+            //
+            //background-color: --c2-surface(0.15, var(--current, currentColor));
 
             //
             place-content: center;
@@ -130,77 +131,164 @@
             text-align: center;
 
             //
-            justify-content: safe center;
-            justify-items: safe center;
+            .ui-tabbed-box-tabs {
+                display: flex;
+                flex-direction: row;
+                align-items: center;
+                gap: var(--tabbed-tab-gap);
+                padding-block: calc(var(--tabbed-padding-block) * 0.65);
+                padding-inline: calc(var(--tabbed-padding-inline) * 0.5);
+                position: relative;
+                pointer-events: auto;
+                touch-action: pan-x pan-y;
+                scrollbar-gutter: stable;
+                overscroll-behavior-inline: contain;
+                scroll-behavior: smooth;
+                border-radius: var(--tabbed-radius);
+                overflow: hidden;
+                margin-inline: 0.5rem;
+                margin-block: 0.25rem;
 
-            //
-            @include scrollable("x");
-            @include surface(var(--surface-opacity-subtle));
+                //
+                place-content: center;
+                place-items: center;
 
-            //
-            &, & *, & button {
-                touch-action: pan-x;
-            }
+                //
+                min-inline-size: 0px;
+                min-block-size: 0px;
+                inline-size: fit-content;
+                block-size: fit-content;
+                max-inline-size: stretch;
+                max-block-size: stretch;
 
-            & {
+                // Appearance styles: rounded box with backdrop blur
+                @include surface(var(--surface-opacity-subtle));
+                @include backdrop-blur("subtle");
                 background-color: --c2-surface(0.15, var(--current, currentColor));
+
+                //
+                @include scrollable("x");
+
+                //
+                justify-content: safe center;
+                justify-items: safe center;
+
+                //
+                &, & *, & button {
+                    touch-action: pan-x pan-y;
+                }
+
+                // Horizontal scroll gradients
+                &::before,
+                &::after {
+                    content: "";
+                    position: absolute;
+                    inset-block: 0;
+                    inline-size: min(1.75rem, 8%);
+                    pointer-events: none;
+                    opacity: clamp(0, calc(var(--scroll-gradient, 0)), 1);
+                    transition: opacity var(--duration-normal) var(--ease-out);
+                    background: linear-gradient(90deg, color-mix(in oklch, var(--md3-surface) 70%, transparent) 0%, transparent 100%);
+                }
+
+                &::before {
+                    inset-inline-start: 0;
+                    transform: scaleX(-1);
+                    --scroll-gradient: attr(data-scrollable-start number, 0);
+                }
+
+                &::after {
+                    inset-inline-end: 0;
+                    --scroll-gradient: attr(data-scrollable-end number, 0);
+                }
+
+                //
+                @supports (mask-image: linear-gradient(#0000, #000)) {
+                    &[data-scrollable="true"] {
+                        mask-image: linear-gradient(to right, transparent 0%, black min(2.5rem, 18%), black calc(100% - min(2.5rem, 18%)), transparent 100%);
+                    }
+                }
             }
 
-            /*& {
-                background-color: transparent;
-                background-image: none;
-            }*/
-
             //
-            @at-root #{$at-host-orient-3} .ui-tabbed-box-tabs, #{$at-host-orient-1} .ui-tabbed-box-tabs {
+            @at-root #{$at-host-orient-3} .ui-tabbed-box-tabs-container, #{$at-host-orient-1} .ui-tabbed-box-tabs-container {
                 writing-mode: vertical-rl;
                 flex-direction: row;
                 align-items: stretch;
                 justify-content: flex-start;
-                gap: var(--tabbed-tab-gap);
-                padding-block: calc(var(--tabbed-padding-inline) * 0.5);
-                padding-inline: calc(var(--tabbed-padding-block) * 0.65);
+                gap: 0px;
+                padding: 0px;
                 min-inline-size: var(--tabbed-bar-block-size);
                 max-inline-size: stretch;
                 max-block-size: var(--tabbed-bar-column-size);
                 block-size: var(--tabbed-bar-column-size);
                 min-block-size: var(--tabbed-bar-column-size);
-                touch-action: pan-y;
-                scroll-behavior: smooth;
-                overflow-x: hidden;
-                overflow-y: auto;
-                @include scrollable("x");
                 inline-size: stretch;
                 border-radius: 0px;
+                pointer-events: none;
+                background-color: transparent;
+                background-image: none;
 
-                &, & *, & button {
-                    touch-action: pan-y;
-                }
+                //
+                .ui-tabbed-box-tabs {
+                    display: flex;
+                    flex-direction: row;
+                    align-items: center;
+                    justify-content: flex-start;
+                    gap: var(--tabbed-tab-gap);
+                    padding-block: calc(var(--tabbed-padding-inline) * 0.5);
+                    padding-inline: calc(var(--tabbed-padding-block) * 0.65);
+                    position: relative;
+                    pointer-events: auto;
+                    touch-action: pan-x pan-y;
+                    scroll-behavior: smooth;
+                    overflow-x: hidden;
+                    overflow-y: auto;
+                    border-radius: var(--tabbed-radius);
+                    min-inline-size: 0px;
+                    min-block-size: 0px;
+                    inline-size: fit-content;
+                    block-size: fit-content;
+                    max-inline-size: stretch;
+                    max-block-size: stretch;
+                    margin-inline: 0.5rem;
+                    margin-block: 0.25rem;
 
-                // Vertical scroll gradients
-                &::before,
-                &::after {
-                    inset-inline: 0;
-                    block-size: min(1.75rem, 8%);
-                    inline-size: stretch;
-                    background: linear-gradient(180deg, color-mix(in oklch, var(--md3-surface) 70%, transparent) 0%, transparent 100%);
-                }
+                    // Appearance styles: rounded box with backdrop blur
+                    @include surface(var(--surface-opacity-subtle));
+                    @include backdrop-blur("subtle");
+                    @include scrollable("x");
 
-                &::before {
-                    inset-block-start: 0;
-                    transform: scaleY(-1);
-                    --scroll-gradient: attr(data-scrollable-start number, 0);
-                }
+                    //
+                    &, & *, & button {
+                        touch-action: pan-x pan-y;
+                    }
 
-                &::after {
-                    inset-block-end: 0;
-                    --scroll-gradient: attr(data-scrollable-end number, 0);
-                }
+                    // Vertical scroll gradients
+                    &::before,
+                    &::after {
+                        inset-inline: 0;
+                        block-size: min(1.75rem, 8%);
+                        inline-size: stretch;
+                        background: linear-gradient(180deg, color-mix(in oklch, var(--md3-surface) 70%, transparent) 0%, transparent 100%);
+                    }
 
-                // Vertical scroll mask
-                @supports (mask-image: linear-gradient(#0000, #000)) {
-                    &[data-scrollable="true"] {
-                        mask-image: linear-gradient(to bottom, transparent 0%, black min(2.5rem, 18%), black calc(100% - min(2.5rem, 18%)), transparent 100%);
+                    &::before {
+                        inset-block-start: 0;
+                        transform: scaleY(-1);
+                        --scroll-gradient: attr(data-scrollable-start number, 0);
+                    }
+
+                    &::after {
+                        inset-block-end: 0;
+                        --scroll-gradient: attr(data-scrollable-end number, 0);
+                    }
+
+                    // Vertical scroll mask
+                    @supports (mask-image: linear-gradient(#0000, #000)) {
+                        &[data-scrollable="true"] {
+                            mask-image: linear-gradient(to bottom, transparent 0%, black min(2.5rem, 18%), black calc(100% - min(2.5rem, 18%)), transparent 100%);
+                        }
                     }
                 }
 
@@ -232,6 +320,8 @@
                     justify-content: safe center;
                     justify-items: safe center;
                     border-radius: var(--radius-sm);
+
+                    background-color: transparent;
 
                     // Tab label styling for vertical
                     .ui-tabbed-box-tab-label {
@@ -302,35 +392,6 @@
                 }
             }
 
-            //
-            &::before,
-            &::after {
-                content: "";
-                position: absolute;
-                inset-block: 0;
-                inline-size: min(1.75rem, 8%);
-                pointer-events: none;
-                opacity: clamp(0, calc(var(--scroll-gradient, 0)), 1);
-                transition: opacity var(--duration-normal) var(--ease-out);
-                background: linear-gradient(90deg, color-mix(in oklch, var(--md3-surface) 70%, transparent) 0%, transparent 100%);
-            }
-
-            &::before {
-                inset-inline-start: 0; transform: scaleX(-1);
-                --scroll-gradient: attr(data-scrollable-start number, 0);
-            }
-
-            &::after {
-                inset-inline-end: 0;
-                --scroll-gradient: attr(data-scrollable-end number, 0);
-            }
-
-            //
-            @supports (mask-image: linear-gradient(#0000, #000)) {
-                &[data-scrollable="true"] {
-                    mask-image: linear-gradient(to right, transparent 0%, black min(2.5rem, 18%), black calc(100% - min(2.5rem, 18%)), transparent 100%);
-                }
-            }
 
             //
             .ui-tabbed-box-tab {
@@ -340,7 +401,7 @@
                 text-wrap: nowrap;
                 flex-shrink: 0;
                 grid-area: tab;
-                touch-action: pan-x;
+                touch-action: pan-x pan-y;
                 writing-mode: horizontal-tb;
 
                 //
@@ -369,7 +430,7 @@
                 @include button-overlays(var(--md3-primary));
 
                 //
-                & { min-block-size: 3rem; min-inline-size: 4rem; inline-size: fit-content; max-inline-size: stretch; }
+                & { min-block-size: 3rem; min-inline-size: 4rem; inline-size: fit-content; max-inline-size: stretch; background-color: transparent; }
 
                 //
                 &::after {
@@ -458,8 +519,12 @@
             grid-template-columns: minmax(0px, 1fr);
             grid-template-rows: minmax(0px, 1fr);
             will-change: contents;
+
+            // immersive mode
+            grid-row: 1 / -1;
             grid-column: 1 / -1;
 
+            //
             max-inline-size: stretch;
             max-block-size: stretch;
             min-inline-size: 0px;

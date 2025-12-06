@@ -54,6 +54,7 @@
                 text-align: start;
                 justify-content: safe flex-start;
                 justify-items: safe flex-start;
+                z-index: 90;
 
                 // Surface styling
                 @include surface(var(--surface-opacity-subtle));

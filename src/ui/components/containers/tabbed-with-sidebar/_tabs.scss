@@ -36,6 +36,7 @@
                 border-radius: 50cqmin;
                 overflow: hidden;
                 position: relative;
+                contain: strict;
 
                 // Scrolling
                 scrollbar-gutter: stable;
@@ -71,6 +72,7 @@
                 inline-size: max-content;
                 block-size: stretch;
                 overflow: visible;
+                contain: none;
 
                 // Spacing
                 padding: 0px;

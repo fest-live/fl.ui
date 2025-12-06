@@ -158,6 +158,7 @@
                 isolation: auto;
                 transform: translateZ(0);
                 scrollbar-width: none;
+                contain: strict;
 
                 //
                 position: relative;
@@ -168,8 +169,8 @@
                 place-items: center;
 
                 //
-                min-inline-size: 0px;
-                min-block-size: 0px;
+                min-inline-size: stretch;
+                min-block-size: var(--tabbed-bar-block-size);
                 inline-size: fit-content;
                 block-size: fit-content;
                 max-inline-size: stretch;
@@ -329,8 +330,8 @@
                     overflow-block: hidden;
                     border-radius: var(--tabbed-radius);
                     clip-path: inset(0px round var(--tabbed-radius));
-                    min-inline-size: 0px;
-                    min-block-size: 0px;
+                    min-inline-size: stretch;
+                    min-block-size: var(--tabbed-bar-column-size);
                     inline-size: fit-content;
                     block-size: fit-content;
                     max-inline-size: stretch;
@@ -339,6 +340,7 @@
                     margin-block: 0.25rem;
                     isolation: auto;
                     transform: translateZ(0);
+                    contain: strict;
 
                     // Appearance styles: rounded box with backdrop blur
                     @include scrollable("x");

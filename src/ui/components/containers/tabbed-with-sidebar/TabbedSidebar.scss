@@ -191,7 +191,6 @@ $at-host-orient-2: ":host([data-orient=\"2\"])";
             place-content: center;
             place-items: center;
             flex-shrink: 0;
-            position: absolute !important;
             inset: auto;
             inset-inline-end: 0.125rem;
             isolation: isolate;
@@ -199,6 +198,8 @@ $at-host-orient-2: ":host([data-orient=\"2\"])";
             justify-self: end;
             z-index: 99;
             margin: 0px;
+            grid-column: content-col;
+            grid-row: 1;
 
             // Sizing
             inline-size: fit-content;

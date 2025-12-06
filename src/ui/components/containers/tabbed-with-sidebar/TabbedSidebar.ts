@@ -301,21 +301,22 @@ export class TabbedSidebar extends UIElement {
             <form class="ui-tabbed-box-tabs pinned" part="pinned">${this.createTab("home")}</form>
             <div class="toolbar-slot" toolbar-opened=${conditional(toolbarOpenedProperty, "true", "false")}><slot name="bar"></slot></div>
             <form class="ui-tabbed-box-tabs" part="tabs">${M(observableByMap(this.tabs ?? new Map()), ([key, _], idx) => (key != "home" && (typeof key == "string") ? this.createTab(key) : null))}
-                <button
-                    type="button"
-                    part="toggle-toolbar"
-                    class="toggle-toolbar c2-surface"
-                    aria-label="Toggle toolbar"
-                    aria-expanded=${conditional(toolbarOpenedProperty, "true", "false")}
-                    on:click=${(ev: Event) => {
-                        ev?.preventDefault?.();
-                        ev?.stopPropagation?.();
-                        if (ev?.target == ev?.currentTarget) {
-                            this.toolbarOpened = !this.toolbarOpened;
-                        }
-                    }}
-                ><ui-icon icon="${conditional(toolbarOpenedProperty, 'caret-right', 'caret-left')}"></ui-icon></button>
             </form>
+
+            <button
+                type="button"
+                part="toggle-toolbar"
+                class="toggle-toolbar c2-surface"
+                aria-label="Toggle toolbar"
+                aria-expanded=${conditional(toolbarOpenedProperty, "true", "false")}
+                on:click=${(ev: Event) => {
+                    ev?.preventDefault?.();
+                    ev?.stopPropagation?.();
+                    if (ev?.target == ev?.currentTarget) {
+                        this.toolbarOpened = !this.toolbarOpened;
+                    }
+                }}
+            ><ui-icon icon="${conditional(toolbarOpenedProperty, 'caret-right', 'caret-left')}"></ui-icon></button>
         </div>
         <div part="underlay" class="ui-underlay"><slot name="underlay"></slot></div>
         <div part="content-box" class="content-box">

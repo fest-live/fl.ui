@@ -35,6 +35,7 @@
             -webkit-tap-highlight-color: transparent;
 
             //
+            isolation: auto;
             min-inline-size: 0px;
             min-block-size: 0px;
             border-radius: 0px;
@@ -54,6 +55,7 @@
             grid-template-areas: "content tabs" !important;
             inline-size: stretch;
             block-size: stretch;
+            position: relative;
             container-type: inline-size;
             padding: 0px !important;
             margin: 0px !important;
@@ -114,19 +116,25 @@
             justify-content: center;
             gap: 0px;
             padding: 0px;
-            position: relative;
-            pointer-events: none;
             border-radius: 0px;
             overflow: visible;
-            z-index: 99;
             background-color: transparent;
             background-image: none;
+            isolation: auto;
+            scrollbar-width: none;
+
+            //
+            position: relative;
+            z-index: 90;
 
             //
             place-content: center;
             place-items: center;
             text-align: center;
-            filter: drop-shadow(0 0 0.5rem oklch(from #000 l c h / 0.1));
+            /*backdrop-filter: blur(0);*/
+            pointer-events: none;
+            /*filter: drop-shadow(0 0 0.5rem oklch(from #000 l c h / 0.1));*/
+            transform: translateZ(0);
 
             //
             .ui-tabbed-box-tabs {
@@ -136,16 +144,24 @@
                 gap: var(--tabbed-tab-gap);
                 padding-block: calc(var(--tabbed-padding-block) * 0.65);
                 padding-inline: calc(var(--tabbed-padding-inline) * 0.5);
-                position: relative;
                 pointer-events: auto;
                 touch-action: pan-x pan-y;
                 scrollbar-gutter: stable;
                 overscroll-behavior-inline: contain;
                 scroll-behavior: smooth;
                 border-radius: var(--tabbed-radius);
-                overflow: hidden;
+                overflow: visible;
+                overflow-inline: auto;
+                overflow-block: visible;
                 margin-inline: 0.5rem;
                 margin-block: 0.25rem;
+                isolation: auto;
+                transform: translateZ(0);
+                scrollbar-width: none;
+
+                //
+                position: relative;
+                z-index: 99;
 
                 //
                 place-content: center;
@@ -161,52 +177,112 @@
 
                 // Appearance styles: rounded box with backdrop blur
                 @include surface(0);
-                @include backdrop-blur("subtle");
                 @include scrollable("x");
 
                 //
                 justify-content: safe center;
                 justify-items: safe center;
                 background-color: oklch(from var(--surface-color) l c h / 0.8);
-                backdrop-filter: blur(0.5rem);
-                clip-path: inset(0px round var(--tabbed-radius));
+                backdrop-filter: blur(16px);
+                filter: drop-shadow(0 0 0.5rem oklch(from #000 l c h / 0.2));
+                /*clip-path: inset(0px round var(--tabbed-radius));*/
 
                 //
                 &, & *, & button {
                     touch-action: pan-x pan-y;
                 }
+            }
 
-                // Horizontal scroll gradients
-                &::before,
+            //
+            .ui-tabbed-box-tab {
+                display: flex;
+                flex-direction: row;
+                flex-wrap: nowrap;
+                text-wrap: nowrap;
+                flex-shrink: 0;
+                grid-area: tab;
+                touch-action: pan-x pan-y;
+                writing-mode: horizontal-tb;
+
+                //
+                position: relative;
+                border-radius: var(--radius-full);
+                padding-inline: calc(var(--tabbed-padding-inline) * 0.6);
+                padding-block: calc(var(--tabbed-padding-block) * 0.6);
+                letter-spacing: 0.01em;
+                cursor: pointer;
+                color: color-mix(in oklch, var(--md3-on-surface) 85%, transparent);
+                background-color: transparent;
+
+                //
+                place-content: center;
+                place-items: center;
+                text-align: center;
+
+                //
+                transition: color var(--duration-normal) var(--ease-out), transform var(--duration-fast) var(--ease-emphasized);
+                overflow: visible;
+
+                //
+                @include container-clamped(fit-content, fit-content);
+                @include button-text(primary, false);
+                @include button-overlays(var(--md3-primary));
+
+                //
+                & { min-block-size: 3rem; min-inline-size: 4rem; inline-size: fit-content; max-inline-size: stretch; background-color: transparent; }
+
+                //
                 &::after {
+                    overflow: visible;
                     content: "";
                     position: absolute;
-                    inset-block: 0;
-                    inline-size: min(1.75rem, 8%);
-                    pointer-events: none;
-                    opacity: clamp(0, calc(var(--scroll-gradient, 0)), 1);
-                    transition: opacity var(--duration-normal) var(--ease-out);
-                    background: linear-gradient(90deg, color-mix(in oklch, var(--md3-surface) 70%, transparent) 0%, transparent 100%);
-                }
+                    inset-inline: clamp(0.75rem, 3cqi, 1.5rem);
+                    inset-block-end: calc(var(--tabbed-indicator-height) * -1);
+                    block-size: var(--tabbed-indicator-height);
+                    border-radius: var(--tabbed-indicator-height);
+                    background: currentColor;
+                    opacity: 0;
+                    transform: translate3d(0, 50%, 0) scaleX(0.6);
+                    transition: transform var(--tabbed-indicator-duration) var(--tabbed-indicator-ease),
+                                opacity var(--tabbed-indicator-duration) var(--tabbed-indicator-ease);
 
-                &::before {
-                    inset-inline-start: 0;
-                    transform: scaleX(-1);
-                    --scroll-gradient: attr(data-scrollable-start number, 0);
-                }
-
-                &::after {
-                    inset-inline-end: 0;
-                    --scroll-gradient: attr(data-scrollable-end number, 0);
+                    place-content: center;
+                    place-items: center;
+                    text-align: center;
                 }
 
                 //
-                @supports (mask-image: linear-gradient(#0000, #000)) {
-                    &[data-scrollable="true"] {
-                        mask-image: linear-gradient(to right, transparent 0%, black min(2.5rem, 18%), black calc(100% - min(2.5rem, 18%)), transparent 100%);
+                &:where([aria-selected="true"], [data-active], .is-active, .active) {
+                    color: var(--md3-on-primary);
+                    transform: translateY(-2px);
+
+                    place-content: center;
+                    place-items: center;
+                    text-align: center;
+
+                    @include button-filled(primary, false);
+
+                    &::after {
+                        opacity: 1;
+                        transform: translate3d(0, 0, 0) scaleX(1);
+                        background: var(--md3-on-primary);
                     }
                 }
+
+                //
+                &:disabled {
+                    opacity: var(--state-opacity-disabled, 0.38);
+                }
+
+                //
+                @at-root #{$at-host-orient-0} &::after {
+                    inset-block-start: calc(var(--tabbed-indicator-height) * -1);
+                    inset-block-end: auto;
+                    transform: translate3d(0, -50%, 0) scaleX(0.6);
+                }
             }
+
+
 
             //
             @at-root #{$at-host-orient-3} .ui-tabbed-box-tabs-container, #{$at-host-orient-1} .ui-tabbed-box-tabs-container {
@@ -214,6 +290,7 @@
                 flex-direction: row;
                 align-items: stretch;
                 justify-content: flex-start;
+                scrollbar-width: none;
                 gap: 0px;
                 padding: 0px;
                 min-inline-size: var(--tabbed-bar-block-size);
@@ -226,6 +303,11 @@
                 pointer-events: none;
                 background-color: transparent;
                 background-image: none;
+                z-index: 90;
+                position: relative;
+                isolation: auto;
+                transform: translateZ(0);
+                /*backdrop-filter: blur(0);*/
 
                 //
                 .ui-tabbed-box-tabs {
@@ -237,11 +319,14 @@
                     padding-block: calc(var(--tabbed-padding-inline) * 0.5);
                     padding-inline: calc(var(--tabbed-padding-block) * 0.65);
                     position: relative;
+                    z-index: 99;
                     pointer-events: auto;
                     touch-action: pan-x pan-y;
                     scroll-behavior: smooth;
-                    overflow-x: hidden;
-                    overflow-y: auto;
+                    scrollbar-width: none;
+                    overflow: hidden;
+                    overflow-inline: auto;
+                    overflow-block: hidden;
                     border-radius: var(--tabbed-radius);
                     clip-path: inset(0px round var(--tabbed-radius));
                     min-inline-size: 0px;
@@ -252,42 +337,15 @@
                     max-block-size: stretch;
                     margin-inline: 0.5rem;
                     margin-block: 0.25rem;
+                    isolation: auto;
+                    transform: translateZ(0);
 
                     // Appearance styles: rounded box with backdrop blur
-                    @include surface(var(--surface-opacity-subtle));
-                    @include backdrop-blur("subtle");
                     @include scrollable("x");
 
                     //
                     &, & *, & button {
                         touch-action: pan-x pan-y;
-                    }
-
-                    // Vertical scroll gradients
-                    &::before,
-                    &::after {
-                        inset-inline: 0;
-                        block-size: min(1.75rem, 8%);
-                        inline-size: stretch;
-                        background: linear-gradient(180deg, color-mix(in oklch, var(--md3-surface) 70%, transparent) 0%, transparent 100%);
-                    }
-
-                    &::before {
-                        inset-block-start: 0;
-                        transform: scaleY(-1);
-                        --scroll-gradient: attr(data-scrollable-start number, 0);
-                    }
-
-                    &::after {
-                        inset-block-end: 0;
-                        --scroll-gradient: attr(data-scrollable-end number, 0);
-                    }
-
-                    // Vertical scroll mask
-                    @supports (mask-image: linear-gradient(#0000, #000)) {
-                        &[data-scrollable="true"] {
-                            mask-image: linear-gradient(to bottom, transparent 0%, black min(2.5rem, 18%), black calc(100% - min(2.5rem, 18%)), transparent 100%);
-                        }
                     }
                 }
 
@@ -399,97 +457,6 @@
                 }
             }
 
-
-            //
-            .ui-tabbed-box-tab {
-                display: flex;
-                flex-direction: row;
-                flex-wrap: nowrap;
-                text-wrap: nowrap;
-                flex-shrink: 0;
-                grid-area: tab;
-                touch-action: pan-x pan-y;
-                writing-mode: horizontal-tb;
-
-                //
-                position: relative;
-                border-radius: var(--radius-full);
-                padding-inline: calc(var(--tabbed-padding-inline) * 0.6);
-                padding-block: calc(var(--tabbed-padding-block) * 0.6);
-                letter-spacing: 0.01em;
-                cursor: pointer;
-                isolation: isolate;
-                color: color-mix(in oklch, var(--md3-on-surface) 85%, transparent);
-                background-color: transparent;
-
-                //
-                place-content: center;
-                place-items: center;
-                text-align: center;
-
-                //
-                transition: color var(--duration-normal) var(--ease-out), transform var(--duration-fast) var(--ease-emphasized);
-                overflow: visible;
-
-                //
-                @include container-clamped(fit-content, fit-content);
-                @include button-text(primary, false);
-                @include button-overlays(var(--md3-primary));
-
-                //
-                & { min-block-size: 3rem; min-inline-size: 4rem; inline-size: fit-content; max-inline-size: stretch; background-color: transparent; }
-
-                //
-                &::after {
-                    overflow: visible;
-                    content: "";
-                    position: absolute;
-                    inset-inline: clamp(0.75rem, 3cqi, 1.5rem);
-                    inset-block-end: calc(var(--tabbed-indicator-height) * -1);
-                    block-size: var(--tabbed-indicator-height);
-                    border-radius: var(--tabbed-indicator-height);
-                    background: currentColor;
-                    opacity: 0;
-                    transform: translate3d(0, 50%, 0) scaleX(0.6);
-                    transition: transform var(--tabbed-indicator-duration) var(--tabbed-indicator-ease),
-                                opacity var(--tabbed-indicator-duration) var(--tabbed-indicator-ease);
-
-                    place-content: center;
-                    place-items: center;
-                    text-align: center;
-                }
-
-                //
-                &:where([aria-selected="true"], [data-active], .is-active, .active) {
-                    color: var(--md3-on-primary);
-                    transform: translateY(-2px);
-
-                    place-content: center;
-                    place-items: center;
-                    text-align: center;
-
-                    @include button-filled(primary, false);
-
-                    &::after {
-                        opacity: 1;
-                        transform: translate3d(0, 0, 0) scaleX(1);
-                        background: var(--md3-on-primary);
-                    }
-                }
-
-                //
-                &:disabled {
-                    opacity: var(--state-opacity-disabled, 0.38);
-                }
-
-                //
-                @at-root #{$at-host-orient-0} &::after {
-                    inset-block-start: calc(var(--tabbed-indicator-height) * -1);
-                    inset-block-end: auto;
-                    transform: translate3d(0, -50%, 0) scaleX(0.6);
-                }
-            }
-
             //
             .ui-tabbed-box-handle {
                 inline-size: 0;
@@ -526,6 +493,8 @@
             grid-template-columns: minmax(0px, 1fr);
             grid-template-rows: minmax(0px, 1fr);
             will-change: contents;
+            position: relative;
+            z-index: 0;
 
             // immersive mode
             grid-row: 1 / -1;

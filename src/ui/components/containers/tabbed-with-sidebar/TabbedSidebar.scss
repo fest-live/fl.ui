@@ -193,7 +193,6 @@ $at-host-orient-2: ":host([data-orient=\"2\"])";
             flex-shrink: 0;
             inset: auto;
             inset-inline-end: 0.125rem;
-            isolation: isolate;
             float: end;
             justify-self: end;
             z-index: 99;
@@ -219,8 +218,6 @@ $at-host-orient-2: ":host([data-orient=\"2\"])";
 
             // Visual
             border-radius: 50cqmin;
-            background-color: transparent;
-            color: color-mix(in oklch, var(--md3-on-surface) 85%, transparent);
             border: none;
             outline: none;
             overflow: visible;
@@ -241,6 +238,10 @@ $at-host-orient-2: ":host([data-orient=\"2\"])";
             // Button styling
             @include button-text(primary, false);
             @include button-overlays(var(--md3-primary));
+            @include button-filled(primary, false);
+
+            //
+            color: color-mix(in oklch, var(--md3-on-surface) 85%, transparent);
 
             // Icon
             ui-icon {

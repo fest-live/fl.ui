@@ -123,12 +123,10 @@
             background-image: none;
 
             //
-            //background-color: --c2-surface(0.15, var(--current, currentColor));
-
-            //
             place-content: center;
             place-items: center;
             text-align: center;
+            filter: drop-shadow(0 0 0.5rem oklch(from #000 l c h / 0.1));
 
             //
             .ui-tabbed-box-tabs {
@@ -162,16 +160,16 @@
                 max-block-size: stretch;
 
                 // Appearance styles: rounded box with backdrop blur
-                @include surface(var(--surface-opacity-subtle));
+                @include surface(0);
                 @include backdrop-blur("subtle");
-                background-color: --c2-surface(0.15, var(--current, currentColor));
-
-                //
                 @include scrollable("x");
 
                 //
                 justify-content: safe center;
                 justify-items: safe center;
+                background-color: oklch(from var(--surface-color) l c h / 0.8);
+                backdrop-filter: blur(0.5rem);
+                clip-path: inset(0px round var(--tabbed-radius));
 
                 //
                 &, & *, & button {
@@ -245,6 +243,7 @@
                     overflow-x: hidden;
                     overflow-y: auto;
                     border-radius: var(--tabbed-radius);
+                    clip-path: inset(0px round var(--tabbed-radius));
                     min-inline-size: 0px;
                     min-block-size: 0px;
                     inline-size: fit-content;
@@ -322,6 +321,14 @@
                     border-radius: var(--radius-sm);
 
                     background-color: transparent;
+
+                    @include when-hover {
+                        background-color: oklch(from var(--on-surface-color) l c h / 0.05);
+                    }
+
+                    @include when-active {
+                        background-color: oklch(from var(--on-surface-color) l c h / 0.1);
+                    }
 
                     // Tab label styling for vertical
                     .ui-tabbed-box-tab-label {

@@ -93,7 +93,8 @@ export class MarkdownView extends HTMLElement {
     //
     createShadowRoot() {
         const shadowRoot = this.attachShadow({ mode: "open" });
-        shadowRoot.append(styled || document.createElement("style"), this.#view = E("div.markdown-body", { dataset: { print: "" } })?.element);
+        shadowRoot.append(this.#view = E("div.markdown-body", { dataset: { print: "" } })?.element);
+        shadowRoot.adoptedStyleSheets.push(styled);
         requestAnimationFrame(() => this.renderMarkdown(this.getAttribute("src") || ""));
     }
 }

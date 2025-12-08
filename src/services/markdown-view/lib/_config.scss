@@ -32,8 +32,8 @@ $md-config: (
     ),
     "font": (
         "emoji": "\"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\", \"Noto Color Emoji\"",
-        "body": "-apple-system, BlinkMacSystemFont, \"Segoe UI\", \"Noto Sans\", Helvetica, Arial, sans-serif, var(--font-family-emoji-flag-capable)",
-        "mono": "ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, Liberation Mono, monospace",
+        "body": "\"Noto Serif\", \"Noto Serif Display\", \"PT Serif\", \"IBM Plex Serif\", \"Literata\", \"Merriweather\", \"Source Serif 4\", \"Georgia\", \"Cambria\", \"Palatino Linotype\", \"Times New Roman\", \"Times\", serif, -apple-system, BlinkMacSystemFont, \"Segoe UI\", \"Noto Sans\", Helvetica, Arial, sans-serif, var(--font-family-emoji-flag-capable)",
+        "mono": "\"ui-monospace\", \"SFMono-Regular\", \"SF Mono\", \"Menlo\", \"Consolas\", \"Liberation Mono\", \"monospace\"",
         "size-base": 16px
     ),
     "layout": (

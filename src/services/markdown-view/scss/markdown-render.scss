@@ -51,6 +51,8 @@
             math-style: compact;
             math-shift: compact;
             math-depth: auto-add;
+            inline-size: fit-content;
+            max-inline-size: stretch;
         }
 
         // === Typography ===
@@ -179,14 +181,22 @@
             border-spacing: 0;
             border-collapse: collapse;
             display: block;
+            min-inline-size: 0px;
             inline-size: fit-content;
-            max-inline-size: 100%;
+            max-inline-size: stretch;
             overflow: auto;
             margin-block-end: 1rem;
+
+            tbody, thead {
+                inline-size: fit-content;
+                max-inline-size: stretch;
+            }
 
             th, td {
                 padding: 6px 13px;
                 border: 1px solid var(--md-border-default);
+                inline-size: fit-content;
+                max-inline-size: stretch;
             }
 
             th {
@@ -197,6 +207,9 @@
             tr {
                 background-color: var(--md-bg-default);
                 border-block-start: 1px solid var(--md-border-subtle);
+                min-inline-size: 0px;
+                inline-size: fit-content;
+                max-inline-size: stretch;
 
                 &:nth-child(2n) {
                     background-color: var(--md-bg-subtle);
@@ -244,6 +257,18 @@
                 font-size: 100%;
                 white-space: pre;
             }
+        }
+
+        span {
+            inline-size: fit-content;
+            max-inline-size: stretch;
+        }
+
+        svg {
+            width: fit-content !important;
+            inline-size: fit-content !important;
+            max-inline-size: stretch !important;
+            contain: strict;
         }
 
         // === Footnotes ===

@@ -43,7 +43,8 @@
                 transition-behavior: allow-discrete;
 
                 //
-                filter: drop-shadow(0 1.5rem 1rem color-mix(in oklch, #000 22%, transparent));
+                /*filter: drop-shadow(0 1.5rem 1rem color-mix(in oklch, #000 22%, transparent));*/
+                filter: none;
             }
 
             // ================================================================

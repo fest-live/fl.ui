@@ -318,6 +318,7 @@ export class TabbedSidebar extends UIElement {
                 }}
             ><ui-icon icon="${conditional(toolbarOpenedProperty, 'caret-right', 'caret-left')}"></ui-icon></button>
         </div>
+        <div part="backdrop" class="ui-backdrop"><slot name="backdrop"></slot></div>
         <div part="underlay" class="ui-underlay"><slot name="underlay"></slot></div>
         <div part="content-box" class="content-box">
             <div part="sidebar" class="sidebar" id=${this.sidebarUniqueId} sidebar-opened=${conditional(openedProperty, "true", "false")}><slot name="sidebar"></slot></div>

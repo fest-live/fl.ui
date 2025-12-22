@@ -53,7 +53,7 @@ $at-host-orient-2: ":host([data-orient=\"2\"])";
             margin: 0px;
             line-height: 0;
             box-sizing: border-box;
-            background-color: transparent;
+            background-color: --c2-surface(0.15, var(--current, currentColor));
             user-select: none;
             -webkit-tap-highlight-color: transparent;
             content-visibility: visible;
@@ -86,6 +86,13 @@ $at-host-orient-2: ":host([data-orient=\"2\"])";
             --ui-shadow-soft: #0002;
             --button-inline-size: var(--tabbed-button-size, 3rem);
             --sidebar-inline-grid-size: 0px;
+        }
+
+        & { backdrop-filter: none; filter: none; }
+        & > :where(*) {
+            z-index: 2;
+            filter: none;
+            backdrop-filter: none;
         }
 
         button {
@@ -163,10 +170,27 @@ $at-host-orient-2: ":host([data-orient=\"2\"])";
             place-items: center !important;
         }
 
+        .ui-backdrop {
+            grid-column: 1 / -1 !important;
+            grid-row: 1 / -1 !important;
+            z-index: 0;
+            background-color: transparent;
+            opacity: 1;
+            pointer-events: none;
+            transition: opacity var(--transition-medium, 0.28s) var(--ease-out);
+            inline-size: stretch;
+            block-size: stretch;
+            min-inline-size: 0px;
+            min-block-size: 0px;
+            max-inline-size: stretch;
+            max-block-size: stretch;
+            position: relative;
+        }
+
         .ui-underlay {
             grid-column: 1 / -1 !important;
             grid-row: content-row !important;
-            z-index: 0;
+            z-index: 1;
             background-color: transparent;
             opacity: 1;
             pointer-events: none;

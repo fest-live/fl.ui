@@ -28,8 +28,8 @@
                 // Sizing
                 inline-size: stretch;
                 block-size: stretch;
-                min-block-size: 4rem;
-                max-block-size: 4rem;
+                min-block-size: 3.5rem;
+                max-block-size: 3.5rem;
                 box-sizing: border-box;
 
                 // Spacing
@@ -38,12 +38,14 @@
                 gap: 0px;
 
                 // Visual
-                background-color: transparent;
                 box-shadow: none;
                 overflow: hidden;
 
                 // Interaction
-                pointer-events: none;
+                pointer-events: auto;
+                background-color: oklch(from --c2-surface(0.15, var(--current, currentColor)) l c h / 0.9);
+                backdrop-filter: blur(1rem);
+                filter: none;
 
                 // Alignment
                 place-content: center;

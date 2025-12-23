@@ -1,10 +1,5 @@
-import { property, defineElement, Q, H, appendAsOverlay } from "fest/lure"
-import { DOMMixin, preloadStyle } from "fest/dom"
+import { property, defineElement, H, registerOverlayElement } from "fest/lure"
 import { UIElement } from "@fl-ui/base/UIElement"
-
-// @ts-ignore
-//import styles from "./ScrollFrame.scss?inline"
-//const styled = preloadStyle(styles);
 
 //
 const withScrollbars = new WeakMap();
@@ -15,15 +10,31 @@ export class ScrollBoxed extends UIElement {
     @property({source: "attr"}) anchor = "_";
     #x: any = null;
     #y: any = null;
-    #connected = Promise.withResolvers();
+
+    // waiting until connected
+    #holder: any = null;
+    #content: any = null;
+    #inputChange: any = null;
 
     //
-    constructor() { super(); this.#connected = Promise.withResolvers(); }
-    onInitialize() { //@ts-ignore
-        super.onInitialize?.(); //@ts-ignore
-        queueMicrotask(()=>{
-            this.#connected.resolve(true);
-        });
+    constructor() { super(); }
+    onInitialize() {
+        super.onInitialize?.();
+        this.enableScrollbars();
+    }
+
+    //
+    enableScrollbars() {
+        const self = this as any;
+        if (this.#content) {
+            queueMicrotask(() => {
+                if (self.isConnected) {//@ts-ignore
+                    this.#x ??= new ScrollBar({ holder: this.#holder, scrollbar: self.shadowRoot?.querySelector?.(".ui-scrollbar[axis=\"x\"]"), content: this.#content, inputChange: this.#inputChange }, 0); //@ts-ignore
+                    this.#y ??= new ScrollBar({ holder: this.#holder, scrollbar: self.shadowRoot?.querySelector?.(".ui-scrollbar[axis=\"y\"]"), content: this.#content, inputChange: this.#inputChange }, 1); //@ts-ignore
+                    self.style.zIndex = (Number(getComputedStyle(this.#content)?.zIndex || 0) + 1) + "";
+                }
+            });
+        }
     }
 
     //
@@ -32,41 +43,12 @@ export class ScrollBoxed extends UIElement {
     }
 
     //
-    bindWith(content: any, holder: any, inputChange?: any|null) {
-        if (content?.style?.anchorName || withScrollbars?.has?.(content)) return false;
-
-        //
-        if (content) {
-            const self = this as any;
-            withScrollbars?.set?.(content, self);
-
-            /* TODO: fix scrollbars implementation
-            this.#connected?.promise?.then(()=>{
-                this.#x ??= new ScrollBar({ holder: self, scrollbar: self.shadowRoot?.querySelector?.(".ui-scrollbar[axis=\"x\"]"), content, inputChange }, 0);
-                this.#y ??= new ScrollBar({ holder: self, scrollbar: self.shadowRoot?.querySelector?.(".ui-scrollbar[axis=\"y\"]"), content, inputChange }, 1);
-            });*/
-
-            //
-            content.style.scrollbarGutter = "auto";
-            content.style.scrollbarWidth = "none";
-            content.style.scrollbarColor = "transparent transparent";
-            content.style.overflowBlock = "hidden";
-            content.style.overflowInline = "scroll";
-
-            //
-            appendAsOverlay(content, self, holder);
-        }
-
-        //
-        if (holder) {
-            holder.style.overflow = "hidden";
-            holder.style.scrollbarWidth = "none";
-            holder.style.scrollbarColor = "transparent transparent";
-            holder.style.scrollbarGutter = "auto";
-        }
-
-        //
-        return true;
+    activateScrollbars(content: any, holder: any, inputChange?: any|null) {
+        const self = this as any;
+        this.#content = content;
+        this.#holder = holder ?? self;
+        this.#inputChange = inputChange;
+        this.enableScrollbars();
     }
 
     //
@@ -77,29 +59,37 @@ export class ScrollBoxed extends UIElement {
 }
 
 //
-export class OverlayScrollbarMixin extends DOMMixin {
-    constructor(name?) { super(name); }
-
-    // @ts-ignore
-    connect(ws) {
-        const self: any = ws?.deref?.();
-        if (withScrollbars?.has?.(self)) return;
-
-        //
-        /*
-        const frame = withScrollbars?.get?.(self) ?? document.createElement("ui-scrollframe"); // @ts-ignore
-        const bound = frame?.bindWith?.(self);
-        if (bound) {
-            self.style.scrollbarGutter = "auto";
-            self.style.scrollbarWidth = "none";
-            self.style.scrollbarColor = "transparent transparent";
-            self.style.overflow = "scroll";
-            self.style.zIndex = (Number(getComputedStyle(self)?.zIndex || 0) + 1) + "";
-            //self.parentNode?.append(frame);
-        }*/
-    }
-}
+export default ScrollBoxed;
 
 //
-new OverlayScrollbarMixin("ov-scrollbar");
-export default ScrollBoxed;
+registerOverlayElement("ov-scrollbar", (content, holder?: any) => {
+    if (withScrollbars?.has?.(content)) return false;
+
+    //
+    const self = document.createElement("ui-scrollframe");
+    if (content) {
+        withScrollbars?.set?.(content, self);
+
+        //
+        content.style.scrollbarGutter = "auto";
+        content.style.scrollbarWidth = "none";
+        content.style.scrollbarColor = "transparent transparent";
+        content.style.overflowBlock = "hidden";
+        content.style.overflowInline = "scroll";
+        content.style.overflow = "scroll";
+
+        //
+        (self as any).activateScrollbars(content, holder);
+    }
+
+    //
+    if (holder) {
+        holder.style.overflow = "hidden";
+        holder.style.scrollbarWidth = "none";
+        holder.style.scrollbarColor = "transparent transparent";
+        holder.style.scrollbarGutter = "auto";
+    }
+
+    //
+    return self;
+});

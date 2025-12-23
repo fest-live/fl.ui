@@ -4,8 +4,8 @@ export * from "./components/containers/tabbed-box/TabbedBox";
 export * from "./components/containers/box-with-sidebar/BoxWithSidebar";
 export * from "./components/containers/tabbed-with-sidebar/TabbedSidebar";
 
-//
-export * from "./navigation/scrollframe/ScrollFrame";
+// WIP
+//export * from "./navigation/scrollframe/ScrollFrame";
 
 //
 export * from "./components/inputs/slider/Slider";

@@ -1,5 +1,6 @@
 import { property, defineElement, H, registerOverlayElement } from "fest/lure"
 import { UIElement } from "@fl-ui/base/UIElement"
+import { createUnderlyingShadow, createDropShadow } from "../../../../modules/projects/lur.e/src/extension/overlay/UnderlyingShadow"
 
 //
 const withScrollbars = new WeakMap();
@@ -15,6 +16,7 @@ export class ScrollBoxed extends UIElement {
     #holder: any = null;
     #content: any = null;
     #inputChange: any = null;
+    #shadows: any[] = [];
 
     //
     constructor() { super(); }
@@ -32,6 +34,9 @@ export class ScrollBoxed extends UIElement {
                     this.#x ??= new ScrollBar({ holder: this.#holder, scrollbar: self.shadowRoot?.querySelector?.(".ui-scrollbar[axis=\"x\"]"), content: this.#content, inputChange: this.#inputChange }, 0); //@ts-ignore
                     this.#y ??= new ScrollBar({ holder: this.#holder, scrollbar: self.shadowRoot?.querySelector?.(".ui-scrollbar[axis=\"y\"]"), content: this.#content, inputChange: this.#inputChange }, 1); //@ts-ignore
                     self.style.zIndex = (Number(getComputedStyle(this.#content)?.zIndex || 0) + 1) + "";
+
+                    // Add underlying shadows for better visual integration
+                    this.createScrollbarShadows();
                 }
             });
         }
@@ -49,6 +54,44 @@ export class ScrollBoxed extends UIElement {
         this.#holder = holder ?? self;
         this.#inputChange = inputChange;
         this.enableScrollbars();
+    }
+
+    //
+    disconnectedCallback() {
+        // Cleanup shadows when component is removed
+        this.#shadows.forEach(shadow => shadow.destroy());
+        this.#shadows = [];
+    }
+
+    //
+    createScrollbarShadows() {
+        const self = this as any;
+
+        // Create subtle shadows for scrollbar elements
+        const xScrollbar = self.shadowRoot?.querySelector?.(".ui-scrollbar[axis=\"x\"]");
+        const yScrollbar = self.shadowRoot?.querySelector?.(".ui-scrollbar[axis=\"y\"]");
+
+        if (xScrollbar) {
+            const xShadow = createDropShadow(xScrollbar, {
+                shadowColor: 'rgba(0, 0, 0, 0.1)',
+                shadowBlur: 2,
+                shadowOffsetY: 1,
+                zIndexShift: -2,
+                inset: -2
+            });
+            this.#shadows.push(xShadow);
+        }
+
+        if (yScrollbar) {
+            const yShadow = createDropShadow(yScrollbar, {
+                shadowColor: 'rgba(0, 0, 0, 0.1)',
+                shadowBlur: 2,
+                shadowOffsetX: 1,
+                zIndexShift: -2,
+                inset: -2
+            });
+            this.#shadows.push(yShadow);
+        }
     }
 
     //

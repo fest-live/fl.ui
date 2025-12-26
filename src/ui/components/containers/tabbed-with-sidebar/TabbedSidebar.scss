@@ -69,10 +69,10 @@ $at-host-orient-2: ":host([data-orient=\"2\"])";
         // CSS Custom Properties
         // ====================================================================
         & {
-            --tabbed-min-bar-size: 3rem;
+            --tabbed-min-bar-size: 3.5rem;
             --tabbed-gap: var(--gap-sm, 0.5rem);
-            --tabbed-padding-inline: clamp(0.25rem, 1cqi + 0.25rem, 1rem);
-            --tabbed-padding-block: clamp(0.25rem, 1cqb + 0.25rem, 0.75rem);
+            --tabbed-padding-inline: 0.25rem;
+            --tabbed-padding-block: 0.25rem;
             --tabbed-tab-gap: var(--gap-md, 0.375rem);
             --tabbed-indicator-height: 0.2rem;
             --tabbed-indicator-ease: var(--ease-emphasized, cubic-bezier(0.2, 0, 0, 1));
@@ -81,8 +81,8 @@ $at-host-orient-2: ":host([data-orient=\"2\"])";
             --tabbed-icon-size: clamp(1.25rem, 1cqi, 1.5rem);
             --tabbed-close-size: clamp(2rem, 1cqi, 3rem);
             --tabbed-close-color: color-mix(in oklch, var(--md3-on-surface) 65%, transparent);
-            --tabbed-bar-block-size: clamp(3.5rem, 1cqb + 2.5rem, 4.25rem);
-            --tabbed-tabs-block-gap: var(--padding-sm, 0.75rem);
+            --tabbed-bar-block-size: 3.5rem;
+            --tabbed-tabs-block-gap: var(--padding-sm, 0.5rem);
             --ui-shadow-soft: #0002;
             --button-inline-size: var(--tabbed-button-size, 3rem);
             --sidebar-inline-grid-size: 0px;
@@ -110,7 +110,7 @@ $at-host-orient-2: ":host([data-orient=\"2\"])";
         // Default: bar on top
         @at-root :host {
             --tabbed-grid-rows:
-                [bar-row] minmax(var(--tabbed-min-bar-size), var(--tabbed-bar-block-size))
+                [bar-row] minmax(0px, 3.5rem)
                 [content-row] minmax(0px, 1fr);
         }
 
@@ -118,13 +118,13 @@ $at-host-orient-2: ":host([data-orient=\"2\"])";
         @at-root :host([data-tab-position="bottom"]) {
             --tabbed-grid-rows:
                 [content-row] minmax(0px, 1fr)
-                [bar-row] minmax(var(--tabbed-min-bar-size), var(--tabbed-bar-block-size));
+                [bar-row] minmax(0px, 3.5rem);
         }
 
         // Top position: bar on top, content on bottom
         @at-root :host([data-tab-position="top"]) {
             --tabbed-grid-rows:
-                [bar-row] minmax(var(--tabbed-min-bar-size), var(--tabbed-bar-block-size))
+                [bar-row] minmax(0px, 3.5rem)
                 [content-row] minmax(0px, 1fr);
         }
 
@@ -237,7 +237,7 @@ $at-host-orient-2: ":host([data-orient=\"2\"])";
 
             // Spacing
             gap: 0px;
-            padding: calc(var(--tabbed-padding-block) * 0.6);
+            padding: 0.25rem;
             margin-inline-start: var(--tabbed-tab-gap);
 
             // Visual

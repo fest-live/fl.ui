@@ -7,7 +7,7 @@ import { provide, E, H } from "fest/lure";
 //
 import markedKatex from "marked-katex-extension";
 import { preloadStyle } from "fest/dom";
-marked?.use?.(markedKatex({ throwOnError: false, nonStandard: true, output: "mathml" }));
+marked?.use?.(markedKatex({ throwOnError: false, nonStandard: true, output: "mathml", strict: false }));
 
 //
 const styled = preloadStyle(styles);

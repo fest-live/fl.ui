@@ -1,4 +1,4 @@
-import { makeReactive, observe, ref, subscribe } from "fest/object";
+import { observe, iterated, ref, affected } from "fest/object";
 
 // OPFS helpers
 import {
@@ -63,7 +63,7 @@ export class FileOperative {
         this.pathRef ??= ref("/user/");
 
         //
-        subscribe(this.pathRef, (path) => this.loadPath(path));
+        affected(this.pathRef, (path) => this.loadPath(path));
         navigator?.storage?.getDirectory?.()?.then?.((h)=>this.#fsRoot = h);
     }
 
@@ -121,7 +121,7 @@ export class FileOperative {
                         const [name, handle] = $pair as any; // @ts-ignore
                         return handleCache?.getOrInsertComputed?.(handle, async () => {
                             const kind: EntryKind = handle?.kind || (name?.endsWith?.("/") ? "directory" : "file");
-                            const item: any = makeReactive({ name, kind, handle });
+                            const item: any = observe({ name, kind, handle });
 
                             //
                             if (kind === "file") {
@@ -156,7 +156,7 @@ export class FileOperative {
             //
             if (typeof this.#subscribed == "function") { this.#subscribed?.(); this.#subscribed = null; }
             await loader(await this.#dirProxy?.getMap?.() ?? [])?.catch?.(console.warn.bind(console));
-            this.#subscribed = subscribe((await this.#dirProxy?.getMap?.() ?? []), debouncedLoader);
+            this.#subscribed = affected((await this.#dirProxy?.getMap?.() ?? []), debouncedLoader);
         } catch (e: any) {
             this.#error.value = e?.message || String(e || "");
             console.warn(e);

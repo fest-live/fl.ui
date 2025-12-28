@@ -1,4 +1,4 @@
-import { propRef, subscribe } from "fest/object";
+import { propRef, affected } from "fest/object";
 import { handleHidden, handleAttribute, handleStyleChange, setStyleProperty, addEvent } from "fest/dom";
 import { bindWith, ITask } from "fest/lure";
 

@@ -2,7 +2,7 @@ import { TaskStateReflect, TaskInteraction } from "fest/fl-ui";
 
 //
 import { default as loadCSS } from "fest/dom";
-import { makeReactive } from "fest/object";
+import { observe } from "fest/object";
 import { H, Q, dropFile, makeRenderer, makeTask, makeTasks, colorScheme } from "fest/lure";
 
 //
@@ -45,7 +45,7 @@ async function createCtxMenu() {
 
 //
 async function createGridWithItem() {
-    const { makeReactive } = await import("fest/object");
+    const { observe } = await import("fest/object");
     const { H, orientRef, M } = await import("fest/lure");
     const { bindInteraction } = await import("fest/fl-ui");
 
@@ -56,12 +56,12 @@ async function createGridWithItem() {
         </div>`}
 
     //
-    const item0 = { id: "item0", cell: makeReactive([0, 0]) };
-    const item1 = { id: "item1", cell: makeReactive([0, 1]) };
+    const item0 = { id: "item0", cell: observe([0, 0]) };
+    const item1 = { id: "item1", cell: observe([0, 1]) };
 
     //
     const items = [item0, item1];
-    const layout = makeReactive([4, 8]);
+    const layout = observe([4, 8]);
     const withItem = (item, el)=>{
         if (el) {
             const args = { layout, items, item };
@@ -79,9 +79,9 @@ async function createGridWithItem() {
 
 //
 const tasks = makeTasks((list)=>[
-    makeTask("#task1", list, {active: true}, makeReactive({ title: "Empty Window 1", icon: "app-window" })),
-    makeTask("#task0", list, {active: true}, makeReactive({ title: "Empty Window 0", icon: "newspaper" })),
-    makeTask("#task2", list, {active: true, render: ()=>H`<ui-file-manager></ui-file-manager>`}, makeReactive({ title: "File Manager", icon: "folder" }))
+    makeTask("#task1", list, {active: true}, observe({ title: "Empty Window 1", icon: "app-window" })),
+    makeTask("#task0", list, {active: true}, observe({ title: "Empty Window 0", icon: "newspaper" })),
+    makeTask("#task2", list, {active: true, render: ()=>H`<ui-file-manager></ui-file-manager>`}, observe({ title: "File Manager", icon: "folder" }))
 ]);
 
 //

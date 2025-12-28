@@ -1,6 +1,6 @@
 import { defineElement, H, E, M, I, property } from "fest/lure"
 import { preloadStyle } from "fest/dom"
-import { $trigger, observableByMap, propRef, subscribe } from "fest/object";
+import { $trigger, observableByMap, propRef, affected } from "fest/object";
 
 //
 import { UIElement } from "@fl-ui/base/UIElement"
@@ -86,7 +86,7 @@ export class TabbedBox extends UIElement {
         E(self, {}, [I({ current: propRef(self as any, "currentTab"), mapped: self.tabs })])
 
         //
-        subscribe(propRef(self as any, "currentTab"), (_newVal)=>{
+        affected(propRef(self as any, "currentTab"), (_newVal)=>{
             self.dispatchEvent(new TabChangedEvent("tab-changed", { bubbles: true }, self.currentTab));
         });
 

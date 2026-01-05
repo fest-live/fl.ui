@@ -125,12 +125,29 @@ export class TabbedSidebar extends UIElement {
     }
 
     //
+    // Prevent recursive tab operations
+    private isOpeningTab = false;
+    private openingTabName = "";
+
     openTab(tabName: string, ev?: any) {
         if (!tabName) return;
-        const self: any = this;
-        if (tabName && tabName != self?.currentTab)
-            { self.currentTab = tabName ?? self?.currentTab; }
-        self?.dispatchEvent?.(new TabChangedEvent("tab-changed", { bubbles: true, composed: true }, self.currentTab));
+
+        // Prevent recursive calls for the same tab
+        if (this.isOpeningTab && this.openingTabName === tabName) {
+            return;
+        }
+
+        this.isOpeningTab = true;
+        this.openingTabName = tabName;
+
+        try {
+            const self: any = this;
+            if (tabName && tabName != self?.currentTab)
+                { self.currentTab = tabName ?? self?.currentTab; }
+            self?.dispatchEvent?.(new TabChangedEvent("tab-changed", { bubbles: true, composed: true }, self.currentTab));
+        } finally {
+            this.isOpeningTab = false;
+        }
     }
 
     //

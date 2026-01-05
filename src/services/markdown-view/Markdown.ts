@@ -2,7 +2,7 @@
 import styles from "./Markdown.scss?inline&compress";
 import DOMPurify from 'isomorphic-dompurify';
 import { marked } from "marked";
-import { provide, E, H } from "fest/lure";
+import { E, H } from "fest/lure";
 
 //
 import markedKatex from "marked-katex-extension";
@@ -35,21 +35,19 @@ export class MarkdownView extends HTMLElement {
 
     //
     async loadFromCache() {
-        if (navigator?.storage) {
-            return provide("/user/cache/last.md");
-        }
+        // Use localStorage for caching markdown content
         return localStorage.getItem("$cached-md$");
     }
 
     //
     async writeToCache(text: string|File|Blob) {
-        if (navigator?.storage) {
-            const forWrite = await provide("/user/cache/last.md", true);
-            await forWrite?.write?.(text instanceof Response ? await text?.blob?.()?.catch?.(console.warn.bind(console)) : text)
-            await forWrite?.close?.();
-        } else
+        // Use localStorage for caching markdown content
         if (typeof text == "string") {
-            localStorage.setItem("$cached-md$", text)
+            try {
+                localStorage.setItem("$cached-md$", text);
+            } catch (error) {
+                console.warn("[MarkdownViewer] Failed to write to cache:", error);
+            }
         }
     }
 

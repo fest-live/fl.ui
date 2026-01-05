@@ -30,9 +30,11 @@ const makeFileSystemOps = () => {
 let hasContextMenu = null;
 const makeContextMenu = () => {
     if (hasContextMenu) return hasContextMenu;
-    const ctxMenu = H`<ul class="grid-rows c2-surface round-decor ctx-menu ux-anchor" style="position: fixed; z-index: 99999;"></ul>`;
+    const ctxMenu = H`<ul class="grid-rows round-decor ctx-menu ux-anchor" style="position: fixed; z-index: 99999;"></ul>`;
     hasContextMenu = ctxMenu;
-    document.body.append(ctxMenu);
+    // Append to .basic-app element if it exists, otherwise document.body
+    const basicApp = document.querySelector('.basic-app') as HTMLElement;
+    (basicApp || document.body).append(ctxMenu);
     return ctxMenu;
 }
 

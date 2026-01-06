@@ -94,6 +94,8 @@ export class TabbedSidebar extends UIElement {
     //
     createTab(tabName: string, idx?: number) {
         if (!tabName) return;
+        // Never render internal keys as tabs
+        if (typeof tabName === "string" && tabName.startsWith("_")) { return; }
         const self: any = this; if (self?.shadowRoot?.querySelector(`[data-tab-name="${tabName}"]`)) return;
         const renderLabel = self?.renderTabName?.bind?.(self) ?? renderTabName;
         const rawLabel = renderLabel?.(tabName) ?? tabName;
@@ -182,7 +184,7 @@ export class TabbedSidebar extends UIElement {
 
                 //
                 const rawTabs = Array.from(self?.tabs?.keys?.() ?? []);
-                const tabs = rawTabs?.filter?.(k => k !== "home");
+                const tabs = rawTabs?.filter?.(k => k !== "home" && !(typeof k === "string" && k.startsWith("_")));
 
                 //
                 const currentIndex = tabs?.indexOf?.(self?.currentTab ?? "");
@@ -317,7 +319,7 @@ export class TabbedSidebar extends UIElement {
             ><ui-icon icon="${conditional(openedProperty, 'text-outdent', 'list')}"></ui-icon></button>
             <form class="ui-tabbed-box-tabs pinned" part="pinned">${this.createTab("home")}</form>
             <div class="toolbar-slot" toolbar-opened=${conditional(toolbarOpenedProperty, "true", "false")}><slot name="bar"></slot></div>
-            <form class="ui-tabbed-box-tabs" part="tabs">${M(observableByMap(this.tabs ?? new Map()), ([key, _], idx) => (key != "home" && (typeof key == "string") ? this.createTab(key) : null))}
+            <form class="ui-tabbed-box-tabs" part="tabs">${M(observableByMap(this.tabs ?? new Map()), ([key, _], idx) => (key != "home" && (typeof key == "string") && !key.startsWith("_") ? this.createTab(key) : null))}
             </form>
 
             <button

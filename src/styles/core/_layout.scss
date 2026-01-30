@@ -1,0 +1,21 @@
+// Layout mixins - veela-independent fallbacks
+
+@mixin flex-layout($direction: row, $wrap: nowrap, $gap: null) {
+    display: flex;
+    flex-direction: $direction;
+    flex-wrap: $wrap;
+    @if $gap { gap: $gap; }
+}
+
+@mixin grid-layout($columns: 1fr, $rows: auto, $gap: null) {
+    display: grid;
+    grid-template-columns: $columns;
+    grid-template-rows: $rows;
+    @if $gap { gap: $gap; }
+}
+
+@mixin center-content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}

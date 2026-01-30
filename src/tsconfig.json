@@ -22,6 +22,10 @@
             "fest/veela-runtime": ["../veela/index.ts"           , "../../../shared/fest/veela/index.ts"],
             "veela-lib":          ["../veela/scss/lib/index.scss", "../../../shared/fest/veela/scss/lib/index.ts"],
             "veela-lib/*":        ["../veela/scss/lib/*"         , "../../../shared/fest/veela/scss/lib/*"],
+            "fl-ui-lib":          ["./styles/lib/_index.scss"],
+            "fl-ui-lib/*":        ["./styles/lib/*"],
+            "fl-ui-core":         ["./styles/core/_index.scss"],
+            "fl-ui-core/*":       ["./styles/core/*"],
 
             "polyfill/*": ["../polyfill/*", "../../../shared/polyfill/*"],
             "@fl-design/*": ["./design/*", "../../../shared/fest/fl-ui/design/*"],

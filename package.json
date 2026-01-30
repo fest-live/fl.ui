@@ -9,6 +9,23 @@
         ".": {
             "import": "./src/index.ts",
             "require": "./dist/fl-ui.js"
+        },
+        "./core": {
+            "import": "./src/index.core.ts",
+            "require": "./dist/fl-ui-core.js"
+        },
+        "./veela": {
+            "import": "./src/index.veela.ts",
+            "require": "./dist/fl-ui-veela.js"
+        },
+        "./styles": {
+            "import": "./src/styles/_index.scss"
+        },
+        "./styles/core": {
+            "import": "./src/styles/core/_index.scss"
+        },
+        "./styles/lib": {
+            "import": "./src/styles/lib/_index.scss"
         }
     },
     "scripts": {

@@ -1,0 +1,12 @@
+// FL.UI Core Styles - No veela dependency
+// Use this entry point when you want to use fl.ui without veela.css
+
+// Import only fl.ui's own style modules
+// Note: @use must come before any other rules
+@use "./styles/index" as *;
+
+// Core layer definitions (no veela)
+@layer fl-ui-base, fl-ui-components, fl-ui-utilities;
+
+// Services (using core mixins)
+// Note: Some services may have reduced functionality without veela

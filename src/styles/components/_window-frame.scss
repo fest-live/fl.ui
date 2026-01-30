@@ -1,0 +1,157 @@
+// Window Frame component mixins - veela-independent fallbacks
+
+@mixin window-frame-variables {
+    // Window frame CSS custom properties
+    --ui-window-frame-bg: var(--fl-surface, #fff);
+    --ui-window-frame-color: var(--fl-on-surface, #111);
+    --ui-window-frame-border-radius: var(--fl-radius-lg, 0.85rem);
+    --ui-window-frame-shadow: var(--fl-shadow-xl, 0 20px 25px rgba(0, 0, 0, 0.1));
+    --ui-window-frame-titlebar-height: 2.5rem;
+    --ui-window-frame-resize-handle-size: 8px;
+    --ui-window-frame-min-width: 200px;
+    --ui-window-frame-min-height: 150px;
+}
+
+@mixin window-frame-layout {
+    display: grid;
+    grid-template-rows: var(--ui-window-frame-titlebar-height) 1fr;
+    grid-template-columns: 1fr;
+    position: fixed;
+    inline-size: var(--ui-window-frame-width, 400px);
+    block-size: var(--ui-window-frame-height, 300px);
+    min-inline-size: var(--ui-window-frame-min-width);
+    min-block-size: var(--ui-window-frame-min-height);
+    background-color: var(--ui-window-frame-bg);
+    color: var(--ui-window-frame-color);
+    border-radius: var(--ui-window-frame-border-radius);
+    box-shadow: var(--ui-window-frame-shadow);
+    overflow: hidden;
+    contain: layout paint style;
+}
+
+@mixin content-styles {
+    position: relative;
+    overflow: auto;
+    pointer-events: auto;
+}
+
+@mixin resize-handle-styles {
+    position: absolute;
+    pointer-events: auto;
+    z-index: 10;
+    
+    &[data-edge="e"], &[data-edge="w"] {
+        cursor: ew-resize;
+        inline-size: var(--ui-window-frame-resize-handle-size);
+        block-size: 100%;
+    }
+    
+    &[data-edge="n"], &[data-edge="s"] {
+        cursor: ns-resize;
+        inline-size: 100%;
+        block-size: var(--ui-window-frame-resize-handle-size);
+    }
+    
+    &[data-edge="ne"], &[data-edge="sw"] {
+        cursor: nesw-resize;
+    }
+    
+    &[data-edge="nw"], &[data-edge="se"] {
+        cursor: nwse-resize;
+    }
+}
+
+@mixin titlebar-layout {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-inline: 0.75rem;
+    gap: 0.5rem;
+    pointer-events: auto;
+}
+
+@mixin titlebar-handle-styles {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex: 1;
+    min-inline-size: 0;
+    overflow: hidden;
+    cursor: grab;
+    
+    &:active {
+        cursor: grabbing;
+    }
+}
+
+@mixin title-text-styles {
+    font-size: var(--fl-text-sm, 0.875rem);
+    font-weight: var(--fl-font-weight-medium, 500);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+@mixin subtitle-text-styles {
+    font-size: var(--fl-text-xs, 0.75rem);
+    opacity: 0.7;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+@mixin app-icon-styles {
+    inline-size: 1.25rem;
+    block-size: 1.25rem;
+    flex-shrink: 0;
+}
+
+@mixin controls-layout {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    flex-shrink: 0;
+}
+
+@mixin control-button-base {
+    inline-size: 1.5rem;
+    block-size: 1.5rem;
+    border-radius: 50%;
+    border: none;
+    background: transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+    pointer-events: auto;
+    
+    &:hover {
+        background-color: rgba(0, 0, 0, 0.1);
+    }
+}
+
+@mixin close-button-styles {
+    &:hover {
+        background-color: rgba(255, 0, 0, 0.15);
+        color: #d32f2f;
+    }
+}
+
+// Behavior mixins (simplified versions)
+@mixin ps-draggable {
+    // Draggable positioning logic
+    inset-inline-start: calc(var(--inset-x, 0) * 1px);
+    inset-block-start: calc(var(--inset-y, 0) * 1px);
+}
+
+@mixin ps-resizable {
+    // Resizable sizing logic
+    inline-size: calc(var(--size-x, 400) * 1px);
+    block-size: calc(var(--size-y, 300) * 1px);
+}
+
+@mixin ps-mechanic {
+    // Z-index and focus management
+    z-index: calc(100 + var(--z-index, 0));
+}

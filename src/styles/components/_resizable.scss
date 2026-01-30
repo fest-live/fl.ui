@@ -1,0 +1,69 @@
+// Resizable component mixins - veela-independent fallbacks
+
+@mixin resizable-element {
+    position: relative;
+    overflow: hidden;
+    min-inline-size: var(--min-inline-size, 100px);
+    min-block-size: var(--min-block-size, 100px);
+}
+
+@mixin resize-handle($position: se) {
+    position: absolute;
+    pointer-events: auto;
+    z-index: 10;
+    
+    @if $position == n {
+        inset-block-start: 0;
+        inset-inline: 0;
+        block-size: 8px;
+        cursor: ns-resize;
+    } @else if $position == s {
+        inset-block-end: 0;
+        inset-inline: 0;
+        block-size: 8px;
+        cursor: ns-resize;
+    } @else if $position == e {
+        inset-inline-end: 0;
+        inset-block: 0;
+        inline-size: 8px;
+        cursor: ew-resize;
+    } @else if $position == w {
+        inset-inline-start: 0;
+        inset-block: 0;
+        inline-size: 8px;
+        cursor: ew-resize;
+    } @else if $position == ne {
+        inset-block-start: 0;
+        inset-inline-end: 0;
+        inline-size: 16px;
+        block-size: 16px;
+        cursor: nesw-resize;
+    } @else if $position == nw {
+        inset-block-start: 0;
+        inset-inline-start: 0;
+        inline-size: 16px;
+        block-size: 16px;
+        cursor: nwse-resize;
+    } @else if $position == se {
+        inset-block-end: 0;
+        inset-inline-end: 0;
+        inline-size: 16px;
+        block-size: 16px;
+        cursor: nwse-resize;
+    } @else if $position == sw {
+        inset-block-end: 0;
+        inset-inline-start: 0;
+        inline-size: 16px;
+        block-size: 16px;
+        cursor: nesw-resize;
+    }
+}
+
+@mixin resizing-state {
+    user-select: none;
+    
+    * {
+        user-select: none;
+        pointer-events: none;
+    }
+}

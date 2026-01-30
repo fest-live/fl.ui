@@ -1,0 +1,12 @@
+// Veela Adapter - Uses veela-lib mixins
+// Use this adapter when you want full veela integration
+
+// Import veela-lib (requires veela.css to be available)
+@use "veela-lib" as *;
+
+// Re-export all veela mixins
+// This gives full access to veela's advanced features:
+// - Color functions (--c2-surface, --c2-on-surface, etc.)
+// - Advanced layout mixins
+// - Window frame and UI component mixins
+// - Animation and scroll timeline support

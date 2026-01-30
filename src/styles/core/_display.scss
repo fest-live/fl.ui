@@ -1,0 +1,25 @@
+// Display mixins - veela-independent fallbacks
+
+@mixin display($type: 'block', $align: null, $justify: null) {
+    @if $type == 'flex' or $type == 'inline-flex' {
+        display: #{$type};
+        @if $align { align-items: $align; }
+        @if $justify { justify-content: $justify; }
+    } @else if $type == 'grid' or $type == 'inline-grid' {
+        display: #{$type};
+        @if $align { align-items: $align; }
+        @if $justify { justify-items: $justify; }
+    } @else if $type == 'none' {
+        display: none;
+    } @else {
+        display: #{$type};
+    }
+}
+
+@mixin hidden {
+    display: none !important;
+}
+
+@mixin visible($type: block) {
+    display: #{$type} !important;
+}

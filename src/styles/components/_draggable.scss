@@ -1,0 +1,32 @@
+// Draggable component mixins - veela-independent fallbacks
+
+@mixin draggable-element {
+    cursor: grab;
+    user-select: none;
+    touch-action: none;
+    -webkit-user-drag: none;
+    
+    &:active, &[data-dragging] {
+        cursor: grabbing;
+    }
+}
+
+@mixin drag-handle {
+    cursor: grab;
+    pointer-events: auto;
+    user-select: none;
+    
+    &:active {
+        cursor: grabbing;
+    }
+}
+
+@mixin dragging-state {
+    cursor: grabbing;
+    user-select: none;
+    
+    * {
+        user-select: none;
+        pointer-events: none;
+    }
+}

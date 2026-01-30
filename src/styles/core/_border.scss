@@ -1,0 +1,32 @@
+// Border mixins - veela-independent fallbacks
+
+@mixin border($width: 1px, $style: solid, $color: currentColor) {
+    border: $width $style $color;
+}
+
+@mixin border-radius($radius) {
+    border-radius: $radius;
+}
+
+@mixin rounded($size: md) {
+    @if $size == xs {
+        border-radius: var(--fl-radius-xs, 0.25rem);
+    } @else if $size == sm {
+        border-radius: var(--fl-radius-sm, 0.5rem);
+    } @else if $size == md {
+        border-radius: var(--fl-radius-md, 0.75rem);
+    } @else if $size == lg {
+        border-radius: var(--fl-radius-lg, 0.85rem);
+    } @else if $size == xl {
+        border-radius: var(--fl-radius-xl, 1rem);
+    } @else if $size == full {
+        border-radius: 9999px;
+    } @else {
+        border-radius: $size;
+    }
+}
+
+@mixin no-border {
+    border: none;
+    border-width: 0;
+}

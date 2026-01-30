@@ -31,7 +31,11 @@
             "fest/veela": ["../veela.css/src/index.ts", "../../shared/fest/veela/index.ts"],
             "fest/veela-runtime": ["../veela.css/src/index.ts", "../../shared/fest/veela/index.ts"],
             "veela-lib": ["../veela.css/src/scss/lib/index.scss"],
-            "veela-lib/*": ["../veela.css/src/scss/lib/*"]
+            "veela-lib/*": ["../veela.css/src/scss/lib/*"],
+            "fl-ui-lib": ["./src/styles/lib/_index.scss"],
+            "fl-ui-lib/*": ["./src/styles/lib/*"],
+            "fl-ui-core": ["./src/styles/core/_index.scss"],
+            "fl-ui-core/*": ["./src/styles/core/*"]
         },
         "target": "ESNext",
         "module": "ESNext",

@@ -1,0 +1,60 @@
+// Scrollbar mixins - veela-independent fallbacks
+
+@mixin hide-scrollbar {
+    scrollbar-width: none;
+    
+    &::-webkit-scrollbar {
+        display: none;
+        width: 0;
+        height: 0;
+    }
+}
+
+@mixin custom-scrollbar($width: 8px, $thumb-color: rgba(0, 0, 0, 0.3), $track-color: transparent) {
+    scrollbar-width: thin;
+    scrollbar-color: $thumb-color $track-color;
+    
+    &::-webkit-scrollbar {
+        width: $width;
+        height: $width;
+    }
+    
+    &::-webkit-scrollbar-track {
+        background: $track-color;
+    }
+    
+    &::-webkit-scrollbar-thumb {
+        background: $thumb-color;
+        border-radius: calc($width / 2);
+    }
+}
+
+@mixin scrollbox {
+    overflow: auto;
+    overscroll-behavior: contain;
+}
+
+@mixin scroll-tm-2-axis {
+    overflow: auto;
+    scroll-behavior: smooth;
+}
+
+@mixin axis-scrollbar($selector, $axis, $thumb-selector, $timeline-name) {
+    // Simplified scrollbar axis handling
+    #{$selector}[axis="#{$axis}"] {
+        @if $axis == "x" or $axis == "inline" {
+            overflow-x: auto;
+            overflow-y: hidden;
+        } @else {
+            overflow-x: hidden;
+            overflow-y: auto;
+        }
+    }
+}
+
+@mixin with-timeline($name) {
+    // Scroll timeline support (progressive enhancement)
+    @supports (animation-timeline: scroll()) {
+        animation-timeline: scroll();
+    }
+}

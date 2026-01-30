@@ -1,0 +1,8 @@
+// Style Adapters Index
+// Choose which adapter to use based on your CSS framework
+
+// Default: fl.ui core (no external dependencies)
+@forward "./core";
+
+// To use veela adapter instead, replace the above with:
+// @forward "./veela";

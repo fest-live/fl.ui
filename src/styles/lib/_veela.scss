@@ -1,0 +1,12 @@
+// FL.UI Lib - Veela integration
+// This file provides full veela integration when available
+// 
+// Usage: @use "fl-ui-lib" as m;
+// 
+// Note: This requires veela.css to be installed and configured
+
+// Import and forward veela-lib
+@use "veela-lib" as *;
+@forward "veela-lib";
+
+// All veela mixins are now available through this facade

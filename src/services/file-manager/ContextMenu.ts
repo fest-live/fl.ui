@@ -12,6 +12,8 @@ const disconnectRegistry = new FinalizationRegistry((ctxMenu: HTMLElement) => {
 const makeFileActionOps = () => {
     return [
         { id: "open", label: "Open", icon: "function" },
+        { id: "view", label: "View", icon: "eye" },
+        { id: "attach-workcenter", label: "Attach to Work Center", icon: "lightning" },
         { id: "download", label: "Download", icon: "download" }
     ];
 };

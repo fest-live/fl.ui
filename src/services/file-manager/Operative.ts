@@ -188,12 +188,31 @@ export class FileOperative {
     };
 
     //
+    protected dispatchEvent(event: CustomEvent) {
+        this.host?.dispatchEvent(event);
+    }
+
+    //
     protected async onMenuAction(item: FileEntryItem | null, actionId: string, ev: MouseEvent) {
         try {
             const itemName = item?.name;
             if (!actionId) return; const abs = (this.path || "/user/") + (itemName || ""); switch (actionId) {
                 case "open":
                     this.itemAction(item as FileEntryItem);
+                    break;
+                case "view":
+                    // Dispatch custom event for external handling
+                    this.dispatchEvent(new CustomEvent('context-action', {
+                        bubbles: true, composed: true,
+                        detail: { action: 'view', item, path: abs }
+                    }));
+                    break;
+                case "attach-workcenter":
+                    // Dispatch custom event for external handling
+                    this.dispatchEvent(new CustomEvent('context-action', {
+                        bubbles: true, composed: true,
+                        detail: { action: 'attach-workcenter', item, path: abs }
+                    }));
                     break;
                 case "download":
                     Promise.try(async () => {

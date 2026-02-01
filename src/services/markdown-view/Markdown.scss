@@ -84,3 +84,77 @@
         }
     }
 }
+
+
+//
+// === Markdown page container ===
+@layer markdown-page {
+    :host {
+        /* Box-sizing inherited from normalize.scss */
+        & {
+            background-color: transparent;
+            inline-size: 100%;
+            min-block-size: 100%;
+            block-size: 100%;
+            max-block-size: min(100dvb, 100cqb);
+            display: block;
+            flex-direction: column;
+            content-visibility: visible;
+            overflow: auto;
+            container-type: inline-size;
+            contain: none;
+            padding: 2rem;
+            font-size: 1em;
+            touch-action: manipulation;
+            pointer-events: auto;
+            user-select: text;
+            text-align: start;
+        }
+    }
+
+    :where(.markdown-body[data-print]), :host(.markdown-body[data-print]) {
+        background-color: transparent;
+        container-type: normal;
+        contain: none;
+        display: block;
+        inline-size: 100%;
+        block-size: fit-content;
+        min-block-size: 100%;
+        max-block-size: none;
+        overflow: hidden;
+        font-size: 1em;
+        text-align: start;
+    }
+
+    :where(#markdown, .markdown-body), :host(.markdown-body), :host(.markdown-body), :host(#markdown) {
+        touch-action: manipulation;
+        pointer-events: auto;
+        text-align: start;
+    }
+
+    :where(#markdown, .markdown-body), :host {
+        @include mixins.md-surface-root(start);
+        @include mixins.md-scrollbars();
+    }
+
+    @include mixins.md-children-inherit(":where(#markdown, :host) *");
+
+    //
+    [data-hidden] :where(#markdown, :host) {
+        color-scheme: inherit;
+        content-visibility: auto !important;
+    }
+
+    :where([data-hidden], [data-dragging]):where(#markdown, :host) {
+        content-visibility: auto !important;
+    }
+
+    [data-dragging] :where(#markdown, :host) {
+        color-scheme: inherit;
+        content-visibility: auto !important;
+
+        :where(*) {
+            content-visibility: auto !important;
+        }
+    }
+}

@@ -6,7 +6,6 @@
  */
 
 import { ref, affected, observe } from "fest/object";
-import type { FileEntry, SelectionEventDetail } from "../types";
 
 // ============================================================================
 // TYPES
@@ -16,7 +15,7 @@ export interface SelectionOptions {
     /** Allow multiple selections */
     multiSelect?: boolean;
     /** Callback when selection changes */
-    onChange?: (detail: SelectionEventDetail) => void;
+    onChange?: (detail: any) => void;
 }
 
 // ============================================================================
@@ -31,7 +30,7 @@ export class SelectionManager {
     private readonly _trigger = ref(0);
 
     /** Reference to items list */
-    private itemsRef: { value: FileEntry[] } | null = null;
+    private itemsRef: { value: any[] } | null = null;
 
     /** Last selected path (for range selection) */
     private lastSelected: string | null = null;
@@ -59,7 +58,7 @@ export class SelectionManager {
     /**
      * Bind to items list for range selection
      */
-    bindItems(itemsRef: { value: FileEntry[] }): void {
+    bindItems(itemsRef: { value: any[] }): void {
         this.itemsRef = itemsRef;
     }
 
@@ -191,7 +190,7 @@ export class SelectionManager {
     /**
      * Get currently focused item
      */
-    getFocusedItem(): FileEntry | null {
+    getFocusedItem(): any | null {
         if (!this.itemsRef || !this.lastSelected) return null;
         return this.itemsRef.value.find(i => i.path === this.lastSelected) || null;
     }
@@ -216,7 +215,7 @@ export class SelectionManager {
     /**
      * Handle keyboard event
      */
-    handleKeyboard(event: KeyboardEvent): FileEntry | null {
+    handleKeyboard(event: KeyboardEvent): any | null {
         switch (event.key) {
             case "ArrowDown":
                 event.preventDefault();

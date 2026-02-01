@@ -10,9 +10,9 @@ import { FileManagerContent } from "./FileManagerContent";
 
 if (typeof customElements !== 'undefined') {
     if (!customElements.get('ui-file-manager')) {
-        customElements.define('ui-file-manager', FileManager);
+        customElements.define('ui-file-manager', FileManager as any);
     }
     if (!customElements.get('ui-file-manager-content')) {
-        customElements.define('ui-file-manager-content', FileManagerContent);
+        customElements.define('ui-file-manager-content', FileManagerContent as any);
     }
 }

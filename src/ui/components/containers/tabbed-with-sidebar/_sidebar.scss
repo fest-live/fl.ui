@@ -21,7 +21,6 @@
                 z-index: 2;
 
                 // Sizing
-                @include container-clamped(stretch, stretch);
                 min-inline-size: 0px;
                 min-block-size: 0px;
                 max-inline-size: stretch;

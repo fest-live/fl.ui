@@ -129,9 +129,6 @@
                             visibility var(--duration-normal, 160ms) var(--ease-out, ease);
 
                 //
-                @include solid-colorize("&", ("shade": 0));
-
-                //
                 &[toolbar-opened="true"] {
                     opacity: 1;
                     visibility: visible;
@@ -179,7 +176,6 @@
                 touch-action: pan-x;
 
                 // Colorization
-                @include solid-colorize("&", ("shade": 0));
                 background-color: --c2-surface(var(--_color-shade), var(--current, currentColor));
 
                 // Icon
@@ -213,7 +209,6 @@
             // Tab Buttons
             // ================================================================
             :where(.ui-tabbed-box-tab) button {
-                @include solid-colorize("&", ("shade": var(--state-opacity-subtle, 0.02)));
                 padding: 0.5rem;
                 touch-action: pan-x;
             }

@@ -53,18 +53,7 @@
         }
 
         //
-        & {
-            @include m.display('inline-flex', center, center);
-            @include m.interaction(none);
-            @include m.container-base(stretch, true, size, ui-slider, strict);
-        }
-
-        //
         :where(.ui-box) {
-            @include m.position('relative');
-            @include m.size(100%);
-            @include m.display('flex', center, center);
-
             & {
                 pointer-events: auto;
                 cursor: pointer;
@@ -72,12 +61,6 @@
 
             //
             :where(.ui-track) {
-                @include m.position('absolute');
-                @include m.size(calc(100% - var(--ui-slider-thumb-size)), var(--ui-slider-track-size));
-                @include m.border-radius(var(--ui-slider-track-radius));
-                @include m.color($bg: var(--ui-slider-track-color));
-                @include m.interaction($pointerEvents: 'auto');
-
                 //
                 & {
                     pointer-events: auto;
@@ -98,11 +81,6 @@
 
             //
             :where(.ui-thumb) {
-                @include m.interaction($pointerEvents: 'auto', $cursor: 'grab');
-                @include m.position('absolute');
-                @include m.size(var(--ui-slider-thumb-size), var(--ui-slider-thumb-size), '1 / 1');
-                @include m.border-radius(var(--ui-slider-thumb-radius));
-                @include m.color($color: var(--ui-slider-thumb-color));
 
                 //
                 & {
@@ -154,9 +132,6 @@
 
         //
         ::slotted(input) {
-            @include m.position('absolute');
-            @include m.display('none');
-
             display: none !important;
         }
     }
@@ -182,7 +157,6 @@
             .ui-thumb {
                 pointer-events: auto;
                 cursor: grab;
-                @include m.shadow('0 1px 2px rgb(0 0 0 / 0.15), 0 1px 1px rgb(0 0 0 / 0.08)');
             }
             .ui-track {
                 background-color: transparent;

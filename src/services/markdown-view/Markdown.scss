@@ -1,5 +1,15 @@
-@use "./scss/markdown-render.scss";
-@use "./scss/markdown-print.scss";
+/**
+ * Unified Markdown Styles
+ *
+ * This is the main stylesheet for markdown rendering.
+ * It imports the unified markdown-render and markdown-print styles.
+ *
+ * For veela-lib integration, optionally import markdown-veela.scss:
+ *   @use "./scss/markdown-veela" as veela;
+ */
+
+@use "./scss/markdown-render";
+@use "./scss/markdown-print";
 @use "./lib/mixins" as mixins;
 
 //

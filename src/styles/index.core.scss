@@ -3,7 +3,7 @@
 
 // Import only fl.ui's own style modules
 // Note: @use must come before any other rules
-@use "./styles/index" as *;
+@use "./index" as *;
 
 // Core layer definitions (no veela)
 @layer fl-ui-base, fl-ui-components, fl-ui-utilities;

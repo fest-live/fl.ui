@@ -15,26 +15,22 @@ import { loadInlineStyle, preloadStyle } from "fest/dom";
 import { UIPhosphorIcon } from "fest/icon";
 console.log(UIPhosphorIcon);
 
+//
+import { loadVeelaVariant } from "fest/veela";
+
 // @ts-ignore
 import coreStyles from "./index.core.scss?inline";
 
-// Load basic core styles (as Beer CSS base)
-loadInlineStyle(coreStyles);
-
-// Load veela-beercss runtime asynchronously
-(async () => {
+//
+export const loader = async () => {
+    // Load basic core styles (as Beer CSS base)
+    await loadInlineStyle(coreStyles);
     try {
-        const { loadBeerCssStyles } = await import("fest/veela/runtime/beercss/index");
-        await loadBeerCssStyles();
+        await loadVeelaVariant("beercss");
     } catch {
         console.warn("[FL.UI] Could not load veela-beercss runtime");
     }
-})();
+};
 
-// Export all UI components
-export * from "./ui/index";
-export const styled = preloadStyle(coreStyles);
-
-// Export services
-export * from "./services/file-manager/FileManager";
-export * from "./services/markdown-view/Markdown";
+//
+export default loader;

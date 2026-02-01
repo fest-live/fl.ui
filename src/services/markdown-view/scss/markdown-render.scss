@@ -1,5 +1,4 @@
 @use "../lib/mixins" as mixins;
-@use "../lib/tokens" as tokens;
 @use "../lib/config" as config;
 @use "../lib/props";
 
@@ -43,6 +42,24 @@
         color-scheme: inherit;
         -ms-text-size-adjust: 100%;
         -webkit-text-size-adjust: 100%;
+    }
+
+    // Dark theme overrides
+    .basic-shell[data-theme="dark"] :host,
+    .basic-shell[data-theme="dark"] :scope,
+    .basic-shell[data-theme="dark"] .markdown-body,
+    .basic-shell[data-theme="dark"] #markdown,
+    .basic-shell[data-theme="dark"] md-view {
+        --md-fg-default: #{config.md-color("text", "dark")};
+        --md-fg-muted: #{config.md-color("text-muted", "dark")};
+        --md-fg-accent: #{config.md-color("accent", "dark")};
+
+        --md-bg-default: #{config.md-color("bg", "dark")};
+        --md-bg-subtle: #{config.md-color("bg-subtle", "dark")};
+        --md-bg-code: #{config.md-color("code-bg", "dark")};
+
+        --md-border-default: #{config.md-color("border", "dark")};
+        --md-border-subtle: #{config.md-color("border-subtle", "dark")};
     }
 
     :where(.markdown-body, #markdown, md-view, :host) {

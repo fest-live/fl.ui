@@ -176,10 +176,6 @@
                 max-inline-size: stretch;
                 max-block-size: stretch;
 
-                // Appearance styles: rounded box with backdrop blur
-                @include surface(0);
-                @include scrollable("x");
-
                 //
                 justify-content: safe center;
                 justify-items: safe center;
@@ -225,11 +221,6 @@
                 overflow: visible;
 
                 //
-                @include container-clamped(fit-content, fit-content);
-                @include button-text(primary, false);
-                @include button-overlays(var(--md3-primary));
-
-                //
                 & { min-block-size: 3rem; min-inline-size: 4rem; inline-size: fit-content; max-inline-size: stretch; background-color: transparent; }
 
                 //
@@ -261,8 +252,6 @@
                     place-items: center;
                     text-align: center;
 
-                    @include button-filled(primary, false);
-
                     &::after {
                         opacity: 1;
                         transform: translate3d(0, 0, 0) scaleX(1);
@@ -282,8 +271,6 @@
                     transform: translate3d(0, -50%, 0) scaleX(0.6);
                 }
             }
-
-
 
             //
             @at-root #{$at-host-orient-3} .ui-tabbed-box-tabs-container, #{$at-host-orient-1} .ui-tabbed-box-tabs-container {
@@ -342,9 +329,6 @@
                     transform: translateZ(0);
                     contain: strict;
 
-                    // Appearance styles: rounded box with backdrop blur
-                    @include scrollable("x");
-
                     //
                     &, & *, & button {
                         touch-action: pan-x pan-y;
@@ -381,14 +365,6 @@
                     border-radius: var(--radius-sm);
 
                     background-color: transparent;
-
-                    @include when-hover {
-                        background-color: oklch(from var(--on-surface-color) l c h / 0.05);
-                    }
-
-                    @include when-active {
-                        background-color: oklch(from var(--on-surface-color) l c h / 0.1);
-                    }
 
                     // Tab label styling for vertical
                     .ui-tabbed-box-tab-label {
@@ -508,9 +484,6 @@
             min-inline-size: 0px;
             min-block-size: 0px;
             writing-mode: horizontal-tb;
-
-            @include surface(var(--surface-opacity-subtle));
-            @include container-clamped(stretch, stretch);
 
             & { max-block-size: none; background-color: transparent; background-image: none; }
 

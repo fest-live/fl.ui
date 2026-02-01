@@ -1,20 +1,20 @@
 // FL.UI Lib - Unified mixin facade
 // This file provides a consistent API whether using veela or core mixins
-// 
+//
 // Usage: @use "fl-ui-lib" as m;
-// 
+//
 // This facade can be configured to use:
 // - Core mixins (veela-independent)
 // - Veela mixins (when veela is available)
 // - Custom mixins (your own CSS framework)
 
 // By default, use core mixins (no veela dependency)
-@use "../core/index" as core;
-@use "../components/index" as components;
+@use "../../core/index" as core;
+@use "../../components/index" as components;
 
 // Re-export all core mixins
-@forward "../core/index";
-@forward "../components/index";
+@forward "../../core/index";
+@forward "../../components/index";
 
 // Alias for veela-compatible mixin names
 // These map veela mixin names to fl.ui core implementations

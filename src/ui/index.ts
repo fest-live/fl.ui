@@ -24,6 +24,3 @@ export * from "./navigation/misc/TaskIndication";
 //
 export * from "./navigation/appearance/Desktop";
 export * from "./navigation/appearance/Mobile";
-
-// Viewer components
-export * from "./components/viewers";

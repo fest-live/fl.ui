@@ -2,7 +2,7 @@
 
 @mixin hide-scrollbar {
     scrollbar-width: none;
-    
+
     &::-webkit-scrollbar {
         display: none;
         width: 0;
@@ -13,16 +13,16 @@
 @mixin custom-scrollbar($width: 8px, $thumb-color: rgba(0, 0, 0, 0.3), $track-color: transparent) {
     scrollbar-width: thin;
     scrollbar-color: $thumb-color $track-color;
-    
+
     &::-webkit-scrollbar {
         width: $width;
         height: $width;
     }
-    
+
     &::-webkit-scrollbar-track {
         background: $track-color;
     }
-    
+
     &::-webkit-scrollbar-thumb {
         background: $thumb-color;
         border-radius: calc($width / 2);

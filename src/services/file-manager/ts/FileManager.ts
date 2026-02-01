@@ -8,8 +8,9 @@ import FileManagerContent from "./FileManagerContent";
 import UIElement from "@fl-ui/base/UIElement";
 
 // @ts-ignore
-import fmCss from "./FileManager.scss?inline";
+import fmCss from "../scss/FileManager.scss?inline";
 import { propRef } from "fest/object";
+import { getParentPath } from "../utils";
 
 //
 const styled = preloadStyle(fmCss);
@@ -41,6 +42,29 @@ export class FileManager extends UIElement {
     //
     onInitialize() {
         super.onInitialize();
+
+        // Register component for catch-up messaging (from rs-explorer)
+        //registerComponent('file-manager-instance', 'basic-explorer');
+
+        // Process any pending messages
+        /*const pendingMessages = initializeComponent('file-manager-instance');
+        for (const message of pendingMessages) {
+            console.log(`[FileManager] Processing pending message:`, message);
+            // Handle explorer actions
+            if (message.type === 'content-explorer') {
+                const action = message.data?.action || 'save';
+                const path = message.data?.path || message.data?.into || '/';
+
+                if (action === 'save' && (message.data?.file || message.data?.text || message.data?.content)) {
+                    // Handle save action - this would be processed by the explorer logic
+                    console.log(`[FileManager] Processing save action:`, message.data);
+                } else if (action === 'view' && message.data?.path) {
+                    // Navigate to path
+                    this.path = path;
+                    console.log(`[FileManager] Navigating to path: ${path}`);
+                }
+            }
+        }*/
 
         //
         const self: any = this;
@@ -82,13 +106,10 @@ export class FileManager extends UIElement {
     //
     async goUp() {
         const contents = (this as any)?.querySelector?.("ui-file-manager-content");
-        const parts = (contents?.path || "/user/")
-            .replace(/\/+$/g, "")
-            .split("/")
-            .filter(Boolean);
-        if (parts.length <= 1) return; // stay at /user
-        const up = "/" + parts.slice(0, -1).join("/") + "/";
-        this.path = up;
+        const currentPath = contents?.path || "/user/";
+        const parentPath = getParentPath(currentPath);
+        if (parentPath === "/" || parentPath === currentPath) return; // stay at root or same path
+        this.path = parentPath;
     }
 
     //

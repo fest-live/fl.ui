@@ -159,8 +159,6 @@
 
             background: none;
             background-color: transparent;
-
-            @include container-clamped(stretch, stretch);
         }
 
         // sidebar
@@ -178,9 +176,6 @@
                 box-shadow: none;
                 justify-content: start;
                 transform: translateX(0px);
-
-                //
-                @include container-clamped(max-content, stretch);
 
                 & { min-inline-size: clamp(min(20rem, 100%), max(16rem, 10cqi), 100cqi); }
             }

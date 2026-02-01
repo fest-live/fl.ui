@@ -35,12 +35,6 @@
             outline: none !important;
         }
 
-        // Main layout
-        & {
-            @include m.window-frame-variables;
-            @include m.window-frame-layout;
-        }
-
         //
         & {
             contain: layout paint style;
@@ -49,71 +43,10 @@
                 translate3d(calc(var(--drag-x, 0) * 1px), calc(var(--drag-y, 0) * 1px), 0px);
             opacity: var(--opacity, 1);
         }
-
-        // Content area
-        .ui-window-frame-content {
-            @include m.content-styles;
-        }
-
-        // Resize handle
-        .ui-window-frame-resize-handle {
-            @include m.resize-handle-styles;
-        }
-
-        // Titlebar
-        .ui-window-frame-titlebar {
-            @include m.titlebar-layout;
-
-            // Titlebar handle
-            .ui-window-frame-titlebar-handle {
-                @include m.titlebar-handle-styles;
-
-                // Title text
-                .ui-window-frame-titlebar-title,
-                .ui-window-frame-titlebar-title-text {
-                    @include m.title-text-styles;
-                }
-
-                // Subtitle text
-                .ui-window-frame-titlebar-title-text-sub {
-                    @include m.subtitle-text-styles;
-                }
-
-                // App icon
-                .ui-window-frame-titlebar-app-icon {
-                    @include m.app-icon-styles;
-                }
-            }
-
-            // Controls
-            .ui-window-frame-titlebar-controls {
-                @include m.controls-layout;
-
-                // Control buttons
-                .ui-window-frame-titlebar-control-close,
-                .ui-window-frame-titlebar-control-minimize,
-                .ui-window-frame-titlebar-control-maximize {
-                    @include m.control-button-base;
-                }
-
-                // Close button special styling
-                .ui-window-frame-titlebar-control-close {
-                    @include m.close-button-styles;
-                }
-            }
-        }
-    }
-
-    //
-    :host(ui-window-frame:not([data-resizing]):not([data-dragging]):not([data-maximized]):not([data-hidden])) {
-        @include m.transition(('inline-size', 'block-size'), $duration: $ui-duration-fast, $timing: $ui-ease-standard);
-        @include m.transition(('transform', 'opacity'), $duration: $ui-duration-fast, $timing: $ui-ease-standard);
     }
 
     // maximized styles
     :host(ui-window-frame[data-maximized]) {
-        @include m.transition(('inline-size', 'block-size'), $duration: $ui-duration-fast, $timing: $ui-ease-standard);
-        @include m.transition(('transform', 'opacity'), $duration: $ui-duration-fast, $timing: $ui-ease-standard);
 
         & {
             transform: scale3d(var(--scale, 1), var(--scale, 1), 1);
@@ -165,15 +98,6 @@
 
     :host(ui-window-frame[data-resizing]) {
         will-change: inline-size, block-size, transform, opacity;
-    }
-
-    // functionality
-    @media (width >= 600px) {
-        :host(ui-window-frame:not([data-maximized])) {
-            @include m.ps-draggable;
-            @include m.ps-resizable;
-            @include m.ps-mechanic;
-        }
     }
 
     // mobile layout styles

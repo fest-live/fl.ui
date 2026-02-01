@@ -90,10 +90,6 @@
             pointer-events: none;
         }
 
-        & {
-            @include m.border-radius(var(--ui-text-radius, 0.5rem));
-        }
-
         //
         & {
             border-radius: var(--ui-text-border-radius, 0.5rem);

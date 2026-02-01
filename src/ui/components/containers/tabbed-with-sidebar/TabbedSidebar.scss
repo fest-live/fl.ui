@@ -259,11 +259,6 @@ $at-host-orient-2: ":host([data-orient=\"2\"])";
             // Performance
             content-visibility: visible;
 
-            // Button styling
-            @include button-text(primary, false);
-            @include button-overlays(var(--md3-primary));
-            @include button-filled(primary, false);
-
             //
             color: color-mix(in oklch, var(--md3-on-surface) 85%, transparent);
 
@@ -296,7 +291,6 @@ $at-host-orient-2: ":host([data-orient=\"2\"])";
             }
 
             &[aria-expanded="true"] {
-                @include button-filled(primary, false);
                 color: var(--md3-on-primary);
             }
         }

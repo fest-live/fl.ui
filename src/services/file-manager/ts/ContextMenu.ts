@@ -32,10 +32,10 @@ const makeFileSystemOps = () => {
 let hasContextMenu = null;
 const makeContextMenu = () => {
     if (hasContextMenu) return hasContextMenu;
-    const ctxMenu = H`<ul class="grid-rows round-decor ctx-menu ux-anchor" style="position: fixed; z-index: 99999;"></ul>`;
+    const ctxMenu = H`<ul class="grid-rows round-decor ctx-menu ux-anchor" style="position: fixed; z-index: 99999;" data-hidden></ul>`;
     hasContextMenu = ctxMenu;
-    // Append to .basic-app element if it exists, otherwise document.body
-    const basicApp = document.querySelector('.basic-app') as HTMLElement;
+    // Append to .basic-shell element instead of document.body to inherit theme variables
+    const basicApp = document.querySelector('.basic-shell') as HTMLElement;
     (basicApp || document.body).append(ctxMenu);
     return ctxMenu;
 }

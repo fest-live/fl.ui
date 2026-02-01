@@ -11,4 +11,4 @@
  */
 
 // Re-export everything from veela-advanced
-export * from "./index.veela-advanced";
+export * from "./index.veela-basic";

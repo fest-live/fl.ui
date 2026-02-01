@@ -1,6 +1,6 @@
 /**
  * <rs-explorer> Web Component Styles
- * 
+ *
  * Encapsulated styles for the file explorer component.
  * Uses CSS custom properties for theming.
  */
@@ -9,12 +9,12 @@
     // ========================================================================
     // CSS CUSTOM PROPERTIES
     // ========================================================================
-    
+
     :host {
         --rs-font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         --rs-font-size: 0.875rem;
         --rs-line-height: 1.5;
-        
+
         // Light theme (default)
         --rs-bg: #ffffff;
         --rs-bg-secondary: #f9fafb;
@@ -26,11 +26,27 @@
         --rs-selected-border: #3b82f6;
         --rs-accent: #2563eb;
         --rs-accent-hover: #1d4ed8;
-        
+
         // Icon colors
         --rs-icon-folder: #f59e0b;
         --rs-icon-file: #6b7280;
-        
+
+        // Spacing tokens
+        --rs-gap-xs: 0.125rem;
+        --rs-gap-sm: 0.375rem;
+        --rs-gap-md: 0.5rem;
+        --rs-gap-lg: 0.75rem;
+        --rs-gap-xl: 1rem;
+
+        // Radius tokens
+        --rs-radius-sm: 0.25rem;
+        --rs-radius-md: 0.375rem;
+        --rs-radius-lg: 0.5rem;
+
+        // Transition tokens
+        --rs-transition-fast: 0.1s ease;
+        --rs-transition-normal: 0.15s ease;
+
         display: flex;
         flex-direction: column;
         contain: layout style;
@@ -62,40 +78,41 @@
     // ========================================================================
     // CONTAINER
     // ========================================================================
-    
+
     .rs-explorer {
         display: flex;
         flex-direction: column;
         block-size: 100%;
         background: var(--rs-bg);
         border: 1px solid var(--rs-border);
-        border-radius: 0.5rem;
+        border-radius: var(--rs-radius-lg);
         overflow: hidden;
     }
 
     // ========================================================================
     // TOOLBAR
     // ========================================================================
-    
+
     .rs-explorer__toolbar {
         display: flex;
         align-items: center;
-        gap: 0.5rem;
-        padding: 0.5rem;
+        gap: var(--rs-gap-md);
+        padding: var(--rs-gap-md);
         background: var(--rs-bg-secondary);
         border-block-end: 1px solid var(--rs-border);
         flex-shrink: 0;
     }
 
-    .rs-explorer__nav {
+    .rs-explorer__nav,
+    .rs-explorer__actions {
         display: flex;
-        gap: 0.125rem;
+        gap: var(--rs-gap-xs);
     }
 
     .rs-explorer__breadcrumb {
         flex: 1;
         min-inline-size: 0;
-        padding: 0 0.5rem;
+        padding: 0 var(--rs-gap-md);
     }
 
     .rs-explorer__path {
@@ -107,35 +124,30 @@
         text-overflow: ellipsis;
     }
 
-    .rs-explorer__actions {
-        display: flex;
-        gap: 0.125rem;
-    }
-
     // ========================================================================
     // BUTTONS
     // ========================================================================
-    
+
     .rs-explorer__btn {
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        gap: 0.375rem;
-        padding: 0.375rem;
+        gap: var(--rs-gap-sm);
+        padding: var(--rs-gap-sm);
         font-family: inherit;
         font-size: inherit;
         color: var(--rs-fg-muted);
         background: transparent;
         border: none;
-        border-radius: 0.25rem;
+        border-radius: var(--rs-radius-sm);
         cursor: pointer;
-        transition: background-color 0.15s ease, color 0.15s ease;
-        
+        transition: background-color var(--rs-transition-normal), color var(--rs-transition-normal);
+
         &:hover:not(:disabled) {
             color: var(--rs-fg);
             background: var(--rs-hover-bg);
         }
-        
+
         &:disabled {
             opacity: 0.5;
             cursor: not-allowed;
@@ -147,10 +159,10 @@
     }
 
     .rs-explorer__btn--primary {
-        padding: 0.5rem 1rem;
+        padding: var(--rs-gap-md) var(--rs-gap-xl);
         color: white;
         background: var(--rs-accent);
-        
+
         &:hover:not(:disabled) {
             background: var(--rs-accent-hover);
             color: white;
@@ -160,7 +172,7 @@
     // ========================================================================
     // CONTENT AREA
     // ========================================================================
-    
+
     .rs-explorer__content {
         flex: 1;
         min-block-size: 0;
@@ -171,8 +183,6 @@
         block-size: 100%;
         overflow-y: auto;
         outline: none;
-        
-        // Smooth scrolling
         scroll-behavior: smooth;
         overscroll-behavior: contain;
     }
@@ -180,13 +190,13 @@
     // ========================================================================
     // LOADING STATE
     // ========================================================================
-    
+
     .rs-explorer__loading {
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        gap: 0.75rem;
+        gap: var(--rs-gap-lg);
         padding: 2rem;
         color: var(--rs-fg-muted);
     }
@@ -215,17 +225,17 @@
     // ========================================================================
     // EMPTY STATE
     // ========================================================================
-    
+
     .rs-explorer__empty {
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        gap: 1rem;
+        gap: var(--rs-gap-xl);
         padding: 3rem 2rem;
         text-align: center;
         color: var(--rs-fg-muted);
-        
+
         ui-icon {
             font-size: 3rem;
             opacity: 0.5;
@@ -239,24 +249,24 @@
     // ========================================================================
     // LIST ITEMS
     // ========================================================================
-    
+
     .rs-explorer__item {
         display: flex;
         align-items: center;
-        gap: 0.75rem;
-        padding: 0.5rem 0.75rem;
+        gap: var(--rs-gap-lg);
+        padding: var(--rs-gap-md) var(--rs-gap-lg);
         cursor: pointer;
         user-select: none;
-        transition: background-color 0.1s ease;
+        transition: background-color var(--rs-transition-fast);
         position: relative;
-        
+
         &:hover {
             background: var(--rs-hover-bg);
         }
 
         &[aria-selected="true"] {
             background: var(--rs-selected-bg);
-            
+
             &::before {
                 content: "";
                 position: absolute;
@@ -273,7 +283,7 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        
+
         ui-icon {
             font-size: 1.5rem;
         }
@@ -292,7 +302,7 @@
         min-inline-size: 0;
         display: flex;
         flex-direction: column;
-        gap: 0.125rem;
+        gap: var(--rs-gap-xs);
     }
 
     .rs-explorer__item-name {
@@ -310,35 +320,33 @@
     // ========================================================================
     // GRID VIEW
     // ========================================================================
-    
+
     .rs-explorer[data-view-mode="grid"] {
         .rs-explorer__list {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-            gap: 0.5rem;
-            padding: 0.75rem;
+            gap: var(--rs-gap-md);
+            padding: var(--rs-gap-lg);
         }
 
         .rs-explorer__item {
             flex-direction: column;
-            padding: 0.75rem;
+            padding: var(--rs-gap-lg);
             text-align: center;
-            border-radius: 0.375rem;
+            border-radius: var(--rs-radius-md);
             border: 1px solid transparent;
-            
+
             &[aria-selected="true"] {
                 border-color: var(--rs-selected-border);
-                
+
                 &::before {
                     display: none;
                 }
             }
         }
 
-        .rs-explorer__item-icon {
-            ui-icon {
-                font-size: 2.5rem;
-            }
+        .rs-explorer__item-icon ui-icon {
+            font-size: 2.5rem;
         }
 
         .rs-explorer__item-info {
@@ -363,12 +371,12 @@
     // ========================================================================
     // STATUS BAR
     // ========================================================================
-    
+
     .rs-explorer__status {
         display: flex;
         align-items: center;
-        gap: 1rem;
-        padding: 0.375rem 0.75rem;
+        gap: var(--rs-gap-xl);
+        padding: var(--rs-gap-sm) var(--rs-gap-lg);
         background: var(--rs-bg-secondary);
         border-block-start: 1px solid var(--rs-border);
         font-size: 0.75rem;
@@ -378,24 +386,32 @@
 
     .rs-explorer__selected-count:not(:empty)::before {
         content: "•";
-        margin-inline-end: 1rem;
+        margin-inline-end: var(--rs-gap-xl);
     }
 
     // ========================================================================
     // DRAG AND DROP
     // ========================================================================
-    
-    :host(.dragover) {
-        .rs-explorer__content {
-            background: var(--rs-selected-bg);
-            border: 2px dashed var(--rs-selected-border);
-        }
+
+    :host(.dragover) .rs-explorer__content {
+        background: var(--rs-selected-bg);
+        border: 2px dashed var(--rs-selected-border);
+    }
+
+    // ========================================================================
+    // FOCUS STYLES
+    // ========================================================================
+
+    .rs-explorer__list:focus-visible,
+    .rs-explorer__item:focus-visible {
+        outline: 2px solid var(--rs-accent);
+        outline-offset: -2px;
     }
 
     // ========================================================================
     // RESPONSIVE
     // ========================================================================
-    
+
     @media (max-width: 480px) {
         .rs-explorer__toolbar {
             flex-wrap: wrap;
@@ -404,27 +420,91 @@
         .rs-explorer__breadcrumb {
             order: 3;
             inline-size: 100%;
-            padding: 0.25rem 0 0;
+            padding: var(--rs-gap-sm) 0 0;
         }
 
-        .rs-explorer[data-view-mode="grid"] {
-            .rs-explorer__list {
-                grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+        .rs-explorer[data-view-mode="grid"] .rs-explorer__list {
+            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+        }
+    }
+}
+
+@layer rs-explorer-view {
+    /**
+     * Explorer View Styles
+     * Styles for the view wrapper component
+     */
+
+    .view-explorer {
+        display: flex;
+        flex-direction: column;
+        block-size: 100%;
+        background-color: var(--view-bg, var(--color-surface, #ffffff));
+        color: var(--view-fg, var(--color-on-surface, #1a1a1a));
+    }
+
+    .view-explorer__content {
+        flex: 1;
+        overflow: hidden;
+
+        ui-file-manager {
+            block-size: 100%;
+        }
+    }
+
+    .view-explorer__loading {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 1rem;
+        block-size: 100%;
+        color: var(--view-fg);
+        opacity: 0.6;
+    }
+
+    .view-explorer__spinner {
+        inline-size: 32px;
+        block-size: 32px;
+        border: 3px solid rgba(128, 128, 128, 0.2);
+        border-block-start-color: var(--color-primary, #007acc);
+        border-radius: 50%;
+        animation: explorer-spin 0.8s linear infinite;
+    }
+
+    @keyframes explorer-spin {
+        to { transform: rotate(360deg); }
+    }
+
+    .view-explorer__error {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 1rem;
+        block-size: 100%;
+
+        p {
+            margin: 0;
+            color: #d32f2f;
+        }
+
+        button {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 6px;
+            background-color: var(--color-primary, #007acc);
+            color: white;
+            cursor: pointer;
+
+            &:hover {
+                filter: brightness(1.1);
             }
         }
     }
 
-    // ========================================================================
-    // FOCUS STYLES
-    // ========================================================================
-    
-    .rs-explorer__list:focus-visible {
-        outline: 2px solid var(--rs-accent);
-        outline-offset: -2px;
-    }
-
-    .rs-explorer__item:focus-visible {
-        outline: 2px solid var(--rs-accent);
-        outline-offset: -2px;
+    [data-theme="dark"] .view-explorer {
+        --view-bg: #1e1e1e;
+        --view-fg: #e0e0e0;
     }
 }

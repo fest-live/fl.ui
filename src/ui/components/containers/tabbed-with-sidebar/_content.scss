@@ -23,7 +23,6 @@
             min-block-size: 0px;
             max-inline-size: stretch;
             max-block-size: stretch;
-            @include container-clamped(stretch, stretch);
 
             // Spacing
             gap: 0px;
@@ -70,7 +69,6 @@
             max-inline-size: stretch;
             max-block-size: stretch;
             will-change: contents;
-            @include container-clamped(stretch, stretch);
 
             // Spacing
             gap: 0px;
@@ -89,9 +87,6 @@
             contain: strict;
             perspective: 1000;
             transform: translateZ(0px);
-
-            // Surface styling
-            @include surface(var(--surface-opacity-subtle));
         }
 
         // ================================================================
@@ -128,7 +123,6 @@
             color: var(--md3-on-surface);
             overflow: auto;
             scrollbar-gutter: stable both-edges;
-            @include scrollbar();
         }
 
         // Hidden slotted content

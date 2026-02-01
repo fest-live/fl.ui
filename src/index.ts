@@ -25,9 +25,6 @@ import { loadInlineStyle, preloadStyle } from "fest/dom";
 import { UIPhosphorIcon } from "fest/icon";
 console.log(UIPhosphorIcon);
 
-//@ts-ignore
-import styles from "./index.scss?inline";
-
 // ============================================================================
 // CONFIGURATION
 // ============================================================================
@@ -63,15 +60,24 @@ export function getFlUIConfig(): FlUIConfig {
     return { ..._config };
 }
 
-// Load styles by default (backwards compatible - uses veela-advanced)
-loadInlineStyle(styles);
+//@ts-ignore
+import styles from "./styles/index.scss?inline";
 
 // ============================================================================
 // EXPORTS
 // ============================================================================
 
+import { loader } from "./styles/index.veela";
 export * from "./ui/index";
-export const styled = preloadStyle(styles);
 
-export * from "./services/file-manager/FileManager";
+//
+export * from "./services/file-manager";
 export * from "./services/markdown-view/Markdown";
+
+//
+(async () => {
+    const styled = await preloadStyle(styles);
+    // Load styles by default (backwards compatible - uses veela-advanced)
+    await loadInlineStyle(styles);
+    await loader();
+})();

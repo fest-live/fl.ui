@@ -1,8 +1,10 @@
 /**
  * Shared utilities for file manager components
  *
- * Extracted common functionality from RsExplorer and FileManagerContent
+ * Extracted common functionality from RsExplorer, FileManagerContent, and Operative.
  */
+
+import type { FileEntry } from "./types";
 
 // ============================================================================
 // ICON MAPPING
@@ -26,62 +28,71 @@ export const iconByMime = (mime: string | undefined, def = "file"): string => {
 };
 
 /**
+ * Extension to icon mapping
+ */
+const EXTENSION_ICON_MAP: Record<string, string> = {
+    // Documents
+    md: "file-text",
+    txt: "file-text",
+    pdf: "file-pdf",
+    doc: "file-doc",
+    docx: "file-doc",
+
+    // Images
+    png: "file-image",
+    jpg: "file-image",
+    jpeg: "file-image",
+    gif: "file-image",
+    svg: "file-image",
+    webp: "file-image",
+
+    // Code
+    js: "file-js",
+    ts: "file-ts",
+    jsx: "file-jsx",
+    tsx: "file-tsx",
+    html: "file-html",
+    css: "file-css",
+    scss: "file-css",
+    json: "file-json",
+
+    // Archives
+    zip: "file-zip",
+    tar: "file-zip",
+    gz: "file-zip",
+    rar: "file-zip",
+
+    // Media
+    mp3: "file-audio",
+    wav: "file-audio",
+    mp4: "file-video",
+    mov: "file-video",
+    webm: "file-video"
+};
+
+/**
  * Get icon name by file extension
  */
 export const getFileIcon = (filename: string): string => {
     const ext = filename.split(".").pop()?.toLowerCase() || "";
-
-    const iconMap: Record<string, string> = {
-        // Documents
-        md: "file-text",
-        txt: "file-text",
-        pdf: "file-pdf",
-        doc: "file-doc",
-        docx: "file-doc",
-
-        // Images
-        png: "file-image",
-        jpg: "file-image",
-        jpeg: "file-image",
-        gif: "file-image",
-        svg: "file-image",
-        webp: "file-image",
-
-        // Code
-        js: "file-js",
-        ts: "file-ts",
-        jsx: "file-jsx",
-        tsx: "file-tsx",
-        html: "file-html",
-        css: "file-css",
-        scss: "file-css",
-        json: "file-json",
-
-        // Archives
-        zip: "file-zip",
-        tar: "file-zip",
-        gz: "file-zip",
-        rar: "file-zip",
-
-        // Media
-        mp3: "file-audio",
-        wav: "file-audio",
-        mp4: "file-video",
-        mov: "file-video",
-        webm: "file-video"
-    };
-
-    return iconMap[ext] || "file";
+    return EXTENSION_ICON_MAP[ext] || "file";
 };
 
 /**
- * Get icon for file entry item
+ * Get icon for file entry item (unified function)
+ * Handles FileEntry objects and string types.
  */
-export const iconFor = (item: { kind?: string; type?: string; name?: string } | string, type?: string): string => {
+export const iconFor = (item: FileEntry | string, type?: string): string => {
+    // Handle string type (legacy support)
     if (typeof item === "string") {
-        return (item === "directory" ? "folder" : iconByMime(type || item || ""));
+        return item === "directory" ? "folder" : iconByMime(type || item || "");
     }
-    return item?.kind === "directory" ? "folder" : iconByMime(item?.type) || getFileIcon(item?.name || "");
+
+    // Handle FileEntry object
+    if (item?.kind === "directory") return "folder";
+
+    // Try MIME type first, then extension fallback
+    return iconByMime(item?.type) || getFileIcon(item?.name || "");
 };
 
 // ============================================================================
@@ -92,6 +103,7 @@ const sizeCache = new Map<number, string>();
 
 /**
  * Format file size with caching
+ * Uses cached values for performance in lists.
  */
 export const formatSize = (bytes?: number): string => {
     if (bytes === undefined || bytes === null) return "";
@@ -100,19 +112,23 @@ export const formatSize = (bytes?: number): string => {
         return sizeCache.get(bytes)!;
     }
 
-    const units = ["B", "KB", "MB", "GB"];
-    let size = bytes;
-    let unitIndex = 0;
-
-    while (size >= 1024 && unitIndex < units.length - 1) {
-        size /= 1024;
-        unitIndex++;
+    let formatted: string;
+    if (bytes < 1024) {
+        formatted = bytes + " B";
+    } else if (bytes < 1024 * 1024) {
+        formatted = (bytes / 1024).toFixed(2) + " kB";
+    } else if (bytes < 1024 * 1024 * 1024) {
+        formatted = (bytes / 1024 / 1024).toFixed(2) + " MB";
+    } else {
+        formatted = (bytes / 1024 / 1024 / 1024).toFixed(2) + " GB";
     }
 
-    const formatted = `${size.toFixed(unitIndex > 0 ? 1 : 0)} ${units[unitIndex]}`;
     sizeCache.set(bytes, formatted);
     return formatted;
 };
+
+/** @deprecated Use formatSize instead */
+export const getSize = formatSize;
 
 // ============================================================================
 // DATE FORMATTING
@@ -127,6 +143,7 @@ export const formatDate = (timestamp: number | Date | undefined): string => {
     if (timestamp === undefined || timestamp === null) return "";
 
     const ts = timestamp instanceof Date ? timestamp.getTime() : timestamp;
+
     if (dateCache.has(ts)) {
         return dateCache.get(ts)!;
     }
@@ -138,6 +155,9 @@ export const formatDate = (timestamp: number | Date | undefined): string => {
     dateCache.set(ts, formatted);
     return formatted;
 };
+
+/** @deprecated Use formatDate instead */
+export const getFormattedDate = formatDate;
 
 // ============================================================================
 // PATH UTILITIES
@@ -160,4 +180,43 @@ export const normalizePath = (path: string, isDirectory: boolean = false): strin
         return path + "/";
     }
     return path;
+};
+
+/**
+ * Join path segments
+ */
+export const joinPath = (...segments: string[]): string => {
+    return "/" + segments
+        .map(s => s.replace(/^\/+|\/+$/g, ""))
+        .filter(Boolean)
+        .join("/");
+};
+
+/**
+ * Get file extension
+ */
+export const getExtension = (filename: string): string => {
+    const idx = filename.lastIndexOf(".");
+    return idx > 0 ? filename.slice(idx + 1).toLowerCase() : "";
+};
+
+// ============================================================================
+// SORTING UTILITIES
+// ============================================================================
+
+/**
+ * Get sort order index by first letter (for alphabetical ordering)
+ */
+export const getAlphaOrder = (name: string): number => {
+    const firstChar = name?.charAt?.(0)?.toUpperCase?.() || "A";
+    return firstChar.charCodeAt(0) - 65; // A=0, B=1, etc.
+};
+
+/**
+ * Get sort order index by first two letters (finer granularity)
+ */
+export const getAlphaOrderFine = (name: string): number => {
+    const first = (name?.charCodeAt?.(0) || 65) - 65;
+    const second = (name?.charCodeAt?.(1) || 65) - 65;
+    return first * 26 + second;
 };

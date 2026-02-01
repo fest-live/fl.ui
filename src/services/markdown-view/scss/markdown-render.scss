@@ -3,29 +3,44 @@
 @use "../lib/props";
 
 @layer markdown-render {
+    // 1) root props — один раз
     @include props.markdown-root-props();
 
-    :host,
-    :scope,
-    .markdown-body,
-    #markdown,
-    md-view {
-        // -- CSS Variables from Config --
-        --md-fg-default: #{config.md-light-dark("text")};
-        --md-fg-muted: #{config.md-light-dark("text-muted")};
-        --md-fg-accent: #{config.md-light-dark("accent")};
+    // 2) единая группа корневых контейнеров
+    $md-roots: ":host, :scope, .markdown-body, #markdown, md-view";
 
-        --md-bg-default: #{config.md-light-dark("bg")};
-        --md-bg-subtle: #{config.md-light-dark("bg-subtle")};
-        --md-bg-code: #{config.md-light-dark("code-bg")};
+    // 3) миксин, который назначает css variables (light/dark)
+    @mixin md-vars($mode: auto) {
+        @if $mode ==auto {
+            --md-fg-default: #{config.md-light-dark("text")};
+            --md-fg-muted: #{config.md-light-dark("text-muted")};
+            --md-fg-accent: #{config.md-light-dark("accent")};
+            --md-bg-default: #{config.md-light-dark("bg")};
+            --md-bg-subtle: #{config.md-light-dark("bg-subtle")};
+            --md-bg-code: #{config.md-light-dark("code-bg")};
+            --md-border-default: #{config.md-light-dark("border")};
+            --md-border-subtle: #{config.md-light-dark("border-subtle")};
+        }
 
-        --md-border-default: #{config.md-light-dark("border")};
-        --md-border-subtle: #{config.md-light-dark("border-subtle")};
+        @else {
+            --md-fg-default: #{config.md-color("text", $mode)};
+            --md-fg-muted: #{config.md-color("text-muted", $mode)};
+            --md-fg-accent: #{config.md-color("accent", $mode)};
+            --md-bg-default: #{config.md-color("bg", $mode)};
+            --md-bg-subtle: #{config.md-color("bg-subtle", $mode)};
+            --md-bg-code: #{config.md-color("code-bg", $mode)};
+            --md-border-default: #{config.md-color("border", $mode)};
+            --md-border-subtle: #{config.md-color("border-subtle", $mode)};
+        }
 
         --md-font-body: #{config.md-config("font", "body")};
         --md-font-mono: #{config.md-config("font", "mono")};
-
         --md-radius: #{config.md-config("shape", "border-radius")};
+    }
+
+    // 4) базовые стили корня
+    #{$md-roots} {
+        @include md-vars(auto);
 
         background-color: transparent;
         color: var(--md-fg-default);
@@ -37,33 +52,21 @@
         @include mixins.md-interactive-area();
         @include mixins.md-font-smoothing(always);
 
-        // Reset & Base
         margin: 0;
         color-scheme: inherit;
         -ms-text-size-adjust: 100%;
         -webkit-text-size-adjust: 100%;
     }
 
-    // Dark theme overrides
-    .basic-shell[data-theme="dark"] :host,
-    .basic-shell[data-theme="dark"] :scope,
-    .basic-shell[data-theme="dark"] .markdown-body,
-    .basic-shell[data-theme="dark"] #markdown,
-    .basic-shell[data-theme="dark"] md-view {
-        --md-fg-default: #{config.md-color("text", "dark")};
-        --md-fg-muted: #{config.md-color("text-muted", "dark")};
-        --md-fg-accent: #{config.md-color("accent", "dark")};
-
-        --md-bg-default: #{config.md-color("bg", "dark")};
-        --md-bg-subtle: #{config.md-color("bg-subtle", "dark")};
-        --md-bg-code: #{config.md-color("code-bg", "dark")};
-
-        --md-border-default: #{config.md-color("border", "dark")};
-        --md-border-subtle: #{config.md-color("border-subtle", "dark")};
+    // 5) принудительная тёмная тема через атрибут контейнера
+    .basic-shell[data-theme="dark"] {
+        #{$md-roots} {
+            @include md-vars(dark);
+        }
     }
 
+    // 6) собственно markdown-типографика (один раз)
     :where(.markdown-body, #markdown, md-view, :host) {
-
         math {
             math-style: compact;
             math-shift: compact;
@@ -72,18 +75,24 @@
             max-inline-size: stretch;
         }
 
-        // === Typography ===
-
-        h1, h2, h3, h4, h5, h6 {
+        h1,
+        h2,
+        h3,
+        h4,
+        h5,
+        h6 {
             margin-block-start: 1.5em;
             margin-block-end: 1rem;
             font-weight: 600;
             line-height: 1.25;
             color: var(--md-fg-default);
 
-            &:first-child { margin-block-start: 0; }
+            &:first-child {
+                margin-block-start: 0;
+            }
 
-            tt, code {
+            tt,
+            code {
                 font-size: inherit;
                 font-family: var(--md-font-mono);
             }
@@ -101,10 +110,22 @@
             border-block-end: 1px solid var(--md-border-subtle);
         }
 
-        h3 { font-size: 1.25em; }
-        h4 { font-size: 1em; }
-        h5 { font-size: 0.875em; }
-        h6 { font-size: 0.85em; color: var(--md-fg-muted); }
+        h3 {
+            font-size: 1.25em;
+        }
+
+        h4 {
+            font-size: 1em;
+        }
+
+        h5 {
+            font-size: 0.875em;
+        }
+
+        h6 {
+            font-size: 0.85em;
+            color: var(--md-fg-muted);
+        }
 
         p {
             margin-block-start: 0;
@@ -112,17 +133,19 @@
         }
 
         blockquote {
-            margin: 0;
-            margin-block-end: 1rem;
+            margin: 0 0 1rem;
             padding: 0 1em;
             color: var(--md-fg-muted);
             border-inline-start: 0.25em solid var(--md-border-default);
 
-            & > :first-child { margin-block-start: 0; }
-            & > :last-child { margin-block-end: 0; }
-        }
+            > :first-child {
+                margin-block-start: 0;
+            }
 
-        // === Links ===
+            > :last-child {
+                margin-block-end: 0;
+            }
+        }
 
         a {
             color: var(--md-fg-accent);
@@ -139,39 +162,64 @@
             }
         }
 
-        // === Lists ===
-
-        ul, ol {
+        ul,
+        ol {
             margin-block-start: 0;
             margin-block-end: 1rem;
             padding-inline-start: 2em;
 
-            ol, ul {
+            ol,
+            ul {
                 margin-block-end: 0;
             }
         }
 
         li {
             word-wrap: break-all;
-            & > p { margin-block-start: 1rem; }
-            & + li { margin-block-start: 0.25em; }
+
+            > p {
+                margin-block-start: 1rem;
+            }
+
+            & + li {
+                margin-block-start: 0.25em;
+            }
         }
 
         ol {
             list-style-type: decimal;
 
-            &[type="a"] { list-style-type: lower-alpha; }
-            &[type="A"] { list-style-type: upper-alpha; }
-            &[type="i"] { list-style-type: lower-roman; }
-            &[type="I"] { list-style-type: upper-roman; }
-            &[type="1"] { list-style-type: decimal; }
+            &[type="a"] {
+                list-style-type: lower-alpha;
+            }
+
+            &[type="A"] {
+                list-style-type: upper-alpha;
+            }
+
+            &[type="i"] {
+                list-style-type: lower-roman;
+            }
+
+            &[type="I"] {
+                list-style-type: upper-roman;
+            }
+
+            &[type="1"] {
+                list-style-type: decimal;
+            }
         }
 
         ul {
             list-style-type: disc;
 
-            ul { list-style-type: circle; }
-            ul ul { list-style-type: square; }
+            ul {
+                list-style-type: circle;
+            }
+
+            ul ul {
+                list-style-type: square;
+            }
         }
 
         dl {
@@ -192,24 +240,24 @@
             }
         }
 
-        // === Tables ===
-
         table {
             border-spacing: 0;
             border-collapse: collapse;
             display: block;
-            min-inline-size: 0px;
+            min-inline-size: 0;
             inline-size: fit-content;
             max-inline-size: stretch;
             overflow: auto;
             margin-block-end: 1rem;
 
-            tbody, thead {
+            tbody,
+            thead {
                 inline-size: fit-content;
                 max-inline-size: stretch;
             }
 
-            th, td {
+            th,
+            td {
                 padding: 6px 13px;
                 border: 1px solid var(--md-border-default);
                 inline-size: fit-content;
@@ -224,26 +272,29 @@
             tr {
                 background-color: var(--md-bg-default);
                 border-block-start: 1px solid var(--md-border-subtle);
-                min-inline-size: 0px;
-                inline-size: fit-content;
-                max-inline-size: stretch;
 
                 &:nth-child(2n) {
                     background-color: var(--md-bg-subtle);
                 }
             }
 
-            img { background-color: transparent; }
+            img {
+                background-color: transparent;
+            }
         }
 
-        // === Code & Pre ===
-
-        code, kbd, pre, samp, tt {
+        code,
+        kbd,
+        pre,
+        samp,
+        tt {
             font-family: var(--md-font-mono);
             font-size: 1em;
         }
 
-        code, tt, samp {
+        code,
+        tt,
+        samp {
             padding: 0.2em 0.4em;
             margin: 0;
             font-size: 85%;
@@ -252,8 +303,7 @@
         }
 
         pre {
-            margin-block-start: 0;
-            margin-block-end: 1rem;
+            margin-block: 0 1rem;
             padding: 1rem;
             overflow: auto;
             font-size: 85%;
@@ -261,9 +311,9 @@
             background-color: var(--md-bg-code);
             border-radius: 6px;
 
-            code, tt {
+            code,
+            tt {
                 display: inline;
-                max-inline-size: auto;
                 padding: 0;
                 margin: 0;
                 overflow: visible;
@@ -288,24 +338,26 @@
             contain: strict;
         }
 
-        // === Footnotes ===
         .footnotes {
             font-size: 0.75em;
             color: var(--md-fg-muted);
             border-block-start: 1px solid var(--md-border-default);
             margin-block-start: 2rem;
 
-            ol { padding-inline-start: 1.5em; }
+            ol {
+                padding-inline-start: 1.5em;
+            }
 
             li {
                 position: relative;
-                &:target { color: var(--md-fg-default); }
+
+                &:target {
+                    color: var(--md-fg-default);
+                }
+
                 &:target::before {
                     position: absolute;
-                    inset-block-start: -8px;
-                    inset-block-end: -8px;
-                    inset-inline-start: -24px;
-                    inset-inline-end: -8px;
+                    inset: -8px -8px -8px -24px;
                     border: 2px solid var(--md-fg-accent);
                     border-radius: 6px;
                     content: "";
@@ -314,18 +366,31 @@
             }
         }
 
-        // === Alerts ===
         .markdown-alert {
             padding: 0.5rem 1rem;
             margin-block-end: 1rem;
             color: inherit;
             border-inline-start: 0.25em solid var(--md-border-default);
 
-            &.markdown-alert-note { border-color: var(--md-fg-accent); }
-            &.markdown-alert-important { border-color: #8250df; }
-            &.markdown-alert-warning { border-color: #bf8700; }
-            &.markdown-alert-tip { border-color: #1a7f37; }
-            &.markdown-alert-caution { border-color: #d1242f; }
+            &.markdown-alert-note {
+                border-color: var(--md-fg-accent);
+            }
+
+            &.markdown-alert-important {
+                border-color: #8250df;
+            }
+
+            &.markdown-alert-warning {
+                border-color: #bf8700;
+            }
+
+            &.markdown-alert-tip {
+                border-color: #1a7f37;
+            }
+
+            &.markdown-alert-caution {
+                border-color: #d1242f;
+            }
 
             .markdown-alert-title {
                 display: flex;
@@ -334,11 +399,12 @@
                 line-height: 1;
                 margin-block-end: 0.5rem;
 
-                .octicon { margin-inline-end: 0.5rem; }
+                .octicon {
+                    margin-inline-end: 0.5rem;
+                }
             }
         }
 
-        // === Icons & Emojis ===
         .octicon {
             display: inline-block;
             fill: currentColor;
@@ -348,7 +414,7 @@
         g-emoji {
             display: inline-block;
             min-inline-size: 1ch;
-            font-family: "Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol";
+            font-family: "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
             font-size: 1em;
             font-style: normal;
             font-weight: 400;
@@ -361,14 +427,15 @@
             }
         }
 
-        // === Anchors ===
         .anchor {
             float: inline-start;
             padding-inline-end: 4px;
             margin-inline-start: -20px;
             line-height: 1;
 
-            &:focus { outline: none; }
+            &:focus {
+                outline: none;
+            }
         }
 
         .octicon-link {
@@ -376,7 +443,9 @@
             color: var(--md-fg-muted);
             opacity: 0.5;
 
-            &:hover { opacity: 1; }
+            &:hover {
+                opacity: 1;
+            }
         }
 
         h1:hover .anchor .octicon-link,
@@ -388,21 +457,25 @@
             visibility: visible;
         }
 
-        // === Misc ===
-
         hr {
             box-sizing: content-box;
             overflow: hidden;
-            background: transparent;
-            border-block-end: 1px solid var(--md-border-subtle);
+            margin: 24px 0;
             block-size: 0.25em;
             padding: 0;
-            margin: 24px 0;
-            background-color: var(--md-border-default);
             border: 0;
+            background-color: var(--md-border-default);
 
-            &::before { display: table; content: ""; }
-            &::after { display: table; clear: both; content: ""; }
+            &::before {
+                display: table;
+                content: "";
+            }
+
+            &::after {
+                display: table;
+                clear: both;
+                content: "";
+            }
         }
 
         img {
@@ -411,8 +484,13 @@
             background-color: transparent;
             border-style: none;
 
-            &[align="right"] { padding-inline-start: 20px; }
-            &[align="left"] { padding-inline-end: 20px; }
+            &[align="right"] {
+                padding-inline-start: 20px;
+            }
+
+            &[align="left"] {
+                padding-inline-end: 20px;
+            }
         }
 
         kbd {
@@ -424,13 +502,10 @@
             vertical-align: middle;
             background-color: var(--md-bg-subtle);
             border: 1px solid var(--md-border-default);
-            border-block-end-color: var(--md-border-default);
             border-radius: 6px;
             box-shadow: inset 0 -1px 0 var(--md-border-default);
         }
 
-        // === Details / Summary ===
-
         details {
             display: block;
 
@@ -438,7 +513,12 @@
                 display: list-item;
                 cursor: pointer;
 
-                h1, h2, h3, h4, h5, h6 {
+                h1,
+                h2,
+                h3,
+                h4,
+                h5,
+                h6 {
                     display: inline-block;
                     vertical-align: middle;
                     margin: 0;
@@ -447,8 +527,6 @@
                 }
             }
         }
-
-        // === Checkboxes (Task Lists) ===
 
         .task-list-item {
             list-style-type: none;
@@ -459,997 +537,62 @@
             }
         }
 
-        // === Syntax Highlighting (Prettylights map) ===
-        .pl-c { color: #6e7781; } // Comment
-        .pl-c1 { color: #0550ae; } // Constant
-        .pl-k { color: #cf222e; } // Keyword
-        .pl-s { color: #0a3069; } // String
-        .pl-v { color: #953800; } // Variable
-        .pl-en { color: #8250df; } // Function/Entity
-
-        // Dark mode overrides for syntax
-        @media (prefers-color-scheme: dark) {
-             .pl-c { color: #8b949e; }
-             .pl-c1 { color: #79c0ff; }
-             .pl-k { color: #ff7b72; }
-             .pl-s { color: #a5d6ff; }
-             .pl-v { color: #ffa657; }
-             .pl-en { color: #d2a8ff; }
+        // подсветка кода (как было)
+        .pl-c {
+            color: #6e7781;
         }
 
-        // === Print adjustments ===
+        .pl-c1 {
+            color: #0550ae;
+        }
+
+        .pl-k {
+            color: #cf222e;
+        }
+
+        .pl-s {
+            color: #0a3069;
+        }
+
+        .pl-v {
+            color: #953800;
+        }
+
+        .pl-en {
+            color: #8250df;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .pl-c {
+                color: #8b949e;
+            }
+
+            .pl-c1 {
+                color: #79c0ff;
+            }
+
+            .pl-k {
+                color: #ff7b72;
+            }
+
+            .pl-s {
+                color: #a5d6ff;
+            }
+
+            .pl-v {
+                color: #ffa657;
+            }
+
+            .pl-en {
+                color: #d2a8ff;
+            }
+        }
+
         @media print {
             background-color: transparent !important;
 
-            pre, code {
-                white-space: pre-wrap !important;
-                word-break: break-word !important;
-            }
-        }
-    }
-}
-
-@use "../lib/mixins" as mixins;
-@use "../lib/tokens" as tokens;
-@use "../lib/config" as config;
-@use "../lib/props";
-
-@layer markdown-render {
-    @include props.markdown-root-props();
-
-    :host,
-    :scope,
-    .markdown-body,
-    #markdown,
-    md-view {
-        // -- CSS Variables from Config --
-        --md-fg-default: #{theme-color("text-primary", "light")};
-        --md-fg-muted: #{theme-color("text-muted", "light")};
-        --md-fg-accent: #{theme-color("accent", "light")};
-
-        --md-bg-default: #{theme-color("surface", "light")};
-        --md-bg-subtle: #{theme-color("surface-container", "light")};
-        --md-bg-code: #{theme-color("code-bg", "light")};
-
-        --md-border-default: #{theme-color("border", "light")};
-        --md-border-subtle: #{theme-color("border-subtle", "light")};
-
-        --md-font-body: #{config("typography", "font-family", "sans")};
-        --md-font-mono: #{config("typography", "font-family", "mono")};
-
-        background-color: transparent;
-        color: var(--md-fg-default);
-        font-family: var(--md-font-body);
-        font-size: #{config("typography", "font-size", "base")};
-        line-height: #{config("layout", "line-height")};
-        word-wrap: break-word;
-
-        @include mixins.md-interactive-area();
-        @include mixins.md-font-smoothing(always);
-
-        // Reset & Base
-        margin: 0;
-        color-scheme: inherit;
-        -ms-text-size-adjust: 100%;
-        -webkit-text-size-adjust: 100%;
-    }
-
-    // Dark theme overrides
-    .basic-app[data-theme="dark"] :host,
-    .basic-app[data-theme="dark"] :scope,
-    .basic-app[data-theme="dark"] .markdown-body,
-    .basic-app[data-theme="dark"] #markdown,
-    .basic-app[data-theme="dark"] md-view {
-        --md-fg-default: #{theme-color("text-primary", "dark")};
-        --md-fg-muted: #{theme-color("text-muted", "dark")};
-        --md-fg-accent: #{theme-color("accent", "dark")};
-
-        --md-bg-default: #{theme-color("surface", "dark")};
-        --md-bg-subtle: #{theme-color("surface-container", "dark")};
-        --md-bg-code: #{theme-color("code-bg", "dark")};
-
-        --md-border-default: #{theme-color("border", "dark")};
-        --md-border-subtle: #{theme-color("border-subtle", "dark")};
-    }
-
-    :where(.markdown-body, #markdown, md-view, :host) {
-
-        math {
-            math-style: compact;
-            math-shift: compact;
-            math-depth: auto-add;
-            inline-size: fit-content;
-            max-inline-size: stretch;
-        }
-
-        // === Typography ===
-
-        h1, h2, h3, h4, h5, h6 {
-            margin-block-start: 1.5em;
-            margin-block-end: 1rem;
-            font-weight: 600;
-            line-height: 1.25;
-            color: var(--md-fg-default);
-
-            &:first-child { margin-block-start: 0; }
-
-            tt, code {
-                font-size: inherit;
-                font-family: var(--md-font-mono);
-            }
-        }
-
-        h1 {
-            font-size: 2em;
-            padding-block-end: 0.3em;
-            border-block-end: 1px solid var(--md-border-subtle);
-        }
-
-        h2 {
-            font-size: 1.5em;
-            padding-block-end: 0.3em;
-            border-block-end: 1px solid var(--md-border-subtle);
-        }
-
-        h3 { font-size: 1.25em; }
-        h4 { font-size: 1em; }
-        h5 { font-size: 0.875em; }
-        h6 { font-size: 0.85em; color: var(--md-fg-muted); }
-
-        p {
-            margin-block-start: 0;
-            margin-block-end: 1rem;
-        }
-
-        blockquote {
-            margin: 0;
-            margin-block-end: 1rem;
-            padding: 0 1em;
-            color: var(--md-fg-muted);
-            border-inline-start: 0.25em solid var(--md-border-default);
-
-            & > :first-child { margin-block-start: 0; }
-            & > :last-child { margin-block-end: 0; }
-        }
-
-        // === Links ===
-
-        a {
-            color: var(--md-fg-accent);
-            text-decoration: none;
-            background-color: transparent;
-
-            &:hover {
-                text-decoration: underline;
-            }
-
-            &:not([href]) {
-                color: inherit;
-                text-decoration: none;
-            }
-        }
-
-        // === Lists ===
-
-        ul, ol {
-            margin-block-start: 0;
-            margin-block-end: 1rem;
-            padding-inline-start: 2em;
-
-            ol, ul {
-                margin-block-end: 0;
-            }
-        }
-
-        li {
-            word-wrap: break-all;
-            & > p { margin-block-start: 1rem; }
-            & + li { margin-block-start: 0.25em; }
-        }
-
-        ol {
-            list-style-type: decimal;
-
-            &[type="a"] { list-style-type: lower-alpha; }
-            &[type="A"] { list-style-type: upper-alpha; }
-            &[type="i"] { list-style-type: lower-roman; }
-            &[type="I"] { list-style-type: upper-roman; }
-            &[type="1"] { list-style-type: decimal; }
-        }
-
-        ul {
-            list-style-type: disc;
-
-            ul { list-style-type: circle; }
-            ul ul { list-style-type: square; }
-        }
-
-        dl {
-            padding: 0;
-
-            dt {
-                padding: 0;
-                margin-block-start: 1rem;
-                font-size: 1em;
-                font-style: italic;
-                font-weight: 600;
-            }
-
-            dd {
-                padding: 0 1rem;
-                margin-block-end: 1rem;
-                margin-inline-start: 0;
-            }
-        }
-
-        // === Tables ===
-
-        table {
-            border-spacing: 0;
-            border-collapse: collapse;
-            display: block;
-            min-inline-size: 0px;
-            inline-size: fit-content;
-            max-inline-size: stretch;
-            overflow: auto;
-            margin-block-end: 1rem;
-
-            tbody, thead {
-                inline-size: fit-content;
-                max-inline-size: stretch;
-            }
-
-            th, td {
-                padding: 4px 8px;
-                border: 0.5px solid var(--md-border-subtle);
-                inline-size: fit-content;
-                max-inline-size: stretch;
-            }
-
-            th {
-                font-weight: 600;
-                background-color: var(--md-bg-subtle);
-            }
-
-            tr {
-                background-color: var(--md-bg-default);
-                border-block-start: 1px solid var(--md-border-subtle);
-                min-inline-size: 0px;
-                inline-size: fit-content;
-                max-inline-size: stretch;
-
-                &:nth-child(2n) {
-                    background-color: var(--md-bg-subtle);
-                }
-            }
-
-            img { background-color: transparent; }
-        }
-
-        // === Code & Pre ===
-
-        code, kbd, pre, samp, tt {
-            font-family: var(--md-font-mono);
-            font-size: 1em;
-        }
-
-        code, tt, samp {
-            padding: 0.125em 0.25em;
-            margin: 0;
-            font-size: 85%;
-            background-color: var(--md-bg-code);
-        }
-
-        pre {
-            margin-block-start: 0;
-            margin-block-end: 1rem;
-            padding: 0.75rem;
-            overflow: auto;
-            font-size: 85%;
-            line-height: 1.45;
-            background-color: var(--md-bg-code);
-
-            code, tt {
-                display: inline;
-                max-inline-size: auto;
-                padding: 0;
-                margin: 0;
-                overflow: visible;
-                line-height: inherit;
-                word-wrap: normal;
-                background-color: transparent;
-                border: 0;
-                font-size: 100%;
-                white-space: pre;
-            }
-        }
-
-        span {
-            inline-size: fit-content;
-            max-inline-size: stretch;
-        }
-
-        svg {
-            width: fit-content !important;
-            inline-size: fit-content !important;
-            max-inline-size: stretch !important;
-            contain: strict;
-        }
-
-        // === Footnotes ===
-        .footnotes {
-            font-size: 0.75em;
-            color: var(--md-fg-muted);
-            border-block-start: 1px solid var(--md-border-default);
-            margin-block-start: 2rem;
-
-            ol { padding-inline-start: 1.5em; }
-
-            li {
-                position: relative;
-                &:target { color: var(--md-fg-default); }
-                &:target::before {
-                    position: absolute;
-                    inset-block-start: -8px;
-                    inset-block-end: -8px;
-                    inset-inline-start: -24px;
-                    inset-inline-end: -8px;
-                    border: 1px solid var(--md-fg-accent);
-                    content: "";
-                    pointer-events: none;
-                }
-            }
-        }
-
-        // === Alerts ===
-        .markdown-alert {
-            padding: 0.5rem 1rem;
-            margin-block-end: 1rem;
-            color: inherit;
-            border-inline-start: 0.25em solid var(--md-border-default);
-
-            &.markdown-alert-note { border-color: var(--basic-info); }
-            &.markdown-alert-important { border-color: var(--basic-accent); }
-            &.markdown-alert-warning { border-color: var(--basic-warning); }
-            &.markdown-alert-tip { border-color: var(--basic-success); }
-            &.markdown-alert-caution { border-color: var(--basic-error); }
-
-            .markdown-alert-title {
-                display: flex;
-                font-weight: 600;
-                align-items: center;
-                line-height: 1;
-                margin-block-end: 0.5rem;
-
-                .octicon { margin-inline-end: 0.5rem; }
-            }
-        }
-
-        // === Icons & Emojis ===
-        .octicon {
-            display: inline-block;
-            fill: currentColor;
-            vertical-align: text-bottom;
-        }
-
-        g-emoji {
-            display: inline-block;
-            min-inline-size: 1ch;
-            font-family: "Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol";
-            font-size: 1em;
-            font-style: normal;
-            font-weight: 400;
-            line-height: 1;
-            vertical-align: -0.075em;
-
-            img {
-                inline-size: 1em;
-                block-size: 1em;
-            }
-        }
-
-        // === Anchors ===
-        .anchor {
-            float: inline-start;
-            padding-inline-end: 4px;
-            margin-inline-start: -20px;
-            line-height: 1;
-
-            &:focus { outline: none; }
-        }
-
-        .octicon-link {
-            visibility: hidden;
-            color: var(--md-fg-muted);
-            opacity: 0.5;
-
-            &:hover { opacity: 1; }
-        }
-
-        h1:hover .anchor .octicon-link,
-        h2:hover .anchor .octicon-link,
-        h3:hover .anchor .octicon-link,
-        h4:hover .anchor .octicon-link,
-        h5:hover .anchor .octicon-link,
-        h6:hover .anchor .octicon-link {
-            visibility: visible;
-        }
-
-        // === Misc ===
-
-        hr {
-            box-sizing: content-box;
-            overflow: hidden;
-            background: transparent;
-            border-block-end: 1px solid var(--md-border-subtle);
-            block-size: 0.25em;
-            padding: 0;
-            margin: 24px 0;
-            background-color: var(--md-border-default);
-            border: 0;
-
-            &::before { display: table; content: ""; }
-            &::after { display: table; clear: both; content: ""; }
-        }
-
-        img {
-            max-inline-size: 100%;
-            box-sizing: content-box;
-            background-color: transparent;
-            border-style: none;
-
-            &[align="right"] { padding-inline-start: 20px; }
-            &[align="left"] { padding-inline-end: 20px; }
-        }
-
-        kbd {
-            display: inline-block;
-            padding: 2px 4px;
-            font-size: 11px;
-            line-height: 10px;
-            color: var(--md-fg-default);
-            vertical-align: middle;
-            background-color: var(--md-bg-subtle);
-            border: 0.5px solid var(--md-border-subtle);
-        }
-
-        // === Details / Summary ===
-
-        details {
-            display: block;
-
-            summary {
-                display: list-item;
-                cursor: pointer;
-
-                h1, h2, h3, h4, h5, h6 {
-                    display: inline-block;
-                    vertical-align: middle;
-                    margin: 0;
-                    padding-block-end: 0;
-                    border-block-end: 0;
-                }
-            }
-        }
-
-        // === Checkboxes (Task Lists) ===
-
-        .task-list-item {
-            list-style-type: none;
-
-            input[type="checkbox"] {
-                margin: 0 0.2em 0.25em -1.6em;
-                vertical-align: middle;
-            }
-        }
-
-        // === Syntax Highlighting (Prettylights map) ===
-        .pl-c { color: #6e7781; } // Comment
-        .pl-c1 { color: #0550ae; } // Constant
-        .pl-k { color: #cf222e; } // Keyword
-        .pl-s { color: #0a3069; } // String
-        .pl-v { color: #953800; } // Variable
-        .pl-en { color: #8250df; } // Function/Entity
-
-        // Dark mode overrides for syntax
-        @media (prefers-color-scheme: dark) {
-             .pl-c { color: #8b949e; }
-             .pl-c1 { color: #79c0ff; }
-             .pl-k { color: #ff7b72; }
-             .pl-s { color: #a5d6ff; }
-             .pl-v { color: #ffa657; }
-             .pl-en { color: #d2a8ff; }
-        }
-
-        // === Print adjustments ===
-        @media print {
-            background-color: transparent !important;
-
-            pre, code {
-                white-space: pre-wrap !important;
-                word-break: break-word !important;
-            }
-        }
-    }
-}
-
-@use "../lib/mixins" as mixins;
-@use "../lib/tokens" as tokens;
-@use "../lib/config" as config;
-@use "../lib/props";
-
-@layer markdown-render {
-    @include props.markdown-root-props();
-
-    :host,
-    :scope,
-    .markdown-body,
-    #markdown,
-    md-view {
-        // -- CSS Variables from Config --
-        --md-fg-default: #{theme-color("text-primary", "light")};
-        --md-fg-muted: #{theme-color("text-muted", "light")};
-        --md-fg-accent: #{theme-color("accent", "light")};
-
-        --md-bg-default: #{theme-color("surface", "light")};
-        --md-bg-subtle: #{theme-color("surface-container", "light")};
-        --md-bg-code: #{theme-color("code-bg", "light")};
-
-        --md-border-default: #{theme-color("border", "light")};
-        --md-border-subtle: #{theme-color("border-subtle", "light")};
-
-        --md-font-body: #{config("typography", "font-family", "sans")};
-        --md-font-mono: #{config("typography", "font-family", "mono")};
-
-        background-color: transparent;
-        color: var(--md-fg-default);
-        font-family: var(--md-font-body);
-        font-size: #{config("typography", "font-size", "base")};
-        line-height: #{config("layout", "line-height")};
-        word-wrap: break-word;
-
-        @include mixins.md-interactive-area();
-        @include mixins.md-font-smoothing(always);
-
-        // Reset & Base
-        margin: 0;
-        color-scheme: inherit;
-        -ms-text-size-adjust: 100%;
-        -webkit-text-size-adjust: 100%;
-    }
-
-    // Dark theme overrides
-    .basic-app[data-theme="dark"] :host,
-    .basic-app[data-theme="dark"] :scope,
-    .basic-app[data-theme="dark"] .markdown-body,
-    .basic-app[data-theme="dark"] #markdown,
-    .basic-app[data-theme="dark"] md-view {
-        --md-fg-default: #{theme-color("text-primary", "dark")};
-        --md-fg-muted: #{theme-color("text-muted", "dark")};
-        --md-fg-accent: #{theme-color("accent", "dark")};
-
-        --md-bg-default: #{theme-color("surface", "dark")};
-        --md-bg-subtle: #{theme-color("surface-container", "dark")};
-        --md-bg-code: #{theme-color("code-bg", "dark")};
-
-        --md-border-default: #{theme-color("border", "dark")};
-        --md-border-subtle: #{theme-color("border-subtle", "dark")};
-    }
-
-    :where(.markdown-body, #markdown, md-view, :host) {
-
-        math {
-            math-style: compact;
-            math-shift: compact;
-            math-depth: auto-add;
-            inline-size: fit-content;
-            max-inline-size: stretch;
-        }
-
-        // === Typography ===
-
-        h1, h2, h3, h4, h5, h6 {
-            margin-block-start: 1.5em;
-            margin-block-end: 1rem;
-            font-weight: 600;
-            line-height: 1.25;
-            color: var(--md-fg-default);
-
-            &:first-child { margin-block-start: 0; }
-
-            tt, code {
-                font-size: inherit;
-                font-family: var(--md-font-mono);
-            }
-        }
-
-        h1 {
-            font-size: 2em;
-            padding-block-end: 0.3em;
-            border-block-end: 1px solid var(--md-border-subtle);
-        }
-
-        h2 {
-            font-size: 1.5em;
-            padding-block-end: 0.3em;
-            border-block-end: 1px solid var(--md-border-subtle);
-        }
-
-        h3 { font-size: 1.25em; }
-        h4 { font-size: 1em; }
-        h5 { font-size: 0.875em; }
-        h6 { font-size: 0.85em; color: var(--md-fg-muted); }
-
-        p {
-            margin-block-start: 0;
-            margin-block-end: 1rem;
-        }
-
-        blockquote {
-            margin: 0;
-            margin-block-end: 1rem;
-            padding: 0 1em;
-            color: var(--md-fg-muted);
-            border-inline-start: 0.25em solid var(--md-border-default);
-
-            & > :first-child { margin-block-start: 0; }
-            & > :last-child { margin-block-end: 0; }
-        }
-
-        // === Links ===
-
-        a {
-            color: var(--md-fg-accent);
-            text-decoration: none;
-            background-color: transparent;
-
-            &:hover {
-                text-decoration: underline;
-            }
-
-            &:not([href]) {
-                color: inherit;
-                text-decoration: none;
-            }
-        }
-
-        // === Lists ===
-
-        ul, ol {
-            margin-block-start: 0;
-            margin-block-end: 1rem;
-            padding-inline-start: 2em;
-
-            ol, ul {
-                margin-block-end: 0;
-            }
-        }
-
-        li {
-            word-wrap: break-all;
-            & > p { margin-block-start: 1rem; }
-            & + li { margin-block-start: 0.25em; }
-        }
-
-        ol {
-            list-style-type: decimal;
-
-            &[type="a"] { list-style-type: lower-alpha; }
-            &[type="A"] { list-style-type: upper-alpha; }
-            &[type="i"] { list-style-type: lower-roman; }
-            &[type="I"] { list-style-type: upper-roman; }
-            &[type="1"] { list-style-type: decimal; }
-        }
-
-        ul {
-            list-style-type: disc;
-
-            ul { list-style-type: circle; }
-            ul ul { list-style-type: square; }
-        }
-
-        dl {
-            padding: 0;
-
-            dt {
-                padding: 0;
-                margin-block-start: 1rem;
-                font-size: 1em;
-                font-style: italic;
-                font-weight: 600;
-            }
-
-            dd {
-                padding: 0 1rem;
-                margin-block-end: 1rem;
-                margin-inline-start: 0;
-            }
-        }
-
-        // === Tables ===
-
-        table {
-            border-spacing: 0;
-            border-collapse: collapse;
-            display: block;
-            min-inline-size: 0px;
-            inline-size: fit-content;
-            max-inline-size: stretch;
-            overflow: auto;
-            margin-block-end: 1rem;
-
-            tbody, thead {
-                inline-size: fit-content;
-                max-inline-size: stretch;
-            }
-
-            th, td {
-                padding: 4px 8px;
-                border: 0.5px solid var(--md-border-subtle);
-                inline-size: fit-content;
-                max-inline-size: stretch;
-            }
-
-            th {
-                font-weight: 600;
-                background-color: var(--md-bg-subtle);
-            }
-
-            tr {
-                background-color: var(--md-bg-default);
-                border-block-start: 1px solid var(--md-border-subtle);
-                min-inline-size: 0px;
-                inline-size: fit-content;
-                max-inline-size: stretch;
-
-                &:nth-child(2n) {
-                    background-color: var(--md-bg-subtle);
-                }
-            }
-
-            img { background-color: transparent; }
-        }
-
-        // === Code & Pre ===
-
-        code, kbd, pre, samp, tt {
-            font-family: var(--md-font-mono);
-            font-size: 1em;
-        }
-
-        code, tt, samp {
-            padding: 0.125em 0.25em;
-            margin: 0;
-            font-size: 85%;
-            background-color: var(--md-bg-code);
-        }
-
-        pre {
-            margin-block-start: 0;
-            margin-block-end: 1rem;
-            padding: 0.75rem;
-            overflow: auto;
-            font-size: 85%;
-            line-height: 1.45;
-            background-color: var(--md-bg-code);
-
-            code, tt {
-                display: inline;
-                max-inline-size: auto;
-                padding: 0;
-                margin: 0;
-                overflow: visible;
-                line-height: inherit;
-                word-wrap: normal;
-                background-color: transparent;
-                border: 0;
-                font-size: 100%;
-                white-space: pre;
-            }
-        }
-
-        span {
-            inline-size: fit-content;
-            max-inline-size: stretch;
-        }
-
-        svg {
-            width: fit-content !important;
-            inline-size: fit-content !important;
-            max-inline-size: stretch !important;
-            contain: strict;
-        }
-
-        // === Footnotes ===
-        .footnotes {
-            font-size: 0.75em;
-            color: var(--md-fg-muted);
-            border-block-start: 1px solid var(--md-border-default);
-            margin-block-start: 2rem;
-
-            ol { padding-inline-start: 1.5em; }
-
-            li {
-                position: relative;
-                &:target { color: var(--md-fg-default); }
-                &:target::before {
-                    position: absolute;
-                    inset-block-start: -8px;
-                    inset-block-end: -8px;
-                    inset-inline-start: -24px;
-                    inset-inline-end: -8px;
-                    border: 1px solid var(--md-fg-accent);
-                    content: "";
-                    pointer-events: none;
-                }
-            }
-        }
-
-        // === Alerts ===
-        .markdown-alert {
-            padding: 0.5rem 1rem;
-            margin-block-end: 1rem;
-            color: inherit;
-            border-inline-start: 0.25em solid var(--md-border-default);
-
-            &.markdown-alert-note { border-color: var(--basic-info); }
-            &.markdown-alert-important { border-color: var(--basic-accent); }
-            &.markdown-alert-warning { border-color: var(--basic-warning); }
-            &.markdown-alert-tip { border-color: var(--basic-success); }
-            &.markdown-alert-caution { border-color: var(--basic-error); }
-
-            .markdown-alert-title {
-                display: flex;
-                font-weight: 600;
-                align-items: center;
-                line-height: 1;
-                margin-block-end: 0.5rem;
-
-                .octicon { margin-inline-end: 0.5rem; }
-            }
-        }
-
-        // === Icons & Emojis ===
-        .octicon {
-            display: inline-block;
-            fill: currentColor;
-            vertical-align: text-bottom;
-        }
-
-        g-emoji {
-            display: inline-block;
-            min-inline-size: 1ch;
-            font-family: "Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol";
-            font-size: 1em;
-            font-style: normal;
-            font-weight: 400;
-            line-height: 1;
-            vertical-align: -0.075em;
-
-            img {
-                inline-size: 1em;
-                block-size: 1em;
-            }
-        }
-
-        // === Anchors ===
-        .anchor {
-            float: inline-start;
-            padding-inline-end: 4px;
-            margin-inline-start: -20px;
-            line-height: 1;
-
-            &:focus { outline: none; }
-        }
-
-        .octicon-link {
-            visibility: hidden;
-            color: var(--md-fg-muted);
-            opacity: 0.5;
-
-            &:hover { opacity: 1; }
-        }
-
-        h1:hover .anchor .octicon-link,
-        h2:hover .anchor .octicon-link,
-        h3:hover .anchor .octicon-link,
-        h4:hover .anchor .octicon-link,
-        h5:hover .anchor .octicon-link,
-        h6:hover .anchor .octicon-link {
-            visibility: visible;
-        }
-
-        // === Misc ===
-
-        hr {
-            box-sizing: content-box;
-            overflow: hidden;
-            background: transparent;
-            border-block-end: 1px solid var(--md-border-subtle);
-            block-size: 0.25em;
-            padding: 0;
-            margin: 24px 0;
-            background-color: var(--md-border-default);
-            border: 0;
-
-            &::before { display: table; content: ""; }
-            &::after { display: table; clear: both; content: ""; }
-        }
-
-        img {
-            max-inline-size: 100%;
-            box-sizing: content-box;
-            background-color: transparent;
-            border-style: none;
-
-            &[align="right"] { padding-inline-start: 20px; }
-            &[align="left"] { padding-inline-end: 20px; }
-        }
-
-        kbd {
-            display: inline-block;
-            padding: 2px 4px;
-            font-size: 11px;
-            line-height: 10px;
-            color: var(--md-fg-default);
-            vertical-align: middle;
-            background-color: var(--md-bg-subtle);
-            border: 0.5px solid var(--md-border-subtle);
-        }
-
-        // === Details / Summary ===
-
-        details {
-            display: block;
-
-            summary {
-                display: list-item;
-                cursor: pointer;
-
-                h1, h2, h3, h4, h5, h6 {
-                    display: inline-block;
-                    vertical-align: middle;
-                    margin: 0;
-                    padding-block-end: 0;
-                    border-block-end: 0;
-                }
-            }
-        }
-
-        // === Checkboxes (Task Lists) ===
-
-        .task-list-item {
-            list-style-type: none;
-
-            input[type="checkbox"] {
-                margin: 0 0.2em 0.25em -1.6em;
-                vertical-align: middle;
-            }
-        }
-
-        // === Syntax Highlighting (Prettylights map) ===
-        .pl-c { color: #6e7781; } // Comment
-        .pl-c1 { color: #0550ae; } // Constant
-        .pl-k { color: #cf222e; } // Keyword
-        .pl-s { color: #0a3069; } // String
-        .pl-v { color: #953800; } // Variable
-        .pl-en { color: #8250df; } // Function/Entity
-
-        // Dark mode overrides for syntax
-        @media (prefers-color-scheme: dark) {
-             .pl-c { color: #8b949e; }
-             .pl-c1 { color: #79c0ff; }
-             .pl-k { color: #ff7b72; }
-             .pl-s { color: #a5d6ff; }
-             .pl-v { color: #ffa657; }
-             .pl-en { color: #d2a8ff; }
-        }
-
-        // === Print adjustments ===
-        @media print {
-            background-color: transparent !important;
-
-            pre, code {
+            pre,
+            code {
                 white-space: pre-wrap !important;
                 word-break: break-word !important;
             }

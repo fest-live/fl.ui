@@ -2,7 +2,7 @@
 @use "../lib/mixins" as mixins;
 @use "../lib/tokens" as tokens;
 
-// === Main page styles ===
+
 @page {
     size: A4;
     margin: config.md-config("page", "margin");
@@ -21,17 +21,16 @@
     }
 }
 
-// === Main layer for printing ===
 @layer markdown-print {
-    // Font smoothing
     @media print {
-        *, *::before, *::after {
+
+        *,
+        *::before,
+        *::after {
             scrollbar-width: none;
             scrollbar-color: transparent transparent;
             overflow: visible;
             box-sizing: border-box;
-
-            //
             @include mixins.md-font-smoothing(never);
         }
 
@@ -126,16 +125,13 @@
             display: none !important;
         }
     }
-}
 
-// === Page breaks ===
-@layer page-breaks {
     @media print {
         :where(h1:first-child, h2) {
             break-before: auto;
         }
 
-        h2:has(+h3) {
+        h2:has(+ h3) {
             break-before: recto;
         }
 
@@ -143,7 +139,7 @@
             @include mixins.md-break(recto, auto, auto);
         }
 
-        *:has(+h1) {
+        *:has(+ h1) {
             break-after: auto;
         }
 
@@ -155,7 +151,7 @@
             break-before: recto;
         }
 
-        hr:has(+h1, +h2, +h3, +h4, +h5, +h6) {
+        hr:has(+ h1, + h2, + h3, + h4, + h5, + h6) {
             break-after: verso;
         }
 
@@ -168,15 +164,15 @@
                 break-before: recto;
             }
 
-            &:has(+h1, +h2, +h3, +h4, +h5, +h6) {
+            &:has(+ h1, + h2, + h3, + h4, + h5, + h6) {
                 break-after: auto;
             }
 
-            &:not(hr):has(+h2) {
+            &:not(hr):has(+ h2) {
                 break-after: recto;
             }
 
-            &:has(+p, +pre, +code, +ol, +li, +table, +blockquote, +strong) {
+            &:has(+ p, + pre, + code, + ol, + li, + table, + blockquote, + strong) {
                 break-after: avoid-page;
             }
 
@@ -184,7 +180,7 @@
                 break-before: avoid-page;
             }
 
-            & + hr + :where(h1, h2):has(+:where(p, ol, ul, blockquote)) {
+            & + hr + :where(h1, h2):has(+ :where(p, ol, ul, blockquote)) {
                 break-before: recto;
             }
         }
@@ -196,14 +192,14 @@
         }
 
         :where(h1, h2, h3, h4, h5, h6) {
-            &:has(+:where(hr, p, ul, ol, li, table, blockquote, pre, code)) {
+            &:has(+ :where(hr, p, ul, ol, li, table, blockquote, pre, code)) {
                 break-before: auto;
                 break-after: avoid-page;
             }
         }
 
         :where(h1, h2) {
-            &:has(+:where(p, table, hr)) {
+            &:has(+ :where(p, table, hr)) {
                 break-before: recto;
             }
         }

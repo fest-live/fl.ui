@@ -1,7 +1,7 @@
 /**
  * Unified Types for File Manager Components
  *
- * Consolidated types from RsExplorer and FileManagerContent.
+ * Consolidated types from RsExplorer, FileManagerContent, and Operative.
  * Supports both OPFS and File System Access API.
  */
 
@@ -17,8 +17,6 @@ export type EntryKind = "file" | "directory";
 export interface FileEntry {
     /** File or directory name */
     name: string;
-    /** Full path */
-    path: string;
     /** Entry type */
     kind: EntryKind;
     /** MIME type (for files) */
@@ -31,10 +29,14 @@ export interface FileEntry {
     handle?: FileSystemHandle | FileSystemDirectoryHandle | FileSystemFileHandle;
     /** File object (if loaded) */
     file?: File;
+    /** Full path (optional, computed) */
+    path?: string;
 }
 
-// Legacy aliases for backward compatibility
+/** @deprecated Use FileEntry instead */
 export type FileItem = FileEntry;
+
+/** @deprecated Use FileEntry instead */
 export type FileEntryItem = FileEntry;
 
 // ============================================================================
@@ -116,11 +118,11 @@ export interface ContextMenuEventDetail {
 // ============================================================================
 
 export type ExplorerEventType =
-    | "navigate"      // Navigation to a directory
-    | "open"          // File opened
-    | "select"        // Selection changed
-    | "context-menu"  // Right-click
-    | "open-item"     // Item action (before open)
+    | "navigate"        // Navigation to a directory
+    | "open"            // File opened
+    | "select"          // Selection changed
+    | "context-menu"    // Right-click
+    | "open-item"       // Item action (before open)
     | "context-action"; // Context menu action
 
 // ============================================================================
@@ -161,8 +163,35 @@ export type MenuAction =
     | "rename"
     | "copy"
     | "copyPath"
+    | "movePath"
     | "cut"
     | "paste"
     | "attach-workcenter"
     | "new-folder"
     | "new-file";
+
+// ============================================================================
+// CONTEXT MENU CONFIGURATION
+// ============================================================================
+
+export interface MenuItemConfig {
+    /** Unique action identifier */
+    id: MenuAction | string;
+    /** Display label */
+    label: string;
+    /** Icon name */
+    icon: string;
+    /** Is this action disabled? */
+    disabled?: boolean;
+    /** Custom handler (overrides default) */
+    handler?: (item: FileEntry | null, ev: MouseEvent) => void | Promise<void>;
+}
+
+export interface ContextMenuConfig {
+    /** File action operations (open, view, download, etc.) */
+    fileActions?: MenuItemConfig[];
+    /** File system operations (delete, rename, copy, etc.) */
+    systemOps?: MenuItemConfig[];
+    /** Custom action groups */
+    customGroups?: MenuItemConfig[][];
+}

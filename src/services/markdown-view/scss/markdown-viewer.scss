@@ -3,17 +3,9 @@
 @use "../lib/config" as config;
 @use "../lib/props";
 
-/* ==========================================================================
-   Unified Markdown Viewer Styles
-   ========================================================================== */
 
 @layer markdown-viewer {
-    // ============================================================================
-    // MARKDOWN VIEWER COMPONENT STYLES
-    // ============================================================================
-
     .markdown-viewer-container {
-        // Layout
         display: flex;
         flex-direction: column;
         min-height: 100%;
@@ -23,26 +15,19 @@
         box-shadow: var(--basic-elev-1);
         transition: all var(--basic-motion-normal);
 
-        // Responsive container
         @container (max-width: 768px) {
             border-radius: var(--basic-radius-lg);
-            box-shadow: none;
+            box-shadow: none
         }
 
-        // Hover effects for immersive feel
         &:hover {
-            box-shadow: var(--basic-elev-2);
+            box-shadow: var(--basic-elev-2)
         }
 
-        // Focus state
         &:focus-within {
             outline: none;
-            box-shadow: var(--basic-focus-ring), var(--basic-elev-2);
+            box-shadow: var(--basic-focus-ring), var(--basic-elev-2)
         }
-
-        // ============================================================================
-        // HEADER SECTION
-        // ============================================================================
 
         .viewer-header {
             display: flex;
@@ -55,13 +40,13 @@
 
             @container (max-width: 768px) {
                 padding: var(--space-md) var(--space-lg);
-                gap: var(--space-md);
+                gap: var(--space-md)
             }
 
             @container (max-width: 480px) {
                 flex-direction: column;
                 align-items: stretch;
-                gap: var(--space-sm);
+                gap: var(--space-sm)
             }
 
             h3 {
@@ -73,7 +58,7 @@
                 letter-spacing: -0.025em;
 
                 @container (max-width: 768px) {
-                    font-size: var(--text-lg);
+                    font-size: var(--text-lg)
                 }
             }
 
@@ -84,15 +69,14 @@
                 flex-wrap: wrap;
 
                 @container (max-width: 640px) {
-                    gap: var(--space-xs);
+                    gap: var(--space-xs)
                 }
 
                 @container (max-width: 480px) {
                     justify-content: center;
-                    gap: var(--space-sm);
+                    gap: var(--space-sm)
                 }
 
-                // Scrollable toolbar for very small screens
                 @container (max-width: 360px) {
                     overflow-x: auto;
                     overflow-y: hidden;
@@ -101,10 +85,10 @@
                     padding-bottom: var(--space-xs);
 
                     &::-webkit-scrollbar {
-                        display: none;
+                        display: none
                     }
 
-                    flex-wrap: nowrap;
+                    flex-wrap: nowrap
                 }
 
                 .viewer-btn {
@@ -122,60 +106,58 @@
                     transition: all var(--basic-motion-fast);
                     position: relative;
                     white-space: nowrap;
-                    min-height: 44px; // Touch target size
+                    min-height: 44px;
 
                     @container (max-width: 640px) {
                         padding: var(--space-xs) var(--space-md);
                         font-size: var(--text-xs);
-                        min-height: 40px;
+                        min-height: 40px
                     }
 
                     @container (max-width: 480px) {
                         padding: var(--space-sm) var(--space-md);
-                        min-height: 44px;
+                        min-height: 44px
                     }
 
                     &:hover {
                         background: var(--basic-surface-container-highest);
                         transform: translateY(-1px);
-                        box-shadow: var(--basic-elev-1);
+                        box-shadow: var(--basic-elev-1)
                     }
 
                     &:active {
                         transform: translateY(0);
-                        box-shadow: none;
+                        box-shadow: none
                     }
 
                     &:focus-visible {
                         outline: none;
-                        box-shadow: var(--basic-focus-ring);
+                        box-shadow: var(--basic-focus-ring)
                     }
 
-                    // Icon button variant
                     &.btn-icon {
                         padding: var(--space-sm);
 
                         @container (max-width: 640px) {
-                            padding: var(--space-xs);
+                            padding: var(--space-xs)
                         }
 
                         ui-icon {
                             flex-shrink: 0;
-                            transition: color var(--basic-motion-fast);
+                            transition: color var(--basic-motion-fast)
                         }
 
                         .btn-text {
                             @container (max-width: 640px) {
-                                display: none;
+                                display: none
                             }
                         }
 
                         &:hover ui-icon {
-                            color: var(--basic-primary);
+                            color: var(--basic-primary)
                         }
                     }
 
-                    // Loading state
                     &.loading {
                         opacity: 0.7;
                         pointer-events: none;
@@ -188,34 +170,28 @@
                             border-top: 2px solid currentColor;
                             border-radius: 50%;
                             animation: spin 1s linear infinite;
-                            margin-left: var(--space-xs);
+                            margin-left: var(--space-xs)
                         }
                     }
                 }
             }
         }
 
-        // ============================================================================
-        // CONTENT SECTION
-        // ============================================================================
-
         .viewer-content {
             flex: 1;
             overflow: auto;
             background: var(--basic-surface);
             position: relative;
-
-            // Custom scrollbar
             scrollbar-width: thin;
             scrollbar-color: var(--basic-outline-variant) transparent;
 
             &::-webkit-scrollbar {
                 width: 8px;
-                height: 8px;
+                height: 8px
             }
 
             &::-webkit-scrollbar-track {
-                background: transparent;
+                background: transparent
             }
 
             &::-webkit-scrollbar-thumb {
@@ -223,13 +199,11 @@
                 border-radius: 4px;
 
                 &:hover {
-                    background: var(--basic-outline);
+                    background: var(--basic-outline)
                 }
             }
 
-            // Content container
             .markdown-viewer-content {
-                // Base styles
                 padding: var(--space-2xl) var(--space-xl);
                 min-height: 100%;
                 color: var(--basic-on-surface);
@@ -238,38 +212,29 @@
                 overflow-wrap: break-word;
 
                 @container (max-width: 1024px) {
-                    padding: var(--space-xl) var(--space-lg);
+                    padding: var(--space-xl) var(--space-lg)
                 }
 
                 @container (max-width: 768px) {
-                    padding: var(--space-lg) var(--space-md);
+                    padding: var(--space-lg) var(--space-md)
                 }
 
                 @container (max-width: 480px) {
-                    padding: var(--space-md) var(--space-sm);
+                    padding: var(--space-md) var(--space-sm)
                 }
 
-                // Typography improvements
                 font-family: var(--font-family-system);
                 font-size: var(--text-base);
                 font-weight: var(--font-weight-normal);
-
-                // Better reading experience
                 text-rendering: optimizeLegibility;
                 -webkit-font-smoothing: antialiased;
                 -moz-osx-font-smoothing: grayscale;
 
-                // Selection styling
                 &::selection {
                     background: color-mix(in oklab, var(--basic-primary) 20%, transparent);
-                    color: var(--basic-on-primary);
+                    color: var(--basic-on-primary)
                 }
 
-                // ============================================================================
-                // MARKDOWN CONTENT STYLING
-                // ============================================================================
-
-                // Headings
                 h1, h2, h3, h4, h5, h6 {
                     margin: var(--space-2xl) 0 var(--space-lg) 0;
                     font-weight: var(--font-weight-semibold);
@@ -278,49 +243,47 @@
                     letter-spacing: -0.025em;
 
                     &:first-child {
-                        margin-top: 0;
+                        margin-top: 0
                     }
 
                     @container (max-width: 768px) {
-                        margin: var(--space-xl) 0 var(--space-md) 0;
+                        margin: var(--space-xl) 0 var(--space-md) 0
                     }
                 }
 
                 h1 {
-                    font-size: var(--text-3xl);
+                    font-size: var(--text-3xl)
                 }
 
                 h2 {
-                    font-size: var(--text-2xl);
+                    font-size: var(--text-2xl)
                 }
 
                 h3 {
-                    font-size: var(--text-xl);
+                    font-size: var(--text-xl)
                 }
 
                 h4 {
-                    font-size: var(--text-lg);
+                    font-size: var(--text-lg)
                 }
 
                 h5 {
-                    font-size: var(--text-base);
+                    font-size: var(--text-base)
                 }
 
                 h6 {
-                    font-size: var(--text-sm);
+                    font-size: var(--text-sm)
                 }
 
-                // Paragraphs
                 p {
                     margin: 0 0 var(--space-lg) 0;
                     color: var(--basic-on-surface);
 
                     &:last-child {
-                        margin-bottom: 0;
+                        margin-bottom: 0
                     }
                 }
 
-                // Links
                 a {
                     color: var(--basic-primary);
                     text-decoration: underline;
@@ -330,36 +293,34 @@
 
                     &:hover {
                         color: var(--basic-primary);
-                        text-decoration-thickness: 2px;
+                        text-decoration-thickness: 2px
                     }
 
                     &:focus-visible {
                         outline: none;
                         box-shadow: var(--basic-focus-ring);
-                        border-radius: var(--basic-radius-sm);
+                        border-radius: var(--basic-radius-sm)
                     }
                 }
 
-                // Lists
                 ul, ol {
                     margin: var(--space-lg) 0;
                     padding-left: var(--space-2xl);
                     color: var(--basic-on-surface);
 
                     @container (max-width: 480px) {
-                        padding-left: var(--space-xl);
+                        padding-left: var(--space-xl)
                     }
 
                     li {
                         margin-bottom: var(--space-sm);
 
                         &:last-child {
-                            margin-bottom: 0;
+                            margin-bottom: 0
                         }
                     }
                 }
 
-                // Blockquotes
                 blockquote {
                     margin: var(--space-xl) 0;
                     padding: var(--space-lg) var(--space-xl);
@@ -372,7 +333,7 @@
 
                     @container (max-width: 768px) {
                         padding: var(--space-md) var(--space-lg);
-                        margin: var(--space-lg) 0;
+                        margin: var(--space-lg) 0
                     }
 
                     &::before {
@@ -382,11 +343,10 @@
                         left: var(--space-sm);
                         font-size: var(--text-2xl);
                         color: var(--basic-primary);
-                        opacity: 0.3;
+                        opacity: 0.3
                     }
                 }
 
-                // Code blocks
                 pre {
                     margin: var(--space-xl) 0;
                     padding: var(--space-lg);
@@ -401,7 +361,7 @@
 
                     @container (max-width: 768px) {
                         padding: var(--space-md);
-                        margin: var(--space-lg) 0;
+                        margin: var(--space-lg) 0
                     }
 
                     code {
@@ -410,24 +370,22 @@
                         border-radius: 0;
                         font-family: inherit;
                         font-size: inherit;
-                        color: inherit;
+                        color: inherit
                     }
 
-                    // Custom scrollbar for code blocks
                     scrollbar-width: thin;
                     scrollbar-color: var(--basic-outline) transparent;
 
                     &::-webkit-scrollbar {
-                        height: 6px;
+                        height: 6px
                     }
 
                     &::-webkit-scrollbar-thumb {
                         background: var(--basic-outline);
-                        border-radius: 3px;
+                        border-radius: 3px
                     }
                 }
 
-                // Inline code
                 code:not(pre code) {
                     padding: 0.125rem 0.375rem;
                     background: var(--basic-surface-container-high);
@@ -436,10 +394,9 @@
                     font-family: var(--font-family-mono);
                     font-size: 0.875em;
                     color: var(--basic-on-surface);
-                    font-weight: var(--font-weight-medium);
+                    font-weight: var(--font-weight-medium)
                 }
 
-                // Tables
                 table {
                     width: 100%;
                     margin: var(--space-xl) 0;
@@ -451,7 +408,7 @@
 
                     @container (max-width: 768px) {
                         font-size: var(--text-xs);
-                        margin: var(--space-lg) 0;
+                        margin: var(--space-lg) 0
                     }
 
                     th, td {
@@ -461,28 +418,27 @@
                         color: var(--basic-on-surface);
 
                         @container (max-width: 768px) {
-                            padding: var(--space-sm) var(--space-md);
+                            padding: var(--space-sm) var(--space-md)
                         }
                     }
 
                     th {
                         background: var(--basic-surface-container-high);
                         font-weight: var(--font-weight-semibold);
-                        color: var(--basic-on-surface);
+                        color: var(--basic-on-surface)
                     }
 
                     tbody tr {
                         &:hover {
-                            background: var(--basic-surface-container-low);
+                            background: var(--basic-surface-container-low)
                         }
 
                         &:last-child td {
-                            border-bottom: none;
+                            border-bottom: none
                         }
                     }
                 }
 
-                // Horizontal rules
                 hr {
                     margin: var(--space-2xl) 0;
                     border: none;
@@ -497,11 +453,10 @@
                         transform: translateX(-50%);
                         width: 60px;
                         height: 1px;
-                        background: var(--basic-primary);
+                        background: var(--basic-primary)
                     }
                 }
 
-                // Images
                 img {
                     max-width: 100%;
                     height: auto;
@@ -510,58 +465,50 @@
                     box-shadow: var(--basic-elev-1);
 
                     @container (max-width: 768px) {
-                        margin: var(--space-md) 0;
+                        margin: var(--space-md) 0
                     }
                 }
 
-                // Task lists
                 input[type="checkbox"] {
                     margin-right: var(--space-sm);
-                    accent-color: var(--basic-primary);
+                    accent-color: var(--basic-primary)
                 }
 
-                // Math/KaTeX styling
                 .katex {
                     font-size: 1.1em;
-                    color: var(--basic-on-surface);
+                    color: var(--basic-on-surface)
                 }
 
-                // Footnotes
                 .footnote-ref a {
                     font-size: 0.8em;
                     vertical-align: super;
-                    color: var(--basic-primary);
+                    color: var(--basic-primary)
                 }
 
-                // Definition lists
                 dl {
                     margin: var(--space-lg) 0;
 
                     dt {
                         font-weight: var(--font-weight-semibold);
                         color: var(--basic-on-surface);
-                        margin-bottom: var(--space-xs);
+                        margin-bottom: var(--space-xs)
                     }
 
                     dd {
                         margin: 0 0 var(--space-md) var(--space-xl);
-                        color: var(--basic-on-surface-variant);
+                        color: var(--basic-on-surface-variant)
                     }
                 }
             }
         }
     }
 
-    // ============================================================================
-    // DARK THEME OVERRIDES
-    // ============================================================================
-
     .basic-app[data-theme="dark"] .markdown-viewer-container {
         .viewer-header {
             background: var(--basic-surface-container-low);
 
             h3 {
-                color: var(--basic-on-surface);
+                color: var(--basic-on-surface)
             }
 
             .btn {
@@ -571,18 +518,15 @@
 
                 &:hover {
                     background: var(--basic-surface-container);
-                    border-color: var(--basic-primary);
+                    border-color: var(--basic-primary)
                 }
             }
         }
 
-        // Enhanced markdown content rendering
-        .viewer-content .markdown-viewer-content,
-        .result-content {
+        .viewer-content .markdown-viewer-content, .result-content {
             line-height: var(--leading-relaxed);
             color: var(--basic-on-surface);
 
-            // Headings
             h1, h2, h3, h4, h5, h6 {
                 margin: var(--space-lg) 0 var(--space-md) 0;
                 font-weight: var(--font-weight-bold);
@@ -590,48 +534,46 @@
                 color: var(--basic-on-surface);
 
                 &:first-child {
-                    margin-top: 0;
+                    margin-top: 0
                 }
             }
 
             h1 {
-                font-size: var(--text-3xl);
+                font-size: var(--text-3xl)
             }
 
             h2 {
-                font-size: var(--text-2xl);
+                font-size: var(--text-2xl)
             }
 
             h3 {
-                font-size: var(--text-xl);
+                font-size: var(--text-xl)
             }
 
             h4 {
-                font-size: var(--text-lg);
+                font-size: var(--text-lg)
             }
 
             h5 {
-                font-size: var(--text-base);
+                font-size: var(--text-base)
             }
 
             h6 {
-                font-size: var(--text-sm);
+                font-size: var(--text-sm)
             }
 
-            // Paragraphs
             p {
                 margin: var(--space-md) 0;
 
                 &:first-child {
-                    margin-top: 0;
+                    margin-top: 0
                 }
 
                 &:last-child {
-                    margin-bottom: 0;
+                    margin-bottom: 0
                 }
             }
 
-            // Lists
             ul, ol {
                 margin: var(--space-md) 0;
                 padding-inline-start: var(--space-xl);
@@ -641,12 +583,11 @@
                     line-height: var(--leading-relaxed);
 
                     p {
-                        margin: var(--space-xs) 0;
+                        margin: var(--space-xs) 0
                     }
                 }
             }
 
-            // Links
             a {
                 color: var(--basic-primary);
                 text-decoration: underline;
@@ -654,17 +595,16 @@
 
                 &:hover {
                     color: color-mix(in oklab, var(--basic-primary) 85%, black);
-                    text-decoration-thickness: 2px;
+                    text-decoration-thickness: 2px
                 }
 
                 &:focus-visible {
                     outline: 2px solid var(--basic-primary);
                     outline-offset: 2px;
-                    border-radius: var(--basic-radius-sm);
+                    border-radius: var(--basic-radius-sm)
                 }
             }
 
-            // Code blocks
             pre {
                 background: var(--basic-surface-container);
                 border: 1px solid color-mix(in oklab, var(--basic-outline-variant) 50%, transparent);
@@ -681,11 +621,10 @@
                     background: transparent;
                     padding: 0;
                     font-size: inherit;
-                    color: inherit;
+                    color: inherit
                 }
             }
 
-            // Inline code
             code {
                 background: var(--basic-surface-container-high);
                 color: var(--basic-on-surface-variant);
@@ -693,10 +632,9 @@
                 border-radius: var(--basic-radius-sm);
                 font-family: var(--font-family-mono);
                 font-size: 0.9em;
-                font-weight: var(--font-weight-medium);
+                font-weight: var(--font-weight-medium)
             }
 
-            // Blockquotes
             blockquote {
                 margin: var(--space-lg) 0;
                 padding: var(--space-md) var(--space-lg);
@@ -707,11 +645,10 @@
                 color: var(--basic-on-surface-variant);
 
                 p {
-                    margin: 0;
+                    margin: 0
                 }
             }
 
-            // Tables
             table {
                 width: 100%;
                 border-collapse: collapse;
@@ -723,71 +660,64 @@
                 th, td {
                     padding: var(--space-sm) var(--space-md);
                     text-align: start;
-                    border-bottom: 1px solid color-mix(in oklab, var(--basic-outline-variant) 30%, transparent);
+                    border-bottom: 1px solid color-mix(in oklab, var(--basic-outline-variant) 30%, transparent)
                 }
 
                 th {
                     background: var(--basic-surface-container-high);
                     font-weight: var(--font-weight-semibold);
-                    color: var(--basic-on-surface);
+                    color: var(--basic-on-surface)
                 }
 
                 tbody tr:last-child td {
-                    border-bottom: none;
+                    border-bottom: none
                 }
 
                 tbody tr:hover {
-                    background: color-mix(in oklab, var(--basic-surface-container) 95%, var(--basic-primary) 5%);
+                    background: color-mix(in oklab, var(--basic-surface-container) 95%, var(--basic-primary) 5%)
                 }
             }
 
-            // Horizontal rules
             hr {
                 border: none;
                 border-top: 1px solid color-mix(in oklab, var(--basic-outline-variant) 50%, transparent);
-                margin: var(--space-xl) 0;
+                margin: var(--space-xl) 0
             }
 
-            // Strong and emphasis
             strong, b {
                 font-weight: var(--font-weight-bold);
-                color: var(--basic-on-surface);
+                color: var(--basic-on-surface)
             }
 
             em, i {
                 font-style: italic;
-                color: var(--basic-on-surface-variant);
+                color: var(--basic-on-surface-variant)
             }
 
-            // Responsive text sizing
             @container (max-width: 768px) {
                 h1 {
-                    font-size: var(--text-2xl);
+                    font-size: var(--text-2xl)
                 }
 
                 h2 {
-                    font-size: var(--text-xl);
+                    font-size: var(--text-xl)
                 }
 
                 h3 {
-                    font-size: var(--text-lg);
+                    font-size: var(--text-lg)
                 }
 
                 pre {
                     padding: var(--space-md);
-                    font-size: var(--text-xs);
+                    font-size: var(--text-xs)
                 }
 
                 code {
-                    font-size: 0.85em;
+                    font-size: 0.85em
                 }
             }
         }
     }
-
-    // ============================================================================
-    // PRINT STYLES
-    // ============================================================================
 
     @media print {
         .markdown-viewer-container {
@@ -797,7 +727,7 @@
             color: black;
 
             .viewer-header {
-                display: none; // Hide header in print
+                display: none
             }
 
             .viewer-content .markdown-viewer-content {
@@ -808,109 +738,100 @@
 
                 h1, h2, h3, h4, h5, h6 {
                     color: black;
-                    page-break-after: avoid;
+                    page-break-after: avoid
                 }
 
                 p, li {
                     color: black;
                     orphans: 3;
-                    widows: 3;
+                    widows: 3
                 }
 
                 blockquote {
-                    background: #f9f9f9; // Print-optimized light background
-                    border-left-color: #666; // Print-optimized gray accent
-                    color: black; // High contrast for print
+                    background: #f9f9f9;
+                    border-left-color: #666;
+                    color: black
                 }
 
                 pre {
-                    background: #f5f5f5; // Print-optimized light background
-                    border: 1px solid #ccc; // Print-optimized light border
-                    color: black; // High contrast for print
-                    page-break-inside: avoid;
+                    background: #f5f5f5;
+                    border: 1px solid #ccc;
+                    color: black;
+                    page-break-inside: avoid
                 }
 
                 code:not(pre code) {
-                    background: #f0f0f0; // Print-optimized very light background
-                    border: 1px solid #ddd; // Print-optimized very light border
-                    color: black; // High contrast for print
+                    background: #f0f0f0;
+                    border: 1px solid #ddd;
+                    color: black
                 }
 
                 table {
-                    border: 1px solid #666; // Print-optimized dark table border
+                    border: 1px solid #666;
                     page-break-inside: avoid;
 
                     th, td {
-                        border: 1px solid #666; // Print-optimized dark cell borders
-                        color: black; // High contrast for print
+                        border: 1px solid #666;
+                        color: black
                     }
 
                     th {
-                        background: #f0f0f0; // Print-optimized light header background
+                        background: #f0f0f0
                     }
                 }
 
                 hr {
-                    border-color: #666; // Print-optimized gray separator
+                    border-color: #666
                 }
 
                 img {
                     max-width: 100%;
-                    page-break-inside: avoid;
+                    page-break-inside: avoid
                 }
 
                 a {
                     color: black;
-                    text-decoration: underline;
+                    text-decoration: underline
                 }
 
                 .katex {
-                    color: black;
+                    color: black
                 }
             }
 
             &[data-raw] {
                 .viewer-content {
-                    background: var(--basic-surface);
+                    background: var(--basic-surface)
                 }
             }
         }
     }
 
-    // ============================================================================
-    // ANIMATIONS
-    // ============================================================================
-
     @keyframes spin {
         0% {
-            transform: rotate(0deg);
+            transform: rotate(0deg)
         }
 
         100% {
-            transform: rotate(360deg);
+            transform: rotate(360deg)
         }
     }
 
-    // Fade in animation for content
     .markdown-viewer-content {
-        animation: fadeIn 0.3s ease-out;
+        animation: fadeIn 0.3s ease-out
     }
 
     @keyframes fadeIn {
         from {
             opacity: 0;
-            transform: translateY(10px);
+            transform: translateY(10px)
         }
 
         to {
             opacity: 1;
-            transform: translateY(0);
+            transform: translateY(0)
         }
     }
-
-    // ============================================================================
-    // RAW VIEW (for HTML documents / code / debugging)
-    // ============================================================================
 
     .markdown-viewer-raw {
         margin: 0;
@@ -922,26 +843,10 @@
         background: var(--basic-surface);
         white-space: pre;
         overflow: auto;
-        tab-size: 2;
+        tab-size: 2
     }
-}
-
-@use "../lib/mixins" as mixins;
-@use "../lib/tokens" as tokens;
-@use "../lib/config" as config;
-@use "../lib/props";
-
-/* ==========================================================================
-   Unified Markdown Viewer Styles
-   ========================================================================== */
-
-@layer markdown-viewer {
-    // ============================================================================
-    // MARKDOWN VIEWER COMPONENT STYLES
-    // ============================================================================
 
     .markdown-viewer-container {
-        // Layout
         display: flex;
         flex-direction: column;
         min-height: 100%;
@@ -951,26 +856,19 @@
         box-shadow: var(--basic-elev-1);
         transition: all var(--basic-motion-normal);
 
-        // Responsive container
         @container (max-width: 768px) {
             border-radius: var(--basic-radius-lg);
-            box-shadow: none;
+            box-shadow: none
         }
 
-        // Hover effects for immersive feel
         &:hover {
-            box-shadow: var(--basic-elev-2);
+            box-shadow: var(--basic-elev-2)
         }
 
-        // Focus state
         &:focus-within {
             outline: none;
-            box-shadow: var(--basic-focus-ring), var(--basic-elev-2);
+            box-shadow: var(--basic-focus-ring), var(--basic-elev-2)
         }
-
-        // ============================================================================
-        // HEADER SECTION
-        // ============================================================================
 
         .viewer-header {
             display: flex;
@@ -983,13 +881,13 @@
 
             @container (max-width: 768px) {
                 padding: var(--space-md) var(--space-lg);
-                gap: var(--space-md);
+                gap: var(--space-md)
             }
 
             @container (max-width: 480px) {
                 flex-direction: column;
                 align-items: stretch;
-                gap: var(--space-sm);
+                gap: var(--space-sm)
             }
 
             h3 {
@@ -1001,7 +899,7 @@
                 letter-spacing: -0.025em;
 
                 @container (max-width: 768px) {
-                    font-size: var(--text-lg);
+                    font-size: var(--text-lg)
                 }
             }
 
@@ -1012,15 +910,14 @@
                 flex-wrap: wrap;
 
                 @container (max-width: 640px) {
-                    gap: var(--space-xs);
+                    gap: var(--space-xs)
                 }
 
                 @container (max-width: 480px) {
                     justify-content: center;
-                    gap: var(--space-sm);
+                    gap: var(--space-sm)
                 }
 
-                // Scrollable toolbar for very small screens
                 @container (max-width: 360px) {
                     overflow-x: auto;
                     overflow-y: hidden;
@@ -1029,10 +926,10 @@
                     padding-bottom: var(--space-xs);
 
                     &::-webkit-scrollbar {
-                        display: none;
+                        display: none
                     }
 
-                    flex-wrap: nowrap;
+                    flex-wrap: nowrap
                 }
 
                 .viewer-btn {
@@ -1050,60 +947,58 @@
                     transition: all var(--basic-motion-fast);
                     position: relative;
                     white-space: nowrap;
-                    min-height: 44px; // Touch target size
+                    min-height: 44px;
 
                     @container (max-width: 640px) {
                         padding: var(--space-xs) var(--space-md);
                         font-size: var(--text-xs);
-                        min-height: 40px;
+                        min-height: 40px
                     }
 
                     @container (max-width: 480px) {
                         padding: var(--space-sm) var(--space-md);
-                        min-height: 44px;
+                        min-height: 44px
                     }
 
                     &:hover {
                         background: var(--basic-surface-container-highest);
                         transform: translateY(-1px);
-                        box-shadow: var(--basic-elev-1);
+                        box-shadow: var(--basic-elev-1)
                     }
 
                     &:active {
                         transform: translateY(0);
-                        box-shadow: none;
+                        box-shadow: none
                     }
 
                     &:focus-visible {
                         outline: none;
-                        box-shadow: var(--basic-focus-ring);
+                        box-shadow: var(--basic-focus-ring)
                     }
 
-                    // Icon button variant
                     &.btn-icon {
                         padding: var(--space-sm);
 
                         @container (max-width: 640px) {
-                            padding: var(--space-xs);
+                            padding: var(--space-xs)
                         }
 
                         ui-icon {
                             flex-shrink: 0;
-                            transition: color var(--basic-motion-fast);
+                            transition: color var(--basic-motion-fast)
                         }
 
                         .btn-text {
                             @container (max-width: 640px) {
-                                display: none;
+                                display: none
                             }
                         }
 
                         &:hover ui-icon {
-                            color: var(--basic-primary);
+                            color: var(--basic-primary)
                         }
                     }
 
-                    // Loading state
                     &.loading {
                         opacity: 0.7;
                         pointer-events: none;
@@ -1116,34 +1011,28 @@
                             border-top: 2px solid currentColor;
                             border-radius: 50%;
                             animation: spin 1s linear infinite;
-                            margin-left: var(--space-xs);
+                            margin-left: var(--space-xs)
                         }
                     }
                 }
             }
         }
 
-        // ============================================================================
-        // CONTENT SECTION
-        // ============================================================================
-
         .viewer-content {
             flex: 1;
             overflow: auto;
             background: var(--basic-surface);
             position: relative;
-
-            // Custom scrollbar
             scrollbar-width: thin;
             scrollbar-color: var(--basic-outline-variant) transparent;
 
             &::-webkit-scrollbar {
                 width: 8px;
-                height: 8px;
+                height: 8px
             }
 
             &::-webkit-scrollbar-track {
-                background: transparent;
+                background: transparent
             }
 
             &::-webkit-scrollbar-thumb {
@@ -1151,13 +1040,11 @@
                 border-radius: 4px;
 
                 &:hover {
-                    background: var(--basic-outline);
+                    background: var(--basic-outline)
                 }
             }
 
-            // Content container
             .markdown-viewer-content {
-                // Base styles
                 padding: var(--space-2xl) var(--space-xl);
                 min-height: 100%;
                 color: var(--basic-on-surface);
@@ -1166,38 +1053,29 @@
                 overflow-wrap: break-word;
 
                 @container (max-width: 1024px) {
-                    padding: var(--space-xl) var(--space-lg);
+                    padding: var(--space-xl) var(--space-lg)
                 }
 
                 @container (max-width: 768px) {
-                    padding: var(--space-lg) var(--space-md);
+                    padding: var(--space-lg) var(--space-md)
                 }
 
                 @container (max-width: 480px) {
-                    padding: var(--space-md) var(--space-sm);
+                    padding: var(--space-md) var(--space-sm)
                 }
 
-                // Typography improvements
                 font-family: var(--font-family-system);
                 font-size: var(--text-base);
                 font-weight: var(--font-weight-normal);
-
-                // Better reading experience
                 text-rendering: optimizeLegibility;
                 -webkit-font-smoothing: antialiased;
                 -moz-osx-font-smoothing: grayscale;
 
-                // Selection styling
                 &::selection {
                     background: color-mix(in oklab, var(--basic-primary) 20%, transparent);
-                    color: var(--basic-on-primary);
+                    color: var(--basic-on-primary)
                 }
 
-                // ============================================================================
-                // MARKDOWN CONTENT STYLING
-                // ============================================================================
-
-                // Headings
                 h1, h2, h3, h4, h5, h6 {
                     margin: var(--space-2xl) 0 var(--space-lg) 0;
                     font-weight: var(--font-weight-semibold);
@@ -1206,49 +1084,47 @@
                     letter-spacing: -0.025em;
 
                     &:first-child {
-                        margin-top: 0;
+                        margin-top: 0
                     }
 
                     @container (max-width: 768px) {
-                        margin: var(--space-xl) 0 var(--space-md) 0;
+                        margin: var(--space-xl) 0 var(--space-md) 0
                     }
                 }
 
                 h1 {
-                    font-size: var(--text-3xl);
+                    font-size: var(--text-3xl)
                 }
 
                 h2 {
-                    font-size: var(--text-2xl);
+                    font-size: var(--text-2xl)
                 }
 
                 h3 {
-                    font-size: var(--text-xl);
+                    font-size: var(--text-xl)
                 }
 
                 h4 {
-                    font-size: var(--text-lg);
+                    font-size: var(--text-lg)
                 }
 
                 h5 {
-                    font-size: var(--text-base);
+                    font-size: var(--text-base)
                 }
 
                 h6 {
-                    font-size: var(--text-sm);
+                    font-size: var(--text-sm)
                 }
 
-                // Paragraphs
                 p {
                     margin: 0 0 var(--space-lg) 0;
                     color: var(--basic-on-surface);
 
                     &:last-child {
-                        margin-bottom: 0;
+                        margin-bottom: 0
                     }
                 }
 
-                // Links
                 a {
                     color: var(--basic-primary);
                     text-decoration: underline;
@@ -1258,36 +1134,34 @@
 
                     &:hover {
                         color: var(--basic-primary);
-                        text-decoration-thickness: 2px;
+                        text-decoration-thickness: 2px
                     }
 
                     &:focus-visible {
                         outline: none;
                         box-shadow: var(--basic-focus-ring);
-                        border-radius: var(--basic-radius-sm);
+                        border-radius: var(--basic-radius-sm)
                     }
                 }
 
-                // Lists
                 ul, ol {
                     margin: var(--space-lg) 0;
                     padding-left: var(--space-2xl);
                     color: var(--basic-on-surface);
 
                     @container (max-width: 480px) {
-                        padding-left: var(--space-xl);
+                        padding-left: var(--space-xl)
                     }
 
                     li {
                         margin-bottom: var(--space-sm);
 
                         &:last-child {
-                            margin-bottom: 0;
+                            margin-bottom: 0
                         }
                     }
                 }
 
-                // Blockquotes
                 blockquote {
                     margin: var(--space-xl) 0;
                     padding: var(--space-lg) var(--space-xl);
@@ -1300,7 +1174,7 @@
 
                     @container (max-width: 768px) {
                         padding: var(--space-md) var(--space-lg);
-                        margin: var(--space-lg) 0;
+                        margin: var(--space-lg) 0
                     }
 
                     &::before {
@@ -1310,11 +1184,10 @@
                         left: var(--space-sm);
                         font-size: var(--text-2xl);
                         color: var(--basic-primary);
-                        opacity: 0.3;
+                        opacity: 0.3
                     }
                 }
 
-                // Code blocks
                 pre {
                     margin: var(--space-xl) 0;
                     padding: var(--space-lg);
@@ -1329,7 +1202,7 @@
 
                     @container (max-width: 768px) {
                         padding: var(--space-md);
-                        margin: var(--space-lg) 0;
+                        margin: var(--space-lg) 0
                     }
 
                     code {
@@ -1338,24 +1211,22 @@
                         border-radius: 0;
                         font-family: inherit;
                         font-size: inherit;
-                        color: inherit;
+                        color: inherit
                     }
 
-                    // Custom scrollbar for code blocks
                     scrollbar-width: thin;
                     scrollbar-color: var(--basic-outline) transparent;
 
                     &::-webkit-scrollbar {
-                        height: 6px;
+                        height: 6px
                     }
 
                     &::-webkit-scrollbar-thumb {
                         background: var(--basic-outline);
-                        border-radius: 3px;
+                        border-radius: 3px
                     }
                 }
 
-                // Inline code
                 code:not(pre code) {
                     padding: 0.125rem 0.375rem;
                     background: var(--basic-surface-container-high);
@@ -1364,10 +1235,9 @@
                     font-family: var(--font-family-mono);
                     font-size: 0.875em;
                     color: var(--basic-on-surface);
-                    font-weight: var(--font-weight-medium);
+                    font-weight: var(--font-weight-medium)
                 }
 
-                // Tables
                 table {
                     width: 100%;
                     margin: var(--space-xl) 0;
@@ -1379,7 +1249,7 @@
 
                     @container (max-width: 768px) {
                         font-size: var(--text-xs);
-                        margin: var(--space-lg) 0;
+                        margin: var(--space-lg) 0
                     }
 
                     th, td {
@@ -1389,28 +1259,27 @@
                         color: var(--basic-on-surface);
 
                         @container (max-width: 768px) {
-                            padding: var(--space-sm) var(--space-md);
+                            padding: var(--space-sm) var(--space-md)
                         }
                     }
 
                     th {
                         background: var(--basic-surface-container-high);
                         font-weight: var(--font-weight-semibold);
-                        color: var(--basic-on-surface);
+                        color: var(--basic-on-surface)
                     }
 
                     tbody tr {
                         &:hover {
-                            background: var(--basic-surface-container-low);
+                            background: var(--basic-surface-container-low)
                         }
 
                         &:last-child td {
-                            border-bottom: none;
+                            border-bottom: none
                         }
                     }
                 }
 
-                // Horizontal rules
                 hr {
                     margin: var(--space-2xl) 0;
                     border: none;
@@ -1425,11 +1294,10 @@
                         transform: translateX(-50%);
                         width: 60px;
                         height: 1px;
-                        background: var(--basic-primary);
+                        background: var(--basic-primary)
                     }
                 }
 
-                // Images
                 img {
                     max-width: 100%;
                     height: auto;
@@ -1438,58 +1306,50 @@
                     box-shadow: var(--basic-elev-1);
 
                     @container (max-width: 768px) {
-                        margin: var(--space-md) 0;
+                        margin: var(--space-md) 0
                     }
                 }
 
-                // Task lists
                 input[type="checkbox"] {
                     margin-right: var(--space-sm);
-                    accent-color: var(--basic-primary);
+                    accent-color: var(--basic-primary)
                 }
 
-                // Math/KaTeX styling
                 .katex {
                     font-size: 1.1em;
-                    color: var(--basic-on-surface);
+                    color: var(--basic-on-surface)
                 }
 
-                // Footnotes
                 .footnote-ref a {
                     font-size: 0.8em;
                     vertical-align: super;
-                    color: var(--basic-primary);
+                    color: var(--basic-primary)
                 }
 
-                // Definition lists
                 dl {
                     margin: var(--space-lg) 0;
 
                     dt {
                         font-weight: var(--font-weight-semibold);
                         color: var(--basic-on-surface);
-                        margin-bottom: var(--space-xs);
+                        margin-bottom: var(--space-xs)
                     }
 
                     dd {
                         margin: 0 0 var(--space-md) var(--space-xl);
-                        color: var(--basic-on-surface-variant);
+                        color: var(--basic-on-surface-variant)
                     }
                 }
             }
         }
     }
 
-    // ============================================================================
-    // DARK THEME OVERRIDES
-    // ============================================================================
-
     .basic-app[data-theme="dark"] .markdown-viewer-container {
         .viewer-header {
             background: var(--basic-surface-container-low);
 
             h3 {
-                color: var(--basic-on-surface);
+                color: var(--basic-on-surface)
             }
 
             .btn {
@@ -1499,18 +1359,15 @@
 
                 &:hover {
                     background: var(--basic-surface-container);
-                    border-color: var(--basic-primary);
+                    border-color: var(--basic-primary)
                 }
             }
         }
 
-        // Enhanced markdown content rendering
-        .viewer-content .markdown-viewer-content,
-        .result-content {
+        .viewer-content .markdown-viewer-content, .result-content {
             line-height: var(--leading-relaxed);
             color: var(--basic-on-surface);
 
-            // Headings
             h1, h2, h3, h4, h5, h6 {
                 margin: var(--space-lg) 0 var(--space-md) 0;
                 font-weight: var(--font-weight-bold);
@@ -1518,48 +1375,46 @@
                 color: var(--basic-on-surface);
 
                 &:first-child {
-                    margin-top: 0;
+                    margin-top: 0
                 }
             }
 
             h1 {
-                font-size: var(--text-3xl);
+                font-size: var(--text-3xl)
             }
 
             h2 {
-                font-size: var(--text-2xl);
+                font-size: var(--text-2xl)
             }
 
             h3 {
-                font-size: var(--text-xl);
+                font-size: var(--text-xl)
             }
 
             h4 {
-                font-size: var(--text-lg);
+                font-size: var(--text-lg)
             }
 
             h5 {
-                font-size: var(--text-base);
+                font-size: var(--text-base)
             }
 
             h6 {
-                font-size: var(--text-sm);
+                font-size: var(--text-sm)
             }
 
-            // Paragraphs
             p {
                 margin: var(--space-md) 0;
 
                 &:first-child {
-                    margin-top: 0;
+                    margin-top: 0
                 }
 
                 &:last-child {
-                    margin-bottom: 0;
+                    margin-bottom: 0
                 }
             }
 
-            // Lists
             ul, ol {
                 margin: var(--space-md) 0;
                 padding-inline-start: var(--space-xl);
@@ -1569,12 +1424,11 @@
                     line-height: var(--leading-relaxed);
 
                     p {
-                        margin: var(--space-xs) 0;
+                        margin: var(--space-xs) 0
                     }
                 }
             }
 
-            // Links
             a {
                 color: var(--basic-primary);
                 text-decoration: underline;
@@ -1582,17 +1436,16 @@
 
                 &:hover {
                     color: color-mix(in oklab, var(--basic-primary) 85%, black);
-                    text-decoration-thickness: 2px;
+                    text-decoration-thickness: 2px
                 }
 
                 &:focus-visible {
                     outline: 2px solid var(--basic-primary);
                     outline-offset: 2px;
-                    border-radius: var(--basic-radius-sm);
+                    border-radius: var(--basic-radius-sm)
                 }
             }
 
-            // Code blocks
             pre {
                 background: var(--basic-surface-container);
                 border: 1px solid color-mix(in oklab, var(--basic-outline-variant) 50%, transparent);
@@ -1609,11 +1462,10 @@
                     background: transparent;
                     padding: 0;
                     font-size: inherit;
-                    color: inherit;
+                    color: inherit
                 }
             }
 
-            // Inline code
             code {
                 background: var(--basic-surface-container-high);
                 color: var(--basic-on-surface-variant);
@@ -1621,10 +1473,9 @@
                 border-radius: var(--basic-radius-sm);
                 font-family: var(--font-family-mono);
                 font-size: 0.9em;
-                font-weight: var(--font-weight-medium);
+                font-weight: var(--font-weight-medium)
             }
 
-            // Blockquotes
             blockquote {
                 margin: var(--space-lg) 0;
                 padding: var(--space-md) var(--space-lg);
@@ -1635,11 +1486,10 @@
                 color: var(--basic-on-surface-variant);
 
                 p {
-                    margin: 0;
+                    margin: 0
                 }
             }
 
-            // Tables
             table {
                 width: 100%;
                 border-collapse: collapse;
@@ -1651,71 +1501,64 @@
                 th, td {
                     padding: var(--space-sm) var(--space-md);
                     text-align: start;
-                    border-bottom: 1px solid color-mix(in oklab, var(--basic-outline-variant) 30%, transparent);
+                    border-bottom: 1px solid color-mix(in oklab, var(--basic-outline-variant) 30%, transparent)
                 }
 
                 th {
                     background: var(--basic-surface-container-high);
                     font-weight: var(--font-weight-semibold);
-                    color: var(--basic-on-surface);
+                    color: var(--basic-on-surface)
                 }
 
                 tbody tr:last-child td {
-                    border-bottom: none;
+                    border-bottom: none
                 }
 
                 tbody tr:hover {
-                    background: color-mix(in oklab, var(--basic-surface-container) 95%, var(--basic-primary) 5%);
+                    background: color-mix(in oklab, var(--basic-surface-container) 95%, var(--basic-primary) 5%)
                 }
             }
 
-            // Horizontal rules
             hr {
                 border: none;
                 border-top: 1px solid color-mix(in oklab, var(--basic-outline-variant) 50%, transparent);
-                margin: var(--space-xl) 0;
+                margin: var(--space-xl) 0
             }
 
-            // Strong and emphasis
             strong, b {
                 font-weight: var(--font-weight-bold);
-                color: var(--basic-on-surface);
+                color: var(--basic-on-surface)
             }
 
             em, i {
                 font-style: italic;
-                color: var(--basic-on-surface-variant);
+                color: var(--basic-on-surface-variant)
             }
 
-            // Responsive text sizing
             @container (max-width: 768px) {
                 h1 {
-                    font-size: var(--text-2xl);
+                    font-size: var(--text-2xl)
                 }
 
                 h2 {
-                    font-size: var(--text-xl);
+                    font-size: var(--text-xl)
                 }
 
                 h3 {
-                    font-size: var(--text-lg);
+                    font-size: var(--text-lg)
                 }
 
                 pre {
                     padding: var(--space-md);
-                    font-size: var(--text-xs);
+                    font-size: var(--text-xs)
                 }
 
                 code {
-                    font-size: 0.85em;
+                    font-size: 0.85em
                 }
             }
         }
     }
-
-    // ============================================================================
-    // PRINT STYLES
-    // ============================================================================
 
     @media print {
         .markdown-viewer-container {
@@ -1725,7 +1568,7 @@
             color: black;
 
             .viewer-header {
-                display: none; // Hide header in print
+                display: none
             }
 
             .viewer-content .markdown-viewer-content {
@@ -1736,109 +1579,100 @@
 
                 h1, h2, h3, h4, h5, h6 {
                     color: black;
-                    page-break-after: avoid;
+                    page-break-after: avoid
                 }
 
                 p, li {
                     color: black;
                     orphans: 3;
-                    widows: 3;
+                    widows: 3
                 }
 
                 blockquote {
-                    background: #f9f9f9; // Print-optimized light background
-                    border-left-color: #666; // Print-optimized gray accent
-                    color: black; // High contrast for print
+                    background: #f9f9f9;
+                    border-left-color: #666;
+                    color: black
                 }
 
                 pre {
-                    background: #f5f5f5; // Print-optimized light background
-                    border: 1px solid #ccc; // Print-optimized light border
-                    color: black; // High contrast for print
-                    page-break-inside: avoid;
+                    background: #f5f5f5;
+                    border: 1px solid #ccc;
+                    color: black;
+                    page-break-inside: avoid
                 }
 
                 code:not(pre code) {
-                    background: #f0f0f0; // Print-optimized very light background
-                    border: 1px solid #ddd; // Print-optimized very light border
-                    color: black; // High contrast for print
+                    background: #f0f0f0;
+                    border: 1px solid #ddd;
+                    color: black
                 }
 
                 table {
-                    border: 1px solid #666; // Print-optimized dark table border
+                    border: 1px solid #666;
                     page-break-inside: avoid;
 
                     th, td {
-                        border: 1px solid #666; // Print-optimized dark cell borders
-                        color: black; // High contrast for print
+                        border: 1px solid #666;
+                        color: black
                     }
 
                     th {
-                        background: #f0f0f0; // Print-optimized light header background
+                        background: #f0f0f0
                     }
                 }
 
                 hr {
-                    border-color: #666; // Print-optimized gray separator
+                    border-color: #666
                 }
 
                 img {
                     max-width: 100%;
-                    page-break-inside: avoid;
+                    page-break-inside: avoid
                 }
 
                 a {
                     color: black;
-                    text-decoration: underline;
+                    text-decoration: underline
                 }
 
                 .katex {
-                    color: black;
+                    color: black
                 }
             }
 
             &[data-raw] {
                 .viewer-content {
-                    background: var(--basic-surface);
+                    background: var(--basic-surface)
                 }
             }
         }
     }
 
-    // ============================================================================
-    // ANIMATIONS
-    // ============================================================================
-
     @keyframes spin {
         0% {
-            transform: rotate(0deg);
+            transform: rotate(0deg)
         }
 
         100% {
-            transform: rotate(360deg);
+            transform: rotate(360deg)
         }
     }
 
-    // Fade in animation for content
     .markdown-viewer-content {
-        animation: fadeIn 0.3s ease-out;
+        animation: fadeIn 0.3s ease-out
     }
 
     @keyframes fadeIn {
         from {
             opacity: 0;
-            transform: translateY(10px);
+            transform: translateY(10px)
         }
 
         to {
             opacity: 1;
-            transform: translateY(0);
+            transform: translateY(0)
         }
     }
-
-    // ============================================================================
-    // RAW VIEW (for HTML documents / code / debugging)
-    // ============================================================================
 
     .markdown-viewer-raw {
         margin: 0;
@@ -1850,6 +1684,6 @@
         background: var(--basic-surface);
         white-space: pre;
         overflow: auto;
-        tab-size: 2;
+        tab-size: 2
     }
 }

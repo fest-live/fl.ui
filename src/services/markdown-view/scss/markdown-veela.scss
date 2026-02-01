@@ -6,32 +6,26 @@
  *
  * Usage:
  *   @use "./scss/markdown-veela" as veela;
- *
- * Note: This requires veela-lib to be installed and configured.
  */
 
 @use "veela-lib" as veela;
 
 @layer markdown-veela {
-    // ============================================================================
-    // VEELA-DEPENDENT MARKDOWN STYLES
-    // ============================================================================
-    // These styles use veela-lib functions and variables for theming
 
+    // ---------------------------------------------------------------------------
+    // Theme tokens -> CSS variables (light by default)
+    // ---------------------------------------------------------------------------
     :host,
     :scope,
     .markdown-body,
     #markdown,
     md-view {
-        // Override CSS variables with veela theme colors
         --md-fg-default: #{veela.theme-color("text-primary", "light")};
         --md-fg-muted: #{veela.theme-color("text-muted", "light")};
         --md-fg-accent: #{veela.theme-color("accent", "light")};
-
         --md-bg-default: #{veela.theme-color("surface", "light")};
         --md-bg-subtle: #{veela.theme-color("surface-container", "light")};
         --md-bg-code: #{veela.theme-color("code-bg", "light")};
-
         --md-border-default: #{veela.theme-color("border", "light")};
         --md-border-subtle: #{veela.theme-color("border-subtle", "light")};
 
@@ -42,31 +36,29 @@
         line-height: #{veela.config("layout", "line-height")};
     }
 
-    // Dark theme overrides using veela
-    .basic-shell[data-theme="dark"] :host,
-    .basic-shell[data-theme="dark"] :scope,
-    .basic-shell[data-theme="dark"] .markdown-body,
-    .basic-shell[data-theme="dark"] #markdown,
-    .basic-shell[data-theme="dark"] md-view {
-        --md-fg-default: #{veela.theme-color("text-primary", "dark")};
-        --md-fg-muted: #{veela.theme-color("text-muted", "dark")};
-        --md-fg-accent: #{veela.theme-color("accent", "dark")};
+    // Dark theme overrides
+    .basic-shell[data-theme="dark"] {
 
-        --md-bg-default: #{veela.theme-color("surface", "dark")};
-        --md-bg-subtle: #{veela.theme-color("surface-container", "dark")};
-        --md-bg-code: #{veela.theme-color("code-bg", "dark")};
-
-        --md-border-default: #{veela.theme-color("border", "dark")};
-        --md-border-subtle: #{veela.theme-color("border-subtle", "dark")};
+        :host,
+        :scope,
+        .markdown-body,
+        #markdown,
+        md-view {
+            --md-fg-default: #{veela.theme-color("text-primary", "dark")};
+            --md-fg-muted: #{veela.theme-color("text-muted", "dark")};
+            --md-fg-accent: #{veela.theme-color("accent", "dark")};
+            --md-bg-default: #{veela.theme-color("surface", "dark")};
+            --md-bg-subtle: #{veela.theme-color("surface-container", "dark")};
+            --md-bg-code: #{veela.theme-color("code-bg", "dark")};
+            --md-border-default: #{veela.theme-color("border", "dark")};
+            --md-border-subtle: #{veela.theme-color("border-subtle", "dark")};
+        }
     }
 
-    // ============================================================================
-    // VEELA MARKDOWN VIEWER CONTAINER STYLES
-    // ============================================================================
-    // Full viewer component styles using veela variables
-
+    // ---------------------------------------------------------------------------
+    // Viewer shell
+    // ---------------------------------------------------------------------------
     .markdown-viewer-container {
-        // Layout
         display: flex;
         flex-direction: column;
         min-height: 100%;
@@ -76,24 +68,23 @@
         box-shadow: var(--basic-elev-1);
         transition: all var(--basic-motion-normal);
 
-        // Responsive container
         @container (max-width: 768px) {
             border-radius: var(--basic-radius-lg);
             box-shadow: none;
         }
 
-        // Hover effects
         &:hover {
             box-shadow: var(--basic-elev-2);
         }
 
-        // Focus state
         &:focus-within {
             outline: none;
             box-shadow: var(--basic-focus-ring), var(--basic-elev-2);
         }
 
-        // Header section
+        // -----------------------------------------------------------------------
+        // Header
+        // -----------------------------------------------------------------------
         .viewer-header {
             display: flex;
             align-items: center;
@@ -148,12 +139,11 @@
                     scrollbar-width: none;
                     -webkit-overflow-scrolling: touch;
                     padding-bottom: var(--space-xs);
+                    flex-wrap: nowrap;
 
                     &::-webkit-scrollbar {
                         display: none;
                     }
-
-                    flex-wrap: nowrap;
                 }
 
                 .viewer-btn {
@@ -242,14 +232,14 @@
             }
         }
 
-        // Content section
+        // -----------------------------------------------------------------------
+        // Content
+        // -----------------------------------------------------------------------
         .viewer-content {
             flex: 1;
             overflow: auto;
             background: var(--basic-surface);
             position: relative;
-
-            // Custom scrollbar
             scrollbar-width: thin;
             scrollbar-color: var(--basic-outline-variant) transparent;
 
@@ -271,7 +261,6 @@
                 }
             }
 
-            // Content container
             .markdown-viewer-content {
                 padding: var(--space-2xl) var(--space-xl);
                 min-height: 100%;
@@ -295,7 +284,6 @@
                 font-family: var(--font-family-system);
                 font-size: var(--text-base);
                 font-weight: var(--font-weight-normal);
-
                 text-rendering: optimizeLegibility;
                 -webkit-font-smoothing: antialiased;
                 -moz-osx-font-smoothing: grayscale;
@@ -305,8 +293,12 @@
                     color: var(--basic-on-primary);
                 }
 
-                // Enhanced markdown content styling with veela variables
-                h1, h2, h3, h4, h5, h6 {
+                h1,
+                h2,
+                h3,
+                h4,
+                h5,
+                h6 {
                     margin: var(--space-2xl) 0 var(--space-lg) 0;
                     font-weight: var(--font-weight-semibold);
                     line-height: var(--leading-tight);
@@ -322,12 +314,29 @@
                     }
                 }
 
-                h1 { font-size: var(--text-3xl); }
-                h2 { font-size: var(--text-2xl); }
-                h3 { font-size: var(--text-xl); }
-                h4 { font-size: var(--text-lg); }
-                h5 { font-size: var(--text-base); }
-                h6 { font-size: var(--text-sm); }
+                h1 {
+                    font-size: var(--text-3xl);
+                }
+
+                h2 {
+                    font-size: var(--text-2xl);
+                }
+
+                h3 {
+                    font-size: var(--text-xl);
+                }
+
+                h4 {
+                    font-size: var(--text-lg);
+                }
+
+                h5 {
+                    font-size: var(--text-base);
+                }
+
+                h6 {
+                    font-size: var(--text-sm);
+                }
 
                 p {
                     margin: 0 0 var(--space-lg) 0;
@@ -357,7 +366,8 @@
                     }
                 }
 
-                ul, ol {
+                ul,
+                ol {
                     margin: var(--space-lg) 0;
                     padding-left: var(--space-2xl);
                     color: var(--basic-on-surface);
@@ -465,7 +475,8 @@
                         margin: var(--space-lg) 0;
                     }
 
-                    th, td {
+                    th,
+                    td {
                         padding: var(--space-md) var(--space-lg);
                         text-align: left;
                         border-bottom: 1px solid var(--basic-outline);
@@ -557,200 +568,243 @@
         }
     }
 
-    // Dark theme overrides
-    .basic-shell[data-theme="dark"] .markdown-viewer-container {
-        .viewer-header {
-            background: var(--basic-surface-container-low);
-
-            h3 {
-                color: var(--basic-on-surface);
-            }
-
-            .btn {
+    // ---------------------------------------------------------------------------
+    // Dark theme: viewer-specific overrides (kept as in source, but fixed nesting)
+    // ---------------------------------------------------------------------------
+    .basic-shell[data-theme="dark"] {
+        .markdown-viewer-container {
+            .viewer-header {
                 background: var(--basic-surface-container-low);
-                border-color: var(--basic-outline);
-                color: var(--basic-on-surface);
 
-                &:hover {
-                    background: var(--basic-surface-container);
-                    border-color: var(--basic-primary);
-                }
-            }
-        }
-
-        .viewer-content .markdown-viewer-content,
-        .result-content {
-            line-height: var(--leading-relaxed);
-            color: var(--basic-on-surface);
-
-            h1, h2, h3, h4, h5, h6 {
-                margin: var(--space-lg) 0 var(--space-md) 0;
-                font-weight: var(--font-weight-bold);
-                line-height: var(--leading-tight);
-                color: var(--basic-on-surface);
-
-                &:first-child {
-                    margin-top: 0;
-                }
-            }
-
-            h1 { font-size: var(--text-3xl); }
-            h2 { font-size: var(--text-2xl); }
-            h3 { font-size: var(--text-xl); }
-            h4 { font-size: var(--text-lg); }
-            h5 { font-size: var(--text-base); }
-            h6 { font-size: var(--text-sm); }
-
-            p {
-                margin: var(--space-md) 0;
-
-                &:first-child {
-                    margin-top: 0;
+                h3 {
+                    color: var(--basic-on-surface);
                 }
 
-                &:last-child {
-                    margin-bottom: 0;
-                }
-            }
+                // NOTE: In the original code it was `.btn`, but buttons are `.viewer-btn`.
+                // Keeping `.btn` for backward compatibility + adding `.viewer-btn`.
+                .btn,
+                .viewer-btn {
+                    background: var(--basic-surface-container-low);
+                    border-color: var(--basic-outline);
+                    color: var(--basic-on-surface);
 
-            ul, ol {
-                margin: var(--space-md) 0;
-                padding-inline-start: var(--space-xl);
-
-                li {
-                    margin: var(--space-xs) 0;
-                    line-height: var(--leading-relaxed);
-
-                    p {
-                        margin: var(--space-xs) 0;
+                    &:hover {
+                        background: var(--basic-surface-container);
+                        border-color: var(--basic-primary);
                     }
                 }
             }
 
-            a {
-                color: var(--basic-primary);
-                text-decoration: underline;
-                text-underline-offset: 0.1em;
-
-                &:hover {
-                    color: color-mix(in oklab, var(--basic-primary) 85%, black);
-                    text-decoration-thickness: 2px;
-                }
-
-                &:focus-visible {
-                    outline: 2px solid var(--basic-primary);
-                    outline-offset: 2px;
-                    border-radius: var(--basic-radius-sm);
-                }
-            }
-
-            pre {
-                background: var(--basic-surface-container);
-                border: 1px solid color-mix(in oklab, var(--basic-outline-variant) 50%, transparent);
-                border-radius: var(--basic-radius-md);
-                padding: var(--space-lg);
-                margin: var(--space-lg) 0;
-                overflow-x: auto;
-                font-family: var(--font-family-mono);
-                font-size: var(--text-sm);
-                line-height: var(--leading-normal);
+            .viewer-content .markdown-viewer-content,
+            .result-content {
+                line-height: var(--leading-relaxed);
                 color: var(--basic-on-surface);
 
-                code {
-                    background: transparent;
-                    padding: 0;
-                    font-size: inherit;
-                    color: inherit;
+                h1,
+                h2,
+                h3,
+                h4,
+                h5,
+                h6 {
+                    margin: var(--space-lg) 0 var(--space-md) 0;
+                    font-weight: var(--font-weight-bold);
+                    line-height: var(--leading-tight);
+                    color: var(--basic-on-surface);
+
+                    &:first-child {
+                        margin-top: 0;
+                    }
                 }
-            }
 
-            code {
-                background: var(--basic-surface-container-high);
-                color: var(--basic-on-surface-variant);
-                padding: 0.125rem 0.25rem;
-                border-radius: var(--basic-radius-sm);
-                font-family: var(--font-family-mono);
-                font-size: 0.9em;
-                font-weight: var(--font-weight-medium);
-            }
+                h1 {
+                    font-size: var(--text-3xl);
+                }
 
-            blockquote {
-                margin: var(--space-lg) 0;
-                padding: var(--space-md) var(--space-lg);
-                border-inline-start: 4px solid var(--basic-primary);
-                background: color-mix(in oklab, var(--basic-primary) 5%, var(--basic-surface-container));
-                border-radius: 0 var(--basic-radius-md) var(--basic-radius-md) 0;
-                font-style: italic;
-                color: var(--basic-on-surface-variant);
+                h2 {
+                    font-size: var(--text-2xl);
+                }
+
+                h3 {
+                    font-size: var(--text-xl);
+                }
+
+                h4 {
+                    font-size: var(--text-lg);
+                }
+
+                h5 {
+                    font-size: var(--text-base);
+                }
+
+                h6 {
+                    font-size: var(--text-sm);
+                }
 
                 p {
-                    margin: 0;
-                }
-            }
+                    margin: var(--space-md) 0;
 
-            table {
-                width: 100%;
-                border-collapse: collapse;
-                margin: var(--space-lg) 0;
-                background: var(--basic-surface-container);
-                border-radius: var(--basic-radius-md);
-                overflow: hidden;
+                    &:first-child {
+                        margin-top: 0;
+                    }
 
-                th, td {
-                    padding: var(--space-sm) var(--space-md);
-                    text-align: start;
-                    border-bottom: 1px solid color-mix(in oklab, var(--basic-outline-variant) 30%, transparent);
+                    &:last-child {
+                        margin-bottom: 0;
+                    }
                 }
 
-                th {
+                ul,
+                ol {
+                    margin: var(--space-md) 0;
+                    padding-inline-start: var(--space-xl);
+
+                    li {
+                        margin: var(--space-xs) 0;
+                        line-height: var(--leading-relaxed);
+
+                        p {
+                            margin: var(--space-xs) 0;
+                        }
+                    }
+                }
+
+                a {
+                    color: var(--basic-primary);
+                    text-decoration: underline;
+                    text-underline-offset: 0.1em;
+
+                    &:hover {
+                        color: color-mix(in oklab, var(--basic-primary) 85%, black);
+                        text-decoration-thickness: 2px;
+                    }
+
+                    &:focus-visible {
+                        outline: 2px solid var(--basic-primary);
+                        outline-offset: 2px;
+                        border-radius: var(--basic-radius-sm);
+                    }
+                }
+
+                pre {
+                    background: var(--basic-surface-container);
+                    border: 1px solid color-mix(in oklab, var(--basic-outline-variant) 50%, transparent);
+                    border-radius: var(--basic-radius-md);
+                    padding: var(--space-lg);
+                    margin: var(--space-lg) 0;
+                    overflow-x: auto;
+                    font-family: var(--font-family-mono);
+                    font-size: var(--text-sm);
+                    line-height: var(--leading-normal);
+                    color: var(--basic-on-surface);
+
+                    code {
+                        background: transparent;
+                        padding: 0;
+                        font-size: inherit;
+                        color: inherit;
+                    }
+                }
+
+                code {
                     background: var(--basic-surface-container-high);
-                    font-weight: var(--font-weight-semibold);
+                    color: var(--basic-on-surface-variant);
+                    padding: 0.125rem 0.25rem;
+                    border-radius: var(--basic-radius-sm);
+                    font-family: var(--font-family-mono);
+                    font-size: 0.9em;
+                    font-weight: var(--font-weight-medium);
+                }
+
+                blockquote {
+                    margin: var(--space-lg) 0;
+                    padding: var(--space-md) var(--space-lg);
+                    border-inline-start: 4px solid var(--basic-primary);
+                    background: color-mix(in oklab, var(--basic-primary) 5%, var(--basic-surface-container));
+                    border-radius: 0 var(--basic-radius-md) var(--basic-radius-md) 0;
+                    font-style: italic;
+                    color: var(--basic-on-surface-variant);
+
+                    p {
+                        margin: 0;
+                    }
+                }
+
+                table {
+                    width: 100%;
+                    border-collapse: collapse;
+                    margin: var(--space-lg) 0;
+                    background: var(--basic-surface-container);
+                    border-radius: var(--basic-radius-md);
+                    overflow: hidden;
+
+                    th,
+                    td {
+                        padding: var(--space-sm) var(--space-md);
+                        text-align: start;
+                        border-bottom: 1px solid color-mix(in oklab, var(--basic-outline-variant) 30%, transparent);
+                    }
+
+                    th {
+                        background: var(--basic-surface-container-high);
+                        font-weight: var(--font-weight-semibold);
+                        color: var(--basic-on-surface);
+                    }
+
+                    tbody tr:last-child td {
+                        border-bottom: none;
+                    }
+
+                    tbody tr:hover {
+                        background: color-mix(in oklab, var(--basic-surface-container) 95%, var(--basic-primary) 5%);
+                    }
+                }
+
+                hr {
+                    border: none;
+                    border-top: 1px solid color-mix(in oklab, var(--basic-outline-variant) 50%, transparent);
+                    margin: var(--space-xl) 0;
+                }
+
+                strong,
+                b {
+                    font-weight: var(--font-weight-bold);
                     color: var(--basic-on-surface);
                 }
 
-                tbody tr:last-child td {
-                    border-bottom: none;
+                em,
+                i {
+                    font-style: italic;
+                    color: var(--basic-on-surface-variant);
                 }
 
-                tbody tr:hover {
-                    background: color-mix(in oklab, var(--basic-surface-container) 95%, var(--basic-primary) 5%);
-                }
-            }
+                @container (max-width: 768px) {
+                    h1 {
+                        font-size: var(--text-2xl);
+                    }
 
-            hr {
-                border: none;
-                border-top: 1px solid color-mix(in oklab, var(--basic-outline-variant) 50%, transparent);
-                margin: var(--space-xl) 0;
-            }
+                    h2 {
+                        font-size: var(--text-xl);
+                    }
 
-            strong, b {
-                font-weight: var(--font-weight-bold);
-                color: var(--basic-on-surface);
-            }
+                    h3 {
+                        font-size: var(--text-lg);
+                    }
 
-            em, i {
-                font-style: italic;
-                color: var(--basic-on-surface-variant);
-            }
+                    pre {
+                        padding: var(--space-md);
+                        font-size: var(--text-xs);
+                    }
 
-            @container (max-width: 768px) {
-                h1 { font-size: var(--text-2xl); }
-                h2 { font-size: var(--text-xl); }
-                h3 { font-size: var(--text-lg); }
-
-                pre {
-                    padding: var(--space-md);
-                    font-size: var(--text-xs);
-                }
-
-                code {
-                    font-size: 0.85em;
+                    code {
+                        font-size: 0.85em;
+                    }
                 }
             }
         }
     }
 
-    // Print styles
+    // ---------------------------------------------------------------------------
+    // Print
+    // ---------------------------------------------------------------------------
     @media print {
         .markdown-viewer-container {
             border: none;
@@ -768,12 +822,18 @@
                 line-height: 1.4;
                 color: black;
 
-                h1, h2, h3, h4, h5, h6 {
+                h1,
+                h2,
+                h3,
+                h4,
+                h5,
+                h6 {
                     color: black;
                     page-break-after: avoid;
                 }
 
-                p, li {
+                p,
+                li {
                     color: black;
                     orphans: 3;
                     widows: 3;
@@ -802,7 +862,8 @@
                     border: 1px solid #666;
                     page-break-inside: avoid;
 
-                    th, td {
+                    th,
+                    td {
                         border: 1px solid #666;
                         color: black;
                     }
@@ -839,7 +900,9 @@
         }
     }
 
+    // ---------------------------------------------------------------------------
     // Animations
+    // ---------------------------------------------------------------------------
     @keyframes spin {
         0% {
             transform: rotate(0deg);
@@ -866,7 +929,9 @@
         }
     }
 
+    // ---------------------------------------------------------------------------
     // Raw view
+    // ---------------------------------------------------------------------------
     .markdown-viewer-raw {
         margin: 0;
         padding: var(--space-xl);

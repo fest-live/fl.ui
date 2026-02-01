@@ -12,11 +12,15 @@
 @use "./scss/markdown-print";
 @use "./lib/mixins" as mixins;
 
-//
-// === Markdown page container ===
+
 @layer markdown-page {
     :host {
-        &, * { box-sizing: border-box; }
+
+        &,
+        * {
+            box-sizing: border-box;
+        }
+
         & {
             background-color: transparent;
             inline-size: 100%;
@@ -38,7 +42,8 @@
         }
     }
 
-    :where(.markdown-body[data-print]), :host(.markdown-body[data-print]) {
+    :where(.markdown-body[data-print]),
+    :host(.markdown-body[data-print]) {
         background-color: transparent;
         container-type: normal;
         contain: none;
@@ -52,20 +57,23 @@
         text-align: start;
     }
 
-    :where(#markdown, .markdown-body), :host(.markdown-body), :host(.markdown-body), :host(#markdown) {
+    :where(#markdown, .markdown-body),
+    :host(.markdown-body),
+    :host(.markdown-body),
+    :host(#markdown) {
         touch-action: manipulation;
         pointer-events: auto;
         text-align: start;
     }
 
-    :where(#markdown, .markdown-body), :host {
+    :where(#markdown, .markdown-body),
+    :host {
         @include mixins.md-surface-root(start);
         @include mixins.md-scrollbars();
     }
 
     @include mixins.md-children-inherit(":where(#markdown, :host) *");
 
-    //
     [data-hidden] :where(#markdown, :host) {
         color-scheme: inherit;
         content-visibility: auto !important;
@@ -83,14 +91,8 @@
             content-visibility: auto !important;
         }
     }
-}
 
-
-//
-// === Markdown page container ===
-@layer markdown-page {
     :host {
-        /* Box-sizing inherited from normalize.scss */
         & {
             background-color: transparent;
             inline-size: 100%;
@@ -112,7 +114,8 @@
         }
     }
 
-    :where(.markdown-body[data-print]), :host(.markdown-body[data-print]) {
+    :where(.markdown-body[data-print]),
+    :host(.markdown-body[data-print]) {
         background-color: transparent;
         container-type: normal;
         contain: none;
@@ -126,20 +129,23 @@
         text-align: start;
     }
 
-    :where(#markdown, .markdown-body), :host(.markdown-body), :host(.markdown-body), :host(#markdown) {
+    :where(#markdown, .markdown-body),
+    :host(.markdown-body),
+    :host(.markdown-body),
+    :host(#markdown) {
         touch-action: manipulation;
         pointer-events: auto;
         text-align: start;
     }
 
-    :where(#markdown, .markdown-body), :host {
+    :where(#markdown, .markdown-body),
+    :host {
         @include mixins.md-surface-root(start);
         @include mixins.md-scrollbars();
     }
 
     @include mixins.md-children-inherit(":where(#markdown, :host) *");
 
-    //
     [data-hidden] :where(#markdown, :host) {
         color-scheme: inherit;
         content-visibility: auto !important;
@@ -157,13 +163,8 @@
             content-visibility: auto !important;
         }
     }
-}
 
-//
-// === Markdown page container ===
-@layer markdown-page {
     :host {
-        /* Box-sizing inherited from normalize.scss */
         & {
             background-color: transparent;
             inline-size: 100%;
@@ -185,7 +186,8 @@
         }
     }
 
-    :where(.markdown-body[data-print]), :host(.markdown-body[data-print]) {
+    :where(.markdown-body[data-print]),
+    :host(.markdown-body[data-print]) {
         background-color: transparent;
         container-type: normal;
         contain: none;
@@ -199,20 +201,23 @@
         text-align: start;
     }
 
-    :where(#markdown, .markdown-body), :host(.markdown-body), :host(.markdown-body), :host(#markdown) {
+    :where(#markdown, .markdown-body),
+    :host(.markdown-body),
+    :host(.markdown-body),
+    :host(#markdown) {
         touch-action: manipulation;
         pointer-events: auto;
         text-align: start;
     }
 
-    :where(#markdown, .markdown-body), :host {
+    :where(#markdown, .markdown-body),
+    :host {
         @include mixins.md-surface-root(start);
         @include mixins.md-scrollbars();
     }
 
     @include mixins.md-children-inherit(":where(#markdown, :host) *");
 
-    //
     [data-hidden] :where(#markdown, :host) {
         color-scheme: inherit;
         content-visibility: auto !important;

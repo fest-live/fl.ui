@@ -1,18 +1,35 @@
-export { default as FileManager } from "./FileManager";
-export { FileManagerContent } from "./FileManagerContent";
-export { FileOperative, type FileEntryItem, type EntryKind } from "./Operative";
-export { createItemCtxMenu } from "./ContextMenu";
-export { UIElement } from "./UIElement";
+/**
+ * CrossWord File Manager - Re-exports
+ *
+ * This module re-exports from the unified file-manager.
+ * Maintained for backward compatibility.
+ *
+ * @deprecated Import directly from "fest/fl-ui/services/file-manager" instead.
+ */
 
-// Register custom elements
-import { default as FileManager } from "./FileManager";
-import { FileManagerContent } from "./FileManagerContent";
+// Re-export everything from unified file-manager
+export {
+    // Components
+    FileManager,
+    FileManager as default,
+    FileManagerContent,
+    FileOperative,
 
-if (typeof customElements !== 'undefined') {
-    if (!customElements.get('ui-file-manager')) {
-        customElements.define('ui-file-manager', FileManager as any);
-    }
-    if (!customElements.get('ui-file-manager-content')) {
-        customElements.define('ui-file-manager-content', FileManagerContent as any);
-    }
-}
+    // Context menu
+    createItemCtxMenu,
+
+    // Types
+    type EntryKind,
+    type FileEntry,
+    type FileEntryItem,
+
+    // Utilities
+    iconFor,
+    iconByMime,
+    formatSize,
+    formatDate,
+    getAlphaOrder
+} from "../index";
+
+// Re-export UIElement from base for backward compatibility
+export { default as UIElement } from "@fl-ui/base/UIElement";

@@ -59,7 +59,7 @@
     }
 
     // 5) принудительная тёмная тема через атрибут контейнера
-    .basic-shell[data-theme="dark"] {
+    .shell-basic[data-theme="dark"] {
         #{$md-roots} {
             @include md-vars(dark);
         }

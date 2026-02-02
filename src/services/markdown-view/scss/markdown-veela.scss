@@ -37,7 +37,7 @@
     }
 
     // Dark theme overrides
-    .basic-shell[data-theme="dark"] {
+    .shell-basic[data-theme="dark"] {
 
         :host,
         :scope,
@@ -571,7 +571,7 @@
     // ---------------------------------------------------------------------------
     // Dark theme: viewer-specific overrides (kept as in source, but fixed nesting)
     // ---------------------------------------------------------------------------
-    .basic-shell[data-theme="dark"] {
+    .shell-basic[data-theme="dark"] {
         .markdown-viewer-container {
             .viewer-header {
                 background: var(--basic-surface-container-low);

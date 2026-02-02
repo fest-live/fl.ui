@@ -149,9 +149,9 @@ export class FileManager extends UIElement {
     onRender(): void {
         super.onRender();
 
-        // Bind input and setup handlers
+        // Bind input and setup handlers (input is in shadow DOM)
         queueMicrotask(() => {
-            const input = this.querySelector?.("input[name=\"address\"]") as HTMLInputElement;
+            const input = this.shadowRoot?.querySelector?.("input[name=\"address\"]") as HTMLInputElement;
             if (input) {
                 // Sync input with current path
                 input.value = this.path;
@@ -215,9 +215,9 @@ export class FileManager extends UIElement {
         const clean = getDir(toPath);
         if (clean) {
             this.path = clean;
-            // Update input field when navigation happens
+            // Update input field when navigation happens (input is in shadow DOM)
             queueMicrotask(() => {
-                const input = this.querySelector?.("input[name=\"address\"]") as HTMLInputElement;
+                const input = this.shadowRoot?.querySelector?.("input[name=\"address\"]") as HTMLInputElement;
                 if (input && input.value !== clean) {
                     input.value = clean;
                 }
@@ -236,9 +236,9 @@ export class FileManager extends UIElement {
         const back = "/" + parts.slice(0, -1).join("/") + "/";
         this.path = back;
         
-        // Update input field
+        // Update input field (input is in shadow DOM)
         queueMicrotask(() => {
-            const input = this.querySelector?.("input[name=\"address\"]") as HTMLInputElement;
+            const input = this.shadowRoot?.querySelector?.("input[name=\"address\"]") as HTMLInputElement;
             if (input && input.value !== back) {
                 input.value = back;
             }
@@ -290,7 +290,19 @@ export class FileManager extends UIElement {
                 </button>
             </div>
             <div class="fm-toolbar-center">
-                <input class="address c2-surface" autocomplete="off" type="text" name="address" />
+                <input
+                    class="address c2-surface"
+                    type="text"
+                    name="address"
+                    autocomplete="off"
+                    autocorrect="off"
+                    autocapitalize="off"
+                    spellcheck="false"
+                    data-lpignore="true"
+                    data-1p-ignore="true"
+                    data-form-type="other"
+                    aria-label="File path"
+                />
             </div>
             <div class="fm-toolbar-right">
                 <button class="btn" title="Add" on:click=${() => requestAnimationFrame(() => self.requestUpload?.())}>

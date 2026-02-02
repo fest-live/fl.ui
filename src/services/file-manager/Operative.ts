@@ -133,7 +133,10 @@ export class FileOperative {
 
         // Handle navigation or file open
         if (item?.kind === "directory") {
-            const next = (this.path?.endsWith?.("/") ? this.path : this.path + "/") + item?.name + "/";
+            // Ensure proper path formatting: ensure trailing slash
+            const currentPath = this.path || "/user/";
+            const cleanPath = currentPath.endsWith("/") ? currentPath : currentPath + "/";
+            const next = cleanPath + item?.name + "/";
             this.path = next;
         } else {
             const openEvent = new CustomEvent("open", {
@@ -153,9 +156,12 @@ export class FileOperative {
      * Load directory contents at path
      */
     async loadPath(path: string): Promise<this> {
+        // Normalize path
+        const normalizedPath = path?.endsWith?.("/") ? path : (path || "/user/") + "/";
+
         // Prevent concurrent loads
         if (this.#loadLock) {
-            requestIdleCallback(() => this.loadPath(path), { timeout: 1000 });
+            requestIdleCallback(() => this.loadPath(normalizedPath), { timeout: 1000 });
             return this;
         }
         this.#loadLock = true;
@@ -170,7 +176,7 @@ export class FileOperative {
             }
 
             // Open directory
-            this.#dirProxy = openDirectory(this.#fsRoot, path, { create: false });
+            this.#dirProxy = openDirectory(this.#fsRoot, normalizedPath, { create: false });
             await this.#dirProxy;
 
             // Entry loader function

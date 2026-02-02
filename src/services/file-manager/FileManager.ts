@@ -5,7 +5,7 @@
  * Supports both basic and extended modes (with UnifiedMessaging).
  */
 
-import { H, defineElement, property, getDir, valueLink } from "fest/lure";
+import { H, defineElement, property, getDir } from "fest/lure";
 import { addEvent, preloadStyle } from "fest/dom";
 import { propRef } from "fest/object";
 
@@ -149,17 +149,37 @@ export class FileManager extends UIElement {
     onRender(): void {
         super.onRender();
 
-        // Handle address field submit
-        const weak = new WeakRef(this);
-        const onEnter = (ev: KeyboardEvent) => {
-            if (ev.key === "Enter") {
-                const self = weak.deref() as any;
-                const input = self?.querySelector?.("input[name=\"address\"]") as HTMLInputElement;
-                const val = input?.value?.trim?.() || "";
-                if (val) self?.navigate(val);
+        // Bind input and setup handlers
+        queueMicrotask(() => {
+            const input = this.querySelector?.("input[name=\"address\"]") as HTMLInputElement;
+            if (input) {
+                // Sync input with current path
+                input.value = this.path;
+
+                // Handle Enter key to navigate
+                const weak = new WeakRef(this);
+                const onEnter = (ev: KeyboardEvent) => {
+                    if (ev.key === "Enter") {
+                        ev.preventDefault();
+                        const self = weak.deref() as any;
+                        const val = input?.value?.trim?.() || "";
+                        if (val) {
+                            self?.navigate(val);
+                        }
+                    }
+                };
+                addEvent(input, "keydown", onEnter);
+
+                // Sync input changes to path when input loses focus
+                const onBlur = () => {
+                    const val = input?.value?.trim?.() || "";
+                    if (val && val !== this.path) {
+                        this.navigate(val);
+                    }
+                };
+                addEvent(input, "blur", onBlur);
             }
-        };
-        addEvent(this, "keydown", onEnter);
+        });
     }
 
     // ========================================================================
@@ -193,20 +213,40 @@ export class FileManager extends UIElement {
 
     async navigate(toPath: string): Promise<void> {
         const clean = getDir(toPath);
-        this.path = clean || this.path;
+        if (clean) {
+            this.path = clean;
+            // Update input field when navigation happens
+            queueMicrotask(() => {
+                const input = this.querySelector?.("input[name=\"address\"]") as HTMLInputElement;
+                if (input && input.value !== clean) {
+                    input.value = clean;
+                }
+            });
+        }
+    }
+
+    async goBack(): Promise<void> {
+        const currentPath = this.path || "/user/";
+        // Remove trailing slash for splitting
+        const cleanPath = currentPath.replace(/\/+$/g, "");
+        const parts = cleanPath.split("/").filter(Boolean);
+
+        if (parts.length <= 1) return; // stay at root
+
+        const back = "/" + parts.slice(0, -1).join("/") + "/";
+        this.path = back;
+        
+        // Update input field
+        queueMicrotask(() => {
+            const input = this.querySelector?.("input[name=\"address\"]") as HTMLInputElement;
+            if (input && input.value !== back) {
+                input.value = back;
+            }
+        });
     }
 
     async goUp(): Promise<void> {
-        const contents = this.querySelector?.("ui-file-manager-content") as any;
-        const parts = (contents?.path || "/user/")
-            .replace(/\/+$/g, "")
-            .split("/")
-            .filter(Boolean);
-
-        if (parts.length <= 1) return; // stay at /user
-
-        const up = "/" + parts.slice(0, -1).join("/") + "/";
-        this.path = up;
+        await this.goBack();
     }
 
     // ========================================================================
@@ -239,6 +279,9 @@ export class FileManager extends UIElement {
         // Toolbar
         const toolbar = H`<div part="toolbar" class="fm-toolbar">
             <div class="fm-toolbar-left">
+                <button class="btn" title="Back" on:click=${() => requestAnimationFrame(() => self.goBack())}>
+                    <ui-icon icon="arrow-left"/>
+                </button>
                 <button class="btn" title="Up" on:click=${() => requestAnimationFrame(() => self.goUp())}>
                     <ui-icon icon="arrow-up"/>
                 </button>
@@ -262,14 +305,8 @@ export class FileManager extends UIElement {
             </div>
         </div>`;
 
-        // Bind address input to path
-        const input = toolbar.querySelector("input") as HTMLInputElement;
-        if (input) {
-            queueMicrotask(() => {
-                input.value = self.path;
-                valueLink(input, self.pathRef);
-            });
-        }
+        // Bind address input to path (will be done in onRender)
+        // This deferred binding ensures proper timing and event handler setup
 
         return H`<div part="root" class="fm-root" data-with-sidebar=${sidebarVisible}>${toolbar}${content}</div>`;
     };

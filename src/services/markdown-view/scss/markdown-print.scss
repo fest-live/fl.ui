@@ -60,7 +60,7 @@
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
     // === Root variables ===
-    :root {
+    :root:has(.print-view), .print-view {
         --print-font-family: 'Times New Roman', 'Times', 'Liberation Serif', 'Noto Serif', serif;
         --print-font-family-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         --print-font-mono: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Liberation Mono', 'Noto Mono', monospace;
@@ -301,7 +301,7 @@
 
     // === Print media specific styles ===
     @media print {
-        html, body {
+        :where(html, body):has(.print-view, .markdown-body) {
             font-family: var(--print-font-family);
             font-size: 12px;
             line-height: 1.4;

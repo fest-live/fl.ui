@@ -1,6 +1,6 @@
 @use "./config" as config;
 
-@mixin markdown-root-props($selector: ":root, :host, :scope") {
+@mixin markdown-root-props($selector: ":root:has(.markdown-body), .markdown-body, :host, :scope:has(.markdown-body)") {
     #{$selector} {
         /* MVP tokens */
         --base-size-4: 0.25em;
@@ -123,7 +123,7 @@
     }
 }
 
-@mixin markdown-root-props($selector: ":root, :host, :scope") {
+@mixin markdown-root-props($selector: ":root:has(.markdown-body), .markdown-body, :host, :scope:has(.markdown-body)") {
     #{$selector} {
         /* MVP tokens */
         --base-size-4: 0.25em;

@@ -27,14 +27,6 @@ import fmCss from "./scss/FileManager.scss?inline";
 let registerComponent: ((id: string, type: string) => void) | undefined;
 let initializeComponent: ((id: string) => any[]) | undefined;
 
-try {
-    const messaging = await import("@rs-com/core/UnifiedMessaging");
-    registerComponent = messaging.registerComponent;
-    initializeComponent = messaging.initializeComponent;
-} catch {
-    // Unified messaging not available - that's fine
-}
-
 // ============================================================================
 // INITIALIZATION
 // ============================================================================
@@ -132,7 +124,7 @@ export class FileManager extends UIElement {
     // LIFECYCLE
     // ========================================================================
 
-    onInitialize(): void {
+    onInitialize(): this {
         super.onInitialize();
 
         // Register with unified messaging if enabled
@@ -144,9 +136,12 @@ export class FileManager extends UIElement {
         // Create content element
         const contents = document.createElement("ui-file-manager-content");
         this.append(contents);
+
+        //
+        return this;
     }
 
-    onRender(): void {
+    onRender(): this {
         super.onRender();
 
         // Bind input and setup handlers (input is in shadow DOM)
@@ -180,6 +175,9 @@ export class FileManager extends UIElement {
                 addEvent(input, "blur", onBlur);
             }
         });
+
+        //
+        return this;
     }
 
     // ========================================================================

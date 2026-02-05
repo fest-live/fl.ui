@@ -14,22 +14,25 @@ export class UIElement extends GLitElement() {
     constructor() { super(); }
 
     //
-    onRender() {
-        super.onRender();
+    onRender(): this|void|undefined {
+        return super.onRender();
     }
 
     //
-    connectedCallback() {
-        super.connectedCallback();
+    connectedCallback(): this {
+        const result = super.connectedCallback?.();
+        const self : any = result ?? this;
+        return self;
     }
 
     //
-    onInitialize() {
-        super.onInitialize();
+    onInitialize(): this {
+        const result = super.onInitialize();
         // Only load icon styles, not the heavy veela runtime styles
         // which cause freezing/hanging performance issues
-        const self : any = this;
+        const self : any = result ?? this;
         self.loadStyleLibrary(ensureStyleSheet());
+        return self;
     }
 }
 

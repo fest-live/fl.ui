@@ -62,6 +62,15 @@
                 color: var(--basic-on-surface);
             }
 
+            input {
+                inline-size: stretch;
+                block-size: stretch;
+                border: none 0px transparent;
+                outline: none 0px transparent;
+                padding: 0.25rem;
+                overflow: auto;
+            }
+
             .btn {
                 transition: background 0.1s ease-in-out;
                 appearance: none;

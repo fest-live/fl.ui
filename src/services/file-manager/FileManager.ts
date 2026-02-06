@@ -114,9 +114,9 @@ export class FileManager extends UIElement {
                 <button class="btn" title="Up" on:click=${() => requestAnimationFrame(() => self.goUp())}><ui-icon icon="arrow-up"/></button>
                 <button class="btn" title="Refresh" on:click=${() => requestAnimationFrame(() => self.navigate(self.path))}><ui-icon icon="arrow-clockwise"/></button>
             </div>
-            <div class="fm-toolbar-center">
+            <div class="fm-toolbar-center"><form style="display: contents;" onsubmit="return false;">
                 <input class="address c2-surface" autocomplete="off" type="text" name="address" />
-            </div>
+            </form></div>
             <div class="fm-toolbar-right">
                 <button class="btn" title="Add" on:click=${() => requestAnimationFrame(() => self.requestUpload?.())}><ui-icon icon="upload"/></button>
                 <button class="btn" title="Paste" on:click=${() => requestAnimationFrame(() => self.requestPaste?.())}><ui-icon icon="clipboard"/></button>

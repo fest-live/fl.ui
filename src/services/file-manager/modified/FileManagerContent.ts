@@ -3,7 +3,7 @@ import { addEvent, handleStyleChange, isInFocus, preloadStyle } from "fest/dom";
 import { computed, propRef, ref } from "fest/object";
 
 //
-import { UIElement } from "@fl-ui/base/UIElement";
+import UIElement from "./UIElement";
 
 // @ts-ignore
 import fmCss from "./FileManagerContent.scss?inline";
@@ -13,13 +13,54 @@ import { type FileEntryItem, FileOperative } from "./Operative";
 import { createItemCtxMenu } from "./ContextMenu";
 
 //
-import { iconFor, formatSize, formatDate } from "./utils";
-
-//
 initGlobalClipboard();
 
 //
 const styled = preloadStyle(fmCss);
+
+//
+const iconByMime = (mime: string | undefined, def = "file") => {
+    if (!mime) return def;
+    if (mime.startsWith("image/")) return "image";
+    if (mime.startsWith("audio/")) return "music";
+    if (mime.startsWith("video/")) return "video";
+    if (mime === "application/pdf") return "file-text";
+    if (mime.includes("zip") || mime.includes("7z") || mime.includes("rar")) return "file-archive";
+    if (mime.includes("json")) return "brackets-curly";
+    if (mime.includes("csv")) return "file-spreadsheet";
+    if (mime.includes("xml")) return "code";
+    if (mime.startsWith("text/")) return "file-text";
+    return def;
+};
+
+//
+const iconFor = (item: FileEntryItem, type?: string) => {
+    if (typeof item === "string") return (item === "directory" ? "folder" : iconByMime(type || item || ""));
+    return item?.kind === "directory" ? "folder" : iconByMime(item?.type);
+}
+
+//
+const sizeCache = new Map<number, string>();
+const getSize = (size: number) => {
+    if (!sizeCache.has(size)) {
+        let formatted: string;
+        if (size < 1024) formatted = size + " B";
+        else if (size < 1024 * 1024) formatted = (size / 1024).toFixed(2) + " kB";
+        else if (size < 1024 * 1024 * 1024) formatted = (size / 1024 / 1024).toFixed(2) + " MB";
+        else formatted = (size / 1024 / 1024 / 1024).toFixed(2) + " GB";
+        sizeCache.set(size, formatted);
+    }
+    return sizeCache.get(size)!;
+};
+
+//
+const dateCache = new Map<number, string>();
+const getFormattedDate = (timestamp: number) => {
+    if (!dateCache.has(timestamp)) {
+        dateCache.set(timestamp, new Date(timestamp).toLocaleString("en-US", { dateStyle: "short", timeStyle: "short" }));
+    }
+    return dateCache.get(timestamp)!;
+};
 
 // @ts-ignore
 @defineElement("ui-file-manager-content")
@@ -37,9 +78,21 @@ export class FileManagerContent extends UIElement {
     get pathRef() { return this.operativeInstance?.pathRef || ref("/user/"); }
 
     //
-    onInitialize(): this {
-        const result = super.onInitialize();
-        return (result ?? this) as this;
+    onInitialize() {
+        super.onInitialize();
+
+        //
+        //const weak: any = new WeakRef(this);
+        //requestAnimationFrame(() => {
+            //const self = weak?.deref?.();
+            //const frame: any = document.createElement("ui-scrollframe");
+            //frame.style.zIndex = 99;
+
+            //
+            //const rows = Q(".fm-grid-container", self?.shadowRoot), grid = Q(".fm-grid", self?.shadowRoot);
+            //frame.bindWith(rows, rows);
+            //grid?.append(frame);
+        //});
     }
 
     //
@@ -61,6 +114,11 @@ export class FileManagerContent extends UIElement {
                 this.operativeInstance?.onDrop?.(ev)
             }
         });
+        /*addEvent(this, "keydown", (ev: KeyboardEvent) => {
+            if ((ev.ctrlKey || ev.metaKey) && ev.key.toLowerCase() === "v") {
+                ev.preventDefault(); this.operativeInstance?.requestPaste?.();
+            }
+        });*/
     }
 
     //
@@ -80,7 +138,9 @@ export class FileManagerContent extends UIElement {
     //
     byFirstTwoLetterOrName(name: string): number {
         const firstTwoLetters = name?.substring?.(0, 2)?.toUpperCase?.();
-        const index = (firstTwoLetters?.charCodeAt?.(0) || 65) - 65;
+
+        // needs get index by first two letters in alphabet
+        const index = (firstTwoLetters?.charCodeAt?.(0) || 65) - 65; //+ ((firstTwoLetters?.charCodeAt?.(1) || 65) - 65);
         return index;
     }
 
@@ -119,7 +179,7 @@ export class FileManagerContent extends UIElement {
                 <div style="pointer-events: none; background-color: transparent;" class="c icon"><ui-icon icon=${computed(item, ()=>{ return iconFor(item); })} /></div>
                 <div style="pointer-events: none; background-color: transparent;" class="c name" title=${propRef(item, "name")}>${propRef(item, "name")}</div>
                 <div style="pointer-events: none; background-color: transparent;" class="c size">${isFile ? propRef(item, "size") : ""}</div>
-                <div style="pointer-events: none; background-color: transparent;" class="c date">${isFile ? computed(propRef(item, "lastModified"), (val)=>{ return formatDate(val ?? 0); }) : ""}</div>
+                <div style="pointer-events: none; background-color: transparent;" class="c date">${isFile ? computed(propRef(item, "lastModified"), (val)=>{ return getFormattedDate(val ?? 0); }) : ""}</div>
                 <div style="pointer-events: none; background-color: transparent;" class="c actions">
                     <button class="action-btn" title="Copy Path" on:click=${(ev: MouseEvent) => { ev.stopPropagation(); requestAnimationFrame(() => operative.onMenuAction?.(item, "copyPath", ev)); }}>
                         <ui-icon icon="copy" />
@@ -162,6 +222,9 @@ export class FileManagerContent extends UIElement {
         </div>`;
 
         //
+        //const renderer = makeRenderer();
+        //renderer.append(rendered);
+        //return renderer;
         return rendered;
     }
 }

@@ -1,15 +1,15 @@
 import { H, defineElement, property, getDir, valueLink } from "fest/lure";
 import { addEvent, preloadStyle } from "fest/dom";
-import { propRef } from "fest/object";
-
-//
-import { UIElement } from "@fl-ui/base/UIElement";
 
 //
 import FileManagerContent from "./FileManagerContent";
 
+//
+import UIElement from "@fl-ui/base/UIElement";
+
 // @ts-ignore
 import fmCss from "./FileManager.scss?inline";
+import { propRef } from "fest/object";
 
 //
 const styled = preloadStyle(fmCss);
@@ -39,20 +39,18 @@ export class FileManager extends UIElement {
     }
 
     //
-    onInitialize(): this {
-        const result = super.onInitialize();
-        const self: any = result ?? this;
+    onInitialize() {
+        super.onInitialize();
 
         //
+        const self: any = this;
         const contents: any = document.createElement("ui-file-manager-content");
         self.append(contents);
-        return self as this;
     }
 
     //
-    onRender(): this|void|undefined {
+    onRender() {
         super.onRender();
-
         // handle address field submit
         const weak: any = new WeakRef(this);
         const onEnter = (ev: KeyboardEvent) => {
@@ -104,23 +102,22 @@ export class FileManager extends UIElement {
 
     //
     render = function() {
-        const self: any = this;
-        const sidebarVisible = self.showSidebar;
+        const sidebarVisible = this.showSidebar;
 
         //
         const content = H`<div part="content" class="fm-content"><slot></slot></div>`
         const toolbar = H`<div part="toolbar" class="fm-toolbar">
             <div class="fm-toolbar-left">
-                <button class="btn" title="Up" on:click=${() => requestAnimationFrame(() => self.goUp())}><ui-icon icon="arrow-up"/></button>
-                <button class="btn" title="Refresh" on:click=${() => requestAnimationFrame(() => self.navigate(self.path))}><ui-icon icon="arrow-clockwise"/></button>
+                <button class="btn" title="Up" on:click=${() => requestAnimationFrame(() => this.goUp())}><ui-icon icon="arrow-up"/></button>
+                <button class="btn" title="Refresh" on:click=${() => requestAnimationFrame(() => this.navigate(this.path))}><ui-icon icon="arrow-clockwise"/></button>
             </div>
             <div class="fm-toolbar-center">
                 <input class="address c2-surface" autocomplete="off" type="text" name="address" />
             </div>
             <div class="fm-toolbar-right">
-                <button class="btn" title="Add" on:click=${() => requestAnimationFrame(() => self.requestUpload?.())}><ui-icon icon="upload"/></button>
-                <button class="btn" title="Paste" on:click=${() => requestAnimationFrame(() => self.requestPaste?.())}><ui-icon icon="clipboard"/></button>
-                <button class="btn" title="Use" on:click=${() => requestAnimationFrame(() => self.requestUse?.())}><ui-icon icon="hand-withdraw"/></button>
+                <button class="btn" title="Add" on:click=${() => requestAnimationFrame(() => this.requestUpload?.())}><ui-icon icon="upload"/></button>
+                <button class="btn" title="Paste" on:click=${() => requestAnimationFrame(() => this.requestPaste?.())}><ui-icon icon="clipboard"/></button>
+                <button class="btn" title="Use" on:click=${() => requestAnimationFrame(() => this.requestUse?.())}><ui-icon icon="hand-withdraw"/></button>
             </div>
         </div>`
 
@@ -128,8 +125,8 @@ export class FileManager extends UIElement {
         const input = toolbar.querySelector("input");
         if (input) {
             queueMicrotask(() => {
-                input.value = self.path;
-                valueLink(input, self.pathRef);
+                input.value = this.path;
+                valueLink(input, this.pathRef);
             });
         }
 

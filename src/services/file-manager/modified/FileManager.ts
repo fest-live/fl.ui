@@ -1,15 +1,15 @@
 import { H, defineElement, property, getDir, valueLink } from "fest/lure";
 import { addEvent, preloadStyle } from "fest/dom";
-import { propRef } from "fest/object";
-
-//
-import { UIElement } from "@fl-ui/base/UIElement";
 
 //
 import FileManagerContent from "./FileManagerContent";
 
+//
+import UIElement from "./UIElement";
+
 // @ts-ignore
 import fmCss from "./FileManager.scss?inline";
+import { propRef } from "fest/object";
 
 //
 const styled = preloadStyle(fmCss);
@@ -39,20 +39,18 @@ export class FileManager extends UIElement {
     }
 
     //
-    onInitialize(): this {
-        const result = super.onInitialize();
-        const self: any = result ?? this;
+    onInitialize() {
+        super.onInitialize();
 
         //
+        const self: any = this;
         const contents: any = document.createElement("ui-file-manager-content");
         self.append(contents);
-        return self as this;
     }
 
     //
-    onRender(): this|void|undefined {
+    onRender() {
         super.onRender();
-
         // handle address field submit
         const weak: any = new WeakRef(this);
         const onEnter = (ev: KeyboardEvent) => {

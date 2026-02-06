@@ -12,8 +12,6 @@ const disconnectRegistry = new FinalizationRegistry((ctxMenu: HTMLElement) => {
 const makeFileActionOps = () => {
     return [
         { id: "open", label: "Open", icon: "function" },
-        { id: "view", label: "View", icon: "eye" },
-        { id: "attach-workcenter", label: "Attach to Work Center", icon: "lightning" },
         { id: "download", label: "Download", icon: "download" }
     ];
 };
@@ -32,12 +30,18 @@ const makeFileSystemOps = () => {
 let hasContextMenu = null;
 const makeContextMenu = () => {
     if (hasContextMenu) return hasContextMenu;
-    const ctxMenu = H`<ul class="grid-rows round-decor ctx-menu ux-anchor" style="position: fixed; z-index: 99999;" data-hidden></ul>`;
+    const ctxMenu = H`<ul class="grid-rows round-decor ctx-menu ux-anchor" style="position: fixed; z-index: 99999;"></ul>`;
     hasContextMenu = ctxMenu;
-    // Append to .basic-app element instead of document.body to inherit theme variables
+    // Append to .basic-app element if it exists, otherwise document.body
     const basicApp = document.querySelector('.basic-app') as HTMLElement;
     (basicApp || document.body).append(ctxMenu);
     return ctxMenu;
+}
+
+//
+const _LOG_ = (ev: any) => {
+    console.log(ev);
+    return ev;
 }
 
 //

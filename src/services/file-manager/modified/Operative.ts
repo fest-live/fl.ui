@@ -349,10 +349,6 @@ export class FileOperative {
         }
     }
 
-    //
-    protected dispatchEvent(event: Event) {
-        this.host?.dispatchEvent(event);
-    }
 }
 
 export default FileOperative;

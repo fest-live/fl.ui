@@ -41,6 +41,12 @@ const makeContextMenu = () => {
 }
 
 //
+const _LOG_ = (ev: any) => {
+    console.log(ev);
+    return ev;
+}
+
+//
 export const createItemCtxMenu = async (fileManager: any, onMenuAction: (item: FileEntryItem | null | undefined, actionId: string, ev: MouseEvent) => Promise<void>, entries: {value: FileEntryItem[]}) => {
     const ctxMenuDesc = {
         openedWith: null,

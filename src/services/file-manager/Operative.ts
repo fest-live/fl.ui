@@ -93,6 +93,21 @@ export class FileOperative {
     }
 
     //
+    async refreshList(path: string = this.path) {
+        //if (this.#loadLock) { return requestIdleCallback(() => this.refreshList(path), { timeout: 1000 }); };
+        this.#loadLock = true;
+        try {
+            await this.loadPath(path);
+        } catch (e: any) {
+            this.#error.value = e?.message || String(e || "");
+            console.warn(e);
+        } finally {
+            this.#loadLock = false;
+        }
+        return this;
+    }
+
+    //
     async loadPath(path: string) {
         const self: any = this;
 
@@ -108,10 +123,11 @@ export class FileOperative {
 
             //
             if (this.#dirProxy?.dispose) { this.#dirProxy.dispose(); }
-            this.#dirProxy = openDirectory(this.#fsRoot, rel, { create: false }); await this.#dirProxy;
+            this.#dirProxy = openDirectory(this.#fsRoot, rel, { create: false });
+            await this.#dirProxy;
 
             //
-            const loader = async ($map?: Map<string, any>)=>{
+            const loader = async ($map?: Map<string, any>) => {
                 const $entries = $map instanceof Map ? $map?.entries?.() : null;
                 const handleMap = await Promise.all($entries ? Array.from($entries) : (await Array.fromAsync(await this.#dirProxy?.entries?.() ?? [])));
 

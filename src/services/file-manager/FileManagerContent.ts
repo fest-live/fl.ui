@@ -1,4 +1,4 @@
-import { property, defineElement, H, C, bindWith, initGlobalClipboard } from "fest/lure";
+import { property, defineElement, H, C, bindWith, initGlobalClipboard, M } from "fest/lure";
 import { addEvent, handleStyleChange, isInFocus, preloadStyle } from "fest/dom";
 import { computed, propRef, ref } from "fest/object";
 
@@ -32,9 +32,17 @@ export class FileManagerContent extends UIElement {
     public operativeInstanceRef = ref<FileOperative | null>(null);
 
     //
+    get entries() { return this.operativeInstance?.entries ?? []; }
     get path() { return this.operativeInstance?.path || ""; }
     set path(value: string) { if (this.operativeInstance) this.operativeInstance.path = value; }
-    get pathRef() { return this.operativeInstance?.pathRef || ref("/user/"); }
+    get pathRef() { return this.operativeInstance?.pathRef; }
+
+    //
+    refreshList() {
+        if (this.gridRowsEl) this.gridRowsEl.innerHTML = ``;
+        if (this.gridEl) this.gridEl.innerHTML = ``;
+        if (this.operativeInstance) this.operativeInstance.refreshList(this.path);
+    }
 
     //
     onInitialize(): this {
@@ -89,6 +97,7 @@ export class FileManagerContent extends UIElement {
         super();
         this.operativeInstance ??= new FileOperative();
         this.operativeInstance.host = this as any;
+        this.refreshList();
     }
 
     //
@@ -140,19 +149,28 @@ export class FileManagerContent extends UIElement {
 
         //
         let fileRows: any = null;
-        const renderedEntries = C(computed(operative.entries, (v)=>{
+        const renderedEntries = M(self.entries, (file: any, idx: any) => {
+            console.log(file, idx);
+            if (typeof file == "object" && file != null && file?.name != null) {
+                return makeListElement({ name: file.name, kind: file.kind, size: file.size, lastModified: file.lastModified });
+            }
+            return null;
+        });
+        
+        /*const renderedEntries = C(computed(self.entries, (v) => {
             if (v?.length != null && v?.length >= 0) {
                 if (fileRows != null) fileRows.innerHTML = ``;
                 const fragment = document.createDocumentFragment();
                 fragment.append(...v?.map?.((file: FileEntryItem)=>makeListElement(file))?.filter?.(el => el != null) || []);
                 return fragment;
             }
-        }));
+            return [];
+        }));*/
 
         //
         fileRows = H`<div class="fm-grid-rows" style="will-change: contents;">${renderedEntries}</div>`
         renderedEntries.boundParent = fileRows;
-        createItemCtxMenu?.(fileRows, operative.onMenuAction.bind(operative), operative.entries);
+        createItemCtxMenu?.(fileRows, operative.onMenuAction.bind(operative), self.entries);
         queueMicrotask(() => self.bindDropHandlers());
 
         //

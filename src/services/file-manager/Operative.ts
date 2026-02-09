@@ -48,13 +48,11 @@ export class FileOperative {
 
     //
     public host: HTMLElement | null = null;
-
-    //
     public pathRef = ref("/user/");
 
     //
-    get path() { return this.pathRef.value; }
-    set path(value: string) { if (this.pathRef) this.pathRef.value = value; }
+    get path() { return this.pathRef?.value || "/user/"; }
+    set path(value: string) { if (this.pathRef) this.pathRef.value = value || "/user/"; }
     get entries() { return this.#entries; }
 
     //
@@ -63,15 +61,13 @@ export class FileOperative {
         this.pathRef ??= ref("/user/");
 
         //
-        affected(this.pathRef, (path) => this.loadPath(path));
+        affected(this.pathRef, (path) => this.loadPath(path || "/user/"));
         navigator?.storage?.getDirectory?.()?.then?.((h)=>this.#fsRoot = h);
     }
 
     //
     itemAction(item: FileEntryItem) {
         const self: any = this;
-
-        //
         const detail = { path: (self.path || "/user/") + item?.name, item, originalEvent: null };
         const event = new CustomEvent("open-item", { detail, bubbles: true, composed: true, cancelable: true });
         this.host?.dispatchEvent(event);
@@ -93,8 +89,8 @@ export class FileOperative {
     }
 
     //
-    async refreshList(path: string = this.path) {
-        //if (this.#loadLock) { return requestIdleCallback(() => this.refreshList(path), { timeout: 1000 }); };
+    async refreshList(path: any|string = this.path) {
+        if (this.#loadLock) { return requestIdleCallback(() => this.refreshList(path), { timeout: 1000 }); };
         this.#loadLock = true;
         try {
             await this.loadPath(path);
@@ -108,7 +104,7 @@ export class FileOperative {
     }
 
     //
-    async loadPath(path: string) {
+    async loadPath(path: any|string = this.path) {
         const self: any = this;
 
         //
@@ -119,13 +115,15 @@ export class FileOperative {
         try {
             this.#loading.value = true;
             this.#error.value = "";
-            const rel = path; // openDirectory can consume absolute-like parts (it filters Booleans)
+            const rel = path?.value || path || this.path || "/user/"; // openDirectory can consume absolute-like parts (it filters Booleans)
 
             //
             if (this.#dirProxy?.dispose) { this.#dirProxy.dispose(); }
             this.#dirProxy = openDirectory(this.#fsRoot, rel, { create: false });
             await this.#dirProxy;
 
+            console.log("rel", rel);
+            
             //
             const loader = async ($map?: Map<string, any>) => {
                 const $entries = $map instanceof Map ? $map?.entries?.() : null;
@@ -160,7 +158,7 @@ export class FileOperative {
                 }))?.catch?.(console.warn.bind(console)))?.filter?.(($item: any) => $item != null);
 
                 //
-                if (entries?.length != null && entries?.length >= 0) { this.#entries.value = entries; };
+                if (entries?.length != null && entries?.length >= 0 && typeof entries?.length == "number") { this.#entries.value = entries; };
             };
 
             //

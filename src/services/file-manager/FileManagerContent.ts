@@ -33,15 +33,15 @@ export class FileManagerContent extends UIElement {
 
     //
     get entries() { return this.operativeInstance?.entries ?? []; }
-    get path() { return this.operativeInstance?.path || ""; }
-    set path(value: string) { if (this.operativeInstance) this.operativeInstance.path = value; }
+    get path() { return this.operativeInstance?.path || "/user/"; }
+    set path(value: string) { if (this.operativeInstance) this.operativeInstance.path = value || "/user/"; }
     get pathRef() { return this.operativeInstance?.pathRef; }
 
     //
     refreshList() {
         if (this.gridRowsEl) this.gridRowsEl.innerHTML = ``;
         if (this.gridEl) this.gridEl.innerHTML = ``;
-        if (this.operativeInstance) this.operativeInstance.refreshList(this.path);
+        if (this.operativeInstance) this.operativeInstance.refreshList(this.path || "/user/");
     }
 
     //

@@ -10,23 +10,23 @@
         flex-direction: column;
         min-height: 100%;
         max-height: 100%;
-        background: var(--basic-surface-container);
+        background: var(--color-surface-container);
         overflow: hidden;
-        box-shadow: var(--basic-elev-1);
-        transition: all var(--basic-motion-normal);
+        box-shadow: var(--elev-1);
+        transition: all var(--motion-normal);
 
         @container (max-width: 768px) {
-            border-radius: var(--basic-radius-lg);
+            border-radius: var(--radius-lg);
             box-shadow: none;
         }
 
         &:hover {
-            box-shadow: var(--basic-elev-2);
+            box-shadow: var(--elev-2);
         }
 
         &:focus-within {
             outline: none;
-            box-shadow: var(--basic-focus-ring), var(--basic-elev-2);
+            box-shadow: var(--focus-ring), var(--elev-2);
         }
 
         .viewer-header {
@@ -34,7 +34,7 @@
             align-items: center;
             justify-content: space-between;
             padding: var(--space-lg) var(--space-xl);
-            background: var(--basic-surface-container-high);
+            background: var(--color-surface-container-high);
             gap: var(--space-lg);
             flex-shrink: 0;
 
@@ -53,7 +53,7 @@
                 margin: 0;
                 font-size: var(--text-xl);
                 font-weight: var(--font-weight-semibold);
-                color: var(--basic-on-surface);
+                color: var(--color-on-surface);
                 line-height: var(--leading-tight);
                 letter-spacing: -0.025em;
 
@@ -96,13 +96,13 @@
                     gap: var(--space-xs);
                     padding: var(--space-sm) var(--space-lg);
                     border: none;
-                    border-radius: var(--basic-radius-lg);
-                    background: var(--basic-surface-container);
-                    color: var(--basic-on-surface);
+                    border-radius: var(--radius-lg);
+                    background: var(--color-surface-container);
+                    color: var(--color-on-surface);
                     font-size: var(--text-sm);
                     font-weight: var(--font-weight-medium);
                     cursor: pointer;
-                    transition: all var(--basic-motion-fast);
+                    transition: all var(--motion-fast);
                     position: relative;
                     white-space: nowrap;
                     min-height: 44px;
@@ -119,9 +119,9 @@
                     }
 
                     &:hover {
-                        background: var(--basic-surface-container-highest);
+                        background: var(--color-surface-container-highest);
                         transform: translateY(-1px);
-                        box-shadow: var(--basic-elev-1);
+                        box-shadow: var(--elev-1);
                     }
 
                     &:active {
@@ -131,7 +131,7 @@
 
                     &:focus-visible {
                         outline: none;
-                        box-shadow: var(--basic-focus-ring);
+                        box-shadow: var(--focus-ring);
                     }
 
                     &.btn-icon {
@@ -143,7 +143,7 @@
 
                         ui-icon {
                             flex-shrink: 0;
-                            transition: color var(--basic-motion-fast);
+                            transition: color var(--motion-fast);
                         }
 
                         .btn-text {
@@ -153,7 +153,7 @@
                         }
 
                         &:hover ui-icon {
-                            color: var(--basic-primary);
+                            color: var(--color-primary);
                         }
                     }
 
@@ -179,10 +179,10 @@
         .viewer-content {
             flex: 1;
             overflow: auto;
-            background: var(--basic-surface);
+            background: var(--color-surface);
             position: relative;
             scrollbar-width: thin;
-            scrollbar-color: var(--basic-outline-variant) transparent;
+            scrollbar-color: var(--color-outline-variant) transparent;
 
             &::-webkit-scrollbar {
                 width: 8px;
@@ -194,18 +194,18 @@
             }
 
             &::-webkit-scrollbar-thumb {
-                background: var(--basic-outline-variant);
+                background: var(--color-outline-variant);
                 border-radius: 4px;
 
                 &:hover {
-                    background: var(--basic-outline);
+                    background: var(--color-outline);
                 }
             }
 
             .markdown-viewer-content {
                 padding: var(--space-2xl) var(--space-xl);
                 min-height: 100%;
-                color: var(--basic-on-surface);
+                color: var(--color-on-surface);
                 line-height: var(--leading-relaxed);
                 word-wrap: break-word;
                 overflow-wrap: break-word;
@@ -230,15 +230,15 @@
                 -moz-osx-font-smoothing: grayscale;
 
                 &::selection {
-                    background: color-mix(in oklab, var(--basic-primary) 20%, transparent);
-                    color: var(--basic-on-primary);
+                    background: color-mix(in oklab, var(--color-primary) 20%, transparent);
+                    color: var(--color-on-primary);
                 }
 
                 h1, h2, h3, h4, h5, h6 {
                     margin: var(--space-2xl) 0 var(--space-lg) 0;
                     font-weight: var(--font-weight-semibold);
                     line-height: var(--leading-tight);
-                    color: var(--basic-on-surface);
+                    color: var(--color-on-surface);
                     letter-spacing: -0.025em;
 
                     &:first-child {
@@ -276,7 +276,7 @@
 
                 p {
                     margin: 0 0 var(--space-lg) 0;
-                    color: var(--basic-on-surface);
+                    color: var(--color-on-surface);
 
                     &:last-child {
                         margin-bottom: 0;
@@ -284,28 +284,28 @@
                 }
 
                 a {
-                    color: var(--basic-primary);
+                    color: var(--color-primary);
                     text-decoration: underline;
                     text-decoration-thickness: 1px;
                     text-underline-offset: 2px;
-                    transition: all var(--basic-motion-fast);
+                    transition: all var(--motion-fast);
 
                     &:hover {
-                        color: var(--basic-primary);
+                        color: var(--color-primary);
                         text-decoration-thickness: 2px;
                     }
 
                     &:focus-visible {
                         outline: none;
-                        box-shadow: var(--basic-focus-ring);
-                        border-radius: var(--basic-radius-sm);
+                        box-shadow: var(--focus-ring);
+                        border-radius: var(--radius-sm);
                     }
                 }
 
                 ul, ol {
                     margin: var(--space-lg) 0;
                     padding-left: var(--space-2xl);
-                    color: var(--basic-on-surface);
+                    color: var(--color-on-surface);
 
                     @container (max-width: 480px) {
                         padding-left: var(--space-xl);
@@ -323,10 +323,10 @@
                 blockquote {
                     margin: var(--space-xl) 0;
                     padding: var(--space-lg) var(--space-xl);
-                    border-left: 4px solid var(--basic-primary);
-                    background: var(--basic-surface-container-low);
-                    border-radius: 0 var(--basic-radius-lg) var(--basic-radius-lg) 0;
-                    color: var(--basic-on-surface);
+                    border-left: 4px solid var(--color-primary);
+                    background: var(--color-surface-container-low);
+                    border-radius: 0 var(--radius-lg) var(--radius-lg) 0;
+                    color: var(--color-on-surface);
                     font-style: italic;
                     position: relative;
 
@@ -341,7 +341,7 @@
                         top: var(--space-sm);
                         left: var(--space-sm);
                         font-size: var(--text-2xl);
-                        color: var(--basic-primary);
+                        color: var(--color-primary);
                         opacity: 0.3;
                     }
                 }
@@ -349,14 +349,14 @@
                 pre {
                     margin: var(--space-xl) 0;
                     padding: var(--space-lg);
-                    background: var(--basic-surface-container-high);
-                    border: 1px solid var(--basic-outline);
-                    border-radius: var(--basic-radius-lg);
+                    background: var(--color-surface-container-high);
+                    border: 1px solid var(--color-outline);
+                    border-radius: var(--radius-lg);
                     overflow-x: auto;
                     font-family: var(--font-family-mono);
                     font-size: var(--text-sm);
                     line-height: var(--leading-normal);
-                    color: var(--basic-on-surface);
+                    color: var(--color-on-surface);
 
                     @container (max-width: 768px) {
                         padding: var(--space-md);
@@ -373,26 +373,26 @@
                     }
 
                     scrollbar-width: thin;
-                    scrollbar-color: var(--basic-outline) transparent;
+                    scrollbar-color: var(--color-outline) transparent;
 
                     &::-webkit-scrollbar {
                         height: 6px;
                     }
 
                     &::-webkit-scrollbar-thumb {
-                        background: var(--basic-outline);
+                        background: var(--color-outline);
                         border-radius: 3px;
                     }
                 }
 
                 code:not(pre code) {
                     padding: 0.125rem 0.375rem;
-                    background: var(--basic-surface-container-high);
-                    border: 1px solid var(--basic-outline);
-                    border-radius: var(--basic-radius-sm);
+                    background: var(--color-surface-container-high);
+                    border: 1px solid var(--color-outline);
+                    border-radius: var(--radius-sm);
                     font-family: var(--font-family-mono);
                     font-size: 0.875em;
-                    color: var(--basic-on-surface);
+                    color: var(--color-on-surface);
                     font-weight: var(--font-weight-medium);
                 }
 
@@ -400,8 +400,8 @@
                     width: 100%;
                     margin: var(--space-xl) 0;
                     border-collapse: collapse;
-                    border: 1px solid var(--basic-outline);
-                    border-radius: var(--basic-radius-lg);
+                    border: 1px solid var(--color-outline);
+                    border-radius: var(--radius-lg);
                     overflow: hidden;
                     font-size: var(--text-sm);
 
@@ -413,8 +413,8 @@
                     th, td {
                         padding: var(--space-md) var(--space-lg);
                         text-align: left;
-                        border-bottom: 1px solid var(--basic-outline);
-                        color: var(--basic-on-surface);
+                        border-bottom: 1px solid var(--color-outline);
+                        color: var(--color-on-surface);
 
                         @container (max-width: 768px) {
                             padding: var(--space-sm) var(--space-md);
@@ -422,14 +422,14 @@
                     }
 
                     th {
-                        background: var(--basic-surface-container-high);
+                        background: var(--color-surface-container-high);
                         font-weight: var(--font-weight-semibold);
-                        color: var(--basic-on-surface);
+                        color: var(--color-on-surface);
                     }
 
                     tbody tr {
                         &:hover {
-                            background: var(--basic-surface-container-low);
+                            background: var(--color-surface-container-low);
                         }
 
                         &:last-child td {
@@ -441,7 +441,7 @@
                 hr {
                     margin: var(--space-2xl) 0;
                     border: none;
-                    border-top: 1px solid var(--basic-outline);
+                    border-top: 1px solid var(--color-outline);
                     position: relative;
 
                     &::before {
@@ -452,16 +452,16 @@
                         transform: translateX(-50%);
                         width: 60px;
                         height: 1px;
-                        background: var(--basic-primary);
+                        background: var(--color-primary);
                     }
                 }
 
                 img {
                     max-width: 100%;
                     height: auto;
-                    border-radius: var(--basic-radius-md);
+                    border-radius: var(--radius-md);
                     margin: var(--space-lg) 0;
-                    box-shadow: var(--basic-elev-1);
+                    box-shadow: var(--elev-1);
 
                     @container (max-width: 768px) {
                         margin: var(--space-md) 0;
@@ -470,18 +470,18 @@
 
                 input[type="checkbox"] {
                     margin-right: var(--space-sm);
-                    accent-color: var(--basic-primary);
+                    accent-color: var(--color-primary);
                 }
 
                 .katex {
                     font-size: 1.1em;
-                    color: var(--basic-on-surface);
+                    color: var(--color-on-surface);
                 }
 
                 .footnote-ref a {
                     font-size: 0.8em;
                     vertical-align: super;
-                    color: var(--basic-primary);
+                    color: var(--color-primary);
                 }
 
                 dl {
@@ -489,13 +489,13 @@
 
                     dt {
                         font-weight: var(--font-weight-semibold);
-                        color: var(--basic-on-surface);
+                        color: var(--color-on-surface);
                         margin-bottom: var(--space-xs);
                     }
 
                     dd {
                         margin: 0 0 var(--space-md) var(--space-xl);
-                        color: var(--basic-on-surface-variant);
+                        color: var(--color-on-surface-variant);
                     }
                 }
             }
@@ -504,21 +504,21 @@
 
     .app-shell[data-theme="dark"] .markdown-viewer-container {
         .viewer-header {
-            background: var(--basic-surface-container-low);
+            background: var(--color-surface-container-low);
 
             h3 {
-                color: var(--basic-on-surface);
+                color: var(--color-on-surface);
             }
 
             .btn,
             .viewer-btn {
-                background: var(--basic-surface-container-low);
-                border-color: var(--basic-outline);
-                color: var(--basic-on-surface);
+                background: var(--color-surface-container-low);
+                border-color: var(--color-outline);
+                color: var(--color-on-surface);
 
                 &:hover {
-                    background: var(--basic-surface-container);
-                    border-color: var(--basic-primary);
+                    background: var(--color-surface-container);
+                    border-color: var(--color-primary);
                 }
             }
         }
@@ -526,13 +526,13 @@
         .viewer-content .markdown-viewer-content,
         .result-content {
             line-height: var(--leading-relaxed);
-            color: var(--basic-on-surface);
+            color: var(--color-on-surface);
 
             h1, h2, h3, h4, h5, h6 {
                 margin: var(--space-lg) 0 var(--space-md) 0;
                 font-weight: var(--font-weight-bold);
                 line-height: var(--leading-tight);
-                color: var(--basic-on-surface);
+                color: var(--color-on-surface);
 
                 &:first-child {
                     margin-top: 0;
@@ -590,33 +590,33 @@
             }
 
             a {
-                color: var(--basic-primary);
+                color: var(--color-primary);
                 text-decoration: underline;
                 text-underline-offset: 0.1em;
 
                 &:hover {
-                    color: color-mix(in oklab, var(--basic-primary) 85%, black);
+                    color: color-mix(in oklab, var(--color-primary) 85%, black);
                     text-decoration-thickness: 2px;
                 }
 
                 &:focus-visible {
-                    outline: 2px solid var(--basic-primary);
+                    outline: 2px solid var(--color-primary);
                     outline-offset: 2px;
-                    border-radius: var(--basic-radius-sm);
+                    border-radius: var(--radius-sm);
                 }
             }
 
             pre {
-                background: var(--basic-surface-container);
-                border: 1px solid color-mix(in oklab, var(--basic-outline-variant) 50%, transparent);
-                border-radius: var(--basic-radius-md);
+                background: var(--color-surface-container);
+                border: 1px solid color-mix(in oklab, var(--color-outline-variant) 50%, transparent);
+                border-radius: var(--radius-md);
                 padding: var(--space-lg);
                 margin: var(--space-lg) 0;
                 overflow-x: auto;
                 font-family: var(--font-family-mono);
                 font-size: var(--text-sm);
                 line-height: var(--leading-normal);
-                color: var(--basic-on-surface);
+                color: var(--color-on-surface);
 
                 code {
                     background: transparent;
@@ -627,10 +627,10 @@
             }
 
             code {
-                background: var(--basic-surface-container-high);
-                color: var(--basic-on-surface-variant);
+                background: var(--color-surface-container-high);
+                color: var(--color-on-surface-variant);
                 padding: 0.125rem 0.25rem;
-                border-radius: var(--basic-radius-sm);
+                border-radius: var(--radius-sm);
                 font-family: var(--font-family-mono);
                 font-size: 0.9em;
                 font-weight: var(--font-weight-medium);
@@ -639,11 +639,11 @@
             blockquote {
                 margin: var(--space-lg) 0;
                 padding: var(--space-md) var(--space-lg);
-                border-inline-start: 4px solid var(--basic-primary);
-                background: color-mix(in oklab, var(--basic-primary) 5%, var(--basic-surface-container));
-                border-radius: 0 var(--basic-radius-md) var(--basic-radius-md) 0;
+                border-inline-start: 4px solid var(--color-primary);
+                background: color-mix(in oklab, var(--color-primary) 5%, var(--color-surface-container));
+                border-radius: 0 var(--radius-md) var(--radius-md) 0;
                 font-style: italic;
-                color: var(--basic-on-surface-variant);
+                color: var(--color-on-surface-variant);
 
                 p {
                     margin: 0;
@@ -654,20 +654,20 @@
                 width: 100%;
                 border-collapse: collapse;
                 margin: var(--space-lg) 0;
-                background: var(--basic-surface-container);
-                border-radius: var(--basic-radius-md);
+                background: var(--color-surface-container);
+                border-radius: var(--radius-md);
                 overflow: hidden;
 
                 th, td {
                     padding: var(--space-sm) var(--space-md);
                     text-align: start;
-                    border-bottom: 1px solid color-mix(in oklab, var(--basic-outline-variant) 30%, transparent);
+                    border-bottom: 1px solid color-mix(in oklab, var(--color-outline-variant) 30%, transparent);
                 }
 
                 th {
-                    background: var(--basic-surface-container-high);
+                    background: var(--color-surface-container-high);
                     font-weight: var(--font-weight-semibold);
-                    color: var(--basic-on-surface);
+                    color: var(--color-on-surface);
                 }
 
                 tbody tr:last-child td {
@@ -675,24 +675,24 @@
                 }
 
                 tbody tr:hover {
-                    background: color-mix(in oklab, var(--basic-surface-container) 95%, var(--basic-primary) 5%);
+                    background: color-mix(in oklab, var(--color-surface-container) 95%, var(--color-primary) 5%);
                 }
             }
 
             hr {
                 border: none;
-                border-top: 1px solid color-mix(in oklab, var(--basic-outline-variant) 50%, transparent);
+                border-top: 1px solid color-mix(in oklab, var(--color-outline-variant) 50%, transparent);
                 margin: var(--space-xl) 0;
             }
 
             strong, b {
                 font-weight: var(--font-weight-bold);
-                color: var(--basic-on-surface);
+                color: var(--color-on-surface);
             }
 
             em, i {
                 font-style: italic;
-                color: var(--basic-on-surface-variant);
+                color: var(--color-on-surface-variant);
             }
 
             @container (max-width: 768px) {
@@ -802,7 +802,7 @@
 
             &[data-raw] {
                 .viewer-content {
-                    background: var(--basic-surface);
+                    background: var(--color-surface);
                 }
             }
         }
@@ -840,8 +840,8 @@
         font-family: var(--font-family-mono);
         font-size: var(--text-sm);
         line-height: var(--leading-normal);
-        color: var(--basic-on-surface);
-        background: var(--basic-surface);
+        color: var(--color-on-surface);
+        background: var(--color-surface);
         white-space: pre;
         overflow: auto;
         tab-size: 2;

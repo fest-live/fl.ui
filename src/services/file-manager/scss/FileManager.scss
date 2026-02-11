@@ -30,12 +30,12 @@
             overflow: hidden;
             margin: 0px;
 
-            background-color: var(--basic-surface);
-            color: var(--basic-on-surface);
+            background-color: var(--color-surface);
+            color: var(--color-on-surface);
         }
 
         .fm-root {
-            gap: var(--basic-gap-xs);
+            gap: var(--gap-xs);
             display: grid;
             grid-template-columns: [content-col] minmax(0px, 1fr); //[sidebar-col] minmax(0px, max-content);
             grid-template-rows: auto minmax(0px, 1fr);
@@ -58,8 +58,8 @@
             line-height: 0;
 
             button, input {
-                background-color: var(--basic-surface-container);
-                color: var(--basic-on-surface);
+                background-color: var(--color-surface-container);
+                color: var(--color-on-surface);
             }
 
             .btn {

@@ -34,15 +34,15 @@
             border-radius: 0.5rem;
             margin: 0px;
 
-            background-color: var(--basic-surface);
-            color: var(--basic-on-surface);
+            background-color: var(--color-surface);
+            color: var(--color-on-surface);
         }
 
         /* Grid with subgrid columns */
         .fm-grid {
             display: grid;
             grid-template-rows: minmax(max-content, 2rem) minmax(0, 1fr);
-            row-gap: var(--basic-gap-xs);
+            row-gap: var(--gap-xs);
             align-content: start;
             inline-size: stretch;
             min-block-size: stretch;
@@ -67,7 +67,7 @@
             grid-column: 1 / -1;
             align-content: start;
 
-            gap: var(--basic-gap-xs);
+            gap: var(--gap-xs);
             overflow: auto;
             //scrollbar-width: none;
             //scrollbar-color: transparent transparent;
@@ -94,8 +94,8 @@
         }
 
         :where(.row) {
-            background-color: var(--basic-surface-variant);
-            color: var(--basic-on-surface-variant);
+            background-color: var(--color-surface-variant);
+            color: var(--color-on-surface-variant);
 
             display: grid;
             grid-template-rows: 2.5rem !important;
@@ -154,13 +154,13 @@
 
         .row {
             &:hover {
-                background-color: var(--basic-surface-container-high);
+                background-color: var(--color-surface-container-high);
             }
             &:active {
-                background-color: var(--basic-surface-container-highest);
+                background-color: var(--color-surface-container-highest);
             }
             &:focus-visible {
-                outline: var(--basic-focus-ring);
+                outline: var(--focus-ring);
             }
         }
 
@@ -177,7 +177,7 @@
             place-content: center;
             place-items: center;
             justify-content: start;
-            color: var(--basic-on-surface);
+            color: var(--color-on-surface);
             min-block-size: max-content;
             block-size: 3rem;
         }
@@ -199,8 +199,8 @@
 
         //
         .actions {
-            background-color: var(--basic-surface);
-            color: var(--basic-on-surface);
+            background-color: var(--color-surface);
+            color: var(--color-on-surface);
 
             pointer-events: none;
             padding: 0rem;
@@ -222,8 +222,8 @@
         }
 
         .action-btn {
-            background-color: var(--basic-surface);
-            color: var(--basic-on-surface);
+            background-color: var(--color-surface);
+            color: var(--color-on-surface);
 
             //
             appearance: none;

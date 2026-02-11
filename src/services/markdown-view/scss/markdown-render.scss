@@ -65,23 +65,23 @@
     .app-shell[data-theme="dark"] {
         .markdown-viewer-container {
             .viewer-header {
-                background: var(--basic-surface-container-low);
+                background: var(--color-surface-container-low);
 
                 h3 {
-                    color: var(--basic-on-surface);
+                    color: var(--color-on-surface);
                 }
 
                 // NOTE: In the original code it was `.btn`, but buttons are `.viewer-btn`.
                 // Keeping `.btn` for backward compatibility + adding `.viewer-btn`.
                 .btn,
                 .viewer-btn {
-                    background: var(--basic-surface-container-low);
-                    border-color: var(--basic-outline);
-                    color: var(--basic-on-surface);
+                    background: var(--color-surface-container-low);
+                    border-color: var(--color-outline);
+                    color: var(--color-on-surface);
 
                     &:hover {
-                        background: var(--basic-surface-container);
-                        border-color: var(--basic-primary);
+                        background: var(--color-surface-container);
+                        border-color: var(--color-primary);
                     }
                 }
             }
@@ -89,7 +89,7 @@
             .viewer-content .markdown-viewer-content,
             .result-content {
                 line-height: var(--leading-relaxed);
-                color: var(--basic-on-surface);
+                color: var(--color-on-surface);
 
                 h1,
                 h2,
@@ -100,7 +100,7 @@
                     margin: var(--space-lg) 0 var(--space-md) 0;
                     font-weight: var(--font-weight-bold);
                     line-height: var(--leading-tight);
-                    color: var(--basic-on-surface);
+                    color: var(--color-on-surface);
 
                     &:first-child {
                         margin-top: 0;
@@ -159,33 +159,33 @@
                 }
 
                 a {
-                    color: var(--basic-primary);
+                    color: var(--color-primary);
                     text-decoration: underline;
                     text-underline-offset: 0.1em;
 
                     &:hover {
-                        color: color-mix(in oklab, var(--basic-primary) 85%, black);
+                        color: color-mix(in oklab, var(--color-primary) 85%, black);
                         text-decoration-thickness: 2px;
                     }
 
                     &:focus-visible {
-                        outline: 2px solid var(--basic-primary);
+                        outline: 2px solid var(--color-primary);
                         outline-offset: 2px;
-                        border-radius: var(--basic-radius-sm);
+                        border-radius: var(--radius-sm);
                     }
                 }
 
                 pre {
-                    background: var(--basic-surface-container);
-                    border: 1px solid color-mix(in oklab, var(--basic-outline-variant) 50%, transparent);
-                    border-radius: var(--basic-radius-md);
+                    background: var(--color-surface-container);
+                    border: 1px solid color-mix(in oklab, var(--color-outline-variant) 50%, transparent);
+                    border-radius: var(--radius-md);
                     padding: var(--space-lg);
                     margin: var(--space-lg) 0;
                     overflow-x: auto;
                     font-family: var(--font-family-mono);
                     font-size: var(--text-sm);
                     line-height: var(--leading-normal);
-                    color: var(--basic-on-surface);
+                    color: var(--color-on-surface);
 
                     code {
                         background: transparent;
@@ -196,10 +196,10 @@
                 }
 
                 code {
-                    background: var(--basic-surface-container-high);
-                    color: var(--basic-on-surface-variant);
+                    background: var(--color-surface-container-high);
+                    color: var(--color-on-surface-variant);
                     padding: 0.125rem 0.25rem;
-                    border-radius: var(--basic-radius-sm);
+                    border-radius: var(--radius-sm);
                     font-family: var(--font-family-mono);
                     font-size: 0.9em;
                     font-weight: var(--font-weight-medium);
@@ -208,11 +208,11 @@
                 blockquote {
                     margin: var(--space-lg) 0;
                     padding: var(--space-md) var(--space-lg);
-                    border-inline-start: 4px solid var(--basic-primary);
-                    background: color-mix(in oklab, var(--basic-primary) 5%, var(--basic-surface-container));
-                    border-radius: 0 var(--basic-radius-md) var(--basic-radius-md) 0;
+                    border-inline-start: 4px solid var(--color-primary);
+                    background: color-mix(in oklab, var(--color-primary) 5%, var(--color-surface-container));
+                    border-radius: 0 var(--radius-md) var(--radius-md) 0;
                     font-style: italic;
-                    color: var(--basic-on-surface-variant);
+                    color: var(--color-on-surface-variant);
 
                     p {
                         margin: 0;
@@ -223,21 +223,21 @@
                     width: 100%;
                     border-collapse: collapse;
                     margin: var(--space-lg) 0;
-                    background: var(--basic-surface-container);
-                    border-radius: var(--basic-radius-md);
+                    background: var(--color-surface-container);
+                    border-radius: var(--radius-md);
                     overflow: hidden;
 
                     th,
                     td {
                         padding: var(--space-sm) var(--space-md);
                         text-align: start;
-                        border-bottom: 1px solid color-mix(in oklab, var(--basic-outline-variant) 30%, transparent);
+                        border-bottom: 1px solid color-mix(in oklab, var(--color-outline-variant) 30%, transparent);
                     }
 
                     th {
-                        background: var(--basic-surface-container-high);
+                        background: var(--color-surface-container-high);
                         font-weight: var(--font-weight-semibold);
-                        color: var(--basic-on-surface);
+                        color: var(--color-on-surface);
                     }
 
                     tbody tr:last-child td {
@@ -245,26 +245,26 @@
                     }
 
                     tbody tr:hover {
-                        background: color-mix(in oklab, var(--basic-surface-container) 95%, var(--basic-primary) 5%);
+                        background: color-mix(in oklab, var(--color-surface-container) 95%, var(--color-primary) 5%);
                     }
                 }
 
                 hr {
                     border: none;
-                    border-top: 1px solid color-mix(in oklab, var(--basic-outline-variant) 50%, transparent);
+                    border-top: 1px solid color-mix(in oklab, var(--color-outline-variant) 50%, transparent);
                     margin: var(--space-xl) 0;
                 }
 
                 strong,
                 b {
                     font-weight: var(--font-weight-bold);
-                    color: var(--basic-on-surface);
+                    color: var(--color-on-surface);
                 }
 
                 em,
                 i {
                     font-style: italic;
-                    color: var(--basic-on-surface-variant);
+                    color: var(--color-on-surface-variant);
                 }
 
                 @container (max-width: 768px) {
@@ -385,7 +385,7 @@
 
             &[data-raw] {
                 .viewer-content {
-                    background: var(--basic-surface);
+                    background: var(--color-surface);
                 }
             }
         }
@@ -429,8 +429,8 @@
         font-family: var(--font-family-mono);
         font-size: var(--text-sm);
         line-height: var(--leading-normal);
-        color: var(--basic-on-surface);
-        background: var(--basic-surface);
+        color: var(--color-on-surface);
+        background: var(--color-surface);
         white-space: pre;
         overflow: auto;
         tab-size: 2;

@@ -13,86 +13,86 @@
         --base-text-weight-semibold: 600;
         --fontStack-monospace: ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, Liberation Mono, monospace;
         /* Enhanced color system - more blue, closer to neutral grays */
-        --basic-primary: light-dark(#5a7fff, #7ca7ff);
-        --basic-secondary: light-dark(#6b7280, #94a3b8);
-        --basic-accent: light-dark(#64748b, #94a3b8);
-        --basic-success: light-dark(#10b981, #34d399);
-        --basic-warning: light-dark(#f59e0b, #fbbf24);
-        --basic-error: light-dark(#ef4444, #f87171);
-        --basic-info: light-dark(#60a5fa, #93c5fd);
+        --color-primary: light-dark(#5a7fff, #7ca7ff);
+        --color-secondary: light-dark(#6b7280, #94a3b8);
+        --color-accent: light-dark(#64748b, #94a3b8);
+        --color-success: light-dark(#10b981, #34d399);
+        --color-warning: light-dark(#f59e0b, #fbbf24);
+        --color-error: light-dark(#ef4444, #f87171);
+        --color-info: light-dark(#60a5fa, #93c5fd);
 
         /* Surface colors - blue-tinted neutral grays */
-        --basic-surface: light-dark(#fafbfc, #0f1419);
-        --basic-surface-container: light-dark(#f1f5f9, #1e293b);
-        --basic-surface-container-high: light-dark(#e2e8f0, #334155);
-        --basic-surface-container-low: light-dark(#f8fafc, #0f172a);
-        --basic-surface-container-highest: light-dark(#cbd5e1, #475569);
-        --basic-surface-container-lowest: light-dark(#fafbfc, #0f1419);
+        --color-surface: light-dark(#fafbfc, #0f1419);
+        --color-surface-container: light-dark(#f1f5f9, #1e293b);
+        --color-surface-container-high: light-dark(#e2e8f0, #334155);
+        --color-surface-container-low: light-dark(#f8fafc, #0f172a);
+        --color-surface-container-highest: light-dark(#cbd5e1, #475569);
+        --color-surface-container-lowest: light-dark(#fafbfc, #0f1419);
 
         /* Elevation shadows */
-        --basic-elev-0: 0 0 0 0 rgba(0, 0, 0, 0);
-        --basic-elev-1: 0 1px 2px 0 rgba(0, 0, 0, 0.14), 0 1px 3px 0 rgba(0, 0, 0, 0.12);
-        --basic-elev-2: 0 2px 4px 0 rgba(0, 0, 0, 0.14), 0 3px 6px 0 rgba(0, 0, 0, 0.11);
-        --basic-elev-3: 0 4px 6px 0 rgba(0, 0, 0, 0.14), 0 6px 12px 0 rgba(0, 0, 0, 0.11);
-        --basic-elev-4: 0 6px 8px 0 rgba(0, 0, 0, 0.14), 0 9px 18px 0 rgba(0, 0, 0, 0.11);
+        --elev-0: 0 0 0 0 rgba(0, 0, 0, 0);
+        --elev-1: 0 1px 2px 0 rgba(0, 0, 0, 0.14), 0 1px 3px 0 rgba(0, 0, 0, 0.12);
+        --elev-2: 0 2px 4px 0 rgba(0, 0, 0, 0.14), 0 3px 6px 0 rgba(0, 0, 0, 0.11);
+        --elev-3: 0 4px 6px 0 rgba(0, 0, 0, 0.14), 0 6px 12px 0 rgba(0, 0, 0, 0.11);
+        --elev-4: 0 6px 8px 0 rgba(0, 0, 0, 0.14), 0 9px 18px 0 rgba(0, 0, 0, 0.11);
 
         /* Text colors - neutral with blue undertones */
-        --basic-on-surface: light-dark(#1e293b, #f1f5f9);
-        --basic-on-surface-variant: light-dark(#64748b, #94a3b8);
-        --basic-on-primary: light-dark(#ffffff, #ffffff);
-        --basic-on-secondary: light-dark(#ffffff, #ffffff);
+        --color-on-surface: light-dark(#1e293b, #f1f5f9);
+        --color-on-surface-variant: light-dark(#64748b, #94a3b8);
+        --color-on-primary: light-dark(#ffffff, #ffffff);
+        --color-on-secondary: light-dark(#ffffff, #ffffff);
 
         /* Border and outline - subtle blue-gray tones */
-        --basic-outline: light-dark(#cbd5e1, #475569);
-        --basic-outline-variant: light-dark(#94a3b8, #64748b);
+        --color-outline: light-dark(#cbd5e1, #475569);
+        --color-outline-variant: light-dark(#94a3b8, #64748b);
 
         /* Interactive states - blue-tinted grays */
-        --basic-hover: light-dark(#f1f5f9, #334155);
-        --basic-active: light-dark(#e2e8f0, #1e293b);
-        --basic-focus: light-dark(#dbeafe, #1e40af);
+        --hover: light-dark(#f1f5f9, #334155);
+        --active: light-dark(#e2e8f0, #1e293b);
+        --focus: light-dark(#dbeafe, #1e40af);
 
         /* Motion and transitions */
-        --basic-motion-fast: 140ms ease;
-        --basic-motion-normal: 200ms ease;
-        --basic-motion-slow: 300ms ease;
+        --motion-fast: 140ms ease;
+        --motion-normal: 200ms ease;
+        --motion-slow: 300ms ease;
 
         /* Spacing system */
-        --basic-space-xs: 0.25rem;
-        --basic-space-sm: 0.5rem;
-        --basic-space-md: 0.75rem;
-        --basic-space-lg: 1rem;
-        --basic-space-xl: 1.5rem;
-        --basic-space-2xl: 2rem;
+        --space-xs: 0.25rem;
+        --space-sm: 0.5rem;
+        --space-md: 0.75rem;
+        --space-lg: 1rem;
+        --space-xl: 1.5rem;
+        --space-2xl: 2rem;
 
         /* Border radius */
-        --basic-radius-xs: 0.25rem;
-        --basic-radius-sm: 0.375rem;
-        --basic-radius-md: 0.5rem;
-        --basic-radius-lg: 0.75rem;
-        --basic-radius-xl: 1rem;
-        --basic-radius-full: 9999px;
+        --radius-xs: 0.25rem;
+        --radius-sm: 0.375rem;
+        --radius-md: 0.5rem;
+        --radius-lg: 0.75rem;
+        --radius-xl: 1rem;
+        --radius-full: 9999px;
 
         /* Legacy color mappings for markdown compatibility */
-        --focus-outlineColor: var(--basic-primary);
-        --fgColor-default: var(--basic-on-surface);
-        --fgColor-muted: var(--basic-on-surface-variant);
-        --fgColor-accent: var(--basic-accent);
-        --fgColor-success: var(--basic-success);
-        --fgColor-attention: var(--basic-warning);
-        --fgColor-danger: var(--basic-error);
-        --fgColor-done: var(--basic-info);
-        --bgColor-default: var(--basic-surface);
-        --bgColor-muted: var(--basic-surface-container);
-        --bgColor-neutral-muted: var(--basic-surface-container-high);
-        --bgColor-attention-muted: var(--basic-warning);
-        --borderColor-default: var(--basic-outline);
-        --borderColor-muted: var(--basic-outline-variant);
-        --borderColor-neutral-muted: var(--basic-outline);
-        --borderColor-accent-emphasis: var(--basic-primary);
-        --borderColor-success-emphasis: var(--basic-success);
-        --borderColor-attention-emphasis: var(--basic-warning);
-        --borderColor-danger-emphasis: var(--basic-error);
-        --borderColor-done-emphasis: var(--basic-info);
+        --focus-outlineColor: var(--color-primary);
+        --fgColor-default: var(--color-on-surface);
+        --fgColor-muted: var(--color-on-surface-variant);
+        --fgColor-accent: var(--color-accent);
+        --fgColor-success: var(--color-success);
+        --fgColor-attention: var(--color-warning);
+        --fgColor-danger: var(--color-error);
+        --fgColor-done: var(--color-info);
+        --bgColor-default: var(--color-surface);
+        --bgColor-muted: var(--color-surface-container);
+        --bgColor-neutral-muted: var(--color-surface-container-high);
+        --bgColor-attention-muted: var(--color-warning);
+        --borderColor-default: var(--color-outline);
+        --borderColor-muted: var(--color-outline-variant);
+        --borderColor-neutral-muted: var(--color-outline);
+        --borderColor-accent-emphasis: var(--color-primary);
+        --borderColor-success-emphasis: var(--color-success);
+        --borderColor-attention-emphasis: var(--color-warning);
+        --borderColor-danger-emphasis: var(--color-error);
+        --borderColor-done-emphasis: var(--color-info);
 
         /* Markdown tokens */
         --active-brightness: #{config("effects", "active-brightness")};

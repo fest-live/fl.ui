@@ -1,18 +1,41 @@
+/* ai-refactor: optimized/refactored at 2026-02-13T02:50:43Z */
 @use "./config" as config;
 
-@mixin markdown-root-props($selector: ":root:has(.markdown-body), .markdown-body, :host, :scope:has(.markdown-body)") {
+/* ==========================================================================
+    Meta / Declarations
+   ========================================================================== */
+$line-height-base: config.md-config("layout", "line-height");
+$heading-padding-inline: config.md-config("heading", "padding");
+$heading-padding-inline-small: config.md-config("heading", "padding-small");
+$blockquote-margin-inline: config.md-config("blockquote", "margin-inline");
+$blockquote-padding-inline: config.md-config("blockquote", "padding-inline");
+$table-padding: config.md-config("table", "cell-padding");
+$img-max-width: config.md-config("media", "img-max-width");
+$md-roots: ":host, .markdown-body, #markdown, md-view, #raw-md, .markdown-viewer, .print-view, .markdown-viewer-container .viewer-content .markdown-viewer-content, :host, .markdown-body, #markdown, md-view, #raw-md, .markdown-viewer, .print-view, .markdown-viewer-container .viewer-content .markdown-viewer-content";
+$selectors: $md-roots;
+
+
+/* ==========================================================================
+    Tokens / Mixins (global, not layered)
+   ========================================================================== */
+@mixin markdown-root-props(
+    $selector: ":where(#{$selectors}):not([hidden])"
+) {
     #{$selector} {
-        /* MVP tokens */
+        /* Base sizes */
         --base-size-4: 0.25em;
         --base-size-8: 0.5em;
         --base-size-16: 1em;
         --base-size-24: 1.5em;
         --base-size-40: 2.5em;
+
+        /* Typography */
         --base-text-weight-normal: 400;
         --base-text-weight-medium: 500;
         --base-text-weight-semibold: 600;
         --fontStack-monospace: ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, Liberation Mono, monospace;
-        /* Enhanced color system - more blue, closer to neutral grays */
+
+        /* Color system */
         --color-primary: light-dark(#5a7fff, #7ca7ff);
         --color-secondary: light-dark(#6b7280, #94a3b8);
         --color-accent: light-dark(#64748b, #94a3b8);
@@ -21,42 +44,42 @@
         --color-error: light-dark(#ef4444, #f87171);
         --color-info: light-dark(#60a5fa, #93c5fd);
 
-        /* Surface colors - blue-tinted neutral grays */
+        /* Surface colors */
         --color-surface: light-dark(#fafbfc, #0f1419);
         --color-surface-container: light-dark(#f1f5f9, #1e293b);
-        --color-surface-container-high: light-dark(#e2e8f0, #334155);
         --color-surface-container-low: light-dark(#f8fafc, #0f172a);
-        --color-surface-container-highest: light-dark(#cbd5e1, #475569);
         --color-surface-container-lowest: light-dark(#fafbfc, #0f1419);
+        --color-surface-container-high: light-dark(#e2e8f0, #334155);
+        --color-surface-container-highest: light-dark(#cbd5e1, #475569);
 
-        /* Elevation shadows */
+        /* Text colors */
+        --color-on-surface: light-dark(#1e293b, #f1f5f9);
+        --color-on-surface-variant: light-dark(#64748b, #94a3b8);
+        --color-on-primary: light-dark(#ffffff, #ffffff);
+        --color-on-secondary: light-dark(#ffffff, #ffffff);
+
+        /* Border and outline */
+        --color-outline: light-dark(#cbd5e1, #475569);
+        --color-outline-variant: light-dark(#94a3b8, #64748b);
+
+        /* Interactive states */
+        --hover: light-dark(#f1f5f9, #334155);
+        --active: light-dark(#e2e8f0, #1e293b);
+        --focus: light-dark(#dbeafe, #1e40af);
+
+        /* Elevation */
         --elev-0: 0 0 0 0 rgba(0, 0, 0, 0);
         --elev-1: 0 1px 2px 0 rgba(0, 0, 0, 0.14), 0 1px 3px 0 rgba(0, 0, 0, 0.12);
         --elev-2: 0 2px 4px 0 rgba(0, 0, 0, 0.14), 0 3px 6px 0 rgba(0, 0, 0, 0.11);
         --elev-3: 0 4px 6px 0 rgba(0, 0, 0, 0.14), 0 6px 12px 0 rgba(0, 0, 0, 0.11);
         --elev-4: 0 6px 8px 0 rgba(0, 0, 0, 0.14), 0 9px 18px 0 rgba(0, 0, 0, 0.11);
 
-        /* Text colors - neutral with blue undertones */
-        --color-on-surface: light-dark(#1e293b, #f1f5f9);
-        --color-on-surface-variant: light-dark(#64748b, #94a3b8);
-        --color-on-primary: light-dark(#ffffff, #ffffff);
-        --color-on-secondary: light-dark(#ffffff, #ffffff);
-
-        /* Border and outline - subtle blue-gray tones */
-        --color-outline: light-dark(#cbd5e1, #475569);
-        --color-outline-variant: light-dark(#94a3b8, #64748b);
-
-        /* Interactive states - blue-tinted grays */
-        --hover: light-dark(#f1f5f9, #334155);
-        --active: light-dark(#e2e8f0, #1e293b);
-        --focus: light-dark(#dbeafe, #1e40af);
-
         /* Motion and transitions */
         --motion-fast: 140ms ease;
         --motion-normal: 200ms ease;
         --motion-slow: 300ms ease;
 
-        /* Spacing system */
+        /* Spacing */
         --space-xs: 0.25rem;
         --space-sm: 0.5rem;
         --space-md: 0.75rem;
@@ -64,7 +87,7 @@
         --space-xl: 1.5rem;
         --space-2xl: 2rem;
 
-        /* Border radius */
+        /* Radius */
         --radius-xs: 0.25rem;
         --radius-sm: 0.375rem;
         --radius-md: 0.5rem;
@@ -94,7 +117,7 @@
         --borderColor-danger-emphasis: var(--color-error);
         --borderColor-done-emphasis: var(--color-info);
 
-        /* Markdown tokens */
+        /* Markdown tokens (overrides) */
         --active-brightness: #{config("effects", "active-brightness")};
         --border-radius: #{config("shape", "border-radius")};
         --box-shadow: #{config("shape", "box-shadow")};
@@ -123,18 +146,24 @@
     }
 }
 
-@mixin markdown-root-props($selector: ":root:has(.markdown-body), .markdown-body, :host, :scope:has(.markdown-body)") {
+@mixin markdown-root-props-md(
+    $selector: ":where(#{$selectors}):not([hidden])"
+) {
     #{$selector} {
-        /* MVP tokens */
+        /* Base sizes */
         --base-size-4: 0.25em;
         --base-size-8: 0.5em;
         --base-size-16: 1em;
         --base-size-24: 1.5em;
         --base-size-40: 2.5em;
+
+        /* Typography */
         --base-text-weight-normal: 400;
         --base-text-weight-medium: 500;
         --base-text-weight-semibold: 600;
         --fontStack-monospace: ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, Liberation Mono, monospace;
+
+        /* Legacy GitHub-like colors */
         --focus-outlineColor: light-dark(#0969da, #1f6feb);
         --fgColor-default: light-dark(#1f2328, #f0f6fc);
         --fgColor-muted: light-dark(#59636e, #9198a1);
@@ -155,6 +184,8 @@
         --borderColor-attention-emphasis: light-dark(#9a6700, #9e6a03);
         --borderColor-danger-emphasis: light-dark(#cf222e, #da3633);
         --borderColor-done-emphasis: light-dark(#8250df, #8957e5);
+
+        /* Prettylights */
         --color-prettylights-syntax-comment: light-dark(#59636e, #9198a1);
         --color-prettylights-syntax-constant: light-dark(#0550ae, #79c0ff);
         --color-prettylights-syntax-constant-other-reference-link: light-dark(#0a3069, #a5d6ff);
@@ -214,4 +245,3 @@
         --md-scrollbar-size: #{config.md-config("scrollbar", "size")};
     }
 }
-

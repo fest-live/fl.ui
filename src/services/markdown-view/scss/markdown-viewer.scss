@@ -732,7 +732,9 @@
         }
 
         li {
-            word-wrap: break-all;
+            word-break: normal;
+            overflow-wrap: break-word;
+            word-wrap: break-word;
 
             > p {
                 margin-block-start: 1rem;
@@ -2751,7 +2753,28 @@
         }
     }
 
-    .katex,
+    .katex {
+        inline-size: fit-content;
+        max-inline-size: stretch;
+        block-size: fit-content;
+        max-block-size: stretch;
+        font-variant: normal;
+        font-kerning: normal;
+        text-transform: none;
+        text-align: start;
+
+        * {
+            text-align: start;
+            inline-size: fit-content;
+            max-inline-size: stretch;
+            block-size: fit-content;
+            max-block-size: stretch;
+            font-variant: normal;
+            font-kerning: normal;
+            text-transform: none;
+        }
+    }
+
     .footnote-ref,
     .footnote-backref {
         font-variant-emoji: text;
@@ -2762,10 +2785,9 @@
         font-variant-numeric: tabular-nums;
         font-variant-east-asian: jis78;
         font-variant-ligatures: common-ligatures;
-        font-variant-caps: small-caps;
+        font-variant-caps: normal;
         font-variant-alternates: normal;
         text-align: start;
-        font-family: var(--font-family-serif, "Times New Roman");
 
         * {
             text-align: start;
@@ -2773,18 +2795,110 @@
             max-inline-size: stretch;
             block-size: fit-content;
             max-block-size: stretch;
-            font-family: var(--font-family-serif, "Times New Roman");
-        }
-
-        span {
-            font-style: italic;
         }
     }
 }
 
 
 @layer overrides {
+    .katex,
+    .katex * {
+        font-variant: normal !important;
+        font-variant-caps: normal !important;
+        font-variant-ligatures: normal !important;
+        text-transform: none !important;
+        font-style: oblique 5deg;
+    }
+
+    .katex .mathnormal,
+    .katex .mathit {
+        font-style: oblique 5deg !important;
+    }
+
+    @media screen {
+        :where(#{tokens.$selectors}):not(.katex, .footnote-ref, .footnote-backref) {
+            --md-code-inline-bg: color-mix(in oklab, var(--md-bg-code) 88%, var(--md-bg-default));
+            --md-code-inline-fg: var(--md-fg-default);
+            --md-code-block-bg: var(--md-bg-code);
+            --md-code-block-fg: var(--md-fg-default);
+            --md-code-block-border: color-mix(in oklab, var(--md-border-default) 60%, transparent);
+            text-rendering: auto;
+            -webkit-font-smoothing: auto;
+            -moz-osx-font-smoothing: auto;
+
+            p,
+            li,
+            blockquote,
+            td,
+            th {
+                text-align: start;
+                hyphens: manual;
+            }
+
+            code:not(pre code),
+            tt:not(pre tt),
+            samp:not(pre samp) {
+                background: var(--md-code-inline-bg);
+                color: var(--md-code-inline-fg);
+                border: 0;
+                box-shadow: none;
+            }
+
+            pre {
+                background: var(--md-code-block-bg);
+                color: var(--md-code-block-fg);
+                border: 1px solid var(--md-code-block-border);
+                box-shadow: none;
+
+                code,
+                tt,
+                samp {
+                    background: transparent;
+                    border: 0;
+                    box-shadow: none;
+                    color: inherit;
+                }
+            }
+        }
+    }
+
     @media print {
+        :where(#{tokens.$selectors}):not(.katex, .footnote-ref, .footnote-backref) {
+            --md-print-code-inline-bg: #f3f4f6;
+            --md-print-code-inline-fg: #111827;
+            --md-print-code-block-bg: #f5f5f5;
+            --md-print-code-block-fg: #111827;
+            --md-print-code-border: #d1d5db;
+
+            pre {
+                background: var(--md-print-code-block-bg) !important;
+                color: var(--md-print-code-block-fg) !important;
+                border: 0 !important;
+                box-shadow: none !important;
+
+                code,
+                tt,
+                samp {
+                    background: transparent !important;
+                    color: inherit !important;
+                    border: 0 !important;
+                    box-shadow: none !important;
+                    padding: 0 !important;
+                    border-radius: 0 !important;
+                }
+            }
+
+            code:not(pre code),
+            tt:not(pre tt),
+            samp:not(pre samp) {
+                background: var(--md-print-code-inline-bg) !important;
+                color: var(--md-print-code-inline-fg) !important;
+                border: 0 !important;
+                box-shadow: none !important;
+                text-decoration: none !important;
+            }
+        }
+
         :where(h1:first-child, h2) {
             break-before: auto;
         }

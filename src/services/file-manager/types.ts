@@ -4,6 +4,7 @@
  * Consolidated types from RsExplorer, FileManagerContent, and Operative.
  * Supports both OPFS and File System Access API.
  */
+import type { DataAsset } from "fest/lure";
 
 // ============================================================================
 // FILE ENTRY TYPES
@@ -31,6 +32,11 @@ export interface FileEntry {
     file?: File;
     /** Full path (optional, computed) */
     path?: string;
+    /**
+     * Unified payload for file/blob/base64/url sources.
+     * Keeps metadata compact (hash-name + mime + size).
+     */
+    dataAsset?: DataAsset;
 }
 
 /** @deprecated Use FileEntry instead */

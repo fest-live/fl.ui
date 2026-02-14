@@ -76,8 +76,8 @@ export * from "./services/markdown-view/Markdown";
 
 //
 (async () => {
-    const styled = await preloadStyle(styles);
-    // Load styles by default (backwards compatible - uses veela-advanced)
-    await loadInlineStyle(styles);
     await loader();
+    const styled = await preloadStyle(styles);
+    // Load styles after runtime so fl.ui component rules win over normalize/base.
+    await loadInlineStyle(styles);
 })();

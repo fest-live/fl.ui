@@ -22,15 +22,15 @@ import coreStyles from "./index.core.scss?inline";
 
 //
 export const loader = async () => {
-    const styled = await preloadStyle(coreStyles);
-    // Load basic core styles (veela-basic variant)
-    await loadInlineStyle(coreStyles);
-
     try {
         await loadVeelaVariant("advanced");
     } catch {
         console.warn("[FL.UI] Could not load veela-advanced runtime");
     }
+
+    // Keep fl.ui core styles after veela runtime so component styles can override base normalize.
+    const styled = await preloadStyle(coreStyles);
+    await loadInlineStyle(coreStyles);
 };
 
 //

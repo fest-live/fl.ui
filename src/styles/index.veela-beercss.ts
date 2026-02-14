@@ -23,13 +23,15 @@ import coreStyles from "./index.core.scss?inline";
 
 //
 export const loader = async () => {
-    // Load basic core styles (as Beer CSS base)
-    await loadInlineStyle(coreStyles);
     try {
         await loadVeelaVariant("beercss");
     } catch {
         console.warn("[FL.UI] Could not load veela-beercss runtime");
     }
+
+    // Keep fl.ui core styles after veela runtime so component styles can override base normalize.
+    const styled = await preloadStyle(coreStyles);
+    await loadInlineStyle(coreStyles);
 };
 
 //

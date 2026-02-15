@@ -5,7 +5,7 @@
 
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
 
-@layer tokens, base, layout, utilities, shells, shell, views, view, viewer, components, ux-layer, markdown, essentials, overrides;
+@layer tokens, base, layout, utilities, shells, shell, views, view, viewer, components, ux-layer, markdown, essentials, print, print-breaks, overrides;
 
 /* ===========================
    Meta / Mixins
@@ -31,17 +31,14 @@
 
 @mixin print-page-break($before: auto, $after: auto, $inside: auto) {
     @if $before != auto {
-        page-break-before: $before;
         break-before: $before;
     }
 
     @if $after != auto {
-        page-break-after: $after;
         break-after: $after;
     }
 
     @if $inside != auto {
-        page-break-inside: $inside;
         break-inside: $inside;
     }
 }
@@ -1131,8 +1128,6 @@
             margin-top: 1.5em;
             margin-bottom: 0.5em;
             line-height: 1.2;
-            page-break-after: avoid;
-            break-after: avoid;
         }
 
         h1 {
@@ -1204,7 +1199,6 @@
             border-radius: 0.5rem;
             overflow-x: auto;
             margin: 1rem 0;
-            page-break-inside: avoid;
             word-wrap: break-word;
             overflow-wrap: break-word;
 
@@ -1236,7 +1230,6 @@
             max-inline-size: stretch;
             border-collapse: collapse;
             margin: 1rem 0;
-            page-break-inside: avoid;
             table-layout: fixed;
             word-wrap: break-word;
             overflow-wrap: break-word;
@@ -1266,14 +1259,12 @@
             border: none;
             border-top: 1px solid var(--print-border-color);
             margin: 2rem 0;
-            page-break-after: avoid;
         }
 
         img {
             max-width: 100%;
             max-inline-size: 100%;
             height: auto;
-            page-break-inside: avoid;
             display: block;
         }
 
@@ -1710,8 +1701,6 @@
                 line-height: 1.2;
                 margin-block-start: 1em;
                 margin-block-end: 0.5em;
-                break-inside: avoid;
-                break-after: avoid;
             }
 
             h1 {
@@ -1752,7 +1741,6 @@
                 background: #f8f9fa;
                 font-style: italic;
                 font-family: var(--print-font-family-sans);
-                break-inside: avoid;
             }
 
             pre {
@@ -1762,7 +1750,6 @@
                 border-radius: 6px;
                 overflow-x: auto;
                 line-height: 1.4;
-                break-inside: avoid;
             }
 
             code {
@@ -1785,7 +1772,6 @@
                 overflow: hidden;
                 margin: 1.5em 0;
                 border-collapse: collapse;
-                break-inside: avoid;
                 block-size: max-content;
                 max-block-size: max-content;
 
@@ -1813,7 +1799,6 @@
                 margin-block: 1.5em;
                 margin-inline: auto;
                 display: block;
-                break-inside: avoid;
             }
 
             a {
@@ -1832,8 +1817,6 @@
                 margin-inline: auto;
                 border: none;
                 border-block-start: 1px solid #eee;
-                break-before: avoid;
-                break-after: avoid;
             }
 
             & > *:first-child {
@@ -1849,8 +1832,8 @@
     @media print {
 
         :where(:root, html) {
-            container-type: inline-size;
-            contain: inline-size layout paint style;
+            container-type: normal;
+            contain: none;
         }
 
         :where(body, html, :root) {
@@ -1871,15 +1854,15 @@
             font-size: 12pt;
             line-height: 1.4;
             color: black;
-            -webkit-print-color-adjust: exact;
-            print-color-adjust: exact;
+            -webkit-print-color-adjust: economy;
+            print-color-adjust: economy;
             scrollbar-width: none;
             -ms-overflow-style: none;
             margin: 0;
             padding: 0;
             border: none;
             box-shadow: none;
-            background: white;
+            background: #fff;
 
             &::-webkit-scrollbar {
                 display: none;
@@ -1889,41 +1872,48 @@
         body {
             block-size: max-content !important;
             max-block-size: max-content !important;
-            contain: inline-size layout paint style;
-            container-type: inline-size;
-            background-color: transparent !important;
+            contain: none;
+            container-type: normal;
+            background-color: #fff !important;
             overflow: visible !important;
             scrollbar-width: none;
             -ms-overflow-style: none;
             text-align: center;
             @include print-sizing;
-
-            @media (orientation: landscape) {
-                max-inline-size: 297cm !important;
-                /*
-                transform: scale(297cm / 100cqi) !important;*/
-                scale: #{"calc(100cqi / 297cm)"} !important;
-            }
-
-            @media (orientation: portrait) {
-                max-inline-size: 210cm !important;
-                /*
-                transform: scale(210cm / 100cqi) !important;*/
-                scale: #{"calc(100cqi / 210cm)"} !important;
-            }
+            inline-size: auto !important;
+            max-inline-size: 100% !important;
+            zoom: 1 !important;
+            scale: 1 !important;
+            transform: none !important;
         }
 
+        .katex,
+        .katex * {
+            font-variant: normal !important;
+            font-variant-caps: normal !important;
+            font-variant-ligatures: normal !important;
+            text-transform: none !important;
+            font-style: oblique 5deg;
+        }
+    
+        .katex .mathnormal,
+        .katex .mathit {
+            font-style: oblique 5deg !important;
+        }
 
         :where(#{tokens.$selectors}):not(.katex, .footnote-ref, .footnote-backref) {
             line-height: var(--leading-relaxed);
-            color: var(--color-on-surface);
-            background: var(--color-surface-container-low);
+            color: #111 !important;
+            background: #fff !important;
             font-family: var(--print-font-family);
             font-variant-emoji: text;
-            block-size: max-content !important;
-            max-block-size: max-content !important;
-            contain: inline-size layout paint style;
-            container-type: inline-size;
+            display: block !important;
+            flex: none !important;
+            block-size: auto !important;
+            min-block-size: 0 !important;
+            max-block-size: none !important;
+            contain: none;
+            container-type: normal;
             overflow: visible !important;
             scrollbar-width: none;
             -ms-overflow-style: none;
@@ -1931,7 +1921,7 @@
             padding: 0;
             border: none;
 
-            @include md-vars(dark);
+            @include md-vars(light);
 
             * {
                 border-color: transparent;
@@ -1951,12 +1941,12 @@
 
             code,
             pre {
-                background: #1f2937;
-                color: #f3f4f6;
+                background: #f5f5f5;
+                color: #111;
             }
 
             th {
-                background: #374151;
+                background: #f3f4f6;
             }
 
             h3 {
@@ -2193,8 +2183,6 @@
             h5,
             h6 {
                 color: black;
-                page-break-after: avoid;
-                break-after: avoid;
             }
 
             p,
@@ -2214,7 +2202,6 @@
                 background: #f5f5f5;
                 border: 1px solid #ccc;
                 color: black;
-                page-break-inside: avoid;
             }
 
             code:not(pre code) {
@@ -2228,7 +2215,6 @@
                 inline-size: stretch;
                 max-inline-size: stretch;
                 border: 1px solid #666;
-                page-break-inside: avoid;
 
                 contain: inline-size layout paint style;
                 container-type: inline-size;
@@ -2251,7 +2237,6 @@
 
             img {
                 max-width: 100%;
-                page-break-inside: avoid;
             }
 
             a {
@@ -2459,10 +2444,6 @@
             h4,
             h5,
             h6 {
-                page-break-after: avoid;
-                break-after: avoid;
-                page-break-before: avoid;
-                break-before: avoid;
                 orphans: 2;
                 widows: 2;
                 margin-top: 1.5em;
@@ -2470,15 +2451,11 @@
             }
 
             h1:not(:first-of-type) {
-                page-break-before: always;
-                break-before: page;
                 margin-top: 0;
                 margin-bottom: 1.2em;
             }
 
             h2:not(:first-of-type) {
-                page-break-before: avoid;
-                break-before: avoid;
                 margin-top: 1.8em;
                 margin-bottom: 1em;
             }
@@ -2489,8 +2466,6 @@
                 margin-bottom: 1em;
                 text-align: justify;
                 hyphens: auto;
-                page-break-inside: auto;
-                break-inside: auto;
             }
 
             ul,
@@ -2498,16 +2473,12 @@
                 orphans: 2;
                 widows: 2;
                 margin-bottom: 1em;
-                page-break-inside: auto;
-                break-inside: auto;
             }
 
             li {
                 orphans: 1;
                 widows: 1;
                 margin-bottom: 0.3em;
-                page-break-inside: avoid;
-                break-inside: avoid;
             }
 
             blockquote {
@@ -2515,8 +2486,6 @@
                 widows: 2;
                 margin: 1.2em 0;
                 padding: 0.8em 1.2em;
-                page-break-inside: avoid;
-                break-inside: avoid;
                 border-left: 4px solid #ccc;
             }
 
@@ -2524,12 +2493,6 @@
                 orphans: 1;
                 widows: 1;
                 margin: 1.2em 0;
-                page-break-inside: avoid;
-                break-inside: avoid;
-                page-break-before: avoid;
-                break-before: avoid;
-                page-break-after: avoid;
-                break-after: avoid;
             }
 
             code {
@@ -2542,35 +2505,14 @@
                 orphans: 1;
                 widows: 1;
                 margin: 1.2em 0;
-                page-break-inside: avoid;
-                break-inside: avoid;
-                page-break-before: avoid;
-                break-before: avoid;
-                page-break-after: avoid;
-                break-after: avoid;
-            }
-
-            tr {
-                page-break-inside: avoid;
-                break-inside: avoid;
             }
 
             img {
-                page-break-inside: avoid;
-                break-inside: avoid;
-                page-break-before: avoid;
-                break-before: avoid;
-                page-break-after: avoid;
-                break-after: avoid;
                 margin: 1em auto;
                 display: block;
             }
 
             hr {
-                page-break-after: avoid;
-                break-after: avoid;
-                page-break-before: avoid;
-                break-before: avoid;
                 margin: 2em auto;
                 border: none;
                 border-top: 1px solid #ccc;
@@ -2586,19 +2528,7 @@
                 overflow-wrap: break-word;
             }
 
-            & > * {
-                page-break-inside: auto;
-                break-inside: auto;
-            }
-
-            & > *:not(h1):not(h2):not(pre):not(table):not(img) {
-                page-break-after: auto;
-                break-after: auto;
-            }
-
             & > h1:not(:first-of-type) {
-                page-break-before: always;
-                break-before: page;
                 margin-top: 0;
             }
 
@@ -2638,16 +2568,6 @@
                 page: draft;
             }
 
-            .print-chapter {
-                page-break-before: always;
-                break-before: page;
-            }
-
-            .print-section {
-                page-break-before: avoid;
-                break-before: avoid;
-            }
-
             pre,
             code {
                 white-space: pre-wrap !important;
@@ -2655,82 +2575,6 @@
             }
         }
 
-        :where(h1:first-child, h2) {
-            break-before: auto;
-        }
-
-        h2:has(+ h3) {
-            break-before: recto;
-        }
-
-        h1:not(:first-child) {
-            @include mixins.md-break(recto, auto, auto);
-        }
-
-        *:has(+ h1) {
-            break-after: auto;
-        }
-
-        h1 ~ h2:first-of-type {
-            break-before: auto;
-        }
-
-        :where(table) + h2 {
-            break-before: recto;
-        }
-
-        hr:has(+ h1, + h2, + h3, + h4, + h5, + h6) {
-            break-after: verso;
-        }
-
-        :where(table, pre, code, p, ul, ol, li) {
-            @include mixins.md-break(auto, avoid-page, auto);
-        }
-
-        :where(hr, p, ol, li, table, blockquote, pre, code, strong) {
-            & + :where(h1, h2, h3, h4, h5, h6) {
-                break-before: recto;
-            }
-
-            &:has(+ h1, + h2, + h3, + h4, + h5, + h6) {
-                break-after: auto;
-            }
-
-            &:not(hr):has(+ h2) {
-                break-after: recto;
-            }
-
-            &:has(+ p, + pre, + code, + ol, + li, + table, + blockquote, + strong) {
-                break-after: avoid-page;
-            }
-
-            & + :where(p, ol, li, table, blockquote, strong) {
-                break-before: avoid-page;
-            }
-
-            & + hr + :where(h1, h2):has(+ :where(p, ol, ul, blockquote)) {
-                break-before: recto;
-            }
-        }
-
-        :where(.pb, .np, .pagebreak, .newpage, .page-break, .new-page) {
-            background-color: transparent;
-            page-break-after: always;
-            @include mixins.md-break(auto, auto, page);
-        }
-
-        :where(h1, h2, h3, h4, h5, h6) {
-            &:has(+ :where(hr, p, ul, ol, li, table, blockquote, pre, code)) {
-                break-before: auto;
-                break-after: avoid-page;
-            }
-        }
-
-        :where(h1, h2) {
-            &:has(+ :where(p, table, hr)) {
-                break-before: recto;
-            }
-        }
     }
 
     @include mixins.md-children-inherit(":where(#{tokens.$selectors}):not(.katex, .footnote-ref, .footnote-backref) *");
@@ -2899,86 +2743,139 @@
             }
         }
 
-        :where(h1:first-child, h2) {
+    }
+}
+
+@layer print-breaks {
+    @media print {
+        :where(:heading, hr, h1, h2, h3, h4, h5, h6, p, pre, table, img, blockquote, hr) {
+            break-before: auto;
+            break-after: auto;
+            break-inside: avoid;
+            break-inside: avoid-page;
+        }
+
+        :where(table, ul, ol, p, pre, code, blockquote, :heading) + :where(hr, h1) {
+            break-before: auto;
+            break-after: auto;
+            break-after: page;
+            //break-after: always;
+        }
+
+        :where(hr, h1):has(+ :is(:heading, h1, h2, h3, h4, h5, h6, pre, table, img, blockquote)) {
+            break-after: auto;
+            break-after: page;
+            //break-after: always;
+        }
+
+        :where(:heading, h1, h2, h3, h4, h5, h6, pre, table, img, blockquote) + :where(hr, h1) {
+            break-before: auto;
+            break-before: page;
+            //break-before: always;
+        }
+
+        h1:not(:first-of-type) {
             break-before: auto;
         }
 
-        h2:has(+h3) {
-            break-before: recto;
+        h2:not(:first-of-type) {
+            break-before: auto;
+        }
+
+        li,
+        tr {
+            break-inside: avoid;
+            break-inside: avoid-page;
+        }
+
+        .print-chapter {
+            break-before: auto;
+            break-before: page;
+            //break-before: always;
+        }
+
+        .print-section {
+            break-before: avoid;
+            break-before: avoid-page;
+        }
+
+        :where(h1:first-child, h2, h2:has(+ h3), h1 ~ h2:first-of-type, table + h2) {
+            break-before: auto;
         }
 
         h1:not(:first-child) {
-            @include mixins.md-break(recto, auto, auto);
+            @include mixins.md-break(auto, auto, auto);
         }
 
-        *:has(+h1) {
+        *:has(+ h1),
+        hr:has(+ h1, + h2, + h3, + h4, + h5, + h6) {
             break-after: auto;
         }
-
-        h1 ~ h2:first-of-type {
-            break-before: auto;
-        }
-
-        :where(table) + h2 {
-            break-before: recto;
-        }
-
-        hr:has(+h1, +h2, +h3, +h4, +h5, +h6) {
-            break-after: verso;
-        }
-
-        :where(table, pre, code, p, ul, ol, li) {
-            @include mixins.md-break(auto, avoid-page, auto);
-        }
-
-        :where(hr, p, ol, li, table, blockquote, pre, code, strong) {
+        
+        :where(p, ol, li, table, blockquote, pre, code, strong) {
             & + :where(h1, h2, h3, h4, h5, h6) {
-                break-before: recto;
+                break-before: auto;
             }
 
-            &:has(+h1, +h2, +h3, +h4, +h5, +h6) {
+            &:has(+ h1, + h2, + h3, + h4, + h5, + h6) {
                 break-after: auto;
             }
 
-            &:not(hr):has(+h2) {
-                break-after: recto;
-            }
-
-            &:has(+p, +pre, +code, +ol, +li, +table, +blockquote, +strong) {
+            &:has(+ p, + pre, + code, + ol, + li, + table, + blockquote, + strong) {
+                break-after: avoid;
                 break-after: avoid-page;
             }
 
             & + :where(p, ol, li, table, blockquote, strong) {
+                break-before: avoid;
                 break-before: avoid-page;
             }
 
-            & + hr + :where(h1, h2):has(+:where(p, ol, ul, blockquote)) {
-                break-before: recto;
+            & + hr + :where(h1, h2):has(+ :where(p, ol, ul, blockquote)) {
+                break-before: auto;
             }
         }
 
         :where(.pb, .np, .pagebreak, .newpage, .page-break, .new-page) {
             background-color: transparent;
-            page-break-after: always;
             @include mixins.md-break(auto, auto, page);
         }
 
         :where(h1, h2, h3, h4, h5, h6) {
-            &:has(+:where(hr, p, ul, ol, li, table, blockquote, pre, code)) {
+            &:has(+ :where(p, ul, ol, li, table, blockquote, pre, code)) {
                 break-before: auto;
+                break-after: avoid;
                 break-after: avoid-page;
             }
         }
 
         :where(h1, h2) {
-            &:has(+:where(p, table, hr)) {
-                break-before: recto;
+            &:has(+ :where(p, table, hr)) {
+                break-before: auto;
             }
         }
 
         h1:first-of-type {
             break-before: avoid;
-            page-break-before: avoid;
+            break-before: avoid-page;
+        }
+
+        h1 {
+            break-after: auto !important;
+        }
+
+        hr {
+            break-after: auto !important;
+
+            &:has(+ :where(:heading, hr, h1, h2, h3, h4, h5, h6, p, pre, table, img, blockquote)) {
+                break-after: auto !important;
+                break-after: page !important;
+                //break-after: always !important;
+            }
+        }
+
+        * + :where(hr, h1) {
+            break-before: auto !important;
         }
     }
 }

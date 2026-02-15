@@ -1,5 +1,5 @@
 // @ts-ignore
-import styles from "./scss/markdown.scss?inline&compress";
+import styles from "fest/veela/scss/runtime/basic/markdown/markdown.scss?inline&compress";
 import DOMPurify from 'isomorphic-dompurify';
 import { marked, type MarkedExtension } from "marked";
 import { E, H, provide } from "fest/lure";

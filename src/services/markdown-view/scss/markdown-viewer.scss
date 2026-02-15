@@ -1737,8 +1737,9 @@
             blockquote {
                 margin-block: 1.5em;
                 padding: 1em 1.5em;
-                border-inline-start: 4px solid #007acc;
-                background: #f8f9fa;
+                border-inline-start: 4px solid var(--view-blockquote-border);
+                background: var(--view-blockquote-bg);
+                color: var(--view-fg);
                 font-style: italic;
                 font-family: var(--print-font-family-sans);
             }

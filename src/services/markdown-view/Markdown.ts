@@ -43,6 +43,28 @@ marked?.use?.(markedKatex({
 
 //
 const styled = preloadStyle(styles);
+const waitForClipboardFrame = (): Promise<void> =>
+    new Promise((resolve) => {
+        if (typeof requestAnimationFrame === "function") {
+            requestAnimationFrame(() => resolve());
+            return;
+        }
+        if (typeof MessageChannel !== "undefined") {
+            const channel = new MessageChannel();
+            channel.port1.onmessage = () => resolve();
+            channel.port2.postMessage(undefined);
+            return;
+        }
+        if (typeof setTimeout === "function") {
+            setTimeout(() => resolve(), 16);
+            return;
+        }
+        if (typeof queueMicrotask === "function") {
+            queueMicrotask(() => resolve());
+            return;
+        }
+        resolve();
+    });
 
 /**
  * Unified Markdown View Web Component
@@ -392,6 +414,7 @@ export class MarkdownViewer {
      */
     async copyContent(): Promise<void> {
         try {
+            await waitForClipboardFrame();
             await navigator.clipboard.writeText(this.content);
             this.options.onCopy?.(this.content);
         } catch (error) {

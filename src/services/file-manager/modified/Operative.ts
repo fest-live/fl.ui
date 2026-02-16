@@ -32,6 +32,28 @@ export interface FileEntryItem {
 
 //
 const handleCache = new WeakMap<any, any>();
+const waitForClipboardFrame = (): Promise<void> =>
+    new Promise((resolve) => {
+        if (typeof requestAnimationFrame === "function") {
+            requestAnimationFrame(() => resolve());
+            return;
+        }
+        if (typeof MessageChannel !== "undefined") {
+            const channel = new MessageChannel();
+            channel.port1.onmessage = () => resolve();
+            channel.port2.postMessage(undefined);
+            return;
+        }
+        if (typeof setTimeout === "function") {
+            setTimeout(() => resolve(), 16);
+            return;
+        }
+        if (typeof queueMicrotask === "function") {
+            queueMicrotask(() => resolve());
+            return;
+        }
+        resolve();
+    });
 
 //
 export class FileOperative {
@@ -229,11 +251,17 @@ export class FileOperative {
                     break;
                 case "copyPath":
                     this.#clipboard = { items: [abs], cut: false };
-                    try { await navigator.clipboard?.writeText?.(abs); } catch { }
+                    try {
+                        await waitForClipboardFrame();
+                        await navigator.clipboard?.writeText?.(abs);
+                    } catch { }
                     break;
                 case "copy":
                     this.#clipboard = { items: [abs], cut: false };
-                    try { await navigator.clipboard?.writeText?.(abs); } catch { }
+                    try {
+                        await waitForClipboardFrame();
+                        await navigator.clipboard?.writeText?.(abs);
+                    } catch { }
                     break;
             }
         } catch (e: any) {
@@ -276,6 +304,7 @@ export class FileOperative {
             // 1. Try modern Async Clipboard API first (images, files)
             try {
                 // @ts-ignore
+                await waitForClipboardFrame();
                 const clipboardItems = await navigator.clipboard.read();
                 if (clipboardItems && clipboardItems.length > 0) {
                      await handleIncomingEntries(clipboardItems, this.path || "/user/");
@@ -288,6 +317,7 @@ export class FileOperative {
             // 2. Try System Clipboard Text
             let systemText = "";
             try {
+                await waitForClipboardFrame();
                 systemText = await navigator.clipboard?.readText?.();
             } catch { }
 

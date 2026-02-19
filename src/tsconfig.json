@@ -7,7 +7,7 @@
             "@phosphor-icons/core/assets/*": ["../../node_modules/@phosphor-icons/core/assets/*"],
             "fonts/*": ["../../fonts/*"],
             "fest/*": ["../*"],
-            "fest/cdnImport": ["../cdnImport.mjs", "../../../shared/fest/cdnImport.mjs"],
+            "fest/cdnImport": ["../typings/cdnImport.d.ts", "../../../shared/fest/cdnImport.mjs"],
             "fest/dom": ["../dom/index.ts", "../../../shared/fest/dom/index.ts"],
             "fest/icon": ["../icon/index.ts", "../../../shared/fest/icon/index.ts"],
             "fest/lure": ["../lure/index.ts", "../../../shared/fest/lure/index.ts"],

@@ -1,13 +1,13 @@
 {
-    "include": ["./src/**/*.ts", "./test/*.ts", "test/**/*.ts", "./legacy/**/*.ts"],
-    "exclude": ["./dist/**/*", "./externals/**/*"],
+    "include": ["./src/**/*.ts", "./test/*.ts", "./test/**/*.ts"],
+    "exclude": ["./dist/**/*", "./externals/**/*", "./legacy/**/*.ts"],
     "compilerOptions": {
         "outDir": "./dist/",
         "paths": {
             "@phosphor-icons/core/assets/*": ["./node_modules/@phosphor-icons/core/assets/*"],
-            "fonts/*": ["../../shared/assets/fonts/*"],
-            "fest/*": ["../../shared/fest/*"],
-            "fest/cdnImport": ["../../cdnImport.mjs"],
+            "fonts/*": ["../shared/assets/fonts/*"],
+            "fest/*": ["../shared/fest/*"],
+            "fest/cdnImport": ["./typings/cdnImport.d.ts"],
             "fest/dom": ["../dom.ts/src/index.ts"],
             "fest/lure": ["../lur.e/src/index.ts"],
             "fest/object": ["../object.ts/src/index.ts"],
@@ -17,8 +17,8 @@
             "fest/ui": ["./src/index.ts"],
             "fest/uniform": ["../uniform.ts/src/index.ts"],
             "fest/theme": ["../theme.core/src/index.ts"],
-            "fest/polyfill/*": ["../../shared/fest/polyfill/*"],
-            "polyfill/*": ["../../shared/fest/polyfill/*"],
+            "fest/polyfill/*": ["../shared/fest/polyfill/*"],
+            "polyfill/*": ["../shared/fest/polyfill/*"],
             "@fl-design/*": [
                 "./src/design/*"
             ],
@@ -28,14 +28,10 @@
             "@fl-src/*": [
                 "./src/*"
             ],
-            "fest/veela": ["../veela.css/src/index.ts", "../../shared/fest/veela/index.ts"],
-            "fest/veela-runtime": ["../veela.css/src/index.ts", "../../shared/fest/veela/index.ts"],
+            "fest/veela": ["../veela.css/src/index.ts", "../shared/fest/veela/index.ts"],
+            "fest/veela-runtime": ["../veela.css/src/index.ts", "../shared/fest/veela/index.ts"],
             "veela-lib": ["../veela.css/src/scss/lib/index.scss"],
-            "veela-lib/*": ["../veela.css/src/scss/lib/*"],
-            "fl-ui-lib": ["./src/styles/lib/_index.scss"],
-            "fl-ui-lib/*": ["./src/styles/lib/*"],
-            "fl-ui-core": ["./src/styles/core/_index.scss"],
-            "fl-ui-core/*": ["./src/styles/core/*"]
+            "veela-lib/*": ["../veela.css/src/scss/lib/*"]
         },
         "target": "ESNext",
         "module": "ESNext",

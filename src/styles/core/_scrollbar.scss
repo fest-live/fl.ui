@@ -5,18 +5,18 @@
 
     &::-webkit-scrollbar {
         display: none;
-        width: 0;
-        height: 0;
+        inline-size: 0;
+        block-size: 0;
     }
 }
 
-@mixin custom-scrollbar($width: 8px, $thumb-color: rgba(0, 0, 0, 0.3), $track-color: transparent) {
+@mixin custom-scrollbar($inline-size: 8px, $thumb-color: rgba(0, 0, 0, 0.3), $track-color: transparent) {
     scrollbar-width: thin;
     scrollbar-color: $thumb-color $track-color;
 
     &::-webkit-scrollbar {
-        width: $width;
-        height: $width;
+        inline-size: $width;
+        block-size: $width;
     }
 
     &::-webkit-scrollbar-track {

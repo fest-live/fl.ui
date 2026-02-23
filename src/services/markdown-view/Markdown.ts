@@ -1,6 +1,6 @@
 // @ts-ignore
 import styles from "fest/veela/scss/runtime/basic/markdown/markdown.scss?inline&compress";
-import DOMPurify from 'isomorphic-dompurify';
+import DOMPurify from 'dompurify';
 import { marked, type MarkedExtension } from "marked";
 import { E, H, provide } from "fest/lure";
 import renderMathInElement from "katex/dist/contrib/auto-render.mjs";

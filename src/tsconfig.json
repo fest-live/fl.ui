@@ -1,41 +1,125 @@
 {
-    "include": ["./**/*.ts", "./index.ts", "../**/*.ts", "design/engine/Config.ts"],
-    "exclude": ["../../dist/**/*", "../../externals/**/*"],
+    "include": [
+        "./**/*.ts",
+        "./index.ts",
+        "../**/*.ts",
+        "design/engine/Config.ts"
+    ],
+    "exclude": [
+        "../../dist/**/*",
+        "../../externals/**/*",
+        "./src/**/*.js",
+        "./src/**/*.jsx"
+    ],
     "compilerOptions": {
         "outDir": "../../dist/",
         "paths": {
-            "@phosphor-icons/core/assets/*": ["../../node_modules/@phosphor-icons/core/assets/*"],
-            "fonts/*": ["../../fonts/*"],
-            "fest/*": ["../*"],
-            "fest/cdnImport": ["../typings/cdnImport.d.ts", "../../../shared/fest/cdnImport.mjs"],
-            "fest/dom": ["../dom/index.ts", "../../../shared/fest/dom/index.ts"],
-            "fest/icon": ["../icon/index.ts", "../../../shared/fest/icon/index.ts"],
-            "fest/lure": ["../lure/index.ts", "../../../shared/fest/lure/index.ts"],
-            "fest/object": ["../object/index.ts", "../../../shared/fest/object/index.ts"],
-            "fest/uniform": ["../uniform/index.ts", "../../../shared/fest/uniform/index.ts"],
-            "fest/theme": ["../theme/index.ts", "../../../shared/fest/theme/index.ts"],
-            "fest/core": ["../core/index.ts", "../../../shared/fest/core/index.ts"],
-            "fest/fl-ui": ["./index.ts", "../../../shared/fest/fl-ui/index.ts"],
-            "fest/ui": ["./index.ts", "../../../shared/fest/ui/index.ts"],
-            "fest/polyfill/*": ["../polyfill/*", "../../../shared/fest/polyfill/*"],
-            "fest/veela":         ["../veela/index.ts"           , "../../../shared/fest/veela/index.ts"],
-            "fest/veela-runtime": ["../veela/index.ts"           , "../../../shared/fest/veela/index.ts"],
-            "veela-lib":          ["../veela/scss/lib/index.scss", "../../../shared/fest/veela/scss/lib/index.ts"],
-            "veela-lib/*":        ["../veela/scss/lib/*"         , "../../../shared/fest/veela/scss/lib/*"],
-            "fl-ui-lib":          ["./styles/lib/_index.scss"],
-            "fl-ui-lib/*":        ["./styles/lib/*"],
-            "fl-ui-core":         ["./styles/core/_index.scss"],
-            "fl-ui-core/*":       ["./styles/core/*"],
-
-            "polyfill/*": ["../polyfill/*", "../../../shared/polyfill/*"],
-            "@fl-design/*": ["./design/*", "../../../shared/fest/fl-ui/design/*"],
-            "@fl-ui/*": ["./ui/*", "../../../shared/fest/fl-ui/ui/*"],
-            "@fl-src/*": ["./*", "../../../shared/fest/fl-ui/*"]
+            "@phosphor-icons/core/assets/*": [
+                "../../node_modules/@phosphor-icons/core/assets/*"
+            ],
+            "fonts/*": [
+                "../../fonts/*"
+            ],
+            "fest/*": [
+                "../*"
+            ],
+            "fest/cdnImport": [
+                "../typings/cdnImport.d.ts",
+                "../../../shared/fest/cdnImport.mjs"
+            ],
+            "fest/dom": [
+                "../dom/index.ts",
+                "../../../shared/fest/dom/index.ts"
+            ],
+            "fest/icon": [
+                "../icon/index.ts",
+                "../../../shared/fest/icon/index.ts"
+            ],
+            "fest/lure": [
+                "../lure/index.ts",
+                "../../../shared/fest/lure/index.ts"
+            ],
+            "fest/object": [
+                "../object/index.ts",
+                "../../../shared/fest/object/index.ts"
+            ],
+            "fest/uniform": [
+                "../uniform/index.ts",
+                "../../../shared/fest/uniform/index.ts"
+            ],
+            "fest/theme": [
+                "../theme/index.ts",
+                "../../../shared/fest/theme/index.ts"
+            ],
+            "fest/core": [
+                "../core/index.ts",
+                "../../../shared/fest/core/index.ts"
+            ],
+            "fest/fl-ui": [
+                "./index.ts",
+                "../../../shared/fest/fl-ui/index.ts"
+            ],
+            "fest/ui": [
+                "./index.ts",
+                "../../../shared/fest/ui/index.ts"
+            ],
+            "fest/polyfill/*": [
+                "../polyfill/*",
+                "../../../shared/fest/polyfill/*"
+            ],
+            "fest/veela": [
+                "../veela/index.ts",
+                "../../../shared/fest/veela/index.ts"
+            ],
+            "fest/veela-runtime": [
+                "../veela/index.ts",
+                "../../../shared/fest/veela/index.ts"
+            ],
+            "veela-lib": [
+                "../veela/scss/lib/index.scss",
+                "../../../shared/fest/veela/scss/lib/index.ts"
+            ],
+            "veela-lib/*": [
+                "../veela/scss/lib/*",
+                "../../../shared/fest/veela/scss/lib/*"
+            ],
+            "fl-ui-lib": [
+                "./styles/lib/_index.scss"
+            ],
+            "fl-ui-lib/*": [
+                "./styles/lib/*"
+            ],
+            "fl-ui-core": [
+                "./styles/core/_index.scss"
+            ],
+            "fl-ui-core/*": [
+                "./styles/core/*"
+            ],
+            "polyfill/*": [
+                "../polyfill/*",
+                "../../../shared/polyfill/*"
+            ],
+            "@fl-design/*": [
+                "./design/*",
+                "../../../shared/fest/fl-ui/design/*"
+            ],
+            "@fl-ui/*": [
+                "./ui/*",
+                "../../../shared/fest/fl-ui/ui/*"
+            ],
+            "@fl-src/*": [
+                "./*",
+                "../../../shared/fest/fl-ui/*"
+            ]
         },
         "target": "ESNext",
         "module": "ESNext",
         "moduleResolution": "bundler",
-        "lib": ["ESNext", "DOM", "WebWorker"],
+        "lib": [
+            "ESNext",
+            "DOM",
+            "WebWorker"
+        ],
         "strict": true,
         "forceConsistentCasingInFileNames": true,
         "allowJs": true,
@@ -49,9 +133,15 @@
         "inlineSources": true,
         "inlineSourceMap": true,
         "sourceMap": false,
-        "typeRoots": ["plugins/global.d.ts"],
+        "typeRoots": [
+            "plugins/global.d.ts"
+        ],
         "experimentalDecorators": true,
         "esModuleInterop": true,
-        "allowArbitraryExtensions": true
-    }
+        "allowArbitraryExtensions": true,
+        "noEmit": true,
+        "noEmitOnError": true,
+        "noEmitHelpers": true
+    },
+    "compileOnSave": false
 }

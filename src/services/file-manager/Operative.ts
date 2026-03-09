@@ -62,6 +62,27 @@ const ASSET_SEED_PATHS = [
     "/assets/imgs/",
     "/assets/wallpapers/"
 ];
+const ASSET_ICON_STYLES = ["thin", "light", "regular", "bold", "fill", "duotone"];
+const ASSET_ICON_FALLBACK_NAMES = [
+    "copy",
+    "clipboard",
+    "trash",
+    "folder",
+    "folder-open",
+    "download",
+    "upload",
+    "arrow-up",
+    "arrow-clockwise",
+    "code",
+    "eye",
+    "gear",
+    "printer",
+    "file-doc",
+    "file-text",
+    "lightning",
+    "pencil",
+    "clock-counter-clockwise",
+];
 
 const normalizeDirectoryPath = (input?: string): string => {
     const value = (input || "/").trim() || "/";
@@ -72,6 +93,55 @@ const normalizeDirectoryPath = (input?: string): string => {
 const isAssetsPath = (path?: string): boolean => normalizeDirectoryPath(path).startsWith(ASSETS_ROOT);
 const isVirtualRootPath = (path?: string): boolean => normalizeDirectoryPath(path) === "/";
 const isReadonlyPath = (path?: string): boolean => isAssetsPath(path) || isVirtualRootPath(path);
+const isIconsPath = (path?: string): boolean => normalizeDirectoryPath(path).startsWith("/assets/icons/");
+const isUserPath = (path?: string): boolean => normalizeDirectoryPath(path).startsWith("/user/");
+
+const buildVirtualAssetPaths = (path: string): string[] => {
+    const target = normalizeDirectoryPath(path);
+    const paths = new Set<string>();
+    if (!isIconsPath(target)) return [];
+
+    // Always expose icon roots/styles even when nothing is cached yet.
+    paths.add("/assets/icons/");
+    paths.add("/assets/icons/phosphor/");
+    paths.add("/assets/icons/duotone/");
+    for (const style of ASSET_ICON_STYLES) {
+        paths.add(`/assets/icons/phosphor/${style}/`);
+        paths.add(`/assets/icons/${style}/`);
+    }
+
+    const addIconFiles = (base: string) => {
+        for (const iconName of ASSET_ICON_FALLBACK_NAMES) {
+            paths.add(`${base}${iconName}.svg`);
+        }
+    };
+
+    if (target === "/assets/icons/" || target === "/assets/icons/duotone/") {
+        addIconFiles("/assets/icons/duotone/");
+    }
+
+    if (target.startsWith("/assets/icons/phosphor/")) {
+        const parts = target.split("/").filter(Boolean);
+        if (parts.length >= 4) {
+            const style = parts[3];
+            if (ASSET_ICON_STYLES.includes(style)) {
+                addIconFiles(`/assets/icons/phosphor/${style}/`);
+            }
+        }
+    }
+
+    if (target.startsWith("/assets/icons/")) {
+        const parts = target.split("/").filter(Boolean);
+        if (parts.length >= 3) {
+            const style = parts[2];
+            if (ASSET_ICON_STYLES.includes(style)) {
+                addIconFiles(`/assets/icons/${style}/`);
+            }
+        }
+    }
+
+    return Array.from(paths);
+};
 
 //
 export class FileOperative {
@@ -116,6 +186,9 @@ export class FileOperative {
     private async listAssetEntries(path: string): Promise<FileEntryItem[]> {
         const target = normalizeDirectoryPath(path);
         const knownPaths = new Set<string>(ASSET_SEED_PATHS);
+        for (const virtualPath of buildVirtualAssetPaths(target)) {
+            knownPaths.add(virtualPath);
+        }
 
         try {
             const cacheNames = await caches.keys();
@@ -191,6 +264,124 @@ export class FileOperative {
         this.#dirProxy = null;
     }
 
+    private async collectDirectoryEntries(): Promise<FileEntryItem[]> {
+        const source = await this.#dirProxy?.entries?.();
+        let pairs: any[] = [];
+        if (Array.isArray(source)) {
+            pairs = source;
+        } else if (source && typeof (source as any)[Symbol.iterator] === "function") {
+            pairs = Array.from(source as Iterable<any>);
+        } else if (source && typeof (source as any)[Symbol.asyncIterator] === "function") {
+            // Fallback for async iterators in non-proxy directory implementations.
+            for await (const pair of source as AsyncIterable<any>) {
+                pairs.push(pair);
+            }
+        }
+        const entries = (await Promise.all(
+            (pairs || []).map(async ($pair: any) => {
+                return Promise.try(async () => {
+                    const [name, handle] = $pair as any;
+                    return handleCache?.getOrInsertComputed?.(handle, async () => {
+                        const kind: EntryKind = handle?.kind || (name?.endsWith?.("/") ? "directory" : "file");
+                        const item: any = observe({ name, kind, handle });
+                        if (kind === "file") {
+                            item.type = getMimeTypeByFilename?.(name);
+                            try {
+                                const f = await handle?.getFile?.();
+                                item.file = f;
+                                item.size = f?.size;
+                                item.lastModified = f?.lastModified;
+                                item.type = f?.type || item.type;
+                            } catch {}
+                        }
+                        return item;
+                    });
+                })?.catch?.(console.warn.bind(console));
+            })
+        ))?.filter?.(($item: any) => $item != null);
+        return entries || [];
+    }
+
+    private async getDirectoryHandleByPath(path: string, create = false): Promise<any> {
+        const root = this.#fsRoot || await navigator?.storage?.getDirectory?.();
+        if (!root) return null;
+        const clean = normalizeDirectoryPath(path);
+        const parts = clean.split("/").filter(Boolean);
+        let current = root;
+        for (const part of parts) {
+            current = await current.getDirectoryHandle(part, { create });
+        }
+        return current;
+    }
+
+    private async readEntriesFromDirectory(dir: any): Promise<FileEntryItem[]> {
+        if (!dir) return [];
+        const entries: FileEntryItem[] = [];
+        for await (const [name, handle] of dir.entries()) {
+            const kind: EntryKind = handle?.kind || (name?.endsWith?.("/") ? "directory" : "file");
+            const item: any = observe({ name, kind, handle });
+            if (kind === "file") {
+                item.type = getMimeTypeByFilename?.(name);
+                try {
+                    const f = await handle?.getFile?.();
+                    item.file = f;
+                    item.size = f?.size;
+                    item.lastModified = f?.lastModified;
+                    item.type = f?.type || item.type;
+                } catch {}
+            }
+            entries.push(item);
+        }
+        return entries;
+    }
+
+    private async listUserEntriesDirect(path: string, createIfMissing = false): Promise<FileEntryItem[]> {
+        const normalized = normalizeDirectoryPath(path);
+        const strippedPath = normalized.replace(/^\/user\/?/, "/");
+        const legacyPath = normalized; // Legacy layout may physically contain "/user/*" in OPFS.
+
+        const dirs: any[] = [];
+        const tryPush = (dir: any) => {
+            if (!dir) return;
+            if (!dirs.includes(dir)) dirs.push(dir);
+        };
+
+        tryPush(await this.getDirectoryHandleByPath(strippedPath, false).catch(() => null));
+        if (legacyPath !== strippedPath) {
+            tryPush(await this.getDirectoryHandleByPath(legacyPath, false).catch(() => null));
+        }
+
+        if (!dirs.length && createIfMissing) {
+            tryPush(await this.getDirectoryHandleByPath(strippedPath, true).catch(() => null));
+        }
+
+        const merged = new Map<string, FileEntryItem>();
+        for (const dir of dirs) {
+            const chunk = await this.readEntriesFromDirectory(dir);
+            for (const entry of chunk) {
+                if (!entry?.name) continue;
+                const key = `${entry.kind}:${entry.name}`;
+                if (!merged.has(key)) merged.set(key, entry);
+            }
+        }
+        return Array.from(merged.values());
+    }
+
+    private applyEntries(entries: FileEntryItem[]) {
+        const unique = new Map<string, FileEntryItem>();
+        for (const entry of entries || []) {
+            if (!entry || !entry.name) continue;
+            const key = `${entry.kind}:${entry.name}`;
+            if (!unique.has(key)) unique.set(key, entry);
+        }
+        (this.#entries as any).value = Array.from(unique.values());
+        this.dispatchEvent(new CustomEvent("entries-updated", {
+            detail: { path: this.path, count: unique.size },
+            bubbles: true,
+            composed: true
+        }));
+    }
+
     //
     async itemAction(item: FileEntryItem) {
         const self: any = this;
@@ -241,71 +432,57 @@ export class FileOperative {
         try {
             this.#loading.value = true;
             this.#error.value = "";
-            const rel = path?.value || path || this.path || "/"; // openDirectory can consume absolute-like parts (it filters Booleans)
+            const rel = normalizeDirectoryPath(path?.value || path || this.path || "/");
             this.detachDirectoryObservers();
             if (isVirtualRootPath(rel)) {
-                this.#entries.value = this.listVirtualRootEntries();
+                this.applyEntries(this.listVirtualRootEntries());
                 return this;
             }
             if (isAssetsPath(rel)) {
-                this.#entries.value = await this.listAssetEntries(rel);
+                this.applyEntries(await this.listAssetEntries(rel));
+                return this;
+            }
+
+            if (isUserPath(rel)) {
+                const entries = await this.listUserEntriesDirect(rel, true);
+                this.applyEntries(entries);
                 return this;
             }
 
             //
-            this.#dirProxy = openDirectory(this.#fsRoot, rel, { create: false });
-            await this.#dirProxy;
+            try {
+                this.#dirProxy = openDirectory(this.#fsRoot, rel, { create: false });
+                await this.#dirProxy;
+            } catch (openErr) {
+                // In /user scope we tolerate missing folders and create them on navigation.
+                if (!isUserPath(rel)) throw openErr;
+                this.#dirProxy = openDirectory(this.#fsRoot, rel, { create: true });
+                await this.#dirProxy;
+            }
 
             console.log("rel", rel);
             
             //
-            const loader = async ($map?: Map<string, any>) => {
-                const $entries = $map instanceof Map ? $map?.entries?.() : null;
-                const handleMap = await Promise.all($entries ? Array.from($entries) : (await Array.fromAsync(await this.#dirProxy?.entries?.() ?? [])));
-
-                //
-                const entries = (await Promise.all(handleMap?.map?.(async ($pair: any, index: number) => {
-                    return Promise.try(async () => {
-                        const [name, handle] = $pair as any; // @ts-ignore
-                        return handleCache?.getOrInsertComputed?.(handle, async () => {
-                            const kind: EntryKind = handle?.kind || (name?.endsWith?.("/") ? "directory" : "file");
-                            const item: any = observe({ name, kind, handle });
-
-                            //
-                            if (kind === "file") {
-                                item.type = getMimeTypeByFilename?.(name);
-                                Promise.try(async () => {
-                                    try {
-                                        const f = await handle?.getFile?.();
-                                        item.file = f;
-                                        item.size = f?.size;
-                                        item.lastModified = f?.lastModified;
-                                        item.type = f?.type || item.type;
-                                    } catch { }
-                                }).catch?.(console.warn.bind(console));
-                            }
-
-                            //
-                            return item;
-                        });
-                    })?.catch?.(console.warn.bind(console));
-                }))?.catch?.(console.warn.bind(console)))?.filter?.(($item: any) => $item != null);
-
-                //
-                if (entries?.length != null && entries?.length >= 0 && typeof entries?.length == "number") { this.#entries.value = entries; };
+            const loader = async () => {
+                const entries = await this.collectDirectoryEntries();
+                if (entries?.length != null && entries?.length >= 0 && typeof entries?.length == "number") {
+                    this.applyEntries(entries);
+                }
             };
 
             //
-            const debouncedLoader = ($map?: Map<string, any>) => {
+            const debouncedLoader = () => {
                 if (this.#loaderDebounceTimer) { clearTimeout(this.#loaderDebounceTimer); }
-                this.#loaderDebounceTimer = setTimeout(() => loader($map), 50);
+                this.#loaderDebounceTimer = setTimeout(() => loader(), 50);
             };
 
             //
-            await loader(await this.#dirProxy?.getMap?.() ?? [])?.catch?.(console.warn.bind(console));
+            await loader()?.catch?.(console.warn.bind(console));
             this.#subscribed = affected((await this.#dirProxy?.getMap?.() ?? []), debouncedLoader);
         } catch (e: any) {
             this.#error.value = e?.message || String(e || "");
+            // Never show stale rows from previous path on load failure.
+            this.applyEntries([]);
             console.warn(e);
         } finally {
             this.#loading.value = false;
@@ -349,6 +526,7 @@ export class FileOperative {
                     }
                     if (actionId === "delete") {
                         await remove(this.#fsRoot, abs);
+                        await this.refreshList(this.path);
                         break;
                     }
                     if (actionId === "rename") {
@@ -356,6 +534,7 @@ export class FileOperative {
                             const next = prompt("Rename to:", itemName);
                             if (next && next !== itemName) {
                                 await this.renameFile(abs ?? "", next ?? "");
+                                await this.refreshList(this.path);
                             }
                         }
                         break;
@@ -437,6 +616,7 @@ export class FileOperative {
                 }*/
             }
             await uploadFile(this.path, null);
+            await this.refreshList(this.path);
         } catch (e) { console.warn(e); }
     }
 
@@ -451,6 +631,7 @@ export class FileOperative {
                 const clipboardItems = await navigator.clipboard.read();
                 if (clipboardItems && clipboardItems.length > 0) {
                      await handleIncomingEntries(clipboardItems, this.path || "/");
+                     await this.refreshList(this.path);
                      return;
                 }
             } catch (e) {
@@ -473,6 +654,7 @@ export class FileOperative {
                 await handleIncomingEntries({
                     getData: (type: string) => type === "text/plain" ? systemText : ""
                 }, this.path || "/");
+                await this.refreshList(this.path);
                 return;
             }
 
@@ -488,6 +670,7 @@ export class FileOperative {
                     }
                     this.#clipboard = null;
                 }
+                await this.refreshList(this.path);
             }
         } catch (e) { console.warn(e); }
     }
@@ -499,7 +682,10 @@ export class FileOperative {
 
         // Try to read from event first
         if (ev.clipboardData || (ev as any).dataTransfer) {
-            handleIncomingEntries(ev.clipboardData || (ev as any).dataTransfer, this.path || "/");
+            void Promise.try(async () => {
+                await handleIncomingEntries(ev.clipboardData || (ev as any).dataTransfer, this.path || "/");
+                await this.refreshList(this.path);
+            }).catch(console.warn);
             return;
         }
 
@@ -519,7 +705,8 @@ export class FileOperative {
 
         //
         if ((ev as any).clipboardData || (ev as any).dataTransfer) {
-            handleIncomingEntries((ev as any).clipboardData || (ev as any).dataTransfer, this.path || "/");
+            await handleIncomingEntries((ev as any).clipboardData || (ev as any).dataTransfer, this.path || "/");
+            await this.refreshList(this.path);
             return;
         }
     }

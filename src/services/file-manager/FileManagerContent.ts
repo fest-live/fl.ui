@@ -1,6 +1,6 @@
 import { property, defineElement, H, bindWith, initGlobalClipboard } from "fest/lure";
 import { addEvent, handleStyleChange, isInFocus, preloadStyle } from "fest/dom";
-import { affected, ref } from "fest/object";
+import { ref } from "fest/object";
 
 //
 import { UIElement } from "@fl-ui/base/UIElement";
@@ -30,7 +30,7 @@ export class FileManagerContent extends UIElement {
     //
     public operativeInstance: FileOperative | null = null;
     public operativeInstanceRef = ref<FileOperative | null>(null);
-    #rowsWatcherDisposer: (() => void) | null = null;
+    #rowsContainer: HTMLElement | null = null;
 
     //
     get entries() { return this.operativeInstance?.entries ?? []; }
@@ -42,7 +42,9 @@ export class FileManagerContent extends UIElement {
     refreshList() {
         if (this.gridRowsEl) this.gridRowsEl.innerHTML = ``;
         if (this.gridEl) this.gridEl.innerHTML = ``;
-        if (this.operativeInstance) this.operativeInstance.refreshList(this.path || "/");
+        if (this.operativeInstance) {
+            void this.operativeInstance.refreshList(this.path || "/").then(() => this.syncRows()).catch(console.warn);
+        }
     }
 
     //
@@ -98,7 +100,60 @@ export class FileManagerContent extends UIElement {
         super();
         this.operativeInstance ??= new FileOperative();
         this.operativeInstance.host = this as any;
+        this.addEventListener("entries-updated", () => this.syncRows());
         this.refreshList();
+    }
+
+    private syncRows() {
+        let rows = this.#rowsContainer;
+        if (!rows || !rows.isConnected) {
+            rows = (this.shadowRoot?.querySelector?.(".fm-grid:last-of-type .fm-grid-rows") as HTMLElement | null) ?? null;
+            this.#rowsContainer = rows;
+        }
+        const operative = this.operativeInstance;
+        if (!rows || !operative) return;
+        const currentEntries = (operative.entries as any)?.value ?? [];
+        const safeEntries = Array.isArray(currentEntries) ? currentEntries : [];
+        const seen = new Set<string>();
+        rows.innerHTML = "";
+        const fragment = document.createDocumentFragment();
+        for (const item of safeEntries) {
+            if (!item || typeof item !== "object" || item.name == null) continue;
+            const dedupeKey = `${item.kind}:${item.name}`;
+            if (seen.has(dedupeKey)) continue;
+            seen.add(dedupeKey);
+            fragment.append(this.makeListElement(item as FileEntryItem, operative));
+        }
+        rows.append(fragment);
+    }
+
+    private makeListElement(item: FileEntryItem, operative: FileOperative) {
+        const op: any = operative as any;
+        const isFile = item?.kind === "file" || item?.file;
+        const itemEl = H`<div draggable="${isFile}" class="row c2-surface"
+            on:click=${(ev: MouseEvent) => requestAnimationFrame(() => op.onRowClick?.(item, ev))}
+            on:dblclick=${(ev: MouseEvent) => requestAnimationFrame(() => op.onRowDblClick?.(item, ev))}
+            on:dragstart=${(ev: DragEvent) => op.onRowDragStart?.(item, ev)}
+            data-id=${item?.name || ""}
+        >
+            <div style="pointer-events: none; background-color: transparent;" class="c icon"><ui-icon icon=${iconFor(item)} /></div>
+            <div style="pointer-events: none; background-color: transparent;" class="c name" title=${item?.name || ""}>${item?.name || ""}</div>
+            <div style="pointer-events: none; background-color: transparent;" class="c size">${isFile ? (item?.size ?? "") : ""}</div>
+            <div style="pointer-events: none; background-color: transparent;" class="c date">${isFile ? formatDate(item?.lastModified ?? 0) : ""}</div>
+            <div style="pointer-events: none; background-color: transparent;" class="c actions">
+                <button class="action-btn" title="Copy Path" on:click=${(ev: MouseEvent) => { ev.stopPropagation(); requestAnimationFrame(() => op.onMenuAction?.(item, "copyPath", ev)); }}>
+                    <ui-icon icon="copy" />
+                </button>
+                <button class="action-btn" title="Copy" on:click=${(ev: MouseEvent) => { ev.stopPropagation(); requestAnimationFrame(() => op.onMenuAction?.(item, "copy", ev)); }}>
+                    <ui-icon icon="clipboard" />
+                </button>
+                <button class="action-btn" title="Delete" on:click=${(ev: MouseEvent) => { ev.stopPropagation(); requestAnimationFrame(() => op.onMenuAction?.(item, "delete", ev)); }}>
+                    <ui-icon icon="trash" />
+                </button>
+            </div>
+        </div>`;
+        bindWith(itemEl, "--order", this.byFirstTwoLetterOrName(item?.name ?? ""), handleStyleChange);
+        return itemEl;
     }
 
     //
@@ -118,60 +173,23 @@ export class FileManagerContent extends UIElement {
         if (!operative) return "";
 
         //
-        const makeListElement = (item: FileEntryItem) => {
-            const isFile = item?.kind === "file" || item?.file;
-            const itemEl = H`<div draggable="${isFile}" class="row c2-surface"
-                on:click=${(ev: MouseEvent) => requestAnimationFrame(() => operative.onRowClick?.(item, ev))}
-                on:dblclick=${(ev: MouseEvent) => requestAnimationFrame(() => operative.onRowDblClick?.(item, ev))}
-                on:dragstart=${(ev: DragEvent) => operative.onRowDragStart?.(item, ev)}
-                data-id=${item?.name || ""}
-            >
-                <div style="pointer-events: none; background-color: transparent;" class="c icon"><ui-icon icon=${iconFor(item)} /></div>
-                <div style="pointer-events: none; background-color: transparent;" class="c name" title=${item?.name || ""}>${item?.name || ""}</div>
-                <div style="pointer-events: none; background-color: transparent;" class="c size">${isFile ? (item?.size ?? "") : ""}</div>
-                <div style="pointer-events: none; background-color: transparent;" class="c date">${isFile ? formatDate(item?.lastModified ?? 0) : ""}</div>
-                <div style="pointer-events: none; background-color: transparent;" class="c actions">
-                    <button class="action-btn" title="Copy Path" on:click=${(ev: MouseEvent) => { ev.stopPropagation(); requestAnimationFrame(() => operative.onMenuAction?.(item, "copyPath", ev)); }}>
-                        <ui-icon icon="copy" />
-                    </button>
-                    <button class="action-btn" title="Copy" on:click=${(ev: MouseEvent) => { ev.stopPropagation(); requestAnimationFrame(() => operative.onMenuAction?.(item, "copy", ev)); }}>
-                        <ui-icon icon="clipboard" />
-                    </button>
-                    <button class="action-btn" title="Delete" on:click=${(ev: MouseEvent) => { ev.stopPropagation(); requestAnimationFrame(() => operative.onMenuAction?.(item, "delete", ev)); }}>
-                        <ui-icon icon="trash" />
-                    </button>
-                </div>
-            </div>`;
-
-            //
-            bindWith(itemEl, "--order", self.byFirstTwoLetterOrName(item?.name ?? ""), handleStyleChange);
-            return itemEl;
-        }
-
-        //
-        let fileRows: any = null;
-        fileRows = H`<div class="fm-grid-rows" style="will-change: contents;"></div>`;
-        const syncRows = () => {
-            if (!fileRows) return;
-            const currentEntries = (self.entries as any)?.value ?? self.entries ?? [];
-            const safeEntries = Array.isArray(currentEntries) ? currentEntries : [];
-            fileRows.innerHTML = "";
-            const fragment = document.createDocumentFragment();
-            for (const entry of safeEntries) {
-                if (entry && typeof entry === "object" && entry.name != null) {
-                    const row = makeListElement(entry as FileEntryItem);
-                    if (row) fragment.append(row);
-                }
-            }
-            fileRows.append(fragment);
-        };
+        const fileRows = H`<div class="fm-grid-rows" style="will-change: contents;"></div>`;
+        this.#rowsContainer = fileRows as HTMLElement;
         createItemCtxMenu?.(fileRows, operative.onMenuAction.bind(operative), self.entries);
         queueMicrotask(() => {
-            self.#rowsWatcherDisposer?.();
-            self.#rowsWatcherDisposer = null;
-            syncRows();
-            self.#rowsWatcherDisposer = affected(operative.entries, () => syncRows());
             self.bindDropHandlers();
+            const root = self.shadowRoot;
+            const grids = Array.from(root?.querySelectorAll?.(".fm-grid") || []) as HTMLElement[];
+            if (grids.length > 1) {
+                const latest = grids.at(-1) as HTMLElement;
+                for (const extra of grids) {
+                    if (extra !== latest) {
+                        extra.remove();
+                    }
+                }
+                self.#rowsContainer = latest.querySelector(".fm-grid-rows") as HTMLElement | null;
+            }
+            self.syncRows();
         });
 
         //

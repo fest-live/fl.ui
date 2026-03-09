@@ -72,7 +72,7 @@ export class FileOperative {
     public host: HTMLElement | null = null;
 
     //
-    public pathRef = ref("/user/");
+    public pathRef = ref("/");
 
     //
     get path() { return this.pathRef.value; }
@@ -82,7 +82,7 @@ export class FileOperative {
     //
     constructor() {
         this.#entries = ref<FileEntryItem[]>([]);
-        this.pathRef ??= ref("/user/");
+        this.pathRef ??= ref("/");
 
         //
         affected(this.pathRef, (path) => this.loadPath(path));
@@ -94,7 +94,7 @@ export class FileOperative {
         const self: any = this;
 
         //
-        const detail = { path: (self.path || "/user/") + item?.name, item, originalEvent: null };
+        const detail = { path: (self.path || "/") + item?.name, item, originalEvent: null };
         const event = new CustomEvent("open-item", { detail, bubbles: true, composed: true, cancelable: true });
         this.host?.dispatchEvent(event);
         if (event.defaultPrevented) return;
@@ -200,7 +200,7 @@ export class FileOperative {
         ev.dataTransfer.effectAllowed = "copyMove";
 
         //
-        const abs = (this.path || "/user/") + (item?.name || "");
+        const abs = (this.path || "/") + (item?.name || "");
         ev.dataTransfer.setData("text/plain", abs);
         ev.dataTransfer.setData("text/uri-list", abs);
         if (item?.file) {
@@ -213,7 +213,7 @@ export class FileOperative {
     protected async onMenuAction(item: FileEntryItem | null, actionId: string, ev: MouseEvent) {
         try {
             const itemName = item?.name;
-            if (!actionId) return; const abs = (this.path || "/user/") + (itemName || ""); switch (actionId) {
+            if (!actionId) return; const abs = (this.path || "/") + (itemName || ""); switch (actionId) {
                 case "open":
                     this.itemAction(item as FileEntryItem);
                     break;
@@ -295,7 +295,7 @@ export class FileOperative {
                 await waitForClipboardFrame();
                 const clipboardItems = await navigator.clipboard.read();
                 if (clipboardItems && clipboardItems.length > 0) {
-                     await handleIncomingEntries(clipboardItems, this.path || "/user/");
+                     await handleIncomingEntries(clipboardItems, this.path || "/");
                      return;
                 }
             } catch (e) {
@@ -317,7 +317,7 @@ export class FileOperative {
             if (systemText) {
                 await handleIncomingEntries({
                     getData: (type: string) => type === "text/plain" ? systemText : ""
-                }, this.path || "/user/");
+                }, this.path || "/");
                 return;
             }
 
@@ -325,7 +325,7 @@ export class FileOperative {
                 const txt = internalItems.join("\n");
                 await handleIncomingEntries({
                     getData: (type: string) => type === "text/plain" ? txt : ""
-                }, this.path || "/user/");
+                }, this.path || "/");
 
                 if (this.#clipboard?.cut) {
                     for (const src of internalItems) {
@@ -343,7 +343,7 @@ export class FileOperative {
 
         // Try to read from event first
         if (ev.clipboardData || (ev as any).dataTransfer) {
-            handleIncomingEntries(ev.clipboardData || (ev as any).dataTransfer, this.path || "/user/");
+            handleIncomingEntries(ev.clipboardData || (ev as any).dataTransfer, this.path || "/");
             return;
         }
 
@@ -362,7 +362,7 @@ export class FileOperative {
 
         //
         if ((ev as any).clipboardData || (ev as any).dataTransfer) {
-            handleIncomingEntries((ev as any).clipboardData || (ev as any).dataTransfer, this.path || "/user/");
+            handleIncomingEntries((ev as any).clipboardData || (ev as any).dataTransfer, this.path || "/");
             return;
         }
     }

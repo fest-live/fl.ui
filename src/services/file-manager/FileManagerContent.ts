@@ -1,6 +1,6 @@
-import { property, defineElement, H, C, bindWith, initGlobalClipboard, M } from "fest/lure";
+import { property, defineElement, H, bindWith, initGlobalClipboard } from "fest/lure";
 import { addEvent, handleStyleChange, isInFocus, preloadStyle } from "fest/dom";
-import { computed, propRef, ref } from "fest/object";
+import { affected, ref } from "fest/object";
 
 //
 import { UIElement } from "@fl-ui/base/UIElement";
@@ -13,7 +13,7 @@ import { type FileEntryItem, FileOperative } from "./Operative";
 import { createItemCtxMenu } from "./ContextMenu";
 
 //
-import { iconFor, formatSize, formatDate } from "./utils";
+import { iconFor, formatDate } from "./utils";
 
 //
 initGlobalClipboard();
@@ -30,18 +30,19 @@ export class FileManagerContent extends UIElement {
     //
     public operativeInstance: FileOperative | null = null;
     public operativeInstanceRef = ref<FileOperative | null>(null);
+    #rowsWatcherDisposer: (() => void) | null = null;
 
     //
     get entries() { return this.operativeInstance?.entries ?? []; }
-    get path() { return this.operativeInstance?.path || "/user/"; }
-    set path(value: string) { if (this.operativeInstance) this.operativeInstance.path = value || "/user/"; }
+    get path() { return this.operativeInstance?.path || "/"; }
+    set path(value: string) { if (this.operativeInstance) this.operativeInstance.path = value || "/"; }
     get pathRef() { return this.operativeInstance?.pathRef; }
 
     //
     refreshList() {
         if (this.gridRowsEl) this.gridRowsEl.innerHTML = ``;
         if (this.gridEl) this.gridEl.innerHTML = ``;
-        if (this.operativeInstance) this.operativeInstance.refreshList(this.path || "/user/");
+        if (this.operativeInstance) this.operativeInstance.refreshList(this.path || "/");
     }
 
     //
@@ -119,16 +120,16 @@ export class FileManagerContent extends UIElement {
         //
         const makeListElement = (item: FileEntryItem) => {
             const isFile = item?.kind === "file" || item?.file;
-            const itemEl = H`<div draggable="${isFile}" data-id=${propRef(item, "name")} class="row c2-surface"
+            const itemEl = H`<div draggable="${isFile}" class="row c2-surface"
                 on:click=${(ev: MouseEvent) => requestAnimationFrame(() => operative.onRowClick?.(item, ev))}
                 on:dblclick=${(ev: MouseEvent) => requestAnimationFrame(() => operative.onRowDblClick?.(item, ev))}
                 on:dragstart=${(ev: DragEvent) => operative.onRowDragStart?.(item, ev)}
-                data-id=${propRef(item, "name")}
+                data-id=${item?.name || ""}
             >
-                <div style="pointer-events: none; background-color: transparent;" class="c icon"><ui-icon icon=${computed(item, ()=>{ return iconFor(item); })} /></div>
-                <div style="pointer-events: none; background-color: transparent;" class="c name" title=${propRef(item, "name")}>${propRef(item, "name")}</div>
-                <div style="pointer-events: none; background-color: transparent;" class="c size">${isFile ? propRef(item, "size") : ""}</div>
-                <div style="pointer-events: none; background-color: transparent;" class="c date">${isFile ? computed(propRef(item, "lastModified"), (val)=>{ return formatDate(val ?? 0); }) : ""}</div>
+                <div style="pointer-events: none; background-color: transparent;" class="c icon"><ui-icon icon=${iconFor(item)} /></div>
+                <div style="pointer-events: none; background-color: transparent;" class="c name" title=${item?.name || ""}>${item?.name || ""}</div>
+                <div style="pointer-events: none; background-color: transparent;" class="c size">${isFile ? (item?.size ?? "") : ""}</div>
+                <div style="pointer-events: none; background-color: transparent;" class="c date">${isFile ? formatDate(item?.lastModified ?? 0) : ""}</div>
                 <div style="pointer-events: none; background-color: transparent;" class="c actions">
                     <button class="action-btn" title="Copy Path" on:click=${(ev: MouseEvent) => { ev.stopPropagation(); requestAnimationFrame(() => operative.onMenuAction?.(item, "copyPath", ev)); }}>
                         <ui-icon icon="copy" />
@@ -143,35 +144,35 @@ export class FileManagerContent extends UIElement {
             </div>`;
 
             //
-            bindWith(itemEl, "--order", computed(propRef(item, "name"), (val)=>{ return self.byFirstTwoLetterOrName(val ?? ""); }), handleStyleChange);
+            bindWith(itemEl, "--order", self.byFirstTwoLetterOrName(item?.name ?? ""), handleStyleChange);
             return itemEl;
         }
 
         //
         let fileRows: any = null;
-        const renderedEntries = M(self.entries, (file: any, idx: any) => {
-            console.log(file, idx);
-            if (typeof file == "object" && file != null && file?.name != null) {
-                return makeListElement({ name: file.name, kind: file.kind, size: file.size, lastModified: file.lastModified });
+        fileRows = H`<div class="fm-grid-rows" style="will-change: contents;"></div>`;
+        const syncRows = () => {
+            if (!fileRows) return;
+            const currentEntries = (self.entries as any)?.value ?? self.entries ?? [];
+            const safeEntries = Array.isArray(currentEntries) ? currentEntries : [];
+            fileRows.innerHTML = "";
+            const fragment = document.createDocumentFragment();
+            for (const entry of safeEntries) {
+                if (entry && typeof entry === "object" && entry.name != null) {
+                    const row = makeListElement(entry as FileEntryItem);
+                    if (row) fragment.append(row);
+                }
             }
-            return null;
-        });
-        
-        /*const renderedEntries = C(computed(self.entries, (v) => {
-            if (v?.length != null && v?.length >= 0) {
-                if (fileRows != null) fileRows.innerHTML = ``;
-                const fragment = document.createDocumentFragment();
-                fragment.append(...v?.map?.((file: FileEntryItem)=>makeListElement(file))?.filter?.(el => el != null) || []);
-                return fragment;
-            }
-            return [];
-        }));*/
-
-        //
-        fileRows = H`<div class="fm-grid-rows" style="will-change: contents;">${renderedEntries}</div>`
-        renderedEntries.boundParent = fileRows;
+            fileRows.append(fragment);
+        };
         createItemCtxMenu?.(fileRows, operative.onMenuAction.bind(operative), self.entries);
-        queueMicrotask(() => self.bindDropHandlers());
+        queueMicrotask(() => {
+            self.#rowsWatcherDisposer?.();
+            self.#rowsWatcherDisposer = null;
+            syncRows();
+            self.#rowsWatcherDisposer = affected(operative.entries, () => syncRows());
+            self.bindDropHandlers();
+        });
 
         //
         const rendered = H`<div class="fm-grid" part="grid">

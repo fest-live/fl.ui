@@ -55,6 +55,24 @@ const waitForClipboardFrame = (): Promise<void> =>
         resolve();
     });
 
+const ASSETS_ROOT = "/assets/";
+const ASSET_SEED_PATHS = [
+    "/assets/crossword.css",
+    "/assets/icons/",
+    "/assets/imgs/",
+    "/assets/wallpapers/"
+];
+
+const normalizeDirectoryPath = (input?: string): string => {
+    const value = (input || "/").trim() || "/";
+    const withLeading = value.startsWith("/") ? value : `/${value}`;
+    return withLeading.endsWith("/") ? withLeading : `${withLeading}/`;
+};
+
+const isAssetsPath = (path?: string): boolean => normalizeDirectoryPath(path).startsWith(ASSETS_ROOT);
+const isVirtualRootPath = (path?: string): boolean => normalizeDirectoryPath(path) === "/";
+const isReadonlyPath = (path?: string): boolean => isAssetsPath(path) || isVirtualRootPath(path);
+
 //
 export class FileOperative {
     // refs/state
@@ -67,30 +85,116 @@ export class FileOperative {
     #clipboard: { items: string[]; cut?: boolean } | null = null;
     #subscribed: any = null;
     #loaderDebounceTimer: any = null;
+    #readonly = ref(false);
 
     //
     public host: HTMLElement | null = null;
-    public pathRef = ref("/user/");
+    public pathRef = ref("/");
 
     //
-    get path() { return this.pathRef?.value || "/user/"; }
-    set path(value: string) { if (this.pathRef) this.pathRef.value = value || "/user/"; }
+    get path() { return this.pathRef?.value || "/"; }
+    set path(value: string) { if (this.pathRef) this.pathRef.value = value || "/"; }
     get entries() { return this.#entries; }
+    get readonly() { return this.#readonly?.value === true; }
 
     //
     constructor() {
         this.#entries = ref<FileEntryItem[]>([]);
-        this.pathRef ??= ref("/user/");
+        this.pathRef ??= ref("/");
 
         //
-        affected(this.pathRef, (path) => this.loadPath(path || "/user/"));
-        navigator?.storage?.getDirectory?.()?.then?.((h)=>this.#fsRoot = h);
+        affected(this.pathRef, (path) => {
+            this.#readonly.value = isReadonlyPath(path || "/");
+            this.loadPath(path || "/");
+        });
+        navigator?.storage?.getDirectory?.()?.then?.((h) => {
+            this.#fsRoot = h;
+            void this.refreshList(this.path || "/");
+        });
+    }
+
+    private async listAssetEntries(path: string): Promise<FileEntryItem[]> {
+        const target = normalizeDirectoryPath(path);
+        const knownPaths = new Set<string>(ASSET_SEED_PATHS);
+
+        try {
+            const cacheNames = await caches.keys();
+            for (const cacheName of cacheNames) {
+                try {
+                    const cache = await caches.open(cacheName);
+                    const requests = await cache.keys();
+                    for (const req of requests) {
+                        const pathname = new URL(req.url).pathname;
+                        if (pathname.startsWith(ASSETS_ROOT)) {
+                            knownPaths.add(pathname);
+                        }
+                    }
+                } catch {
+                    // Ignore per-cache listing failures.
+                }
+            }
+        } catch {
+            // Cache API may be unavailable in some contexts.
+        }
+
+        const dirs = new Set<string>();
+        const files: string[] = [];
+        for (const full of knownPaths) {
+            const normalized = full.startsWith("/") ? full : `/${full}`;
+            if (!normalized.startsWith(target)) continue;
+            const remainder = normalized.slice(target.length);
+            if (!remainder) continue;
+            const [firstSegment, ...rest] = remainder.split("/").filter(Boolean);
+            if (!firstSegment) continue;
+            if (rest.length > 0 || normalized.endsWith("/")) {
+                dirs.add(firstSegment);
+            } else {
+                files.push(firstSegment);
+            }
+        }
+
+        const directoryEntries = Array.from(dirs)
+            .sort((a, b) => a.localeCompare(b))
+            .map((name) => observe({ name, kind: "directory" as const }));
+
+        const uniqueFiles = Array.from(new Set(files)).filter((name) => !dirs.has(name));
+        const fileEntries = uniqueFiles
+            .sort((a, b) => a.localeCompare(b))
+            .map((name) => {
+                const item: any = observe({ name, kind: "file" as const });
+                item.type = getMimeTypeByFilename?.(name);
+                return item;
+            });
+
+        return [...directoryEntries, ...fileEntries];
+    }
+
+    private listVirtualRootEntries(): FileEntryItem[] {
+        return [
+            observe({ name: "user", kind: "directory" as const }),
+            observe({ name: "assets", kind: "directory" as const }),
+        ];
+    }
+
+    private detachDirectoryObservers() {
+        if (this.#loaderDebounceTimer) {
+            clearTimeout(this.#loaderDebounceTimer);
+            this.#loaderDebounceTimer = null;
+        }
+        if (typeof this.#subscribed === "function") {
+            this.#subscribed();
+            this.#subscribed = null;
+        }
+        if (this.#dirProxy?.dispose) {
+            this.#dirProxy.dispose();
+        }
+        this.#dirProxy = null;
     }
 
     //
-    itemAction(item: FileEntryItem) {
+    async itemAction(item: FileEntryItem) {
         const self: any = this;
-        const detail = { path: (self.path || "/user/") + item?.name, item, originalEvent: null };
+        const detail = { path: (self.path || "/") + item?.name, item, originalEvent: null };
         const event = new CustomEvent("open-item", { detail, bubbles: true, composed: true, cancelable: true });
         this.host?.dispatchEvent(event);
         if (event.defaultPrevented) return;
@@ -100,6 +204,15 @@ export class FileOperative {
             const next = (self.path?.endsWith?.("/") ? self.path : self.path + "/") + item?.name + "/";
             self.path = next;
         } else {
+            const abs = (self.path || "/") + (item?.name || "");
+            if (!item?.file && isAssetsPath(abs)) {
+                item.file = await provide(abs).catch(() => null);
+                if (item.file) {
+                    item.size = item.file.size;
+                    item.lastModified = item.file.lastModified;
+                    item.type = item.file.type || item.type;
+                }
+            }
             const openEvent = new CustomEvent("open", { detail, bubbles: true, composed: true });
             this.host?.dispatchEvent(openEvent);
         }
@@ -112,16 +225,7 @@ export class FileOperative {
 
     //
     async refreshList(path: any|string = this.path) {
-        if (this.#loadLock) { return requestIdleCallback(() => this.refreshList(path), { timeout: 1000 }); };
-        this.#loadLock = true;
-        try {
-            await this.loadPath(path);
-        } catch (e: any) {
-            this.#error.value = e?.message || String(e || "");
-            console.warn(e);
-        } finally {
-            this.#loadLock = false;
-        }
+        await this.loadPath(path);
         return this;
     }
 
@@ -137,10 +241,18 @@ export class FileOperative {
         try {
             this.#loading.value = true;
             this.#error.value = "";
-            const rel = path?.value || path || this.path || "/user/"; // openDirectory can consume absolute-like parts (it filters Booleans)
+            const rel = path?.value || path || this.path || "/"; // openDirectory can consume absolute-like parts (it filters Booleans)
+            this.detachDirectoryObservers();
+            if (isVirtualRootPath(rel)) {
+                this.#entries.value = this.listVirtualRootEntries();
+                return this;
+            }
+            if (isAssetsPath(rel)) {
+                this.#entries.value = await this.listAssetEntries(rel);
+                return this;
+            }
 
             //
-            if (this.#dirProxy?.dispose) { this.#dirProxy.dispose(); }
             this.#dirProxy = openDirectory(this.#fsRoot, rel, { create: false });
             await this.#dirProxy;
 
@@ -190,7 +302,6 @@ export class FileOperative {
             };
 
             //
-            if (typeof this.#subscribed == "function") { this.#subscribed?.(); this.#subscribed = null; }
             await loader(await this.#dirProxy?.getMap?.() ?? [])?.catch?.(console.warn.bind(console));
             this.#subscribed = affected((await this.#dirProxy?.getMap?.() ?? []), debouncedLoader);
         } catch (e: any) {
@@ -200,21 +311,18 @@ export class FileOperative {
             this.#loading.value = false;
             this.#loadLock = false;
         }
-
-        //
-        this.#loadLock = false;
         return this;
     }
 
     //
-    protected onRowClick = (item: FileEntryItem, ev: MouseEvent) => { ev.preventDefault(); this.itemAction(item); };
-    protected onRowDblClick = (item: FileEntryItem, ev: MouseEvent) => { ev.preventDefault(); this.itemAction(item); };
+    protected onRowClick = (item: FileEntryItem, ev: MouseEvent) => { ev.preventDefault(); void this.itemAction(item); };
+    protected onRowDblClick = (item: FileEntryItem, ev: MouseEvent) => { ev.preventDefault(); void this.itemAction(item); };
     protected onRowDragStart = (item: FileEntryItem, ev: DragEvent) => {
         if (!ev.dataTransfer) return;
         ev.dataTransfer.effectAllowed = "copyMove";
 
         //
-        const abs = (this.path || "/user/") + (item?.name || "");
+        const abs = (this.path || "/") + (item?.name || "");
         ev.dataTransfer.setData("text/plain", abs);
         ev.dataTransfer.setData("text/uri-list", abs);
         if (item?.file) {
@@ -227,9 +335,34 @@ export class FileOperative {
     protected async onMenuAction(item: FileEntryItem | null, actionId: string, ev: MouseEvent) {
         try {
             const itemName = item?.name;
-            if (!actionId) return; const abs = (this.path || "/user/") + (itemName || ""); switch (actionId) {
+            if (!actionId) return; const abs = (this.path || "/") + (itemName || ""); switch (actionId) {
+                case "delete":
+                case "rename":
+                case "movePath":
+                    if (this.readonly || isReadonlyPath(abs)) {
+                        this.dispatchEvent(new CustomEvent("readonly-blocked", {
+                            detail: { action: actionId, path: abs },
+                            bubbles: true,
+                            composed: true
+                        }));
+                        break;
+                    }
+                    if (actionId === "delete") {
+                        await remove(this.#fsRoot, abs);
+                        break;
+                    }
+                    if (actionId === "rename") {
+                        if (item?.kind === "file") {
+                            const next = prompt("Rename to:", itemName);
+                            if (next && next !== itemName) {
+                                await this.renameFile(abs ?? "", next ?? "");
+                            }
+                        }
+                        break;
+                    }
+                    break;
                 case "open":
-                    this.itemAction(item as FileEntryItem);
+                    await this.itemAction(item as FileEntryItem);
                     break;
                 case "view":
                     // Dispatch custom event for unified messaging
@@ -245,6 +378,11 @@ export class FileOperative {
                     break;
                 case "download":
                     Promise.try(async () => {
+                        if (isAssetsPath(abs)) {
+                            const file = await provide(abs);
+                            if (file) await downloadFile(file);
+                            return;
+                        }
                         if (item?.kind === "file") {
                             await downloadFile(await getFileHandle(this.#fsRoot, abs, { create: false }));
                         } else {
@@ -252,17 +390,6 @@ export class FileOperative {
                         }
                     }).catch(console.warn);
                      break;
-                case "delete":
-                    await remove(this.#fsRoot, abs);
-                    break;
-                case "rename":
-                    if (item?.kind === "file") {
-                        const next = prompt("Rename to:", itemName);
-                        if (next && next !== itemName) {
-                            await this.renameFile(abs ?? "", next ?? "");
-                        }
-                    }
-                    break;
                 case "copyPath":
                     this.#clipboard = { items: [abs], cut: false };
                     try {
@@ -300,6 +427,7 @@ export class FileOperative {
 
     //
     async requestUpload() {
+        if (this.readonly || isReadonlyPath(this.path)) return;
         try {
             if ((window as any)?.showDirectoryPicker) {
                 /*const confirmed = confirm("Upload directory?");
@@ -314,6 +442,7 @@ export class FileOperative {
 
     //
     async requestPaste() {
+        if (this.readonly || isReadonlyPath(this.path)) return;
         try {
             // 1. Try modern Async Clipboard API first (images, files)
             try {
@@ -321,7 +450,7 @@ export class FileOperative {
                 await waitForClipboardFrame();
                 const clipboardItems = await navigator.clipboard.read();
                 if (clipboardItems && clipboardItems.length > 0) {
-                     await handleIncomingEntries(clipboardItems, this.path || "/user/");
+                     await handleIncomingEntries(clipboardItems, this.path || "/");
                      return;
                 }
             } catch (e) {
@@ -343,7 +472,7 @@ export class FileOperative {
             if (systemText) {
                 await handleIncomingEntries({
                     getData: (type: string) => type === "text/plain" ? systemText : ""
-                }, this.path || "/user/");
+                }, this.path || "/");
                 return;
             }
 
@@ -351,7 +480,7 @@ export class FileOperative {
                 const txt = internalItems.join("\n");
                 await handleIncomingEntries({
                     getData: (type: string) => type === "text/plain" ? txt : ""
-                }, this.path || "/user/");
+                }, this.path || "/");
 
                 if (this.#clipboard?.cut) {
                     for (const src of internalItems) {
@@ -365,11 +494,12 @@ export class FileOperative {
 
     //
     public onPaste(ev: ClipboardEvent) {
+        if (this.readonly || isReadonlyPath(this.path)) return;
         ev.preventDefault();
 
         // Try to read from event first
         if (ev.clipboardData || (ev as any).dataTransfer) {
-            handleIncomingEntries(ev.clipboardData || (ev as any).dataTransfer, this.path || "/user/");
+            handleIncomingEntries(ev.clipboardData || (ev as any).dataTransfer, this.path || "/");
             return;
         }
 
@@ -384,11 +514,12 @@ export class FileOperative {
 
     //
     public async onDrop(ev: DragEvent) {
+        if (this.readonly || isReadonlyPath(this.path)) return;
         ev.preventDefault();
 
         //
         if ((ev as any).clipboardData || (ev as any).dataTransfer) {
-            handleIncomingEntries((ev as any).clipboardData || (ev as any).dataTransfer, this.path || "/user/");
+            handleIncomingEntries((ev as any).clipboardData || (ev as any).dataTransfer, this.path || "/");
             return;
         }
     }

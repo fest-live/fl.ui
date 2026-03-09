@@ -32,7 +32,7 @@ export class FileManager extends UIElement {
 
     //
     get pathRef() { return ((this as any)?.querySelector?.("ui-file-manager-content") as any)?.pathRef; }
-    get path() { return ((this as any)?.querySelector?.("ui-file-manager-content") as any)?.pathRef?.value ?? "/user/"; }
+    get path() { return ((this as any)?.querySelector?.("ui-file-manager-content") as any)?.pathRef?.value ?? "/"; }
     set path(value: string) {
         const content = (this as any)?.querySelector?.("ui-file-manager-content");
         if (content) (content as any).pathRef.value = value;
@@ -82,7 +82,7 @@ export class FileManager extends UIElement {
     //
     async goUp() {
         const contents = (this as any)?.querySelector?.("ui-file-manager-content");
-        const parts = (contents?.path || "/user/")
+        const parts = (contents?.path || "/")
             .replace(/\/+$/g, "")
             .split("/")
             .filter(Boolean);

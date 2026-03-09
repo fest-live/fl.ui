@@ -75,7 +75,7 @@ export class FileManagerContent extends UIElement {
     //
     get path() { return this.operativeInstance?.path || ""; }
     set path(value: string) { if (this.operativeInstance) this.operativeInstance.path = value; }
-    get pathRef() { return this.operativeInstance?.pathRef || ref("/user/"); }
+    get pathRef() { return this.operativeInstance?.pathRef || ref("/"); }
 
     //
     onInitialize() {

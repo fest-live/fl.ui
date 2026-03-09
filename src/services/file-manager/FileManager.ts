@@ -28,23 +28,24 @@ export class FileManager extends UIElement {
 
     // refs/state
     styles = () => styled;
+    #pathWatcherDisposer: (() => void) | null = null;
     constructor() { super(); }
 
     //
     get content() { return (this as any)?.querySelector?.("ui-file-manager-content") as any; }
     get operative() { return this.content?.operativeInstance; }
     get pathRef() { return this.operative?.pathRef; }
-    get path() { return this.content?.path || this.operative?.path || "/user/"; }
+    get path() { return this.content?.path || this.operative?.path || "/"; }
     set path(value: string) {
-        if (this.content) this.content.path = value || "/user/";
-        if (this.operative) this.operative.path = value || "/user/";
+        if (this.content) this.content.path = value || "/";
+        if (this.operative) this.operative.path = value || "/";
     }
 
     //
     get input() { return this?.shadowRoot?.querySelector?.("input[name=\"address\"]") as HTMLInputElement | null; }
-    get inputValue() { return this.input?.value || "/user/"; }
+    get inputValue() { return this.input?.value || "/"; }
     set inputValue(value: string) {
-        if (this.input) this.input.value = value || "/user/";
+        if (this.input) this.input.value = value || "/";
     }
 
     //
@@ -53,8 +54,29 @@ export class FileManager extends UIElement {
         const self: any = result ?? this;
 
         //
-        const contents: any = document.createElement("ui-file-manager-content");
-        self.append(contents);
+        const existingContents = Array.from(self.querySelectorAll("ui-file-manager-content"));
+        const primaryContent = existingContents[0] ?? document.createElement("ui-file-manager-content");
+        if (!existingContents.length) {
+            self.append(primaryContent);
+        }
+        if (existingContents.length > 1) {
+            for (const extra of existingContents.slice(1)) {
+                extra.remove();
+            }
+        }
+
+        //
+        queueMicrotask(() => {
+            this.#pathWatcherDisposer?.();
+            this.#pathWatcherDisposer = null;
+            if (!this.pathRef) return;
+            this.#pathWatcherDisposer = affected(this.pathRef, (path) => {
+                const input = this?.shadowRoot?.querySelector?.("input[name=\"address\"]");
+                if (input && input instanceof HTMLInputElement && input.value != path) {
+                    input.value = path || "/";
+                }
+            });
+        });
 
         //
         return self as this;
@@ -89,23 +111,26 @@ export class FileManager extends UIElement {
     //
     async navigate(toPath: string) {
         const clean = getDir(toPath);
-        this.path = clean || this.path || "/user/";
-        this.operative?.refreshList(this.path || "/user/");
+        this.path = clean || this.path || "/";
         const input = this?.shadowRoot?.querySelector?.("input[name=\"address\"]");
-        if (input && input instanceof HTMLInputElement && input.value != this.path) { input.value = this.path || "/user/"; };
+        if (input && input instanceof HTMLInputElement && input.value != this.path) { input.value = this.path || "/"; };
     }
 
     //
     async goUp() {
-        const parts = (this.path || this.content?.path || "/user/")
+        const currentPath = this.path || this.content?.path || "/";
+        const parts = currentPath
             .replace(/\/+$/g, "")
             .split("/")
             .filter(Boolean);
         console.log("parts", parts, this.path, this.content?.path);
-        if (parts.length <= 1) return; // stay at /user
+        if (parts.length <= 1) {
+            this.navigate(this.path = "/");
+            return;
+        }
         const up = "/" + parts.slice(0, -1).join("/") + "/";
         const clean = getDir(up);
-        this.navigate(this.path = clean || "/user/");
+        this.navigate(this.path = clean || "/");
     }
 
     //
@@ -123,10 +148,10 @@ export class FileManager extends UIElement {
         const toolbar = H`<div part="toolbar" class="fm-toolbar">
             <div class="fm-toolbar-left">
                 <button class="btn" title="Up" on:click=${() => requestAnimationFrame(() => self.goUp())}><ui-icon icon="arrow-up"/></button>
-                <button class="btn" title="Refresh" on:click=${() => requestAnimationFrame(() => self.navigate(self.inputValue || self.path || "/user/"))}><ui-icon icon="arrow-clockwise"/></button>
+                <button class="btn" title="Refresh" on:click=${() => requestAnimationFrame(() => self.navigate(self.inputValue || self.path || "/"))}><ui-icon icon="arrow-clockwise"/></button>
             </div>
             <div class="fm-toolbar-center"><form style="display: contents;" onsubmit="return false;">
-                <input class="address c2-surface" autocomplete="off" type="text" name="address" value=${self.path || "/user/"} />
+                <input class="address c2-surface" autocomplete="off" type="text" name="address" value=${self.path || "/"} />
             </form></div>
             <div class="fm-toolbar-right">
                 <button class="btn" title="Add" on:click=${() => requestAnimationFrame(() => self.requestUpload?.())}><ui-icon icon="upload"/></button>
@@ -134,14 +159,6 @@ export class FileManager extends UIElement {
                 <button class="btn" title="Use" on:click=${() => requestAnimationFrame(() => self.requestUse?.())}><ui-icon icon="hand-withdraw"/></button>
             </div>
         </div>`
-
-        //
-        requestAnimationFrame(() => {
-            affected(this.pathRef, (path) => {
-                const input = this?.shadowRoot?.querySelector?.("input[name=\"address\"]");
-                if (input && input instanceof HTMLInputElement && input.value != path) { input.value = path || "/user/"; };
-            });
-        });
 
         //
         return H`<div part="root" class="fm-root" data-with-sidebar=${sidebarVisible}>${toolbar}${content}</div>`;

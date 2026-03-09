@@ -112,7 +112,10 @@ export class FileManagerContent extends UIElement {
         }
         const operative = this.operativeInstance;
         if (!rows || !operative) return;
-        const currentEntries = (operative.entries as any)?.value ?? [];
+        const rawEntries: any = operative.entries as any;
+        const currentEntries =
+            Array.isArray(rawEntries) ? rawEntries :
+            (Array.isArray(rawEntries?.value) ? rawEntries.value : []);
         const safeEntries = Array.isArray(currentEntries) ? currentEntries : [];
         const seen = new Set<string>();
         rows.innerHTML = "";

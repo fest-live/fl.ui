@@ -1,4 +1,5 @@
 import { observe, iterated, ref, affected } from "fest/object";
+import { isUserScopePath } from "fest/core";
 
 // OPFS helpers
 import {
@@ -94,7 +95,7 @@ const isAssetsPath = (path?: string): boolean => normalizeDirectoryPath(path).st
 const isVirtualRootPath = (path?: string): boolean => normalizeDirectoryPath(path) === "/";
 const isReadonlyPath = (path?: string): boolean => isAssetsPath(path) || isVirtualRootPath(path);
 const isIconsPath = (path?: string): boolean => normalizeDirectoryPath(path).startsWith("/assets/icons/");
-const isUserPath = (path?: string): boolean => normalizeDirectoryPath(path).startsWith("/user/");
+const isUserPath = (path?: string): boolean => isUserScopePath(normalizeDirectoryPath(path));
 
 const buildVirtualAssetPaths = (path: string): string[] => {
     const target = normalizeDirectoryPath(path);
@@ -314,6 +315,121 @@ export class FileOperative {
         return current;
     }
 
+    private normalizeUserRelativePath(path: string): string {
+        const normalized = normalizeDirectoryPath(path);
+        if (normalized === "/user/") return "/";
+        if (normalized.startsWith("/user/")) return normalized.slice("/user".length);
+        return normalized;
+    }
+
+    private async getOpfsRootHandle(): Promise<any> {
+        this.#fsRoot = this.#fsRoot || await navigator?.storage?.getDirectory?.();
+        return this.#fsRoot;
+    }
+
+    private async getUserDirHandle(path: string, create = false): Promise<any> {
+        const root = await this.getOpfsRootHandle();
+        if (!root) return null;
+        const rel = this.normalizeUserRelativePath(path);
+        const parts = rel.split("/").filter(Boolean);
+        let current = root;
+        for (const part of parts) {
+            current = await current.getDirectoryHandle(part, { create });
+        }
+        return current;
+    }
+
+    private async writeUserFile(file: File, destPath: string = this.path): Promise<void> {
+        const dir = await this.getUserDirHandle(destPath, true);
+        if (!dir) return;
+        const safeName = (file?.name || `file-${Date.now()}`).trim().replace(/\s+/g, "-");
+        const fileHandle = await dir.getFileHandle(safeName, { create: true });
+        const writable = await fileHandle.createWritable();
+        await writable.write(file);
+        await writable.close();
+    }
+
+    private async removeUserEntry(absPath: string, recursive = true): Promise<boolean> {
+        const root = await this.getOpfsRootHandle();
+        if (!root) return false;
+        const rel = this.normalizeUserRelativePath(absPath).replace(/\/+$/g, "");
+        const parts = rel.split("/").filter(Boolean);
+        if (!parts.length) return false;
+        const name = parts.pop() as string;
+        let dir = root;
+        for (const part of parts) {
+            dir = await dir.getDirectoryHandle(part, { create: false });
+        }
+        await dir.removeEntry(name, { recursive });
+        return true;
+    }
+
+    private async renameUserFile(absPath: string, newName: string): Promise<void> {
+        const root = await this.getOpfsRootHandle();
+        if (!root) return;
+        const rel = this.normalizeUserRelativePath(absPath).replace(/\/+$/g, "");
+        const parts = rel.split("/").filter(Boolean);
+        if (!parts.length) return;
+        const oldName = parts.pop() as string;
+        let dir = root;
+        for (const part of parts) {
+            dir = await dir.getDirectoryHandle(part, { create: false });
+        }
+        const oldHandle = await dir.getFileHandle(oldName, { create: false });
+        const oldFile = await oldHandle.getFile();
+        const safeName = (newName || "").trim().replace(/\s+/g, "-");
+        if (!safeName || safeName === oldName) return;
+        const newHandle = await dir.getFileHandle(safeName, { create: true });
+        const writable = await newHandle.createWritable();
+        await writable.write(oldFile);
+        await writable.close();
+        await dir.removeEntry(oldName);
+    }
+
+    private async extractFilesFromData(data: any): Promise<File[]> {
+        const files: File[] = [];
+        const now = Date.now();
+        const extByMime = (mime: string) => {
+            const m = (mime || "").toLowerCase();
+            if (m.includes("css")) return "css";
+            if (m.includes("json")) return "json";
+            if (m.includes("markdown")) return "md";
+            if (m.includes("svg")) return "svg";
+            if (m.includes("png")) return "png";
+            if (m.includes("jpeg") || m.includes("jpg")) return "jpg";
+            if (m.includes("gif")) return "gif";
+            if (m.includes("webp")) return "webp";
+            if (m.includes("plain")) return "txt";
+            return "bin";
+        };
+
+        const nativeFiles = Array.from(data?.files ?? []).filter((f: any) => f instanceof File);
+        files.push(...nativeFiles);
+
+        const items = Array.from(data?.items ?? []);
+        for (const item of items as any[]) {
+            if (item?.kind === "file" && typeof item?.getAsFile === "function") {
+                const f = item.getAsFile();
+                if (f instanceof File) files.push(f);
+                continue;
+            }
+            const types = Array.from(item?.types ?? []);
+            if (typeof item?.getType === "function" && types.length > 0) {
+                const type = String(types[0] || "");
+                try {
+                    const blob = await item.getType(type);
+                    if (!blob) continue;
+                    const ext = extByMime(blob.type || type);
+                    files.push(new File([blob], `clipboard-${now}-${files.length}.${ext}`, {
+                        type: blob.type || type,
+                        lastModified: now
+                    }));
+                } catch {}
+            }
+        }
+        return files;
+    }
+
     private async readEntriesFromDirectory(dir: any): Promise<FileEntryItem[]> {
         if (!dir) return [];
         const entries: FileEntryItem[] = [];
@@ -525,7 +641,11 @@ export class FileOperative {
                         break;
                     }
                     if (actionId === "delete") {
-                        await remove(this.#fsRoot, abs);
+                        if (isUserPath(abs)) {
+                            await this.removeUserEntry(abs, true);
+                        } else {
+                            await remove(this.#fsRoot, abs);
+                        }
                         await this.refreshList(this.path);
                         break;
                     }
@@ -533,7 +653,11 @@ export class FileOperative {
                         if (item?.kind === "file") {
                             const next = prompt("Rename to:", itemName);
                             if (next && next !== itemName) {
-                                await this.renameFile(abs ?? "", next ?? "");
+                                if (isUserPath(abs)) {
+                                    await this.renameUserFile(abs ?? "", next ?? "");
+                                } else {
+                                    await this.renameFile(abs ?? "", next ?? "");
+                                }
                                 await this.refreshList(this.path);
                             }
                         }
@@ -608,14 +732,18 @@ export class FileOperative {
     async requestUpload() {
         if (this.readonly || isReadonlyPath(this.path)) return;
         try {
-            if ((window as any)?.showDirectoryPicker) {
-                /*const confirmed = confirm("Upload directory?");
-                if (confirmed) {
-                    await uploadDirectory(this.path, null);
-                    return;
-                }*/
+            const picker = (window as any)?.showOpenFilePicker;
+            if (picker && isUserPath(this.path)) {
+                const handles = await picker({ multiple: true }).catch(() => []);
+                for (const handle of handles || []) {
+                    const file = await handle?.getFile?.();
+                    if (file instanceof File) {
+                        await this.writeUserFile(file, this.path);
+                    }
+                }
+            } else {
+                await uploadFile(this.path, null);
             }
-            await uploadFile(this.path, null);
             await this.refreshList(this.path);
         } catch (e) { console.warn(e); }
     }
@@ -630,9 +758,14 @@ export class FileOperative {
                 await waitForClipboardFrame();
                 const clipboardItems = await navigator.clipboard.read();
                 if (clipboardItems && clipboardItems.length > 0) {
-                     await handleIncomingEntries(clipboardItems, this.path || "/");
-                     await this.refreshList(this.path);
-                     return;
+                    const files = await this.extractFilesFromData(clipboardItems);
+                    if (files.length > 0 && isUserPath(this.path)) {
+                        for (const file of files) {
+                            await this.writeUserFile(file, this.path);
+                        }
+                        await this.refreshList(this.path);
+                        return;
+                    }
                 }
             } catch (e) {
                 // Fallback or permission denied
@@ -651,6 +784,7 @@ export class FileOperative {
             // Determine sources: Prefer internal if valid and no system text override (simple heuristic)
             // Actually, unified handling:
             if (systemText) {
+                // Preserve text paste behavior for non-file clipboard content.
                 await handleIncomingEntries({
                     getData: (type: string) => type === "text/plain" ? systemText : ""
                 }, this.path || "/");
@@ -660,15 +794,19 @@ export class FileOperative {
 
             if (internalItems.length > 0) {
                 const txt = internalItems.join("\n");
-                await handleIncomingEntries({
-                    getData: (type: string) => type === "text/plain" ? txt : ""
-                }, this.path || "/");
-
-                if (this.#clipboard?.cut) {
+                if (isUserPath(this.path) && internalItems.every((x) => String(x || "").startsWith("/user/"))) {
                     for (const src of internalItems) {
-                         await remove(this.#fsRoot, src);
+                        const file = await readFile(this.#fsRoot, src).catch(() => null);
+                        if (file instanceof File) {
+                            await this.writeUserFile(file, this.path);
+                            if (this.#clipboard?.cut) await this.removeUserEntry(src, true).catch(() => null);
+                        }
                     }
-                    this.#clipboard = null;
+                    if (this.#clipboard?.cut) this.#clipboard = null;
+                } else {
+                    await handleIncomingEntries({
+                        getData: (type: string) => type === "text/plain" ? txt : ""
+                    }, this.path || "/");
                 }
                 await this.refreshList(this.path);
             }
@@ -683,7 +821,15 @@ export class FileOperative {
         // Try to read from event first
         if (ev.clipboardData || (ev as any).dataTransfer) {
             void Promise.try(async () => {
-                await handleIncomingEntries(ev.clipboardData || (ev as any).dataTransfer, this.path || "/");
+                const payload = ev.clipboardData || (ev as any).dataTransfer;
+                const files = await this.extractFilesFromData(payload);
+                if (files.length > 0 && isUserPath(this.path)) {
+                    for (const file of files) {
+                        await this.writeUserFile(file, this.path);
+                    }
+                } else {
+                    await handleIncomingEntries(payload, this.path || "/");
+                }
                 await this.refreshList(this.path);
             }).catch(console.warn);
             return;
@@ -705,7 +851,15 @@ export class FileOperative {
 
         //
         if ((ev as any).clipboardData || (ev as any).dataTransfer) {
-            await handleIncomingEntries((ev as any).clipboardData || (ev as any).dataTransfer, this.path || "/");
+            const payload = (ev as any).clipboardData || (ev as any).dataTransfer;
+            const files = await this.extractFilesFromData(payload);
+            if (files.length > 0 && isUserPath(this.path)) {
+                for (const file of files) {
+                    await this.writeUserFile(file, this.path);
+                }
+            } else {
+                await handleIncomingEntries(payload, this.path || "/");
+            }
             await this.refreshList(this.path);
             return;
         }

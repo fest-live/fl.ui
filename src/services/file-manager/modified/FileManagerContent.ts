@@ -110,7 +110,7 @@ export class FileManagerContent extends UIElement {
         addEvent(container, "drop", (ev: DragEvent) => {
             if (isInFocus(ev?.target as HTMLElement, "ui-file-manager-content, ui-file-manager")) {
                 ev?.preventDefault?.();
-                ev?.stopImmediatePropagation?.();
+                ev?.stopPropagation?.();
                 this.operativeInstance?.onDrop?.(ev)
             }
         });

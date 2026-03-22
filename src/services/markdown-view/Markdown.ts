@@ -4,7 +4,7 @@ import DOMPurify from 'dompurify';
 import { marked, type MarkedExtension } from "marked";
 import { E, H, provide } from "fest/lure";
 import renderMathInElement from "katex/dist/contrib/auto-render.mjs";
-import { preloadStyle } from "fest/dom";
+import { loadInlineStyle } from "fest/dom";
 
 //
 import markedKatex from "marked-katex-extension";
@@ -82,7 +82,6 @@ marked?.use?.(markedKatex({
 });
 
 //
-const styled = preloadStyle(styles);
 const waitForClipboardFrame = (): Promise<void> =>
     new Promise((resolve) => {
         if (typeof requestAnimationFrame === "function") {
@@ -330,8 +329,9 @@ export class MarkdownView extends HTMLElement {
      */
     createShadowRoot(): void {
         const shadowRoot = this.attachShadow({ mode: "open" });
+        // Constructable adopted sheets reject @import (veela markdown bundle); inline <style> in shadow is OK.
+        loadInlineStyle(styles, shadowRoot);
         shadowRoot.append(this.#view = E("div.markdown-body", { dataset: { print: "" } })?.element);
-        shadowRoot.adoptedStyleSheets.push(styled);
     }
 }
 

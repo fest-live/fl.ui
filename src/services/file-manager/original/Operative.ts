@@ -119,7 +119,12 @@ export class FileOperative {
         const self: any = this;
 
         //
-        if (this.#loadLock) { return requestIdleCallback(() => this.loadPath(path), { timeout: 1000 }); };
+        if (this.#loadLock) {
+            if (typeof globalThis.requestIdleCallback === "function") {
+                return globalThis.requestIdleCallback(() => this.loadPath(path), { timeout: 1000 });
+            }
+            return globalThis.setTimeout(() => this.loadPath(path), 0);
+        }
         this.#loadLock = true;
 
         //

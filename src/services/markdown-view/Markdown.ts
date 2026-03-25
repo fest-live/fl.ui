@@ -4,7 +4,6 @@ import DOMPurify from 'dompurify';
 import { marked, type MarkedExtension } from "marked";
 import { E, H, provide } from "fest/lure";
 import renderMathInElement from "katex/dist/contrib/auto-render.mjs";
-import { loadInlineStyle } from "fest/dom";
 
 //
 import markedKatex from "marked-katex-extension";
@@ -79,6 +78,59 @@ marked?.use?.(markedKatex({
 });
 
 //
+/** One document-level injection: markdown typography targets `.markdown-body`, `md-view`, etc. (see veela tokens). */
+const MD_TYPOGRAPHY_STYLE_ID = "fl-md-view-typography";
+
+function ensureMarkdownTypographyStyles(): void {
+    if (typeof document === "undefined") return;
+    if (document.getElementById(MD_TYPOGRAPHY_STYLE_ID)) return;
+    const el = document.createElement("style");
+    el.id = MD_TYPOGRAPHY_STYLE_ID;
+    el.setAttribute("data-fl-md-view", "");
+    el.textContent = styles;
+    document.head.prepend(el);
+}
+
+/** Layout + slot chrome only; rendered markdown lives in light DOM (slotted `.markdown-body`). */
+const MD_VIEW_SHADOW_STYLES = `
+:host {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    min-block-size: 0;
+    box-sizing: border-box;
+}
+*, *::before, *::after { box-sizing: border-box; }
+.md-view__shell {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+    min-block-size: 0;
+    min-inline-size: 0;
+}
+.md-view__chrome {
+    flex-shrink: 0;
+}
+.md-view__chrome:empty {
+    display: none;
+}
+.md-view__frame {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+    min-block-size: 0;
+    min-inline-size: 0;
+}
+::slotted(.markdown-body) {
+    flex: 1 1 auto;
+    min-height: 0;
+    min-block-size: 0;
+    min-inline-size: 0;
+}
+`;
+
 const waitForClipboardFrame = (): Promise<void> =>
     new Promise((resolve) => {
         if (typeof requestAnimationFrame === "function") {
@@ -107,6 +159,7 @@ const waitForClipboardFrame = (): Promise<void> =>
  *
  * Combines the best features from both Markdown.ts and MarkdownViewer.ts:
  * - Web Component API with src attribute support
+ * - Rendered markdown is light-DOM content (default slot → `.markdown-body`); shadow holds chrome/layout only
  * - Enhanced caching with OPFS support
  * - Better error handling
  * - Optional UI features via attributes
@@ -114,7 +167,6 @@ const waitForClipboardFrame = (): Promise<void> =>
 export class MarkdownView extends HTMLElement {
     static observedAttributes = ["src", "content", "show-actions", "show-title", "title"];
 
-    #view: HTMLElement | null = null;
     #content: string = "";
     #showActions: boolean = false;
     #showTitle: boolean = false;
@@ -126,9 +178,12 @@ export class MarkdownView extends HTMLElement {
     }
 
     connectedCallback() {
+        ensureMarkdownTypographyStyles();
         this.style.setProperty("pointer-events", "auto");
         this.style.setProperty("touch-action", "manipulation");
         this.style.setProperty("user-select", "text");
+
+        this.#ensureBodyElement();
 
         // Load initial content
         const src = this.getAttribute("src");
@@ -167,13 +222,21 @@ export class MarkdownView extends HTMLElement {
      * Set HTML content in the view
      */
     async setHTML(doc: string | Promise<string> = ""): Promise<void> {
-        const view = this.#view;
-        if (view) {
-            const html = await doc;
-            const sanitized = DOMPurify?.sanitize?.((html || "")?.trim?.() || "", SANITIZE_OPTIONS) || "";
-            view.innerHTML = sanitized || view?.innerHTML || "";
-        }
+        const view = this.#ensureBodyElement();
+        const html = await doc;
+        const sanitized = DOMPurify?.sanitize?.((html || "")?.trim?.() || "", SANITIZE_OPTIONS) || "";
+        view.innerHTML = sanitized || view.innerHTML || "";
         document.dispatchEvent(new CustomEvent("ext-ready", {}));
+    }
+
+    /** Light-DOM root for parsed markdown (projected through the default slot). */
+    #ensureBodyElement(): HTMLElement {
+        let body = this.querySelector(":scope > .markdown-body") as HTMLElement | null;
+        if (!body) {
+            body = E("div.markdown-body", { dataset: { print: "" } })?.element as HTMLElement;
+            this.appendChild(body);
+        }
+        return body;
     }
 
     /**
@@ -322,13 +385,27 @@ export class MarkdownView extends HTMLElement {
     }
 
     /**
-     * Create shadow root with markdown view
+     * Shadow root: optional chrome + default slot. Markdown body is a light-DOM child (`.markdown-body`).
      */
     createShadowRoot(): void {
         const shadowRoot = this.attachShadow({ mode: "open" });
-        // Constructable adopted sheets reject @import (veela markdown bundle); inline <style> in shadow is OK.
-        loadInlineStyle(styles, shadowRoot);
-        shadowRoot.append(this.#view = E("div.markdown-body", { dataset: { print: "" } })?.element);
+        const chromeStyle = document.createElement("style");
+        chromeStyle.textContent = MD_VIEW_SHADOW_STYLES;
+
+        const shell = document.createElement("div");
+        shell.className = "md-view__shell";
+
+        const chrome = document.createElement("div");
+        chrome.className = "md-view__chrome";
+        chrome.setAttribute("part", "chrome");
+
+        const frame = document.createElement("div");
+        frame.className = "md-view__frame";
+        const slot = document.createElement("slot");
+        frame.append(slot);
+
+        shell.append(chrome, frame);
+        shadowRoot.append(chromeStyle, shell);
     }
 }
 
@@ -489,7 +566,7 @@ export class MarkdownViewer {
      */
     printContent(): void {
         try {
-            const viewElement = this.element?.shadowRoot?.querySelector('.markdown-body') as HTMLElement;
+            const viewElement = this.element?.querySelector(":scope > .markdown-body") as HTMLElement | null;
             if (!viewElement) {
                 console.error('[MarkdownViewer] Could not find markdown content for printing');
                 return;

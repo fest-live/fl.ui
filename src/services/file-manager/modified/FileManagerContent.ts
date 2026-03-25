@@ -114,11 +114,6 @@ export class FileManagerContent extends UIElement {
                 this.operativeInstance?.onDrop?.(ev)
             }
         });
-        /*addEvent(this, "keydown", (ev: KeyboardEvent) => {
-            if ((ev.ctrlKey || ev.metaKey) && ev.key.toLowerCase() === "v") {
-                ev.preventDefault(); this.operativeInstance?.requestPaste?.();
-            }
-        });*/
     }
 
     //

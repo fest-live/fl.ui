@@ -613,7 +613,7 @@ export class FileOperative {
     }
 
     //
-    protected onRowClick = (item: FileEntryItem, ev: MouseEvent) => { ev.preventDefault(); void this.itemAction(item); };
+    protected onRowClick = (_item: FileEntryItem, ev: MouseEvent) => { ev.preventDefault(); };
     protected onRowDblClick = (item: FileEntryItem, ev: MouseEvent) => { ev.preventDefault(); void this.itemAction(item); };
     protected onRowDragStart = (item: FileEntryItem, ev: DragEvent) => {
         if (!ev.dataTransfer) return;
@@ -682,6 +682,11 @@ export class FileOperative {
                     // Dispatch custom event for unified messaging
                     this.dispatchEvent(new CustomEvent('context-action', {
                         detail: { action: 'attach-workcenter', item }
+                    }));
+                    break;
+                case "pin-home":
+                    this.dispatchEvent(new CustomEvent('context-action', {
+                        detail: { action: 'pin-home', item }
                     }));
                     break;
                 case "download":

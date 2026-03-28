@@ -14,6 +14,7 @@ const makeFileActionOps = () => {
         { id: "open", label: "Open", icon: "function" },
         { id: "view", label: "View", icon: "eye" },
         { id: "attach-workcenter", label: "Attach to Work Center", icon: "lightning" },
+        { id: "pin-home", label: "Pin to Home Screen", icon: "push-pin-simple" },
         { id: "download", label: "Download", icon: "download" }
     ];
 };

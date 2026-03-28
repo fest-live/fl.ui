@@ -173,6 +173,7 @@ export type MenuAction =
     | "cut"
     | "paste"
     | "attach-workcenter"
+    | "pin-home"
     | "new-folder"
     | "new-file";
 

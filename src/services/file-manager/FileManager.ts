@@ -147,16 +147,16 @@ export class FileManager extends UIElement {
         const content = H`<div part="content" class="fm-content"><slot></slot></div>`
         const toolbar = H`<div part="toolbar" class="fm-toolbar">
             <div class="fm-toolbar-left">
-                <button class="btn" title="Up" on:click=${() => requestAnimationFrame(() => self.goUp())}><ui-icon icon="arrow-up"/></button>
-                <button class="btn" title="Refresh" on:click=${() => requestAnimationFrame(() => self.navigate(self.inputValue || self.path || "/"))}><ui-icon icon="arrow-clockwise"/></button>
+                <button class="btn" title="Up" on:click=${() => self.goUp()}><ui-icon icon="arrow-up"/></button>
+                <button class="btn" title="Refresh" on:click=${() => self.navigate(self.inputValue || self.path || "/")}><ui-icon icon="arrow-clockwise"/></button>
             </div>
             <div class="fm-toolbar-center"><form style="display: contents;" onsubmit="return false;">
                 <input class="address c2-surface" autocomplete="off" type="text" name="address" value=${self.path || "/"} />
             </form></div>
             <div class="fm-toolbar-right">
-                <button class="btn" title="Add" on:click=${() => requestAnimationFrame(() => self.requestUpload?.())}><ui-icon icon="upload"/></button>
-                <button class="btn" title="Paste" on:click=${() => requestAnimationFrame(() => self.requestPaste?.())}><ui-icon icon="clipboard"/></button>
-                <button class="btn" title="Use" on:click=${() => requestAnimationFrame(() => self.requestUse?.())}><ui-icon icon="hand-withdraw"/></button>
+                <button class="btn" title="Add" on:click=${() => self.requestUpload?.()}><ui-icon icon="upload"/></button>
+                <button class="btn" title="Paste" on:click=${() => self.requestPaste?.()}><ui-icon icon="clipboard"/></button>
+                <button class="btn" title="Use" on:click=${() => self.requestUse?.()}><ui-icon icon="hand-withdraw"/></button>
             </div>
         </div>`
 

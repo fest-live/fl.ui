@@ -134,8 +134,8 @@ export class FileManagerContent extends UIElement {
         const op: any = operative as any;
         const isFile = item?.kind === "file" || item?.file;
         const itemEl = H`<div draggable="${isFile}" class="row c2-surface"
-            on:click=${(ev: MouseEvent) => requestAnimationFrame(() => op.onRowClick?.(item, ev))}
-            on:dblclick=${(ev: MouseEvent) => requestAnimationFrame(() => op.onRowDblClick?.(item, ev))}
+            on:click=${(ev: MouseEvent) => op.onRowClick?.(item, ev)}
+            on:dblclick=${(ev: MouseEvent) => op.onRowDblClick?.(item, ev)}
             on:dragstart=${(ev: DragEvent) => op.onRowDragStart?.(item, ev)}
             data-id=${item?.name || ""}
         >
@@ -144,13 +144,13 @@ export class FileManagerContent extends UIElement {
             <div style="pointer-events: none; background-color: transparent;" class="c size">${isFile ? (item?.size ?? "") : ""}</div>
             <div style="pointer-events: none; background-color: transparent;" class="c date">${isFile ? formatDate(item?.lastModified ?? 0) : ""}</div>
             <div style="pointer-events: none; background-color: transparent;" class="c actions">
-                <button class="action-btn" title="Copy Path" on:click=${(ev: MouseEvent) => { ev.stopPropagation(); requestAnimationFrame(() => op.onMenuAction?.(item, "copyPath", ev)); }}>
+                <button class="action-btn" title="Copy Path" on:click=${(ev: MouseEvent) => { ev.stopPropagation(); op.onMenuAction?.(item, "copyPath", ev); }}>
                     <ui-icon icon="copy" />
                 </button>
-                <button class="action-btn" title="Copy" on:click=${(ev: MouseEvent) => { ev.stopPropagation(); requestAnimationFrame(() => op.onMenuAction?.(item, "copy", ev)); }}>
+                <button class="action-btn" title="Copy" on:click=${(ev: MouseEvent) => { ev.stopPropagation(); op.onMenuAction?.(item, "copy", ev); }}>
                     <ui-icon icon="clipboard" />
                 </button>
-                <button class="action-btn" title="Delete" on:click=${(ev: MouseEvent) => { ev.stopPropagation(); requestAnimationFrame(() => op.onMenuAction?.(item, "delete", ev)); }}>
+                <button class="action-btn" title="Delete" on:click=${(ev: MouseEvent) => { ev.stopPropagation(); op.onMenuAction?.(item, "delete", ev); }}>
                     <ui-icon icon="trash" />
                 </button>
             </div>

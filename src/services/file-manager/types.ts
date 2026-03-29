@@ -164,6 +164,7 @@ export interface ExplorerConfig {
 export type MenuAction =
     | "open"
     | "view"
+    | "view-base"
     | "download"
     | "delete"
     | "rename"
@@ -173,6 +174,8 @@ export type MenuAction =
     | "cut"
     | "paste"
     | "attach-workcenter"
+    | "attach-workcenter-queued"
+    | "attach-workcenter-headless"
     | "pin-home"
     | "new-folder"
     | "new-file";

@@ -678,10 +678,25 @@ export class FileOperative {
                         detail: { action: 'view', item }
                     }));
                     break;
+                case "view-base":
+                    this.dispatchEvent(new CustomEvent('context-action', {
+                        detail: { action: 'view-base', item }
+                    }));
+                    break;
                 case "attach-workcenter":
                     // Dispatch custom event for unified messaging
                     this.dispatchEvent(new CustomEvent('context-action', {
                         detail: { action: 'attach-workcenter', item }
+                    }));
+                    break;
+                case "attach-workcenter-queued":
+                    this.dispatchEvent(new CustomEvent('context-action', {
+                        detail: { action: 'attach-workcenter-queued', item }
+                    }));
+                    break;
+                case "attach-workcenter-headless":
+                    this.dispatchEvent(new CustomEvent('context-action', {
+                        detail: { action: 'attach-workcenter-headless', item }
                     }));
                     break;
                 case "pin-home":

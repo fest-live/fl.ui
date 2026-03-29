@@ -13,7 +13,10 @@ const makeFileActionOps = () => {
     return [
         { id: "open", label: "Open", icon: "function" },
         { id: "view", label: "View", icon: "eye" },
+        { id: "view-base", label: "View (Base tab)", icon: "arrow-square-out" },
         { id: "attach-workcenter", label: "Attach to Work Center", icon: "lightning" },
+        { id: "attach-workcenter-queued", label: "Queue attach (pending)", icon: "clock-counter-clockwise" },
+        { id: "attach-workcenter-headless", label: "Queue attach (headless)", icon: "wave-sine" },
         { id: "pin-home", label: "Pin to Home Screen", icon: "push-pin-simple" },
         { id: "download", label: "Download", icon: "download" }
     ];

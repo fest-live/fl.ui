@@ -409,8 +409,13 @@ export class MarkdownView extends HTMLElement {
     }
 }
 
-// Register the custom element
-customElements.define("md-view", MarkdownView);
+// Register the custom element (guard: `customElements` can be null in some runtimes; `typeof null` is "object")
+{
+    const ce = (globalThis as unknown as { customElements?: CustomElementRegistry | null }).customElements;
+    if (ce && typeof ce.get === "function" && typeof ce.define === "function" && !ce.get("md-view")) {
+        ce.define("md-view", MarkdownView);
+    }
+}
 
 /**
  * Factory function for creating MarkdownView instances programmatically

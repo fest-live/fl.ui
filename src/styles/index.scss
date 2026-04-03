@@ -1,6 +1,6 @@
 @use "./layers";
-@use "../services/file-manager/scss/FileManager";
-@use "../services/file-manager/scss/FileManagerContent";
+@use "../services/file-manager/FileManager";
+@use "../services/file-manager/FileManagerContent";
 
 // FL.UI Style Abstraction Layer
 // This provides a veela-independent base that can be extended or replaced

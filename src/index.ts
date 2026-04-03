@@ -21,9 +21,7 @@
  * ```
  */
 
-import { loadInlineStyle, preloadStyle } from "fest/dom";
-import { UIPhosphorIcon } from "fest/icon";
-console.log(UIPhosphorIcon);
+import { loadInlineStyle } from "fest/dom";
 
 // ============================================================================
 // CONFIGURATION
@@ -77,7 +75,7 @@ export * from "./services/markdown-view/Markdown";
 //
 (async () => {
     await loader();
-    const styled = await preloadStyle(styles);
-    // Load styles after runtime so fl.ui component rules win over normalize/base.
+    // Inline <style> only: bundled SCSS often still contains @import, which
+    // CSSStyleSheet.replaceSync() rejects (constructable sheets limitation).
     await loadInlineStyle(styles);
 })();

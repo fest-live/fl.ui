@@ -13,7 +13,7 @@ import { type FileEntryItem, FileOperative } from "./Operative";
 import { createItemCtxMenu } from "./ContextMenu";
 
 //
-import { iconFor, formatDate } from "./utils";
+import { iconFor, formatDate } from "../utils";
 
 //
 initGlobalClipboard();

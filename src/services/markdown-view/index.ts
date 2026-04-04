@@ -20,7 +20,7 @@
  */
 
 // Re-export MarkdownView component (Web Component)
-export { MarkdownView as MdViewElement, MarkdownView as default } from "./Markdown";
+export { MarkdownView as MdViewElement, MarkdownView as default } from "./ts/Markdown";
 
 // Re-export MarkdownViewer class and factory function (Class-based API)
-export { MarkdownViewer, createMarkdownViewer, type MarkdownViewerOptions } from "./Markdown";
+export { MarkdownViewer, createMarkdownViewer, type MarkdownViewerOptions } from "./ts/Markdown";

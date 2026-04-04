@@ -70,7 +70,7 @@ export * from "./ui/index";
 
 //
 export * from "./services/file-manager";
-export * from "./services/markdown-view/ts/Markdown";
+export * from "./ui/markdown-view/ts/Markdown";
 
 //
 (async () => {

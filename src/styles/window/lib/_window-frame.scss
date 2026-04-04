@@ -1,0 +1,658 @@
+// Window Frame component mixins - veela-independent fallbacks
+
+@use "../core/layout" as l;
+@use "../core/utils" as utils;
+
+// default styles
+@mixin reset-styles {
+    & { all: unset; }
+
+    & {
+        box-sizing: border-box;
+        margin: 0px;
+        padding: 0px;
+        border: 0px;
+    }
+
+    & {
+        font-size: 100%;
+        font-weight: 400;
+        font-family: inherit;
+    }
+
+    & {
+        color: inherit;
+        background-color: transparent;
+    }
+
+    & {
+        text-align: start;
+        text-decoration: none;
+        text-transform: none;
+        letter-spacing: normal;
+        line-height: normal;
+        white-space: normal;
+        word-break: normal;
+        word-wrap: normal;
+        overflow-wrap: normal;
+        overflow-wrap: break-word;
+    }
+
+    & {
+        user-select: none;
+        cursor: default;
+        pointer-events: none;
+    }
+
+    & {
+        contain: none;
+        container-type: normal;
+    }
+
+    & {
+        vertical-align: baseline;
+    }
+}
+
+// variables
+@mixin window-frame-variables {
+    --ui-window-frame-shadow: 0 4px 12px rgb(0 0 0 / 0.15), 0 1px 3px rgb(0 0 0 / 0.1);
+    --ui-window-frame-outline: #{"oklch(from --c2-on-surface(0.0, var(--current)) l c h / 0.1)"};
+    --ui-window-frame-surface: #{"oklch(from --c2-surface(0.1, var(--current)) l c h / 1)"};
+    --ui-window-frame-border-radius: 0.5rem;
+    --ui-window-frame-border-width: 0px;
+    --ui-window-frame-border-color: --c2-on-surface(0.0, var(--current));
+    --ui-window-frame-padding: 0px;
+    --ui-window-frame-margin: 0px;
+    --ui-window-frame-height: 100%;
+    --ui-window-frame-on-surface: #{"oklch(from --c2-on-surface(0.0, var(--current)) l c h / 1)"};
+    --ui-window-frame-on-surface-secondary: --c2-on-surface(0.0, var(--secondary));
+    --ui-window-frame-on-surface-tertiary: --c2-on-surface(0.0, var(--tertiary));
+    --ui-window-frame-on-surface-quaternary: --c2-on-surface(0.0, var(--quaternary));
+    --ui-window-frame-on-surface-quinary: --c2-on-surface(0.0, var(--quinary));
+    --ui-window-frame-titlebar-height: 32px;
+    --ui-window-frame-titlebar-padding: 0px;
+    --ui-window-frame-titlebar-margin: 0px;
+    --ui-window-frame-content-border-radius: 0.5rem;
+    --ui-window-frame-content-border-width: 1px;
+    --ui-window-frame-content-border-color: --c2-on-surface(0.0, var(--current));
+    --ui-window-frame-content-background-color: --c2-surface(0.0, var(--current));
+    --ui-window-frame-content-color: --c2-on-surface(0.0, var(--current));
+    --ui-window-frame-content-padding: 0px;
+    --ui-window-frame-content-margin: 0.125rem;
+    --ui-window-frame-control-hover-bg: --c2-surface(0.1, var(--current));
+    --ui-window-frame-control-active-bg: --c2-surface(0.1, var(--current));
+    --ui-window-frame-control-close-hover-bg: --c2-on-surface(0.0, var(--secondary));
+    --ui-window-frame-control-close-hover-color: --c2-surface(0.0, var(--secondary));
+}
+
+// layout
+@mixin window-frame-layout {
+    @include l.border-radius(var(--ui-window-frame-border-radius));
+    @include l.border(var(--ui-window-frame-border-width), solid, var(--ui-window-frame-border-color));
+    @include l.container-layout(ui-window-frame, strict);
+    @include l.grid();
+    @include l.place('center', 'center');
+
+    //
+    & {
+        background-color: var(--ui-window-frame-surface);
+        color: var(--ui-window-frame-on-surface);
+        --icon-color: var(--ui-window-frame-on-surface);
+        opacity: var(--opacity, 1);
+    }
+
+    & {
+        padding: var(--ui-window-frame-padding);
+        margin: var(--ui-window-frame-margin);
+    }
+
+    & {
+        inline-size: stretch;
+        inline-size: var(--ui-window-frame-width, stretch);
+        block-size: var(--ui-window-frame-height, stretch);
+    }
+
+    & {
+        position: fixed;
+    }
+
+    & {
+        gap: 0px;
+        grid-template-areas: "titlebar" "content";
+        grid-column: 1 / -1;
+        grid-row: 1 / -1;
+    }
+
+    & {
+        pointer-events: auto;
+    }
+
+    & {
+        transform-origin: 50% 50%;
+        transform-style: flat;
+        transform-box: fill-box;
+        transform:
+            scale3d(var(--scale, 1), var(--scale, 1), var(--scale, 1))
+            translate3d(calc(var(--drag-x, 0) * 1px), calc(var(--drag-y, 0) * 1px), 0px);
+    }
+
+    & { /* z-index: 1 + sibling index */
+        --z-index-order: var(--order, sibling-index()); /* z-index: 1 + custom order (order property) */
+        --z-index: var(--z-index-order, sibling-index());
+        z-index: calc(99 + var(--z-index, 0)) !important;
+    }
+}
+
+// content
+@mixin content-styles {
+    @include l.container-layout(ui-content, strict);
+    @include l.border-radius(var(--ui-window-frame-content-border-radius));
+    @include l.border(0px, solid, transparent);
+
+    // grid-specific styles
+    & { grid-area: content; display: flex; flex-direction: column; gap: 0.5rem; place-content: stretch; place-items: stretch; }
+    & {
+        border-block-start: none;
+    }
+
+    & {
+        display: grid;
+        grid-template-columns: minmax(0px, 1fr);
+        grid-template-rows: minmax(0px, 1fr);
+    }
+
+    //
+    & {
+        padding: var(--ui-window-frame-content-padding);
+        margin: var(--ui-window-frame-content-margin, 0.125rem);
+    }
+
+    & {
+        overflow: hidden;
+        inline-size: stretch;
+        block-size: stretch;
+    }
+
+    & {
+        background-color: transparent;
+        color: var(--ui-window-frame-content-color);
+        --icon-color: var(--ui-window-frame-content-color);
+    }
+
+    &::slotted(*) {
+        grid-column: 1 / -1;
+        grid-row: 1 / -1;
+        inline-size: stretch;
+        block-size: stretch;
+    }
+
+    & > *:not(slot) {
+        grid-column: 1 / -1;
+        grid-row: 1 / -1;
+        inline-size: stretch;
+        block-size: stretch;
+    }
+}
+
+// resize handle
+@mixin resize-handle-styles {
+    & {
+        inline-size: 12px;
+        block-size: 12px;
+    }
+
+    & {
+        cursor: nwse-resize;
+        pointer-events: auto !important;
+    }
+
+    & {
+        position: absolute !important;
+        inset: auto !important;
+        inset-inline-end: 0px !important;
+        inset-block-end: 0px !important;
+    }
+
+    & {
+        border-radius: 50%;
+        border-end-start-radius: 0.15rem;
+        border-start-end-radius: 0.15rem;
+        border-width: 0px;
+        border-style: solid;
+        border-color: transparent;
+    }
+
+    & {
+        color: transparent;
+        background-color: var(--ui-window-frame-on-surface);
+        opacity: 0.1;
+    }
+
+    @include utils.when-hover { opacity: 0.2; }
+    @include utils.when-active { opacity: 0.2; }
+    @include utils.when-focus-visible { opacity: 0.2; }
+}
+
+// titlebar
+@mixin titlebar-layout {
+    @include l.container-layout(ui-titlebar, strict);
+    @include l.display('flex', 'row', 'space-between', 'center');
+
+    //
+    & {
+        inline-size: stretch;
+        block-size: stretch;
+        max-block-size: 2rem;
+    }
+
+    //
+    & {
+        gap: 0px;
+        pointer-events: auto;
+        background-color: transparent;
+    }
+}
+
+// titlebar handle
+@mixin titlebar-handle-styles {
+    @include l.flex(row, flex-start, center);
+    @include l.container-layout(ui-titlebar-handle, strict);
+
+    & {
+        pointer-events: auto !important;
+    }
+
+    & {
+        inline-size: stretch;
+        block-size: stretch;
+        min-inline-size: 0px;
+    }
+
+    & {
+        color: var(--ui-window-frame-on-surface);
+    }
+
+    & {
+        padding-inline-start: 12px;
+        padding-inline-end: 12px;
+    }
+
+    & {
+        flex: 1 1 0px;
+        gap: 8px;
+        flex-basis: stretch;
+    }
+}
+
+// title text
+@mixin title-text-styles {
+    @include l.text(var(--font-size-lg), 500, var(--ui-window-frame-titlebar-color));
+    @include l.flex(column, flex-start, center);
+    @include l.text-ellipsis();
+
+    & {
+        place-content: center;
+        place-items: center;
+        justify-content: center;
+        align-items: flex-start;
+    }
+
+    & {
+        inline-size: stretch;
+        block-size: stretch;
+    }
+
+    & {
+        gap: 0px;
+        pointer-events: none;
+        flex: 1 1 0px;
+        min-inline-size: 0px;
+    }
+}
+
+// subtitle text
+@mixin subtitle-text-styles {
+    @include l.flex(row, flex-start, center);
+    @include l.text-ellipsis();
+    @include l.text(var(--font-size-sm), 400, #{"--c2-on-surface(0.0, var(--current))"});
+
+    & {
+        inline-size: fit-content;
+        block-size: stretch;
+    }
+
+    & {
+        gap: 0px;
+        flex-basis: max-content;
+        flex-shrink: 0;
+        place-content: center;
+        place-items: center;
+    }
+
+    & {
+        padding: 0px;
+    }
+
+    & {
+        opacity: 0.5;
+    }
+
+    & {
+        pointer-events: none;
+    }
+}
+
+// app icon
+@mixin app-icon-styles {
+    @include l.flex(row, center, center);
+
+    & {
+        inline-size: fit-content;
+        block-size: stretch;
+        min-inline-size: 1rem;
+    }
+
+    & {
+        flex-basis: max-content;
+        place-content: center;
+        place-items: center;
+    }
+
+    & {
+        color: --c2-on-surface(0.0, var(--current));
+        --icon-color: --c2-on-surface(0.0, var(--current));
+    }
+
+    & {
+        padding: 0px;
+        margin: 0px;
+    }
+
+    & {
+        pointer-events: none;
+    }
+
+    ui-icon { // icon styles
+        & {
+            block-size: stretch;
+            inline-size: auto;
+            aspect-ratio: 1 / 1;
+        }
+
+        & {
+            color: inherit;
+            --icon-color: currentColor;
+            background-color: transparent;
+        }
+
+        & {
+            border: none;
+            outline: none;
+            padding: 0px;
+            margin: 0px;
+            margin-block: 0.5rem;
+        }
+    }
+}
+
+// controls
+@mixin controls-layout {
+    @include l.flex(row, flex-end, center);
+
+    & {
+        flex-shrink: 0;
+        flex-basis: max-content;
+    }
+
+    & {
+        block-size: stretch;
+        inline-size: fit-content;
+        max-block-size: 2rem;
+    }
+
+    & {
+        padding: 0px;
+        gap: 0px;
+    }
+
+    & {
+        pointer-events: none;
+    }
+
+    ui-icon {
+        & {
+            inline-size: auto;
+            block-size: stretch;
+            aspect-ratio: 1 / 1;
+        }
+
+        & {
+            color: var(--ui-window-frame-on-surface);
+            background-color: transparent;
+        }
+
+        & {
+            outline: none;
+            border: none;
+            padding: 0px;
+            margin: 0px;
+        }
+    }
+}
+
+// control button base
+@mixin control-button-base {
+    & {
+        block-size: stretch;
+        inline-size: auto;
+        aspect-ratio: 1 / 1;
+    }
+
+    & {
+        display: flex;
+        place-content: center;
+        place-items: center;
+        flex-shrink: 0;
+    }
+
+    & {
+        color: var(--ui-window-frame-on-surface);
+        --window-frame-control-fg: var(--ui-window-frame-on-surface);
+        --window-frame-control-bg: --c2-surface(0.1, var(--current));
+        --icon-color: var(--window-frame-control-fg);
+        background-color: var(--window-frame-control-bg);
+        outline: none;
+    }
+
+    & {
+        margin: 0.25rem;
+        padding: 0.25rem;
+        gap: 0px;
+    }
+
+    & {
+        border: none;
+        border-radius: 50%;
+    }
+
+    & { pointer-events: auto; }
+    @include utils.when-hover { --window-frame-control-bg: --c2-surface(0.15, var(--current)); }
+    @include utils.when-active { --window-frame-control-bg: --c2-surface(0.15, var(--current)); }
+    @include utils.when-focus-visible { --window-frame-control-bg: --c2-surface(0.15, var(--current)); }
+}
+
+// close button
+@mixin close-button-styles {
+    & {
+        --window-frame-close-bg: --c2-on-surface(-0.05, var(--current));
+        --window-frame-close-fg: --c2-surface(0.0, var(--current));
+
+        background-color: var(--window-frame-close-bg);
+        color: var(--window-frame-close-fg);
+
+        ui-icon { --icon-color: var(--window-frame-close-fg); }
+    }
+
+    //
+    @include utils.when-hover { --window-frame-close-bg: --c2-on-surface(-0.1, var(--current)); }
+    @include utils.when-active { --window-frame-close-bg: --c2-on-surface(-0.1, var(--current)); }
+    @include utils.when-focus-visible { --window-frame-close-bg: --c2-on-surface(-0.1, var(--current)); }
+}
+
+
+@mixin window-frame-variables {
+    // Window frame CSS custom properties
+    --ui-window-frame-bg: var(--fl-surface, #fff);
+    --ui-window-frame-color: var(--fl-on-surface, #111);
+    --ui-window-frame-border-radius: var(--fl-radius-lg, 0.85rem);
+    --ui-window-frame-shadow: var(--fl-shadow-xl, 0 20px 25px rgba(0, 0, 0, 0.1));
+    --ui-window-frame-titlebar-height: 2.5rem;
+    --ui-window-frame-resize-handle-size: 8px;
+    --ui-window-frame-min-width: 200px;
+    --ui-window-frame-min-height: 150px;
+}
+
+@mixin window-frame-layout {
+    display: grid;
+    grid-template-rows: var(--ui-window-frame-titlebar-height) 1fr;
+    grid-template-columns: 1fr;
+    position: fixed;
+    inline-size: var(--ui-window-frame-width, 400px);
+    block-size: var(--ui-window-frame-height, 300px);
+    min-inline-size: var(--ui-window-frame-min-width);
+    min-block-size: var(--ui-window-frame-min-height);
+    background-color: var(--ui-window-frame-bg);
+    color: var(--ui-window-frame-color);
+    border-radius: var(--ui-window-frame-border-radius);
+    box-shadow: var(--ui-window-frame-shadow);
+    overflow: hidden;
+    contain: layout paint style;
+}
+
+@mixin content-styles {
+    position: relative;
+    overflow: auto;
+    pointer-events: auto;
+}
+
+@mixin resize-handle-styles {
+    position: absolute;
+    pointer-events: auto;
+    z-index: 10;
+    
+    &[data-edge="e"], &[data-edge="w"] {
+        cursor: ew-resize;
+        inline-size: var(--ui-window-frame-resize-handle-size);
+        block-size: 100%;
+    }
+    
+    &[data-edge="n"], &[data-edge="s"] {
+        cursor: ns-resize;
+        inline-size: 100%;
+        block-size: var(--ui-window-frame-resize-handle-size);
+    }
+    
+    &[data-edge="ne"], &[data-edge="sw"] {
+        cursor: nesw-resize;
+    }
+    
+    &[data-edge="nw"], &[data-edge="se"] {
+        cursor: nwse-resize;
+    }
+}
+
+@mixin titlebar-layout {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-inline: 0.75rem;
+    gap: 0.5rem;
+    pointer-events: auto;
+}
+
+@mixin titlebar-handle-styles {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex: 1;
+    min-inline-size: 0;
+    overflow: hidden;
+    cursor: grab;
+    
+    &:active {
+        cursor: grabbing;
+    }
+}
+
+@mixin title-text-styles {
+    font-size: var(--fl-text-sm, 0.875rem);
+    font-weight: var(--fl-font-weight-medium, 500);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+@mixin subtitle-text-styles {
+    font-size: var(--fl-text-xs, 0.75rem);
+    opacity: 0.7;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+@mixin app-icon-styles {
+    inline-size: 1.25rem;
+    block-size: 1.25rem;
+    flex-shrink: 0;
+}
+
+@mixin controls-layout {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    flex-shrink: 0;
+}
+
+@mixin control-button-base {
+    inline-size: 1.5rem;
+    block-size: 1.5rem;
+    border-radius: 50%;
+    border: none;
+    background: transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+    pointer-events: auto;
+    
+    &:hover {
+        background-color: rgba(0, 0, 0, 0.1);
+    }
+}
+
+@mixin close-button-styles {
+    &:hover {
+        background-color: rgba(255, 0, 0, 0.15);
+        color: #d32f2f;
+    }
+}
+
+// Behavior mixins (simplified versions)
+@mixin ps-draggable {
+    // Draggable positioning logic
+    inset-inline-start: calc(var(--inset-x, 0) * 1px);
+    inset-block-start: calc(var(--inset-y, 0) * 1px);
+}
+
+@mixin ps-resizable {
+    // Resizable sizing logic
+    inline-size: calc(var(--size-x, 400) * 1px);
+    block-size: calc(var(--size-y, 300) * 1px);
+}
+
+@mixin ps-mechanic {
+    // Z-index and focus management
+    z-index: calc(100 + var(--z-index, 0));
+}

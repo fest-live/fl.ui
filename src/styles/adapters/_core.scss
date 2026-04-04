@@ -1,7 +1,0 @@
-// Core Adapter - Uses fl.ui's built-in mixins (no veela dependency)
-// This is the default adapter for framework-agnostic usage
-
-@use "../core/index" as *;
-
-// Re-export all core mixins
-// These work without any external CSS framework

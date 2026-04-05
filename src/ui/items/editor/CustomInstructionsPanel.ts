@@ -10,7 +10,7 @@ import {
     setActiveInstruction,
     DEFAULT_INSTRUCTION_TEMPLATES
 } from "@rs-com/service/misc/CustomInstructions";
-import { showSuccess, showError } from "./Toast";
+import { showSuccess, showError } from "../overlay/Toast";
 
 export type CustomInstructionsPanelOptions = {
     onUpdate?: () => void;

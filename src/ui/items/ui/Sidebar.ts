@@ -1,5 +1,5 @@
 import { H, M, navigate } from "fest/lure";
-import { NAVIGATION_SHORTCUTS } from "../../../../../../apps/CrossWord/src/core/storage/StateStorage";
+import { NAVIGATION_SHORTCUTS } from "../../../../../../../apps/CrossWord/src/core/storage/StateStorage";
 import { isPrimitive } from "fest/core";
 import { scheduleFrame } from "@rs-core/utils/Runtime";
 

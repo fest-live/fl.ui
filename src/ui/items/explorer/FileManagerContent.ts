@@ -10,7 +10,7 @@ import fmCss from "./FileManagerContent.scss?inline";
 import { type FileEntryItem, FileOperative } from "./Operative";
 
 //
-import { createItemCtxMenu } from "./ContextMenu";
+import { createItemCtxMenu } from "../ContextMenu";
 
 //
 import { iconFor, formatDate } from "../utils";

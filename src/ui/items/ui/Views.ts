@@ -9,7 +9,7 @@ import "fest/fl-ui";
 import { Sidebar } from "../layout/Sidebar";
 import { MakeCardElement } from "../../../shared/ui/ts/Cards";
 import { initBackNavigation, registerCloseable, historyViewRef, historyState } from "fest/lure";
-import { $byKind, $insideOfDay } from "../../../../../../apps/CrossWord/src/core/utils/Utils";
+import { $byKind, $insideOfDay } from "../../../../../../../apps/CrossWord/src/core/utils/Utils";
 import { createCtxMenu, SpeedDial } from "../../../shared/ui/viewer/SpeedDial";
 import { ViewPage } from "../../../shared/ui/viewer/Viewer";
 
@@ -67,7 +67,7 @@ export const CURRENT_VIEW = historyViewRef(`#${$defaultView}`, { /*ignoreBack: t
 console.log("[faint] Current view reference created");
 import { startGeoTracking } from "@rs-com/service/misc/GeoService";
 import { startTimeTracking, requestNotificationPermission } from "@rs-com/service/misc/TimeService";
-import { initTheme } from "../../../../../../apps/CrossWord/src/core/utils/Theme";
+import { initTheme } from "../../../../../../../apps/CrossWord/src/core/utils/Theme";
 
 //
 export async function frontend(mountElement) {

@@ -1,4 +1,5 @@
-import type { ShellId, View, ViewLifecycle, ViewOptions } from "../../../../../../apps/CrossWord/src/frontend/shells/types";
+import type { ShellId, View, ViewLifecycle, ViewOptions } from "../../types";
+import type { View, ViewOptions } from "../../types";
 
 // ---------------------------------------------------------------------------
 // Shared base
@@ -690,7 +691,6 @@ export const createWebComponentViewAdapter = (view: View): View => {
     };
 };
 
-import type { View, ViewOptions } from "../../shells/types";
 
 export interface CwViewViewerHostElement extends HTMLElement {
     shadowRoot: ShadowRoot | null;

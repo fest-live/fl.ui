@@ -62,6 +62,34 @@
             "@fl-design/*": [
                 "./src/design/*"
             ],
+            "@rs-com/*": [
+                "../shared/com/*",
+                "../../apps/CrossWord/src/com/*"
+            ],
+            "@rs-core/*": [
+                "../shared/core/*",
+                "../../apps/CrossWord/src/core/*"
+            ],
+            "@rs-frontend/*": [
+                "../shared/frontend/*",
+                "../../apps/CrossWord/src/frontend/*"
+            ],
+            "@rs-shared/*": [
+                "../shared/*",
+                "../../apps/CrossWord/src/shared/*"
+            ],
+            "@rs-test/*": [
+                "../shared/test/*",
+                "../../apps/CrossWord/src/test/*"
+            ],
+            "@frontend/*": [
+                "../frontend/*",
+                "../../apps/CrossWord/src/frontend/*"
+            ],
+            "@shared/*": [
+                "../shared/*",
+                "../../apps/CrossWord/src/shared/*"
+            ],
             "@fl-ui/*": [
                 "./src/ui/*"
             ],

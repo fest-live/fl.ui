@@ -61,7 +61,7 @@ export class FileManager extends UIElement {
         }
         if (existingContents.length > 1) {
             for (const extra of existingContents.slice(1)) {
-                extra.remove();
+                (extra as HTMLElement)?.remove?.();
             }
         }
 

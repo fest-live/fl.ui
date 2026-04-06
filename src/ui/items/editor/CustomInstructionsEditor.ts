@@ -8,8 +8,8 @@ import {
     updateInstruction,
     deleteInstruction,
     setActiveInstruction,
-    DEFAULT_INSTRUCTION_TEMPLATES
 } from "@rs-com/service/instructions/CustomInstructions";
+import { DEFAULT_INSTRUCTION_TEMPLATES } from "@rs-com/service/instructions/templates";
 
 export type CustomInstructionsEditorOptions = {
     onUpdate?: () => void;
@@ -207,7 +207,7 @@ export const createCustomInstructionsEditor = (opts: CustomInstructionsEditorOpt
                 return;
             }
 
-            void addInstruction(label || "Custom", instruction).then((newInstr) => {
+            void addInstruction(label || "Custom", instruction).then((newInstr: any) => {
                 if (!newInstr) return;
                 state.isAdding = false;
                 addFormEl.hidden = true;
@@ -216,8 +216,8 @@ export const createCustomInstructionsEditor = (opts: CustomInstructionsEditorOpt
         }
 
         if (action === "add-templates") {
-            const existingLabels = new Set(state.instructions.map(i => i.label.trim().toLowerCase()));
-            const templatesToAdd = DEFAULT_INSTRUCTION_TEMPLATES.filter(t => !existingLabels.has(t.label.trim().toLowerCase()));
+            const existingLabels = new Set(state.instructions.map((i: any) => i.label.trim().toLowerCase()));
+            const templatesToAdd = DEFAULT_INSTRUCTION_TEMPLATES.filter((t: any) => !existingLabels.has(t.label.trim().toLowerCase()));
 
             if (!templatesToAdd.length) {
                 alert("All templates are already added.");
@@ -225,7 +225,7 @@ export const createCustomInstructionsEditor = (opts: CustomInstructionsEditorOpt
             }
 
             // Use bulk add to avoid race conditions
-            addInstructions(templatesToAdd.map(t => ({
+            addInstructions(templatesToAdd.map((t: any) => ({
                 label: t.label,
                 instruction: t.instruction,
                 enabled: t.enabled

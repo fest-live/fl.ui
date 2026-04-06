@@ -8,8 +8,8 @@ import {
     updateInstruction,
     deleteInstruction,
     setActiveInstruction,
-    DEFAULT_INSTRUCTION_TEMPLATES
-} from "@rs-com/service/misc/CustomInstructions";
+} from "@rs-com/service/instructions/CustomInstructions";
+import { DEFAULT_INSTRUCTION_TEMPLATES } from "@rs-com/service/instructions/templates";
 import { showSuccess, showError } from "../overlay/Toast";
 
 export type CustomInstructionsPanelOptions = {
@@ -119,7 +119,7 @@ export const createCustomInstructionsPanel = (opts: CustomInstructionsPanelOptio
                     }).then(() => {
                         showSuccess("Instruction activated");
                         opts.onUpdate?.();
-                    }).catch((e) => {
+                    }).catch((e: any) => {
                         console.error("[CustomInstructionsPanel] Failed to activate:", e);
                         showError("Failed to activate instruction");
                     });
@@ -137,7 +137,7 @@ export const createCustomInstructionsPanel = (opts: CustomInstructionsPanelOptio
                         }).then(() => {
                             showSuccess("Instruction deleted");
                             opts.onUpdate?.();
-                        }).catch((e) => {
+                        }).catch((e: any) => {
                             console.error("[CustomInstructionsPanel] Failed to delete:", e);
                             showError("Failed to delete instruction");
                         });
@@ -157,7 +157,7 @@ export const createCustomInstructionsPanel = (opts: CustomInstructionsPanelOptio
                     }).then(() => {
                         showSuccess("Instruction updated");
                         opts.onUpdate?.();
-                    }).catch((e) => {
+                    }).catch((e: any) => {
                         console.error("[CustomInstructionsPanel] Failed to update:", e);
                         showError("Failed to update instruction");
                     });
@@ -224,7 +224,7 @@ export const createCustomInstructionsPanel = (opts: CustomInstructionsPanelOptio
                 return;
             }
 
-            void addInstruction(label || "Custom", instruction).then((newInstr) => {
+            void addInstruction(label || "Custom", instruction).then((newInstr: any) => {
                 if (!newInstr) return;
                 state.isAdding = false;
                 addFormEl.hidden = true;
@@ -232,15 +232,15 @@ export const createCustomInstructionsPanel = (opts: CustomInstructionsPanelOptio
             }).then(() => {
                 showSuccess("Instruction added");
                 opts.onUpdate?.();
-            }).catch((e) => {
+            }).catch((e: any) => {
                 console.error("[CustomInstructionsPanel] Failed to add:", e);
                 showError("Failed to add instruction");
             });
         }
 
         if (action === "add-templates") {
-            const existingLabels = new Set(state.instructions.map(i => i.label.trim().toLowerCase()));
-            const templatesToAdd = DEFAULT_INSTRUCTION_TEMPLATES.filter(t => !existingLabels.has(t.label.trim().toLowerCase()));
+            const existingLabels = new Set(state.instructions.map((i: any) => i.label.trim().toLowerCase()));
+            const templatesToAdd = DEFAULT_INSTRUCTION_TEMPLATES.filter((t: any) => !existingLabels.has(t.label.trim().toLowerCase()));
 
             if (!templatesToAdd.length) {
                 showError("All templates already added");
@@ -248,17 +248,17 @@ export const createCustomInstructionsPanel = (opts: CustomInstructionsPanelOptio
             }
 
             // Use bulk add to avoid race conditions
-            addInstructions(templatesToAdd.map(t => ({
+            addInstructions(templatesToAdd.map((t: any) => ({
                 label: t.label,
                 instruction: t.instruction,
                 enabled: t.enabled
-            }))).then((newInstrs) => {
+            }))).then((newInstrs: any) => {
                 const count = newInstrs?.length || 0;
                 return loadData().then(() => count);
-            }).then((count) => {
+            }).then((count: any) => {
                 showSuccess(`Added ${count} templates`);
                 opts.onUpdate?.();
-            }).catch((e) => {
+            }).catch((e: any) => {
                 console.error("[CustomInstructionsPanel] Failed to add templates:", e);
                 showError("Failed to add templates");
             });

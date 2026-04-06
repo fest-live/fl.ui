@@ -58,6 +58,10 @@
             "import": "./src/styles/lib/_index.scss",
             "default": "./src/styles/lib/_index.scss"
         },
+        "./items/*": {
+            "import": "./src/ui/items/*",
+            "default": "./src/ui/items/*"
+        },
         "./package.json": "./package.json"
     },
     "peerDependencies": {

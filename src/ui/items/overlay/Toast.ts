@@ -241,7 +241,8 @@ const getToastLayer = (config: Required<ToastLayerConfig>, doc: Document = docum
         layer.className = "rs-toast-layer";
         layer.setAttribute("aria-live", "polite");
         layer.setAttribute("aria-atomic", "true");
-        doc.body.appendChild(layer);
+        // Content scripts may run at document_start before <body> exists.
+        (doc.body || doc.documentElement).appendChild(layer);
     }
 
     layer.setAttribute("data-position", config.position);

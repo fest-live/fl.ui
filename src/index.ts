@@ -29,6 +29,7 @@ import { loadInlineStyle } from "fest/dom";
 
 export type FlUIStyleVariant = "core" | "veela-basic" | "veela-advanced" | "veela-beercss";
 
+export { FileManager, FileManagerContent } from "./services/file-manager";
 export interface FlUIConfig {
     /** Whether to load styles automatically (default: true) */
     loadStyles?: boolean;

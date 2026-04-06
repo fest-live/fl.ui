@@ -138,8 +138,9 @@ export class WindowFrameHostElement extends GLitElement(HTMLElement) {
 }
 
 const ensureDefined = (tagName: string, ctor: CustomElementConstructor): void => {
-    if (!customElements.get(tagName)) {
-        customElements.define(tagName, ctor);
+    if (typeof customElements === "undefined") return;
+    if (!customElements?.get?.(tagName)) {
+        customElements?.define?.(tagName, ctor);
     }
 };
 

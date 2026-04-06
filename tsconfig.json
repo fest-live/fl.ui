@@ -15,13 +15,13 @@
         "outDir": "./dist/",
         "paths": {
             "@phosphor-icons/core/assets/*": [
-                "./node_modules/@phosphor-icons/core/assets/*"
+                "../../../node_modules/@phosphor-icons/core/assets/*"
             ],
             "fonts/*": [
-                "../shared/assets/fonts/*"
+                "../../../modules/shared/assets/fonts/*"
             ],
             "fest/*": [
-                "../shared/fest/*"
+                "../../../modules/shared/fest/*"
             ],
             "fest/cdnImport": [
                 "./typings/cdnImport.d.ts"
@@ -50,45 +50,35 @@
             "fest/uniform": [
                 "../uniform.ts/src/index.ts"
             ],
-            "fest/theme": [
-                "../theme.core/src/index.ts"
-            ],
             "fest/polyfill/*": [
-                "../shared/fest/polyfill/*"
+                "../../../modules/shared/fest/polyfill/*"
             ],
             "polyfill/*": [
-                "../shared/fest/polyfill/*"
+                "../../../modules/shared/fest/polyfill/*"
             ],
             "@fl-design/*": [
                 "./src/design/*"
             ],
             "@rs-com/*": [
-                "../shared/com/*",
-                "../../apps/CrossWord/src/com/*"
+                "../../../apps/CrossWord/src/com/*"
             ],
             "@rs-core/*": [
-                "../shared/core/*",
-                "../../apps/CrossWord/src/core/*"
+                "../../../apps/CrossWord/src/core/*"
             ],
             "@rs-frontend/*": [
-                "../shared/frontend/*",
-                "../../apps/CrossWord/src/frontend/*"
+                "../../../apps/CrossWord/src/frontend/*"
             ],
             "@rs-shared/*": [
-                "../shared/*",
-                "../../apps/CrossWord/src/shared/*"
+                "../../../apps/CrossWord/shared/*"
             ],
             "@rs-test/*": [
-                "../shared/test/*",
-                "../../apps/CrossWord/src/test/*"
+                "../../../apps/CrossWord/test/*"
             ],
             "@frontend/*": [
-                "../frontend/*",
-                "../../apps/CrossWord/src/frontend/*"
+                "../../../apps/CrossWord/src/frontend/*"
             ],
             "@shared/*": [
-                "../shared/*",
-                "../../apps/CrossWord/src/shared/*"
+                "../../../apps/CrossWord/src/frontend/shared/*"
             ],
             "@fl-ui/*": [
                 "./src/ui/*"
@@ -96,13 +86,22 @@
             "@fl-src/*": [
                 "./src/*"
             ],
+            "@fl-ui/items/*": [
+                "./src/ui/items/*"
+            ],
+            "@fl-ui/items/BaseElement": [
+                "./src/ui/items/base/BaseElement.ts"
+            ],
+            "@fl-ui/items/BaseElement.ts": [
+                "./src/ui/items/base/BaseElement.ts"
+            ],
             "fest/veela": [
                 "../veela.css/src/index.ts",
-                "../shared/fest/veela/index.ts"
+                "../../../modules/shared/fest/veela/index.ts"
             ],
             "fest/veela-runtime": [
                 "../veela.css/src/index.ts",
-                "../shared/fest/veela/index.ts"
+                "../../../modules/shared/fest/veela/index.ts"
             ],
             "veela-lib": [
                 "../veela.css/src/scss/lib/index.scss"

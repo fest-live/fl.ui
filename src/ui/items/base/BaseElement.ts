@@ -10,12 +10,13 @@ export interface CwViewViewerHostElement extends HTMLElement {
 /**
  * Compatibility adapter: current view implementations already satisfy `View`.
  * Keep this function as the canonical registry hook for future host adapters.
+ *
+ * Important: `{ ...viewInstance }` does **not** copy class methods (`handleMessage`, etc.),
+ * which breaks unified-messaging registration (`bindViewReceiveChannel` requires
+ * `handleMessage`). Return the live instance; wrapping `render` was redundant.
  */
 export const createWebComponentViewAdapter = <T extends View>(view: T): T => {
-    return {
-        ...view,
-        render: (options?: ViewOptions) => view.render(options),
-    } as T;
+    return view;
 };
 type ViewLike = {
     render: (options?: unknown) => HTMLElement;

@@ -490,13 +490,9 @@ export class FileOperative {
             const key = `${entry.kind}:${entry.name}`;
             if (!unique.has(key)) unique.set(key, entry);
         }
-        const sorted = Array.from(unique.values()).sort((a, b) => {
-            if (a.kind !== b.kind) return a.kind === "directory" ? -1 : 1;
-            return (a.name || "").localeCompare(b.name || "", undefined, { sensitivity: "base" });
-        });
-        (this.#entries as any).value = sorted;
+        (this.#entries as any).value = Array.from(unique.values());
         this.dispatchEvent(new CustomEvent("entries-updated", {
-            detail: { path: this.path, count: sorted.length },
+            detail: { path: this.path, count: unique.size },
             bubbles: true,
             composed: true
         }));
@@ -569,7 +565,6 @@ export class FileOperative {
             }
 
             if (isUserPath(rel)) {
-                await this.getOpfsRootHandle();
                 const entries = await this.listUserEntriesDirect(rel, true);
                 this.applyEntries(entries);
                 return this;
@@ -586,6 +581,9 @@ export class FileOperative {
                 await this.#dirProxy;
             }
 
+            console.log("rel", rel);
+            
+            //
             const loader = async () => {
                 const entries = await this.collectDirectoryEntries();
                 if (entries?.length != null && entries?.length >= 0 && typeof entries?.length == "number") {
@@ -615,7 +613,7 @@ export class FileOperative {
     }
 
     //
-    protected onRowClick = (_item: FileEntryItem, ev: MouseEvent) => { ev.preventDefault(); };
+    protected onRowClick = (item: FileEntryItem, ev: MouseEvent) => { ev.preventDefault(); void this.itemAction(item); };
     protected onRowDblClick = (item: FileEntryItem, ev: MouseEvent) => { ev.preventDefault(); void this.itemAction(item); };
     protected onRowDragStart = (item: FileEntryItem, ev: DragEvent) => {
         if (!ev.dataTransfer) return;
@@ -680,30 +678,10 @@ export class FileOperative {
                         detail: { action: 'view', item }
                     }));
                     break;
-                case "view-base":
-                    this.dispatchEvent(new CustomEvent('context-action', {
-                        detail: { action: 'view-base', item }
-                    }));
-                    break;
                 case "attach-workcenter":
                     // Dispatch custom event for unified messaging
                     this.dispatchEvent(new CustomEvent('context-action', {
                         detail: { action: 'attach-workcenter', item }
-                    }));
-                    break;
-                case "attach-workcenter-queued":
-                    this.dispatchEvent(new CustomEvent('context-action', {
-                        detail: { action: 'attach-workcenter-queued', item }
-                    }));
-                    break;
-                case "attach-workcenter-headless":
-                    this.dispatchEvent(new CustomEvent('context-action', {
-                        detail: { action: 'attach-workcenter-headless', item }
-                    }));
-                    break;
-                case "pin-home":
-                    this.dispatchEvent(new CustomEvent('context-action', {
-                        detail: { action: 'pin-home', item }
                     }));
                     break;
                 case "download":

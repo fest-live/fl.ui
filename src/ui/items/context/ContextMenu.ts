@@ -53,27 +53,30 @@ const ensureStyle = (): void => {
             position: fixed;
             min-inline-size: 220px;
             max-inline-size: min(320px, calc(100vw - 24px));
-            padding: 0.35rem;
-            border-radius: 12px;
-            border: 1px solid rgba(138, 172, 248, 0.34);
-            background: color-mix(in oklab, #0a0f19 86%, #18253e 14%);
-            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.42);
-            backdrop-filter: blur(10px);
+            padding: 0.4rem;
+            border-radius: 14px;
+            border: none;
+            background: color-mix(in oklab, #0c1018 88%, #1a2842 12%);
+            box-shadow:
+                0 14px 36px rgba(0, 0, 0, 0.45),
+                0 0 0 1px rgba(255, 255, 255, 0.06);
+            backdrop-filter: blur(14px);
             pointer-events: auto;
             user-select: none;
         }
 
         .cw-context-menu.cw-context-menu--compact {
             min-inline-size: 188px;
-            padding: 0.25rem;
+            padding: 0.3rem;
         }
 
         .cw-context-menu__list {
             list-style: none;
             margin: 0;
             padding: 0;
-            display: grid;
-            gap: 0.15rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.2rem;
             justify-items: stretch;
             text-align: left;
         }
@@ -81,24 +84,26 @@ const ensureStyle = (): void => {
         .cw-context-menu__item {
             inline-size: 100%;
             display: grid;
-            grid-template-columns: 1.25rem minmax(0, 1fr) auto;
+            grid-template-columns: 1.375rem minmax(0, 1fr) auto;
             align-items: center;
-            gap: 0.5rem;
+            gap: 0.55rem;
             border: 0;
-            border-radius: 9px;
+            border-radius: 10px;
             background: transparent;
             color: #eaf0ff;
-            padding: 0.45rem 0.55rem;
-            font-size: 0.82rem;
-            text-align: left !important;
+            padding: 0.5rem 0.6rem;
+            min-block-size: 2.35rem;
+            font-size: 0.8125rem;
+            line-height: 1.25;
+            text-align: start !important;
             cursor: pointer;
-            justify-items: stretch;
+            justify-items: start;
         }
 
         .cw-context-menu__item:hover,
         .cw-context-menu__item:focus-visible {
             outline: none;
-            background: rgba(137, 176, 255, 0.16);
+            background: rgba(137, 176, 255, 0.14);
         }
 
         .cw-context-menu__item[disabled] {
@@ -111,27 +116,30 @@ const ensureStyle = (): void => {
         }
 
         .cw-context-menu__icon {
-            inline-size: 1.05rem;
-            block-size: 1.05rem;
+            justify-self: center;
+            inline-size: 1.375rem;
+            block-size: 1.375rem;
             display: inline-flex;
             align-items: center;
             justify-content: center;
         }
 
         .cw-context-menu__icon ui-icon {
-            --icon-size: 1rem;
+            --icon-size: 1.125rem;
             pointer-events: none;
         }
 
         .cw-context-menu__label {
-            justify-self: start;
-            text-align: left;
+            justify-self: stretch;
+            text-align: start !important;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+            min-inline-size: 0;
         }
 
         .cw-context-menu__chevron {
+            justify-self: end;
             opacity: 0.72;
             display: inline-flex;
             align-items: center;
@@ -455,7 +463,7 @@ const makeFileSystemOps = () => {
 
 //
 const makeContextMenu = () => {
-    const ctxMenu = H`<ul class="grid-rows round-decor ctx-menu ux-anchor" style="position: fixed; z-index: 99999;" data-hidden></ul>`;
+    const ctxMenu = H`<ul class="round-decor ctx-menu ux-anchor" style="position: fixed; z-index: 99999;" data-hidden></ul>`;
     const overlay = document.querySelector('[data-app-layer="overlay"]') as HTMLElement | null;
     const basicApp = document.querySelector(".basic-app") as HTMLElement | null;
     (overlay || basicApp || document.body).append(ctxMenu);

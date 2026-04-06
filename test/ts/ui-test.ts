@@ -60,7 +60,7 @@ async function createCtxMenu() {
             ]
         ]
     };
-    const ctxMenu = H`<ul class="grid-rows c2-surface round-decor ctx-menu ux-anchor"></ul>`;
+    const ctxMenu = H`<ul class="c2-surface round-decor ctx-menu ux-anchor"></ul>`;
     ctxMenuTrigger(document.body, ctxMenuDesc, ctxMenu);
     return ctxMenu;
 }

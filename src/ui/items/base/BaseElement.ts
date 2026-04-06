@@ -159,7 +159,9 @@ export const ensureViewElementDefined = (viewId: string): string => {
 export const ensureShellElementDefined = (shellId: string): string => {
     const token = normalizeToken(shellId, "minimal");
     const tagName = `${SHELL_TAG_PREFIX}${token}`;
-    ensureDefined(tagName, token === "minimal" ? MinimalShellHostElement : ShellHostElement);
+    /** Views must be light-DOM children with `slot="view"` so document-level `views.scss` applies; same for base and minimal. */
+    const useSlottedHost = token === "minimal" || token === "base";
+    ensureDefined(tagName, useSlottedHost ? MinimalShellHostElement : ShellHostElement);
     return tagName;
 };
 
@@ -204,5 +206,8 @@ export class BaseElement extends GLitElement<HTMLElement>(HTMLElement) implement
 
 //
 export default BaseElement;
+
+/** Alias for legacy / app imports: `@fl-ui/base/UIElement` */
+export { BaseElement as UIElement };
 
 ensureWindowFrameElementDefined();

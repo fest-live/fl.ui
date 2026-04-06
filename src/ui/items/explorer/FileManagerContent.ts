@@ -1,258 +1,25 @@
 import { property, defineElement, H, bindWith, initGlobalClipboard } from "fest/lure";
-import { addEvent, handleStyleChange, isInFocus } from "fest/dom";
+import { addEvent, handleStyleChange, isInFocus, preloadStyle } from "fest/dom";
 import { ref } from "fest/object";
-import { ensureStyleSheet, reinitializeRegistry } from "fest/icon";
-import "fest/icon";
 
 //
-import UIElement from "@fl-ui/base/UIElement";
+import { UIElement } from "@fl-ui/base/UIElement";
 
+// @ts-ignore
+import fmCss from "./FileManagerContent.scss?inline";
 import { type FileEntryItem, FileOperative } from "./Operative";
 
-import { createItemCtxMenu } from "../context/ContextMenu";
+//
+import { createItemCtxMenu } from "./ContextMenu";
 
-const iconByMime = (mime: string | undefined, def = "file"): string => {
-    if (!mime) return def;
-    if (mime.startsWith("image/")) return "image";
-    if (mime.startsWith("audio/")) return "music";
-    if (mime.startsWith("video/")) return "video";
-    if (mime.includes("json")) return "brackets-curly";
-    if (mime.startsWith("text/")) return "file-text";
-    return def;
-};
-
-const iconFor = (item: FileEntryItem | string): string => {
-    if (typeof item === "string") return item === "directory" ? "folder" : "file";
-    if (item?.kind === "directory") return "folder";
-    return iconByMime(item?.type);
-};
-
-const formatDate = (timestamp: number | Date | undefined): string => {
-    if (timestamp === undefined || timestamp === null) return "";
-    const value = timestamp instanceof Date ? timestamp : new Date(timestamp);
-    return value.toLocaleString("en-US", {
-        dateStyle: "short",
-        timeStyle: "short",
-    });
-};
-
-const formatFileSize = (bytes?: number | null): string => {
-    if (bytes === undefined || bytes === null || Number.isNaN(bytes)) return "—";
-    if (bytes < 1024) return `${bytes} B`;
-    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(bytes < 10_240 ? 2 : 1)} kB`;
-    if (bytes < 1024 * 1024 * 1024) return `${(bytes / 1024 / 1024).toFixed(2)} MB`;
-    return `${(bytes / 1024 / 1024 / 1024).toFixed(2)} GB`;
-};
-
-let fileManagerIconRuntimeReady = false;
-const ensureFileManagerIconRuntime = (): void => {
-    if (fileManagerIconRuntimeReady) return;
-    try {
-        ensureStyleSheet();
-        reinitializeRegistry();
-        fileManagerIconRuntimeReady = true;
-    } catch (error) {
-        console.warn("[FileManagerContent] Failed to initialize icon runtime:", error);
-    }
-};
-
-const fmCss = `
-    :host {
-        color-scheme: light dark;
-        --fm-row-bg: light-dark(rgba(245, 247, 252, 0.65), rgba(17, 27, 42, 0.28));
-        --fm-row-hover: light-dark(rgba(80, 120, 220, 0.1), rgba(137, 176, 255, 0.12));
-        --fm-row-border: light-dark(rgba(60, 80, 120, 0.1), rgba(138, 172, 248, 0.08));
-        --fm-border: light-dark(rgba(60, 80, 120, 0.16), rgba(138, 172, 248, 0.18));
-        --fm-muted: light-dark(#5c6b86, #8ca6ce);
-        --fm-text: light-dark(#1a2233, #dbe8ff);
-        --fm-folder: light-dark(#2f5fc4, #8fb6ff);
-        --fm-file: light-dark(#4a5878, #b9c9e8);
-        --fm-focus: light-dark(rgba(61, 111, 216, 0.45), rgba(137, 176, 255, 0.55));
-        display: block;
-        inline-size: 100%;
-        block-size: 100%;
-        min-inline-size: 0;
-        min-block-size: 0;
-        box-sizing: border-box;
-        overflow: hidden;
-        font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-        .row {
-            transition: none !important;
-        }
-    }
-
-    .fm-grid {
-        display: grid;
-        grid-template-rows: auto minmax(0, 1fr);
-        block-size: 100%;
-        min-block-size: 0;
-        overflow: hidden;
-        box-sizing: border-box;
-    }
-
-    .fm-grid-header,
-    .row {
-        display: grid;
-        grid-template-columns: 1.6rem minmax(0, 1fr) 6.5rem 8.5rem 8rem;
-        align-items: center;
-        gap: 0.45rem;
-        padding: 0.25rem 0.55rem;
-        box-sizing: border-box;
-    }
-
-    .fm-grid-header {
-        font-size: 0.7rem;
-        font-weight: 600;
-        letter-spacing: 0.04em;
-        text-transform: uppercase;
-        line-height: 1.15;
-        color: var(--fm-muted);
-        border-block-end: 1px solid var(--fm-border);
-        background: light-dark(rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0.02));
-        position: sticky;
-        inset-block-start: 0;
-        z-index: 2;
-    }
-
-    .fm-grid-rows {
-        overflow: auto;
-        min-block-size: 0;
-        display: grid;
-        align-content: start;
-        scrollbar-width: thin;
-        scrollbar-color: rgba(138, 172, 248, 0.25) transparent;
-    }
-
-    .row {
-        border-block-end: 1px solid var(--fm-row-border);
-        min-block-size: 2.1rem;
-        cursor: default;
-        background: var(--fm-row-bg);
-        color: var(--fm-text);
-        transition: background-color 0.12s ease, border-color 0.12s ease;
-    }
-
-    .row:hover {
-        background: var(--fm-row-hover);
-        border-color: var(--fm-border);
-    }
-
-    .row[data-selected="true"] {
-        background: color-mix(in oklab, var(--fm-row-hover) 72%, rgba(137, 176, 255, 0.2) 28%);
-    }
-
-    .row .name {
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-        font-size: 0.82rem;
-    }
-
-    .row .icon {
-        color: var(--fm-file);
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-    .row .icon ui-icon {
-        --icon-size: 1rem;
-    }
-
-    .row[data-kind="directory"] .icon,
-    .row .icon[data-kind="directory"] {
-        color: var(--fm-folder);
-    }
-
-    .row .size,
-    .row .date {
-        color: var(--fm-muted);
-        font-size: 0.74rem;
-    }
-
-    .row .actions {
-        display: inline-flex;
-        gap: 0.2rem;
-        justify-self: end;
-        opacity: 0.9;
-    }
-
-    .row:hover .actions {
-        opacity: 1;
-    }
-
-    .row .action-btn {
-        border: 0;
-        border-radius: 6px;
-        padding: 0.2rem;
-        background: rgba(137, 176, 255, 0.08);
-        color: inherit;
-        cursor: pointer;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        transition: background-color 0.12s ease, transform 0.12s ease;
-    }
-
-    .row .action-btn ui-icon {
-        --icon-size: 0.9rem;
-    }
-
-    .row .action-btn:hover {
-        background: rgba(137, 176, 255, 0.2);
-    }
-
-    .row .action-btn:active {
-        transform: translateY(0.5px);
-    }
-
-    .row .action-btn:focus-visible {
-        outline: 0;
-        box-shadow: 0 0 0 2px var(--fm-focus);
-    }
-
-    .fm-empty {
-        grid-column: 1 / -1;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        min-block-size: 12rem;
-        padding: 2rem 1.25rem;
-        text-align: center;
-        color: var(--fm-muted);
-    }
-
-    .fm-empty-inner {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 0.35rem;
-        max-inline-size: 18rem;
-    }
-
-    .fm-empty-inner ui-icon {
-        --icon-size: 2.25rem;
-        opacity: 0.45;
-    }
-
-    .fm-empty-inner p {
-        margin: 0;
-        font-size: 0.9rem;
-        color: var(--fm-text);
-    }
-
-    .fm-empty-hint {
-        font-size: 0.78rem !important;
-        color: var(--fm-muted) !important;
-        line-height: 1.35;
-    }
-`;
+//
+import { iconFor, formatDate } from "./utils";
 
 //
 initGlobalClipboard();
+
+//
+const styled = preloadStyle(fmCss);
 
 // @ts-ignore
 @defineElement("ui-file-manager-content")
@@ -283,10 +50,7 @@ export class FileManagerContent extends UIElement {
     //
     onInitialize(): this {
         const result = super.onInitialize();
-        const self: any = result ?? this;
-        self.removeAttribute?.("hidden");
-        if (self.style) self.style.display = "block";
-        return self as this;
+        return (result ?? this) as this;
     }
 
     //
@@ -334,7 +98,6 @@ export class FileManagerContent extends UIElement {
     //
     constructor() {
         super();
-        ensureFileManagerIconRuntime();
         this.operativeInstance ??= new FileOperative();
         this.operativeInstance.host = this as any;
         this.addEventListener("entries-updated", () => this.syncRows());
@@ -357,14 +120,6 @@ export class FileManagerContent extends UIElement {
         const seen = new Set<string>();
         rows.innerHTML = "";
         const fragment = document.createDocumentFragment();
-        if (safeEntries.length === 0) {
-            const empty = document.createElement("div");
-            empty.className = "fm-empty";
-            empty.setAttribute("part", "empty");
-            empty.innerHTML = `<div class="fm-empty-inner"><ui-icon icon="folder-open"></ui-icon><p>This folder is empty</p><p class="fm-empty-hint">Drop files, paste from clipboard, or use Upload. Writable storage lives under <strong>/user</strong> (OPFS).</p></div>`;
-            rows.append(empty);
-            return;
-        }
         for (const item of safeEntries) {
             if (!item || typeof item !== "object" || item.name == null) continue;
             const dedupeKey = `${item.kind}:${item.name}`;
@@ -378,26 +133,24 @@ export class FileManagerContent extends UIElement {
     private makeListElement(item: FileEntryItem, operative: FileOperative) {
         const op: any = operative as any;
         const isFile = item?.kind === "file" || item?.file;
-        const kind = item?.kind === "directory" ? "directory" : "file";
         const itemEl = H`<div draggable="${isFile}" class="row c2-surface"
-            on:click=${(ev: MouseEvent) => op.onRowClick?.(item, ev)}
-            on:dblclick=${(ev: MouseEvent) => op.onRowDblClick?.(item, ev)}
+            on:click=${(ev: MouseEvent) => requestAnimationFrame(() => op.onRowClick?.(item, ev))}
+            on:dblclick=${(ev: MouseEvent) => requestAnimationFrame(() => op.onRowDblClick?.(item, ev))}
             on:dragstart=${(ev: DragEvent) => op.onRowDragStart?.(item, ev)}
             data-id=${item?.name || ""}
-            data-kind=${kind}
         >
             <div style="pointer-events: none; background-color: transparent;" class="c icon"><ui-icon icon=${iconFor(item)} /></div>
             <div style="pointer-events: none; background-color: transparent;" class="c name" title=${item?.name || ""}>${item?.name || ""}</div>
-            <div style="pointer-events: none; background-color: transparent;" class="c size">${isFile ? formatFileSize(item?.size ?? null) : ""}</div>
+            <div style="pointer-events: none; background-color: transparent;" class="c size">${isFile ? (item?.size ?? "") : ""}</div>
             <div style="pointer-events: none; background-color: transparent;" class="c date">${isFile ? formatDate(item?.lastModified ?? 0) : ""}</div>
             <div style="pointer-events: none; background-color: transparent;" class="c actions">
-                <button class="action-btn" title="Copy Path" on:click=${(ev: MouseEvent) => { ev.stopPropagation(); op.onMenuAction?.(item, "copyPath", ev); }}>
+                <button class="action-btn" title="Copy Path" on:click=${(ev: MouseEvent) => { ev.stopPropagation(); requestAnimationFrame(() => op.onMenuAction?.(item, "copyPath", ev)); }}>
                     <ui-icon icon="copy" />
                 </button>
-                <button class="action-btn" title="Copy" on:click=${(ev: MouseEvent) => { ev.stopPropagation(); op.onMenuAction?.(item, "copy", ev); }}>
+                <button class="action-btn" title="Copy" on:click=${(ev: MouseEvent) => { ev.stopPropagation(); requestAnimationFrame(() => op.onMenuAction?.(item, "copy", ev)); }}>
                     <ui-icon icon="clipboard" />
                 </button>
-                <button class="action-btn" title="Delete" on:click=${(ev: MouseEvent) => { ev.stopPropagation(); op.onMenuAction?.(item, "delete", ev); }}>
+                <button class="action-btn" title="Delete" on:click=${(ev: MouseEvent) => { ev.stopPropagation(); requestAnimationFrame(() => op.onMenuAction?.(item, "delete", ev)); }}>
                     <ui-icon icon="trash" />
                 </button>
             </div>
@@ -407,9 +160,8 @@ export class FileManagerContent extends UIElement {
     }
 
     //
-    styles = () => fmCss as any;
+    styles = () => styled;
     render = function () {
-        ensureFileManagerIconRuntime();
         const self: any = this;
         const fileHeader = H`<div class="fm-grid-header">
             <div class="c icon">@</div>
@@ -424,7 +176,7 @@ export class FileManagerContent extends UIElement {
         if (!operative) return "";
 
         //
-        const fileRows = H`<div class="fm-grid-rows" part="rows" style="will-change: contents;"></div>`;
+        const fileRows = H`<div class="fm-grid-rows" style="will-change: contents;"></div>`;
         this.#rowsContainer = fileRows as HTMLElement;
         createItemCtxMenu?.(fileRows, operative.onMenuAction.bind(operative), self.entries);
         queueMicrotask(() => {

@@ -490,9 +490,13 @@ export class FileOperative {
             const key = `${entry.kind}:${entry.name}`;
             if (!unique.has(key)) unique.set(key, entry);
         }
-        (this.#entries as any).value = Array.from(unique.values());
+        const sorted = Array.from(unique.values()).sort((a, b) => {
+            if (a.kind !== b.kind) return a.kind === "directory" ? -1 : 1;
+            return (a.name || "").localeCompare(b.name || "", undefined, { sensitivity: "base" });
+        });
+        (this.#entries as any).value = sorted;
         this.dispatchEvent(new CustomEvent("entries-updated", {
-            detail: { path: this.path, count: unique.size },
+            detail: { path: this.path, count: sorted.length },
             bubbles: true,
             composed: true
         }));
@@ -565,6 +569,7 @@ export class FileOperative {
             }
 
             if (isUserPath(rel)) {
+                await this.getOpfsRootHandle();
                 const entries = await this.listUserEntriesDirect(rel, true);
                 this.applyEntries(entries);
                 return this;
@@ -581,9 +586,6 @@ export class FileOperative {
                 await this.#dirProxy;
             }
 
-            console.log("rel", rel);
-            
-            //
             const loader = async () => {
                 const entries = await this.collectDirectoryEntries();
                 if (entries?.length != null && entries?.length >= 0 && typeof entries?.length == "number") {

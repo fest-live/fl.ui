@@ -36,6 +36,14 @@ const formatDate = (timestamp: number | Date | undefined): string => {
     });
 };
 
+const formatFileSize = (bytes?: number | null): string => {
+    if (bytes === undefined || bytes === null || Number.isNaN(bytes)) return "—";
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(bytes < 10_240 ? 2 : 1)} kB`;
+    if (bytes < 1024 * 1024 * 1024) return `${(bytes / 1024 / 1024).toFixed(2)} MB`;
+    return `${(bytes / 1024 / 1024 / 1024).toFixed(2)} GB`;
+};
+
 let fileManagerIconRuntimeReady = false;
 const ensureFileManagerIconRuntime = (): void => {
     if (fileManagerIconRuntimeReady) return;
@@ -50,15 +58,16 @@ const ensureFileManagerIconRuntime = (): void => {
 
 const fmCss = `
     :host {
-        --fm-row-bg: rgba(17, 27, 42, 0.28);
-        --fm-row-hover: rgba(137, 176, 255, 0.12);
-        --fm-row-border: rgba(138, 172, 248, 0.08);
-        --fm-border: rgba(138, 172, 248, 0.18);
-        --fm-muted: #8ca6ce;
-        --fm-text: #dbe8ff;
-        --fm-folder: #8fb6ff;
-        --fm-file: #b9c9e8;
-        --fm-focus: rgba(137, 176, 255, 0.55);
+        color-scheme: light dark;
+        --fm-row-bg: light-dark(rgba(245, 247, 252, 0.65), rgba(17, 27, 42, 0.28));
+        --fm-row-hover: light-dark(rgba(80, 120, 220, 0.1), rgba(137, 176, 255, 0.12));
+        --fm-row-border: light-dark(rgba(60, 80, 120, 0.1), rgba(138, 172, 248, 0.08));
+        --fm-border: light-dark(rgba(60, 80, 120, 0.16), rgba(138, 172, 248, 0.18));
+        --fm-muted: light-dark(#5c6b86, #8ca6ce);
+        --fm-text: light-dark(#1a2233, #dbe8ff);
+        --fm-folder: light-dark(#2f5fc4, #8fb6ff);
+        --fm-file: light-dark(#4a5878, #b9c9e8);
+        --fm-focus: light-dark(rgba(61, 111, 216, 0.45), rgba(137, 176, 255, 0.55));
         display: block;
         inline-size: 100%;
         block-size: 100%;
@@ -66,6 +75,13 @@ const fmCss = `
         min-block-size: 0;
         box-sizing: border-box;
         overflow: hidden;
+        font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .row {
+            transition: none !important;
+        }
     }
 
     .fm-grid {
@@ -88,11 +104,14 @@ const fmCss = `
     }
 
     .fm-grid-header {
-        font-size: 0.735rem;
+        font-size: 0.7rem;
+        font-weight: 600;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
         line-height: 1.15;
         color: var(--fm-muted);
         border-block-end: 1px solid var(--fm-border);
-        background: rgba(255, 255, 255, 0.02);
+        background: light-dark(rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0.02));
         position: sticky;
         inset-block-start: 0;
         z-index: 2;
@@ -193,6 +212,42 @@ const fmCss = `
     .row .action-btn:focus-visible {
         outline: 0;
         box-shadow: 0 0 0 2px var(--fm-focus);
+    }
+
+    .fm-empty {
+        grid-column: 1 / -1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-block-size: 12rem;
+        padding: 2rem 1.25rem;
+        text-align: center;
+        color: var(--fm-muted);
+    }
+
+    .fm-empty-inner {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.35rem;
+        max-inline-size: 18rem;
+    }
+
+    .fm-empty-inner ui-icon {
+        --icon-size: 2.25rem;
+        opacity: 0.45;
+    }
+
+    .fm-empty-inner p {
+        margin: 0;
+        font-size: 0.9rem;
+        color: var(--fm-text);
+    }
+
+    .fm-empty-hint {
+        font-size: 0.78rem !important;
+        color: var(--fm-muted) !important;
+        line-height: 1.35;
     }
 `;
 
@@ -302,6 +357,14 @@ export class FileManagerContent extends UIElement {
         const seen = new Set<string>();
         rows.innerHTML = "";
         const fragment = document.createDocumentFragment();
+        if (safeEntries.length === 0) {
+            const empty = document.createElement("div");
+            empty.className = "fm-empty";
+            empty.setAttribute("part", "empty");
+            empty.innerHTML = `<div class="fm-empty-inner"><ui-icon icon="folder-open"></ui-icon><p>This folder is empty</p><p class="fm-empty-hint">Drop files, paste from clipboard, or use Upload. Writable storage lives under <strong>/user</strong> (OPFS).</p></div>`;
+            rows.append(empty);
+            return;
+        }
         for (const item of safeEntries) {
             if (!item || typeof item !== "object" || item.name == null) continue;
             const dedupeKey = `${item.kind}:${item.name}`;
@@ -315,15 +378,17 @@ export class FileManagerContent extends UIElement {
     private makeListElement(item: FileEntryItem, operative: FileOperative) {
         const op: any = operative as any;
         const isFile = item?.kind === "file" || item?.file;
+        const kind = item?.kind === "directory" ? "directory" : "file";
         const itemEl = H`<div draggable="${isFile}" class="row c2-surface"
             on:click=${(ev: MouseEvent) => op.onRowClick?.(item, ev)}
             on:dblclick=${(ev: MouseEvent) => op.onRowDblClick?.(item, ev)}
             on:dragstart=${(ev: DragEvent) => op.onRowDragStart?.(item, ev)}
             data-id=${item?.name || ""}
+            data-kind=${kind}
         >
             <div style="pointer-events: none; background-color: transparent;" class="c icon"><ui-icon icon=${iconFor(item)} /></div>
             <div style="pointer-events: none; background-color: transparent;" class="c name" title=${item?.name || ""}>${item?.name || ""}</div>
-            <div style="pointer-events: none; background-color: transparent;" class="c size">${isFile ? (item?.size ?? "") : ""}</div>
+            <div style="pointer-events: none; background-color: transparent;" class="c size">${isFile ? formatFileSize(item?.size ?? null) : ""}</div>
             <div style="pointer-events: none; background-color: transparent;" class="c date">${isFile ? formatDate(item?.lastModified ?? 0) : ""}</div>
             <div style="pointer-events: none; background-color: transparent;" class="c actions">
                 <button class="action-btn" title="Copy Path" on:click=${(ev: MouseEvent) => { ev.stopPropagation(); op.onMenuAction?.(item, "copyPath", ev); }}>
@@ -359,7 +424,7 @@ export class FileManagerContent extends UIElement {
         if (!operative) return "";
 
         //
-        const fileRows = H`<div class="fm-grid-rows" style="will-change: contents;"></div>`;
+        const fileRows = H`<div class="fm-grid-rows" part="rows" style="will-change: contents;"></div>`;
         this.#rowsContainer = fileRows as HTMLElement;
         createItemCtxMenu?.(fileRows, operative.onMenuAction.bind(operative), self.entries);
         queueMicrotask(() => {

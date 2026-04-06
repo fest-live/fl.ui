@@ -12,15 +12,16 @@ import FileManagerContent from "./FileManagerContent";
 
 const fmCss = `
     :host {
-        --fm-bg: #0b1320;
-        --fm-bg-elev: #101b2c;
-        --fm-surface: rgba(20, 31, 50, 0.9);
-        --fm-surface-hover: rgba(133, 174, 255, 0.12);
-        --fm-border: rgba(138, 172, 248, 0.2);
-        --fm-text: #dbe8ff;
-        --fm-muted: #91a9cf;
-        --fm-accent: #89b0ff;
-        --fm-focus: rgba(137, 176, 255, 0.55);
+        color-scheme: light dark;
+        --fm-bg: light-dark(#f4f6fb, #0b1320);
+        --fm-bg-elev: light-dark(#e8ecf6, #101b2c);
+        --fm-surface: light-dark(rgba(255, 255, 255, 0.92), rgba(20, 31, 50, 0.9));
+        --fm-surface-hover: light-dark(rgba(80, 120, 220, 0.12), rgba(133, 174, 255, 0.12));
+        --fm-border: light-dark(rgba(60, 80, 120, 0.18), rgba(138, 172, 248, 0.2));
+        --fm-text: light-dark(#1a2233, #dbe8ff);
+        --fm-muted: light-dark(#5c6b86, #91a9cf);
+        --fm-accent: light-dark(#3d6fd8, #89b0ff);
+        --fm-focus: light-dark(rgba(61, 111, 216, 0.45), rgba(137, 176, 255, 0.55));
         display: block;
         inline-size: 100%;
         block-size: 100%;
@@ -31,6 +32,14 @@ const fmCss = `
         background: var(--fm-bg);
         color: var(--fm-text);
         border-radius: 12px;
+        font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+        --fm-shadow: light-dark(0 1px 3px rgba(15, 23, 42, 0.1), 0 12px 40px rgba(0, 0, 0, 0.38));
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .fm-toolbar .btn {
+            transition: none !important;
+        }
     }
 
     .fm-root {
@@ -44,7 +53,12 @@ const fmCss = `
         border: 1px solid var(--fm-border);
         border-radius: inherit;
         overflow: hidden;
-        background: linear-gradient(180deg, rgba(12, 21, 35, 0.96) 0%, rgba(8, 14, 24, 0.96) 100%);
+        background: linear-gradient(
+            180deg,
+            color-mix(in oklab, var(--fm-bg-elev) 92%, white 8%) 0%,
+            color-mix(in oklab, var(--fm-bg) 100%, black 0%) 100%
+        );
+        box-shadow: var(--fm-shadow);
     }
 
     .fm-toolbar {
@@ -52,9 +66,10 @@ const fmCss = `
         grid-template-columns: max-content minmax(0, 1fr) max-content;
         align-items: center;
         gap: 0.45rem;
-        padding: 0.4rem 0.5rem;
+        padding: 0.45rem 0.6rem;
         border-block-end: 1px solid var(--fm-border);
-        background: color-mix(in oklab, var(--fm-bg-elev) 86%, black 14%);
+        background: color-mix(in oklab, var(--fm-bg-elev) 88%, transparent);
+        backdrop-filter: blur(8px);
     }
 
     .fm-toolbar-left,
@@ -73,12 +88,13 @@ const fmCss = `
         min-inline-size: 0;
         border: 1px solid var(--fm-border);
         border-radius: 8px;
-        padding: 0.4rem 0.55rem;
-        background: rgba(7, 12, 20, 0.72);
+        padding: 0.45rem 0.65rem;
+        background: light-dark(rgba(255, 255, 255, 0.85), rgba(7, 12, 20, 0.72));
         color: var(--fm-text);
         outline: none;
-        font-size: 0.8rem;
-        line-height: 1.2;
+        font-size: 0.8125rem;
+        line-height: 1.25;
+        font-variant-numeric: tabular-nums;
     }
 
     .fm-toolbar .address::placeholder {
@@ -105,7 +121,7 @@ const fmCss = `
 
     .fm-toolbar .btn:hover {
         background: var(--fm-surface-hover);
-        color: white;
+        color: light-dark(var(--fm-text), #fff);
     }
 
     .fm-toolbar .btn:active {
@@ -125,7 +141,7 @@ const fmCss = `
         min-inline-size: 0;
         min-block-size: 0;
         overflow: hidden;
-        background: rgba(8, 14, 24, 0.94);
+        background: light-dark(rgba(252, 253, 255, 0.98), rgba(8, 14, 24, 0.94));
     }
 `;
 
@@ -206,6 +222,11 @@ export class FileManager extends UIElement {
                 if (input && input instanceof HTMLInputElement && input.value != path) {
                     input.value = path || "/";
                 }
+                this.dispatchEvent(new CustomEvent("rs-navigate", {
+                    bubbles: true,
+                    composed: true,
+                    detail: { path: path || "/" }
+                }));
             });
         });
 
@@ -220,12 +241,11 @@ export class FileManager extends UIElement {
         // handle address field submit
         const weak: any = new WeakRef(this);
         const onEnter = (ev: KeyboardEvent) => {
-            if (ev.key === "Enter") {
-                const self = weak.deref() as any;
-                const input = self?.querySelector?.("input[name=\"address\"]");
-                const val = (input as HTMLInputElement)?.value?.trim?.() || "";
-                if (val) self?.navigate(val);
-            }
+            if (ev.key !== "Enter") return;
+            const self = weak.deref() as FileManager | undefined;
+            const input = self?.shadowRoot?.querySelector?.("input[name=\"address\"]") as HTMLInputElement | null;
+            const val = input?.value?.trim?.() || "";
+            if (val) void self?.navigate(val);
         };
         addEvent(this, "keydown", onEnter);
     }
@@ -254,14 +274,13 @@ export class FileManager extends UIElement {
             .replace(/\/+$/g, "")
             .split("/")
             .filter(Boolean);
-        console.log("parts", parts, this.path, this.content?.path);
         if (parts.length <= 1) {
-            this.navigate(this.path = "/");
+            void this.navigate((this.path = "/"));
             return;
         }
         const up = "/" + parts.slice(0, -1).join("/") + "/";
         const clean = getDir(up);
-        this.navigate(this.path = clean || "/");
+        void this.navigate((this.path = clean || "/"));
     }
 
     //

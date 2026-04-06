@@ -1,0 +1,5 @@
+/**
+ * Button + ui-icon baseline: single source is Veela runtime basic misc.
+ * @use this file where app SCSS must pull buttons without duplicating rules.
+ */
+@forward "fest/veela/scss/runtime/basic/misc/buttons";

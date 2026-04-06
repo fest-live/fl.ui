@@ -1,18 +1,145 @@
 import { H, defineElement, property, getDir, valueLink } from "fest/lure";
-import { addEvent, preloadStyle } from "fest/dom";
+import { addEvent } from "fest/dom";
 import { affected, propRef } from "fest/object";
+import { ensureStyleSheet, reinitializeRegistry } from "fest/icon";
+import "fest/icon";
 
 //
-import { UIElement } from "@fl-ui/base/UIElement";
+import UIElement from "@fl-ui/base/UIElement";
 
 //
 import FileManagerContent from "./FileManagerContent";
 
-// @ts-ignore
-import fmCss from "./FileManager.scss?inline";
+const fmCss = `
+    :host {
+        --fm-bg: #0b1320;
+        --fm-bg-elev: #101b2c;
+        --fm-surface: rgba(20, 31, 50, 0.9);
+        --fm-surface-hover: rgba(133, 174, 255, 0.12);
+        --fm-border: rgba(138, 172, 248, 0.2);
+        --fm-text: #dbe8ff;
+        --fm-muted: #91a9cf;
+        --fm-accent: #89b0ff;
+        --fm-focus: rgba(137, 176, 255, 0.55);
+        display: block;
+        inline-size: 100%;
+        block-size: 100%;
+        min-inline-size: 0;
+        min-block-size: 0;
+        box-sizing: border-box;
+        overflow: hidden;
+        background: var(--fm-bg);
+        color: var(--fm-text);
+        border-radius: 12px;
+    }
 
-//
-const styled = preloadStyle(fmCss);
+    .fm-root {
+        display: grid;
+        grid-template-rows: auto minmax(0, 1fr);
+        inline-size: 100%;
+        block-size: 100%;
+        min-inline-size: 0;
+        min-block-size: 0;
+        box-sizing: border-box;
+        border: 1px solid var(--fm-border);
+        border-radius: inherit;
+        overflow: hidden;
+        background: linear-gradient(180deg, rgba(12, 21, 35, 0.96) 0%, rgba(8, 14, 24, 0.96) 100%);
+    }
+
+    .fm-toolbar {
+        display: grid;
+        grid-template-columns: max-content minmax(0, 1fr) max-content;
+        align-items: center;
+        gap: 0.45rem;
+        padding: 0.4rem 0.5rem;
+        border-block-end: 1px solid var(--fm-border);
+        background: color-mix(in oklab, var(--fm-bg-elev) 86%, black 14%);
+    }
+
+    .fm-toolbar-left,
+    .fm-toolbar-right {
+        display: inline-flex;
+        gap: 0.2rem;
+        align-items: center;
+    }
+
+    .fm-toolbar-center {
+        min-inline-size: 0;
+    }
+
+    .fm-toolbar .address {
+        inline-size: 100%;
+        min-inline-size: 0;
+        border: 1px solid var(--fm-border);
+        border-radius: 8px;
+        padding: 0.4rem 0.55rem;
+        background: rgba(7, 12, 20, 0.72);
+        color: var(--fm-text);
+        outline: none;
+        font-size: 0.8rem;
+        line-height: 1.2;
+    }
+
+    .fm-toolbar .address::placeholder {
+        color: var(--fm-muted);
+    }
+
+    .fm-toolbar .address:focus-visible {
+        border-color: var(--fm-accent);
+        box-shadow: 0 0 0 2px var(--fm-focus);
+    }
+
+    .fm-toolbar .btn {
+        border: 0;
+        border-radius: 8px;
+        padding: 0.35rem 0.4rem;
+        background: rgba(137, 176, 255, 0.08);
+        color: var(--fm-text);
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: background-color 0.14s ease, color 0.14s ease, transform 0.14s ease;
+    }
+
+    .fm-toolbar .btn:hover {
+        background: var(--fm-surface-hover);
+        color: white;
+    }
+
+    .fm-toolbar .btn:active {
+        transform: translateY(0.5px);
+    }
+
+    .fm-toolbar .btn:focus-visible {
+        outline: 0;
+        box-shadow: 0 0 0 2px var(--fm-focus);
+    }
+
+    .fm-toolbar .btn ui-icon {
+        --icon-size: 1rem;
+    }
+
+    .fm-content {
+        min-inline-size: 0;
+        min-block-size: 0;
+        overflow: hidden;
+        background: rgba(8, 14, 24, 0.94);
+    }
+`;
+
+let fileManagerIconRuntimeReady = false;
+const ensureFileManagerIconRuntime = (): void => {
+    if (fileManagerIconRuntimeReady) return;
+    try {
+        ensureStyleSheet();
+        reinitializeRegistry();
+        fileManagerIconRuntimeReady = true;
+    } catch (error) {
+        console.warn("[FileManager] Failed to initialize icon runtime:", error);
+    }
+};
 
 // @ts-ignore
 @defineElement("ui-file-manager")
@@ -27,9 +154,9 @@ export class FileManager extends UIElement {
     @property({ source: "inline-size" }) inlineSize?: number;
 
     // refs/state
-    styles = () => styled;
+    styles = () => fmCss as any;
     #pathWatcherDisposer: (() => void) | null = null;
-    constructor() { super(); }
+    constructor() { super(); ensureFileManagerIconRuntime(); }
 
     //
     get content() { return (this as any)?.querySelector?.("ui-file-manager-content") as any; }
@@ -50,12 +177,16 @@ export class FileManager extends UIElement {
 
     //
     onInitialize(): this {
+        ensureFileManagerIconRuntime();
         const result = super.onInitialize();
         const self: any = result ?? this;
+        self.removeAttribute?.("hidden");
+        if (self.style) self.style.display = "block";
 
         //
-        const existingContents = Array.from(self.querySelectorAll("ui-file-manager-content"));
+        const existingContents = Array.from(self.querySelectorAll("ui-file-manager-content")) as HTMLElement[];
         const primaryContent = existingContents[0] ?? document.createElement("ui-file-manager-content");
+        (primaryContent as HTMLElement)?.removeAttribute?.("hidden");
         if (!existingContents.length) {
             self.append(primaryContent);
         }

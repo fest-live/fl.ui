@@ -1,5 +1,8 @@
 import type { View, ViewOptions } from "@shells/types";
+import { defineElement, GLitElement, H, property } from "fest/lure";
+import { ensureStyleSheet } from "fest/icon";
 
+//
 export interface CwViewViewerHostElement extends HTMLElement {
     shadowRoot: ShadowRoot | null;
 }
@@ -48,20 +51,28 @@ export class MinimalShellHostElement extends ShellHostElement {
     }
 }
 
-class ViewHostElement extends HTMLElement {
+/** Plain `HTMLElement` — not `GLitElement`: GLit attaches a shadow in the ctor, which breaks
+ * `renderIntoWebComponentHost` (it must own the first `attachShadow` for toolbar + slots). */
+export class ViewHostElement extends HTMLElement {
     mountView(view: ViewLike, options?: ViewOptionsLike): void {
+        const mountIntoHost = (view as { renderIntoWebComponentHost?: (host: HTMLElement, options?: unknown) => void })
+            .renderIntoWebComponentHost;
+        if (typeof mountIntoHost === "function") {
+            mountIntoHost.call(view, this, options);
+            return;
+        }
         const element = view.render(options);
         this.replaceChildren(element);
     }
 }
 
-class WindowFrameHostElement extends HTMLElement {
+export class WindowFrameHostElement extends GLitElement(HTMLElement) {
     private titleEl: HTMLElement | null = null;
     private pidEl: HTMLElement | null = null;
     private dragHandle: HTMLElement | null = null;
     private resizeHandle: HTMLElement | null = null;
 
-    connectedCallback(): void {
+    connectedCallback(): this {
         if (this.shadowRoot) return;
         const root = this.attachShadow({ mode: "open" });
         root.innerHTML = `
@@ -156,5 +167,42 @@ export const ensureWindowFrameElementDefined = (): string => {
     ensureDefined(WINDOW_FRAME_TAG, WindowFrameHostElement);
     return WINDOW_FRAME_TAG;
 };
+
+// @ts-ignore
+@defineElement("cw-base-element")
+export class BaseElement extends GLitElement<HTMLElement>(HTMLElement) implements HTMLElement {
+    @property({ source: "attr" }) theme: string = "default";
+
+    //
+    render = function () { return H`<slot></slot>`; }
+
+    //
+    constructor(options: any = {}) { super(options); }
+
+    //
+    onRender(): this|void|undefined {
+        return super.onRender();
+    }
+
+    //
+    connectedCallback(): this {
+        const result = super.connectedCallback?.();
+        const self : any = result ?? this;
+        return self;
+    }
+
+    //
+    onInitialize(): this {
+        const result = super.onInitialize();
+        // Only load icon styles, not the heavy veela runtime styles
+        // which cause freezing/hanging performance issues
+        const self : any = result ?? this;
+        self.loadStyleLibrary(ensureStyleSheet());
+        return self;
+    }
+}
+
+//
+export default BaseElement;
 
 ensureWindowFrameElementDefined();

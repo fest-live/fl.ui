@@ -1,7 +1,7 @@
 import { defineElement, Q, H, makeClickOutsideTrigger, M, property, registerSidebar } from "fest/lure"
 import { preloadStyle } from "fest/dom"
 import { $trigger, booleanRef, conditional, observableByMap, propRef, stringRef, affected } from "fest/object"
-import { UIElement } from "@fl-ui/base/UIElement"
+import UIElement from "@fl-ui/base/UIElement"
 
 // @ts-ignore
 import styles from "./TabbedSidebar.scss?inline"

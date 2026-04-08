@@ -71,7 +71,6 @@ export * from "./ui/index";
 
 //
 export * from "./services/file-manager";
-export * from "../../../../apps/CrossWord/src/frontend/views/viewer/ts/Markdown";
 
 //
 (async () => {

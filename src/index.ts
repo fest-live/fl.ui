@@ -65,7 +65,7 @@ import styles from "./styles/index.scss?inline";
 // EXPORTS
 // ============================================================================
 
-import { loader } from "./styles/index.veela";
+import { loader } from "./styles";
 export * from "./ui/index";
 
 //

@@ -9,6 +9,3 @@
  * import { Button, Card } from "fest/fl-ui/veela";
  * ```
  */
-
-// Re-export everything from veela-advanced
-export * from "./index.veela-basic";

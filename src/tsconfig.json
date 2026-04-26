@@ -18,119 +18,35 @@
             "@phosphor-icons/core/assets/*": [
                 "../../../../node_modules/@phosphor-icons/core/assets/*"
             ],
-            "fonts/*": [
-                "../../../../modules/shared/assets/fonts/*"
-            ],
-            "fest/*": [
-                "../../../../modules/shared/fest/*"
-            ],
-            "fest/cdnImport": [
-                "../typings/cdnImport.d.ts",
-                "../../../../modules/shared/fest/cdnImport.mjs"
-            ],
-            "fest/dom": [
-                "../../dom.ts/src/index.ts",
-                "../../../../modules/shared/fest/dom/index.ts"
-            ],
-            "fest/icon": [
-                "../../icon.ts/src/index.ts",
-                "../../../../modules/shared/fest/icon/index.ts"
-            ],
-            "fest/lure": [
-                "../../lur.e/src/index.ts",
-                "../../../../modules/shared/fest/lure/index.ts"
-            ],
-            "fest/object": [
-                "../../object.ts/src/index.ts",
-                "../../../../modules/shared/fest/object/index.ts"
-            ],
-            "fest/uniform": [
-                "../../uniform.ts/src/index.ts",
-                "../../../../modules/shared/fest/uniform/index.ts"
-            ],
-            "fest/core": [
-                "../../core.ts/src/index.ts",
-                "../../../../modules/shared/fest/core/index.ts"
-            ],
-            "fest/fl-ui": [
-                "./index.ts",
-                "../../../../modules/shared/fest/fl-ui/index.ts"
-            ],
-            "fest/ui": [
-                "./index.ts",
-                "../../../../modules/shared/fest/ui/index.ts"
-            ],
-            "fest/polyfill/*": [
-                "../../../../modules/shared/fest/polyfill/*"
-            ],
-            "fest/veela": [
-                "../../veela.css/src/index.ts",
-                "../../../../modules/shared/fest/veela/index.ts"
-            ],
-            "fest/veela-runtime": [
-                "../../veela.css/src/index.ts",
-                "../../../../modules/shared/fest/veela/index.ts"
-            ],
-            "veela-lib": [
-                "../../veela.css/src/scss/lib/index.scss"
-            ],
-            "veela-lib/*": [
-                "../../veela.css/src/scss/lib/*",
-                "../../../../modules/shared/fest/veela/scss/lib/*"
-            ],
-            "fl-ui-lib": [
-                "./styles/lib/_index.scss"
-            ],
-            "fl-ui-lib/*": [
-                "./styles/lib/*"
-            ],
-            "fl-ui-core": [
-                "./styles/core/_index.scss"
-            ],
-            "fl-ui-core/*": [
-                "./styles/core/*"
-            ],
-            "polyfill/*": [
-                "../../../../modules/shared/fest/polyfill/*"
-            ],
             "@fl-design/*": [
-                "./design/*",
-                "../../../../modules/shared/fest/fl-ui/design/*"
+                "./design/*"
             ],
             "@fl-ui/*": [
-                "./ui/*",
-                "../../../../modules/shared/fest/fl-ui/ui/*"
+                "./ui/*"
             ],
-            "@fl-src/*": [
-                "./*",
-                "../../../../modules/shared/fest/fl-ui/*"
+            "fest/lure": [
+                "../lur.e/src/index.ts"
             ],
-            "@fl-ui/items/*": [
-                "./ui/items/*",
-                "../../../../modules/shared/fest/fl-ui/ui/items/*"
+            "fest/object": [
+                "../object.ts/src/index.ts"
             ],
-            "@fl-ui/items/BaseElement": [
-                "./ui/items/base/BaseElement.ts",
-                "../../../../modules/shared/fest/fl-ui/ui/items/base/BaseElement.ts"
+            "fest/dom": [
+                "../dom.ts/src/index.ts"
             ],
-            "@fl-ui/items/BaseElement.ts": [
-                "./ui/items/base/BaseElement.ts",
-                "../../../../modules/shared/fest/fl-ui/ui/items/base/BaseElement.ts"
+            "fest/uniform": [
+                "../uniform.ts/src/index.ts"
             ],
-            "@rs-com/*": [
-                "../../../../apps/CrossWord/src/com/*"
+            "fest/theme": [
+                "../theme.core/src/index.ts"
             ],
-            "@rs-core/*": [
-                "../../../../apps/CrossWord/src/core/*"
+            "fest/core": [
+                "../core.ts/src/index.ts"
             ],
-            "@rs-frontend/*": [
-                "../../../../apps/CrossWord/src/frontend/*"
+            "fest/icon": [
+                "../icon.ts/src/index.ts"
             ],
-            "@rs-shared/*": [
-                "../../../../apps/CrossWord/shared/*"
-            ],
-            "@rs-test/*": [
-                "../../../../apps/CrossWord/test/*"
+            "fest/polyfill/*": [
+                "../../shared/fest/polyfill/*"
             ]
         },
         "target": "ESNext",

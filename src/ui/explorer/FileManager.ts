@@ -3,7 +3,7 @@ import { addEvent, preloadStyle } from "fest/dom";
 import { affected, propRef } from "fest/object";
 
 //
-import { UIElement } from "@fl-ui/base/UIElement";
+import { UIElement } from "../base/UIElement";
 
 //
 import FileManagerContent from "./FileManagerContent";

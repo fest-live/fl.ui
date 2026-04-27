@@ -1,0 +1,29 @@
+@use "veela-lib" as *;
+
+//
+@layer layer.shell.faint.forms {
+
+    // Enhanced input/select/textarea styling
+    input,
+    select,
+    textarea {
+        & {
+            background-repeat: no-repeat;
+            min-block-size: 2.5rem;
+            font-size: inherit;
+            max-inline-size: stretch;
+            max-inline-size: 100cqi;
+
+            text-overflow: ellipsis;
+            overflow: auto;
+            scrollbar-width: none;
+        }
+    }
+
+    //
+    textarea[data-multiline="true"] {
+        min-block-size: 5rem;
+        resize: vertical;
+    }
+
+}

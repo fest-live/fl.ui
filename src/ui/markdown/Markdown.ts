@@ -4,7 +4,7 @@ import DOMPurify from 'dompurify';
 import { marked, type MarkedExtension } from "marked";
 import { E, H, provide, defineElement, property } from "fest/lure";
 import renderMathInElement from "katex/dist/contrib/auto-render.mjs";
-import BaseElement from "@views/base/BaseElement";
+import UIElement from "../base/UIElement";
 import markedKatex from "marked-katex-extension";
 
 //
@@ -166,7 +166,7 @@ const waitForClipboardFrame = (): Promise<void> =>
  */
 // @ts-ignore
 @defineElement("md-view")
-export class MarkdownView extends BaseElement {
+export class MarkdownView extends UIElement {
     @property({ source: "attr" }) src: string = "";
     @property({ source: "attr" }) content: string = "";
     @property({ source: "attr" }) showActions: boolean = false;
@@ -449,7 +449,7 @@ export interface MarkdownViewerLifecycle {
 }
 
 @defineElement("cw-markdown-viewer")
-export class MarkdownViewer extends BaseElement {
+export class MarkdownViewer extends UIElement {
     private options: MarkdownViewerOptions;
     private element: MarkdownView | null = null;
     private content: string = "";

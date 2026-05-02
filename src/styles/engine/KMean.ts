@@ -120,7 +120,7 @@ const getClusterImageData = async (imgURL)=>{
         // TODO: more smart method for color selection
         const i4 = s * 4;
 
-        // @ts-expect-error Float16Array may not be in all TS libs
+        // @ts-ignore
         fp32.push((data instanceof Float32Array || data instanceof Float16Array) ? [
             (data?.[i4+0]||0),
             (data?.[i4+1]||0),

@@ -66,7 +66,6 @@ import styles from "./styles/index.scss?inline";
 // ============================================================================
 
 import { loader } from "./styles";
-export * from "./ui/index";
 
 //
 (async () => {
@@ -74,4 +73,7 @@ export * from "./ui/index";
     // Inline <style> only: bundled SCSS often still contains @import, which
     // CSSStyleSheet.replaceSync() rejects (constructable sheets limitation).
     await loadInlineStyle(styles);
-})();
+})()?.catch?.(() => undefined);
+
+//
+export * from "./ui/index";

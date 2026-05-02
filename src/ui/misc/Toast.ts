@@ -1,4 +1,3 @@
-import { scheduleFrame } from "@rs-core/utils/Runtime";
 
 /**
  * Standalone Toast System
@@ -45,7 +44,7 @@ const toastFingerprint = (opts: ToastOptions): string =>
     `${opts.kind || "info"}\0${opts.position || DEFAULT_CONFIG.position}\0${opts.message}`;
 
 const hasVisibleDuplicate = (layer: HTMLElement, message: string, kind: ToastKind): boolean => {
-    for (const el of layer.children) {
+    for (const el of Array.from(layer?.children ?? [])) {
         if (
             el instanceof HTMLElement &&
             el.classList.contains("rs-toast") &&
@@ -333,7 +332,7 @@ export const showToast = (options: ToastOptions | string): HTMLElement | null =>
     layer.appendChild(toast);
 
     // Trigger enter animation
-    scheduleFrame(() => {
+    globalThis?.requestAnimationFrame?.(() => {
         toast.setAttribute("data-visible", "");
     });
 
@@ -345,7 +344,7 @@ export const showToast = (options: ToastOptions | string): HTMLElement | null =>
             hideTimer = null;
         }
         toast.removeAttribute("data-visible");
-        setTimeout(() => {
+        globalThis?.setTimeout?.(() => {
             toast.remove();
             // Clean up layer if empty
             if (!layer.childElementCount) {
@@ -357,7 +356,7 @@ export const showToast = (options: ToastOptions | string): HTMLElement | null =>
 
     // Auto-remove after duration (unless persistent)
     if (!persistent) {
-        hideTimer = globalThis.setTimeout(removeToast, duration) as unknown as number | null;
+        hideTimer = globalThis?.setTimeout?.(removeToast, duration);
     }
 
     // Click handler (dismisses toast)

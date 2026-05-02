@@ -455,7 +455,7 @@ export class MarkdownViewer extends UIElement {
     private content: string = "";
 
     constructor(options: MarkdownViewerOptions = {}) {
-        super(options);
+        super();
         this.options = {
             content: "",
             title: "Markdown Viewer",

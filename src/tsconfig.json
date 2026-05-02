@@ -25,25 +25,25 @@
                 "./ui/*"
             ],
             "fest/lure": [
-                "../lur.e/src/index.ts"
+                "../../lur.e/src/index.ts"
             ],
             "fest/object": [
-                "../object.ts/src/index.ts"
+                "../../object.ts/src/index.ts"
             ],
             "fest/dom": [
-                "../dom.ts/src/index.ts"
+                "../../dom.ts/src/index.ts"
             ],
             "fest/uniform": [
-                "../uniform.ts/src/index.ts"
+                "../../uniform.ts/src/index.ts"
             ],
             "fest/theme": [
-                "../theme.core/src/index.ts"
+                "../../theme.core/src/index.ts"
             ],
             "fest/core": [
-                "../core.ts/src/index.ts"
+                "../../core.ts/src/index.ts"
             ],
             "fest/icon": [
-                "../icon.ts/src/index.ts"
+                "../../icon.ts/src/index.ts"
             ],
             "fest/polyfill/*": [
                 "../../shared/fest/polyfill/*"

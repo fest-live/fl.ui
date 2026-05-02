@@ -1,3 +1,8 @@
+import { MOCElement } from "fest/dom";
+import type { FileEntryItem } from "./Operative";
+import { ctxMenuTrigger, H } from "fest/lure";
+
+
 type ContextMenuEntry = {
     id: string;
     label: string;
@@ -426,10 +431,6 @@ export const openUnifiedContextMenu = (request: ContextMenuOpenRequest): void =>
 };
 
 export type { ContextMenuEntry, ContextMenuOpenRequest };
-
-import { MOCElement } from "fest/dom";
-import type { FileEntryItem } from "./Operative";
-import { ctxMenuTrigger, H } from "fest/lure";
 
 //
 const disconnectRegistry = new FinalizationRegistry((ctxMenu: HTMLElement) => {

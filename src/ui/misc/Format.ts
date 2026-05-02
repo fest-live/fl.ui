@@ -1,7 +1,17 @@
 import { observableByMap, observableBySet } from "fest/object";
 import { H, M } from "fest/lure";
-import { beginDragAsText, buildPrimaryDayTitle, buildSecondaryDayTitle, isNotEmpty, copyEmailClick, copyPhoneClick } from "@rs-core/text";
 
+const buildPrimaryDayTitle = (dayDesc: any) => {
+    return dayDesc?.title || dayDesc?.name || dayDesc?.id || "";
+}
+
+const buildSecondaryDayTitle = (dayDesc: any, primary: string) => {
+    return dayDesc?.subtitle || dayDesc?.description || dayDesc?.id || "";
+}
+
+const isNotEmpty = (text: string) => {
+    return text?.trim?.() != null && text?.trim?.() != "";
+}
 
 //
 export const formatTextElement = (text: string) => {
@@ -14,7 +24,7 @@ export const formatTextElement = (text: string) => {
 export const formatEmailElement = (email: string) => {
     const normalized = email?.trim?.();
     if (!normalized) return null;
-    return H`<a on:dragstart=${beginDragAsText} draggable="true" data-action="copy-email" class="email" href="mailto:${normalized}" on:click=${copyEmailClick}>${normalized}</a>`;
+    return H`<a draggable="true" data-action="copy-email" class="email" href="mailto:${normalized}" >${normalized}</a>`;
 }
 
 
@@ -26,7 +36,7 @@ export const formatPhoneElement = (phone: string) => {
     text = text.replace(/\s+/g, '').replace(/[^0-9]/g, '');
     const normalized = text.trim();
     if (!normalized) return null;
-    return H`<a on:dragstart=${beginDragAsText} draggable="true" data-action="copy-phone" class="phone" href="tel:${normalized}" on:click=${copyPhoneClick}>${normalized}</a>`;
+    return H`<adraggable="true" data-action="copy-phone" class="phone" href="tel:${normalized}">${normalized}</a>`;
 }
 
 //

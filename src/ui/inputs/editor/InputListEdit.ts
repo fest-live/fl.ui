@@ -2,7 +2,7 @@
 import { computed, isObservable, observe, propRef } from "fest/object";
 import { H, M, Q } from "fest/lure";
 import { JSOX } from "jsox";
-import { canParseURL } from "@rs-core/utils/Runtime";
+import { canParseURL } from "core/utils/Runtime";
 
 //
 const editBindings = new WeakMap<any, FieldWithKey>();

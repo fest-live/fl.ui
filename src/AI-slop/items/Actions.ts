@@ -1,6 +1,6 @@
-import type { EntityDescriptor } from "@rs-core/utils/Types";
+import type { EntityDescriptor } from "core/utils/Types";
 import { LongPressHandler, H } from "fest/lure";
-import { labelsPerAction, actionRegistry, iconsPerAction } from "@rs-core/utils/Actions";
+import { labelsPerAction, actionRegistry, iconsPerAction } from "core/utils/Actions";
 
 //
 const generateActionButton = (action: string, entityDesc: EntityDescriptor, viewPage?: any) => {

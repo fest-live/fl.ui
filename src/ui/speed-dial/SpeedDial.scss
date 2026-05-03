@@ -1,5 +1,5 @@
 // Orientbox + launcher grid: swaps logical 4×8 into 8×4 on landscape (orient 1/3) via `--cs-layout-*`.
-@use "../../../../veela.css/src/scss/runtime/basic/orient" as *;
+@use "veela-lib" as *;
 
 @layer views {
 

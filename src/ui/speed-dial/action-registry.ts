@@ -1,5 +1,5 @@
 /**
- * Default speed-dial action handlers for @fl-ui (no CrossWord Actions.ts / @rs-core).
+ * Default speed-dial action handlers for fl-ui (no CrossWord Actions.ts / core).
  * Hosts may extend via `registerSpeedDialAction` before the grid mounts.
  */
 

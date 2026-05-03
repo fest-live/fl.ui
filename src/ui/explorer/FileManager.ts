@@ -14,6 +14,13 @@ import fmCss from "./FileManager.scss?inline";
 //
 const styled = preloadStyle(fmCss);
 
+export type ContextMenuItem = {
+    id: string;
+    label: string;
+    icon?: string;
+    action: () => void;
+};
+
 // @ts-ignore
 @defineElement("ui-file-manager")
 export class FileManager extends UIElement {

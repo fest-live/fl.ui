@@ -56,43 +56,19 @@
             "polyfill/*": [
                 "../../../modules/shared/fest/polyfill/*"
             ],
-            "@fl-design/*": [
-                "./src/design/*"
-            ],
-            "@rs-com/*": [
-                "../../../apps/CrossWord/src/com/*"
-            ],
-            "@rs-core/*": [
-                "../../../apps/CrossWord/src/core/*"
-            ],
-            "@rs-frontend/*": [
-                "../../../apps/CrossWord/src/frontend/*"
-            ],
-            "@rs-shared/*": [
-                "../../../apps/CrossWord/shared/*"
-            ],
-            "@rs-test/*": [
-                "../../../apps/CrossWord/test/*"
-            ],
-            "@frontend/*": [
-                "../../../apps/CrossWord/src/frontend/*"
-            ],
-            "@shared/*": [
-                "../../../apps/CrossWord/src/frontend/shared/*"
-            ],
-            "@fl-ui/*": [
+            "fl-ui/*": [
                 "./src/ui/*"
             ],
-            "@fl-src/*": [
+            "fl-src/*": [
                 "./src/*"
             ],
-            "@fl-ui/items/*": [
+            "fl-ui/items/*": [
                 "./src/ui/items/*"
             ],
-            "@fl-ui/items/BaseElement": [
+            "fl-ui/items/BaseElement": [
                 "./src/ui/items/base/BaseElement.ts"
             ],
-            "@fl-ui/items/BaseElement.ts": [
+            "fl-ui/items/BaseElement.ts": [
                 "./src/ui/items/base/BaseElement.ts"
             ],
             "fest/veela": [

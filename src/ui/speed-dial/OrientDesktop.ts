@@ -27,8 +27,8 @@ import {
 import speedDialViewStyles from "./SpeedDial.scss?inline";
 // Registers `data-mixin="ui-orientbox"` (container-type / --orient wiring).
 import "./OrientBox";
-import { setAppWallpaper } from "@fl-ui/misc/Canvas-2";
-import { closeUnifiedContextMenu, ContextMenuEntry, openUnifiedContextMenu } from "@fl-ui/explorer/ContextMenu";
+import { setAppWallpaper } from "fl-ui/misc/Canvas-2";
+import { closeUnifiedContextMenu, ContextMenuEntry, openUnifiedContextMenu } from "fl-ui/explorer/ContextMenu";
 
 /** Orient-layer desktop shares SpeedDial styles; HomeView only adopts this sheet while home is visible, so load once here. */
 let orientDesktopStyleSheet: CSSStyleSheet | null = null;

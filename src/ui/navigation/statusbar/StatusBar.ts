@@ -1,5 +1,5 @@
 /* Statusbar wrapper */
-import UIElement from "@fl-ui/base/UIElement";
+import UIElement from "fl-ui/base/UIElement";
 import { H, defineElement } from "fest/lure";
 
 //

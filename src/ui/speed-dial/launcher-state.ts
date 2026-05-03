@@ -1,5 +1,5 @@
 /**
- * Speed-dial / launcher persistence for fl.ui only (no @rs-core).
+ * Speed-dial / launcher persistence for fl.ui only (no core).
  * Storage keys match CrossWord `StateStorage` so shells sharing one origin keep one grid.
  */
 

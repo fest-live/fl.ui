@@ -2,8 +2,7 @@
     "include": [
         "./**/*.ts",
         "./index.ts",
-        "design/engine/Config.ts"
-    ],
+        "design/engine/Config.ts" ],
     "exclude": [
         "../../dist/**/*",
         "../../externals/**/*",
@@ -21,7 +20,7 @@
             "@fl-design/*": [
                 "./design/*"
             ],
-            "@fl-ui/*": [
+            "fl-ui/*": [
                 "./ui/*"
             ],
             "fest/lure": [

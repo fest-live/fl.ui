@@ -19,7 +19,6 @@ export * from "./markdown/Viewer";
 
 //
 export * from "./explorer/FileManager";
-export * from "./explorer/FileManagerContent";
 export * from "./explorer/Operative";
 export * from "./explorer/ContextMenu";
 export * from "./explorer/utils";

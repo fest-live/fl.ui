@@ -1,6 +1,6 @@
 import { stringRef } from "fest/object";
 import { H, M, Q } from "fest/lure";
-import { parseDateCorrectly } from "@rs-core/time";
+import { parseDateCorrectly } from "core/time";
 
 //
 const jsonOutputTypeFormat = [

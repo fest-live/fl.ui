@@ -1,5 +1,5 @@
 /* Taskbar Item (Task) */
-import UIElement from "@fl-ui/base/UIElement";
+import UIElement from "fl-ui/base/UIElement";
 import { preloadStyle } from "fest/dom";
 import { H, property, defineElement } from "fest/lure";
 

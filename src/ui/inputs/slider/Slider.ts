@@ -19,7 +19,7 @@ import { preloadStyle, handleProperty } from "fest/dom";
 import { computed, assign, propRef } from "fest/object";
 
 //
-import { UIElement } from "@fl-ui/base/UIElement";
+import { UIElement } from "fl-ui/base/UIElement";
 
 // @ts-ignore
 import styles from "./Slider.scss?inline"

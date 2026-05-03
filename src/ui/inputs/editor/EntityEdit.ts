@@ -1,13 +1,13 @@
-import type { EntityInterface, TimeType } from "@rs-com/template/EntityInterface";
-import type { EntityDescriptor } from "@rs-core/utils/Types";
-import { scheduleFrame } from "@rs-core/utils/Runtime";
+import type { EntityInterface, TimeType } from "com/template/EntityInterface";
+import type { EntityDescriptor } from "core/utils/Types";
+import { scheduleFrame } from "core/utils/Runtime";
 import { removeFile, writeFile } from "fest/lure";
 import { H, Q, M } from "fest/lure";
 import { observe, stringRef, propRef } from "fest/object";
 
-// helpful imports (all from `@rs-core/template/*`, such as `EntityUtils`, `EntityId`, etc.)
-import { detectEntityTypeByJSON } from "@rs-com/template/EntityUtils";
-import { generateEntityId, fixEntityId, type EntityLike } from "@rs-com/template/EntityId";
+// helpful imports (all from `core/template/*`, such as `EntityUtils`, `EntityId`, etc.)
+import { detectEntityTypeByJSON } from "com/template/EntityUtils";
+import { generateEntityId, fixEntityId, type EntityLike } from "com/template/EntityId";
 import { JSOX } from "jsox";
 
 // field editors

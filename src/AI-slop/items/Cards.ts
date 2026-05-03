@@ -1,6 +1,6 @@
 import { H } from "fest/lure";
-import type { EntityDescriptor } from "@rs-core/utils/Types";
-import type { EntityInterface } from "@rs-com/template/EntityInterface";
+import type { EntityDescriptor } from "core/utils/Types";
+import type { EntityInterface } from "com/template/EntityInterface";
 
 export type LazyCardOptions = {
     order?: number;

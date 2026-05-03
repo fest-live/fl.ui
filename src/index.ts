@@ -27,7 +27,7 @@ import { loadInlineStyle } from "fest/dom";
 // CONFIGURATION
 // ============================================================================
 
-export type FlUIStyleVariant = "core" | "veela-basic" | "veela-advanced" | "veela-beercss";
+export type FlUIStyleVariant = "veela-basic" | "veela-advanced";
 
 export interface FlUIConfig {
     /** Whether to load styles automatically (default: true) */
@@ -38,7 +38,7 @@ export interface FlUIConfig {
 
 const defaultConfig: FlUIConfig = {
     loadStyles: true,
-    styleVariant: "veela-advanced"
+    styleVariant: "veela-basic"
 };
 
 let _config = { ...defaultConfig };

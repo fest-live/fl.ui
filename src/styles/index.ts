@@ -18,10 +18,7 @@ const fontStyles = `
 export * from './font-loader';
 export type { FontMetadata } from './font-loader';
 export const loader = async ()=>{
-    await Promise.allSettled([
-        loadFontRegistry().catch(() => undefined),
-        loadAllFonts().catch(() => undefined)
-    ]);
     await loadAsAdopted(fontStyles)?.catch(() => undefined);
+    await loadAllFonts().catch(() => undefined);
     await loadAsAdopted(styles)?.catch(() => undefined);
 };

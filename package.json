@@ -1,6 +1,6 @@
 {
     "name": "@fest-lib/fl-ui",
-    "description": "FL-UI components and services (fest-lib)",
+    "description": "FL-UI components and services (fest-lib). Dev: open index.html — suite picker + /test/playground.ts loader; ?suite=explorer|markdown|misc|speed-dial",
     "version": "0.1.0",
     "license": "MIT",
     "type": "module",
@@ -86,9 +86,10 @@
     },
     "devDependencies": {
         "@types/node": ">=22.8.1",
+        "puppeteer": ">=24.42.0",
         "sass": ">=1.93.3",
         "typescript": ">=6.0.0-beta",
-        "vite": "^8.0.7",
+        "vite": ">=8.0.10",
         "vite-plugin-external": ">=6.2.2"
     }
 }

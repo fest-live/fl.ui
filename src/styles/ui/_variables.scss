@@ -2,4 +2,11 @@
 :root {
     --fl-ui-radius: 0.5rem;
     --fl-ui-gap: 0.75rem;
+
+    /* Explorer / shell (used by _explorer.scss, _explorer-content.scss) */
+    --color-surface: #151d2e;
+    --color-on-surface: #e8edf5;
+    --color-on-surface-variant: #8b9bb8;
+    --color-primary: #3794ff;
+    --error-color: #f87171;
 }

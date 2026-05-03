@@ -5,7 +5,7 @@
         <link rel="icon" type="image/svg+xml" href="/vite.svg" />
         <meta name="text-scale" content="scale" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Vite + TS</title>
+        <title>FL.UI — test suites</title>
 
         <script>
             WeakMap.prototype.getOrInsert ??= function (key, defaultValue) {
@@ -29,381 +29,118 @@
             };
         </script>
 
-        <!-- -->
-        <script type="importmap">{
-            "imports": {
-                "fonts/": "fonts/",
-                "fest/": "fest/",
-                "fest/cdnImport": "fest/cdnImport",
-                "fest/dom": "fest/dom.ts/src/index.ts",
-                "fest/lure": "fest/lur.e/src/index.ts",
-                "fest/object": "fest/object.ts/src/index.ts",
-                "fest/uniform": "fest/uniform.ts/src/index.ts",
-                "fest/theme": "fest/theme.core/src/index.ts"
-            }
-        }</script>
-    </head>
-    <body class="c2-contrast">
-
         <style>
-            #choice-list {
-                position: fixed;
-                inset-inline-start: 50%;
-                inset-block-start: 50%;
-                transform: translate3d(-50%, -50%, 0px);
-                z-index: 1000;
+            :root {
+                color-scheme: dark;
+                --fl-dev-bg: #0b1220;
+                --fl-dev-surface: #151d2e;
+                --fl-dev-border: #2a3650;
+                --fl-dev-text: #e8edf5;
+                --fl-dev-muted: #8b9bb8;
+                --fl-dev-accent: #6ee7b7;
+            }
+            html, body {
+                margin: 0;
+                min-height: 100%;
+                font-family: system-ui, "Segoe UI", Roboto, sans-serif;
+                background: var(--fl-dev-bg);
+                color: var(--fl-dev-text);
+            }
+            .fl-ui-dev-shell {
+                max-width: 72rem;
+                margin: 0 auto;
+                padding: 1rem 1.25rem 2rem;
+            }
+            .fl-ui-dev-header h1 {
+                margin: 0 0 0.35rem;
+                font-size: 1.35rem;
+                font-weight: 600;
+            }
+            .fl-ui-dev-hint {
+                margin: 0 0 1rem;
+                font-size: 0.875rem;
+                color: var(--fl-dev-muted);
+            }
+            .fl-ui-dev-hint code {
+                font-size: 0.8em;
+                padding: 0.12em 0.35em;
+                border-radius: 4px;
+                background: var(--fl-dev-surface);
+                border: 1px solid var(--fl-dev-border);
+            }
+            .fl-ui-dev-nav {
                 display: flex;
-                flex-direction: column;
+                flex-wrap: wrap;
+                gap: 0.5rem;
+                margin-bottom: 0.75rem;
                 align-items: center;
-                justify-content: center;
-                gap: 16px;
-                max-width: 600px;
-                width: 90%;
-                background: rgba(255, 255, 255, 0.95);
-                backdrop-filter: blur(10px);
-                border-radius: 16px;
-                padding: 2rem;
-                box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-                border: 1px solid rgba(255, 255, 255, 0.2);
             }
-
-            .test-menu-header {
-                text-align: center;
-                margin-bottom: 8px;
-            }
-
-            .test-menu-header h2 {
-                margin: 0 0 8px 0;
-                font-size: 1.5rem;
-                color: #333;
-                font-weight: 600;
-            }
-
-            .test-menu-header p {
-                margin: 0;
-                color: #666;
-                font-size: 0.9rem;
-            }
-
-            .test-buttons {
-                display: flex;
-                flex-direction: column;
-                gap: 12px;
-                width: 100%;
-            }
-
-            #choice-list button {
+            .fl-ui-dev-nav button {
                 cursor: pointer;
-                box-sizing: border-box;
-                inline-size: 100%;
-                block-size: fit-content;
-                background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-                display: flex;
-                flex-direction: column;
-                align-items: flex-start;
-                justify-content: center;
-                gap: 4px;
-                border: 1px solid #dee2e6;
-                padding: 1.25rem;
-                margin: 0;
-                font-size: 14px;
-                font-weight: 500;
-                color: #333;
-                border-radius: 12px;
-                transition: all 0.2s ease;
-                text-align: left;
-            }
-
-            #choice-list button:hover {
-                background: linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%);
-                transform: translateY(-2px);
-                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-                border-color: #adb5bd;
-            }
-
-            #choice-list button:active {
-                background: linear-gradient(135deg, #dee2e6 0%, #ced4da 100%);
-                transform: translateY(0);
-                box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-            }
-
-            .test-icon {
-                font-size: 1.5rem;
-                margin-bottom: 4px;
-            }
-
-            .test-title {
-                font-size: 1rem;
-                font-weight: 600;
-                color: #333;
-                margin-bottom: 2px;
-            }
-
-            .test-description {
-                font-size: 0.85rem;
-                color: #666;
-                font-weight: 400;
-                line-height: 1.3;
-            }
-
-            .test-menu-footer {
-                margin-top: 8px;
-                width: 100%;
-            }
-
-            #back-to-menu {
-                background: #6c757d !important;
-                color: white !important;
-                text-align: center !important;
-                align-items: center !important;
-            }
-
-            #back-to-menu:hover {
-                background: #5a6268 !important;
-            }
-
-            .test-loading {
-                display: none;
-                text-align: center;
-                color: #666;
-                font-style: italic;
-            }
-
-            .test-error {
-                display: none;
-                background: #f8d7da;
-                color: #721c24;
-                padding: 1rem;
+                border: 1px solid var(--fl-dev-border);
+                background: var(--fl-dev-surface);
+                color: var(--fl-dev-text);
+                padding: 0.45rem 0.85rem;
                 border-radius: 8px;
-                border: 1px solid #f5c6cb;
-                margin: 1rem 0;
+                font-size: 0.875rem;
             }
-
-            @media (max-width: 768px) {
-                #choice-list {
-                    width: 95%;
-                    padding: 1.5rem;
-                }
+            .fl-ui-dev-nav button:hover {
+                border-color: var(--fl-dev-accent);
+                color: var(--fl-dev-accent);
+            }
+            .fl-ui-dev-nav button[data-fl-active="true"] {
+                border-color: var(--fl-dev-accent);
+                background: #0f241c;
+                color: var(--fl-dev-accent);
+            }
+            .fl-ui-suite-status {
+                margin: 0 0 1rem;
+                font-size: 0.8rem;
+                color: var(--fl-dev-muted);
+                min-height: 1.25em;
+            }
+            .fl-ui-suite-status[data-state="loading"] { color: #fbbf24; }
+            .fl-ui-suite-status[data-state="error"] { color: #f87171; }
+            .fl-ui-suite-status[data-state="ready"] { color: var(--fl-dev-accent); }
+            #fl-ui-playground {
+                position: relative;
+                min-height: 12rem;
+                border: 1px solid var(--fl-dev-border);
+                border-radius: 10px;
+                background: var(--fl-dev-surface);
+                overflow: auto;
+            }
+            .fl-ui-dev-suite-caption {
+                margin: 0;
+                padding: 0.65rem 1rem;
+                font-size: 0.8rem;
+                color: var(--fl-dev-muted);
+                border-bottom: 1px solid var(--fl-dev-border);
             }
         </style>
-
-        <div id="choice-list">
-            <div class="test-menu-header">
-                <h2>🧪 Test Suite</h2>
-                <p>Select a test to run:</p>
-            </div>
-            <div class="test-buttons">
-                <button data-test="ws-grid">
-                    <span class="test-icon">🏗️</span>
-                    <span class="test-title">Workspace Grid Test</span>
-                    <span class="test-description">Interactive workspace with draggable items and window management</span>
-                </button>
-                <button data-test="ctm-2">
-                    <span class="test-icon">🎨</span>
-                    <span class="test-title">Color System Test</span>
-                    <span class="test-description">Color theme variations and tone shifting</span>
-                </button>
-                <button data-test="ui-test">
-                    <span class="test-icon">🖥️</span>
-                    <span class="test-title">UI Components Test</span>
-                    <span class="test-description">Various UI components and interactions</span>
-                </button>
-                <button data-test="slider-test">
-                    <span class="test-icon">🎚️</span>
-                    <span class="test-title">Slider Component Test</span>
-                    <span class="test-description">Range sliders, switches, and number inputs</span>
-                </button>
-            </div>
-            <div class="test-menu-footer">
-                <button id="back-to-menu" style="display: none;">
-                    <span>← Back to Menu</span>
-                </button>
-            </div>
+    </head>
+    <body class="c2-contrast fl-ui-dev-body">
+        <div class="fl-ui-dev-shell">
+            <header class="fl-ui-dev-header">
+                <h1>FL.UI test suites</h1>
+                <p class="fl-ui-dev-hint">
+                    Load a suite below or open a deep link, e.g.
+                    <code>?suite=explorer</code>,
+                    <code>?suite=markdown</code>,
+                    <code>?suite=misc</code>,
+                    <code>?suite=speed-dial</code>
+                    (alias: <code>demo=</code>).
+                </p>
+                <nav class="fl-ui-dev-nav" id="fl-ui-suite-nav" aria-label="Test suites">
+                    <button type="button" data-fl-suite="explorer">Explorer</button>
+                    <button type="button" data-fl-suite="markdown">Markdown</button>
+                    <button type="button" data-fl-suite="misc">Misc (canvas)</button>
+                    <button type="button" data-fl-suite="speed-dial">Speed dial</button>
+                </nav>
+                <p class="fl-ui-suite-status" id="fl-ui-suite-status" aria-live="polite"></p>
+            </header>
+            <main id="fl-ui-playground" aria-label="Suite output"></main>
         </div>
-
-        <div class="c2-surface" id="app" style="pointer-events: auto; background-color: --c2-surface(0.2, var(--current, currentColor));"></div>
-
-        <script async defer type="module">
-            // Test Management System
-            class TestManager {
-                constructor() {
-                    this.choiceList = document.getElementById("choice-list");
-                    this.app = document.getElementById("app");
-                    this.currentTest = null;
-                    this.loadedModules = new Map();
-                    this.availableTests = new Set(['ws-grid', 'ctm-2', 'ui-test', 'slider-test']);
-
-                    this.init();
-                }
-
-                init() {
-                    this.setupEventListeners();
-                    this.handleInitialLoad();
-                }
-
-                setupEventListeners() {
-                    // Handle test button clicks
-                    this.choiceList.addEventListener("click", (event) => {
-                        const button = event.target?.closest?.("button[data-test]");
-                        if (button) {
-                            const testName = button.dataset.test;
-                            this.loadTest(testName);
-                        }
-                    });
-
-                    // Handle back to menu button
-                    const backButton = document.getElementById("back-to-menu");
-                    backButton.addEventListener("click", () => {
-                        this.showMenu();
-                    });
-
-                    // Handle hash changes
-                    window.addEventListener("hashchange", (event) => {
-                        event.preventDefault();
-                        this.handleHashChange();
-                    });
-
-                    // Handle browser back/forward
-                    window.addEventListener("popstate", (event) => {
-                        this.handleHashChange();
-                    });
-                }
-
-                handleInitialLoad() {
-                    const hash = location.hash.slice(1);
-                    if (hash && this.availableTests.has(hash)) {
-                        this.loadTest(hash);
-                    } else {
-                        this.showMenu();
-                    }
-                }
-
-                handleHashChange() {
-                    const hash = location.hash.slice(1);
-                    if (hash && this.availableTests.has(hash)) {
-                        this.loadTest(hash);
-                    } else {
-                        this.showMenu();
-                    }
-                }
-
-                async loadTest(testName) {
-                    if (!this.availableTests.has(testName)) {
-                        this.showError(`Test "${testName}" not found`);
-                        return;
-                    }
-
-                    try {
-                        this.showLoading(testName);
-                        this.hideMenu();
-
-                        // Clear previous test content
-                        this.clearApp();
-
-                        // Load the test module
-                        let module;
-                        if (this.loadedModules.has(testName)) {
-                            module = this.loadedModules.get(testName);
-                        } else {
-                            try {
-                                module = await import(`./test/ts/${testName}.ts`);
-                                this.loadedModules.set(testName, module);
-                            } catch (error) {
-                                // Try HTML version for slider-test
-                                if (testName === 'slider-test') {
-                                    window.location.href = './test/html/slider-test.html';
-                                    return;
-                                }
-                                throw error;
-                            }
-                        }
-
-                        // Execute the test
-                        if (module?.default) {
-                            await module.default();
-                        }
-
-                        // Update URL without triggering hashchange
-                        this.updateUrl(testName);
-                        this.showBackButton();
-                        this.currentTest = testName;
-
-                    } catch (error) {
-                        console.error(`Failed to load test "${testName}":`, error);
-                        this.showError(`Failed to load test "${testName}": ${error.message}`);
-                        this.showMenu();
-                    }
-                }
-
-                showMenu() {
-                    this.clearApp();
-                    this.choiceList.style.display = 'flex';
-                    this.hideBackButton();
-                    this.currentTest = null;
-                    this.updateUrl('');
-                }
-
-                hideMenu() {
-                    this.choiceList.style.display = 'none';
-                }
-
-                showLoading(testName) {
-                    // Create loading indicator
-                    const loading = document.createElement('div');
-                    loading.className = 'test-loading';
-                    loading.style.display = 'block';
-                    loading.textContent = `Loading ${testName}...`;
-                    this.app.appendChild(loading);
-                }
-
-                showError(message) {
-                    const error = document.createElement('div');
-                    error.className = 'test-error';
-                    error.style.display = 'block';
-                    error.textContent = message;
-                    this.app.appendChild(error);
-
-                    // Show menu after error
-                    setTimeout(() => {
-                        this.showMenu();
-                    }, 2000);
-                }
-
-                clearApp() {
-                    this.app.innerHTML = '';
-                }
-
-                showBackButton() {
-                    const backButton = document.getElementById("back-to-menu");
-                    backButton.style.display = 'block';
-                }
-
-                hideBackButton() {
-                    const backButton = document.getElementById("back-to-menu");
-                    backButton.style.display = 'none';
-                }
-
-                updateUrl(testName) {
-                    const newUrl = testName ? `#${testName}` : '';
-                    if (location.hash !== newUrl) {
-                        history.replaceState(null, '', newUrl);
-                    }
-                }
-
-                // Public method to reload current test
-                reloadCurrentTest() {
-                    if (this.currentTest) {
-                        this.loadedModules.delete(this.currentTest);
-                        this.loadTest(this.currentTest);
-                    }
-                }
-            }
-
-            // Initialize the test manager
-            const testManager = new TestManager();
-
-            // Expose test manager globally for debugging
-            window.testManager = testManager;
-        </script>
+        <script type="module" src="/test/playground.ts"></script>
     </body>
 </html>

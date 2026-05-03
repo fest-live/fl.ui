@@ -23,6 +23,9 @@
             overflow: hidden;
             margin: 0;
             line-height: normal;
+            max-block-size: none;
+            max-inline-size: none;
+            flex-grow: 1;
 
             background-color: var(--color-surface);
             color: var(--color-on-surface);

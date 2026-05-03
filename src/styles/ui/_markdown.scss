@@ -18,12 +18,9 @@
  *  - !important только там, где реально нужно бороться с внешним JS-стилем
  */
 
-@use "veela-lib" as mixins;
-@use "veela-lib" as tokens;
-@use "veela-lib" as config;
-
-@use "veela-lib" as *;
-@use "veela-lib" as ui;
+@use "../../../../veela.css/src/scss/lib/core/misc/config" as config;
+@use "../../../../veela.css/src/scss/lib/core/misc/tokens" as tokens;
+@use "../../../../veela.css/src/scss/lib/core/misc/mixins" as mixins;
 
 @use "sass:map";
 @use "sass:list";

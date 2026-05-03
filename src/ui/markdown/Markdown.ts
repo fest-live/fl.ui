@@ -1,5 +1,5 @@
-// @ts-ignore
-import styles from "fest/veela/scss/runtime/basic/markdown/markdown.scss?inline&compress";
+// @ts-ignore — canonical typography: `src/styles/ui/_markdown.scss` (veela-backed tokens)
+import styles from "../../styles/ui/_markdown.scss?inline";
 import DOMPurify from 'dompurify';
 import { marked, type MarkedExtension } from "marked";
 import { E, H, provide, defineElement, property } from "fest/lure";
@@ -179,8 +179,8 @@ export class MarkdownView extends UIElement {
     #title: string = "Markdown Viewer";
 
     constructor(options: MarkdownViewerOptions = {}) {
+        // WHY: GLit ctor already calls `createShadowRoot()` when `isNotExtended(this)`; calling again duplicated the shell.
         super();
-        this.createShadowRoot?.();
     }
 
     connectedCallback(): any {
@@ -400,8 +400,17 @@ export class MarkdownView extends UIElement {
      * Shadow root: optional chrome + default slot. Markdown body is a light-DOM child (`.markdown-body`).
      */
     createShadowRoot(): ShadowRoot {
-        const self : any = this;
-        const shadowRoot = self.createShadowRoot?.() ?? self.attachShadow?.({ mode: "open" });
+        // GLit may call this from ctor and again from first `connectedCallback`; build chrome once.
+        const existing = this.shadowRoot?.querySelector?.(".md-view__shell");
+        if (existing && this.shadowRoot) {
+            return this.shadowRoot;
+        }
+
+        const shadowRoot =
+            (super.createShadowRoot?.() as ShadowRoot | undefined) ??
+            this.shadowRoot ??
+            this.attachShadow({ mode: "open" });
+
         const chromeStyle = document.createElement("style");
         chromeStyle.textContent = MD_VIEW_SHADOW_STYLES;
 

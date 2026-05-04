@@ -5,7 +5,7 @@
 @use "../../library/mixins" as ui;
 
 //
-@layer layer.shell.faint.toolbar {
+@mixin toolbar {
 
     .toolbar {
         background-color: transparent;

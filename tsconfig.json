@@ -44,6 +44,9 @@
             "fest/fl-ui": [
                 "./src/index.ts"
             ],
+            "fest/image": [
+                "../image.ts/src/index.ts"
+            ],
             "fest/ui": [
                 "./src/index.ts"
             ],

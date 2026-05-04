@@ -2,7 +2,7 @@
     "include": [
         "./**/*.ts",
         "./index.ts",
-        "design/engine/Config.ts" ],
+    ],
     "exclude": [
         "../../dist/**/*",
         "../../externals/**/*",
@@ -17,11 +17,14 @@
             "@phosphor-icons/core/assets/*": [
                 "../../../../node_modules/@phosphor-icons/core/assets/*"
             ],
-            "@fl-design/*": [
-                "./design/*"
-            ],
             "fl-ui/*": [
                 "./ui/*"
+            ],
+            "fest/fl-ui": [
+                "./src/index.ts"
+            ],
+            "fest/image": [
+                "../../image.ts/src/index.ts"
             ],
             "fest/lure": [
                 "../../lur.e/src/index.ts"

@@ -10,4 +10,3 @@ export * from "./navigation/appearance/Mobile";
 //
 export * from "../misc/Toast";
 export * from "../misc/Format";
-export * from "../misc/Canvas-2";

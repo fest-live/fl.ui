@@ -349,6 +349,14 @@ export class FileOperative {
         await writable.close();
     }
 
+    /**
+     * Imperative save API for shells/channels — writes into the OPFS-backed workspace folder.
+     * Defaults to {@link FileOperative.path}; optional `destPath` overrides the parent directory.
+     */
+    async ingestFileIntoWorkspace(file: File, destPath?: string): Promise<void> {
+        await this.writeUserFile(file, destPath ?? this.path);
+    }
+
     private async removeUserEntry(absPath: string, recursive = true): Promise<boolean> {
         const root = await this.getOpfsRootHandle();
         if (!root) return false;

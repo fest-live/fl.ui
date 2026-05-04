@@ -1,7 +1,9 @@
 // Core mixins/tokens for fl.ui (extend in full checkout).
 @use "./variables" as *;
 @use "./essentials" as *;
-@use "./markdown" as *;
 @use "./forms" as *;
-@use "./explorer" as *;
-@use "./explorer-content" as *;
+@forward "./scrollbar";
+@forward "./content";
+@forward "./sidebar";
+@forward "./tabs";
+@forward "./bar";

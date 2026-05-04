@@ -1,0 +1,28 @@
+@use "./layout" as layout;
+
+//
+@mixin table-base {
+    inline-size: stretch;
+    border-collapse: collapse;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    box-shadow: var(--shadow-md);
+}
+
+//
+@mixin table-header {
+    background-color: var(--gradient-primary);
+    color: var(--text-light);
+    padding: var(--space-md) var(--space-sm);
+    text-align: start;
+    font-weight: var(--font-weight-semibold);
+    font-size: var(--font-size-sm);
+    white-space: nowrap;
+}
+
+//
+@mixin table-cell {
+    padding: var(--space-sm);
+    border-block-end: 1px solid var(--bg-tertiary);
+    vertical-align: middle;
+}

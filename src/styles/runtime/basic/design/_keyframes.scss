@@ -1,0 +1,163 @@
+@layer animations {
+    @mixin rotate-spin($name) {
+        @keyframes #{$name} {
+            from {
+                transform: rotate(0deg);
+            }
+            to {
+                transform: rotate(360deg);
+            }
+        }
+    }
+
+    @mixin fade-in($name) {
+        @keyframes #{$name} {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+    }
+
+    @mixin fade-in-up($name, $distance: 20px) {
+        @keyframes #{$name} {
+            from {
+                opacity: 0;
+                transform: translateY(#{$distance});
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    }
+
+    @mixin scale-in($name, $scale: 0.95) {
+        @keyframes #{$name} {
+            from {
+                opacity: 0;
+                transform: scale(#{$scale});
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+    }
+
+    @mixin opacity-pulse($name, $max, $min) {
+        @keyframes #{$name} {
+            0%,
+            100% {
+                opacity: #{$max};
+            }
+            50% {
+                opacity: #{$min};
+            }
+        }
+    }
+
+    @mixin slide-in($name, $x, $y) {
+        @keyframes #{$name} {
+            from {
+                opacity: 0;
+                transform: translate(#{$x}, #{$y});
+            }
+            to {
+                opacity: 1;
+                transform: translate(0, 0);
+            }
+        }
+    }
+
+    @include rotate-spin(spin);
+    @include rotate-spin(app-shell-spin);
+    @include rotate-spin(viewer-spinner);
+    @include rotate-spin(explorer-spin);
+    @include rotate-spin(rs-spin);
+    @include rotate-spin(airpad-spin);
+    @include rotate-spin(view-spin);
+
+    @include fade-in(fadeIn);
+    @include fade-in(viewer-fade-in);
+
+    @include fade-in-up(fadeInUp);
+    @include fade-in-up(viewer-slide-in, 8px);
+    @include fade-in-up(slideInUp, 20px);
+
+    @include scale-in(scaleIn, 0.9);
+
+    @include opacity-pulse(viewer-pulse, 0.4, 0.8);
+    @include opacity-pulse(skeleton-pulse, 0.4, 0.8);
+    @include opacity-pulse(pulse, 1, 0.8);
+
+    @include slide-in(slide-in-top, 0, calc(-1 * var(--slide-distance, 1rem)));
+    @include slide-in(slide-in-right, var(--slide-distance, 1rem), 0);
+    @include slide-in(slide-in-bottom, 0, var(--slide-distance, 1rem));
+    @include slide-in(slide-in-left, calc(-1 * var(--slide-distance, 1rem)), 0);
+
+    @keyframes app-shell-status-enter {
+        from {
+            opacity: 0;
+            transform: translateX(-50%) translateY(0.5rem);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+    }
+
+    @keyframes shell-status-fade-in {
+        from {
+            opacity: 0;
+            transform: translateX(-50%) translateY(1rem);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+    }
+
+    @keyframes viewer-skeleton-shimmer {
+        0% {
+            background-position: -200% 0;
+        }
+        100% {
+            background-position: 200% 0;
+        }
+    }
+
+    @keyframes blink {
+        0%,
+        50% {
+            opacity: 1;
+        }
+        51%,
+        100% {
+            opacity: 0;
+        }
+    }
+
+    @keyframes card-pulse {
+        0%,
+        100% {
+            box-shadow: 0 0 0 3px color-mix(in oklch, var(--color-blue) 50%, transparent), var(--card-shadow-base);
+        }
+        50% {
+            box-shadow: 0 0 0 6px color-mix(in oklch, var(--color-blue) 20%, transparent), var(--card-shadow-base);
+        }
+    }
+
+    @keyframes card-hydrate-in {
+        from {
+            opacity: 0;
+            transform: translateY(8px) scale(0.98);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+    }
+}

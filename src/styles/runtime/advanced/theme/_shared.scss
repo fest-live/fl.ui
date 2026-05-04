@@ -1,0 +1,232 @@
+/**
+ * Veela CSS - Core Shared Utilities
+ *
+ * Reusable mixins, placeholders, and common patterns for core layout styles.
+ * Reduces duplication across normalize, states, layout, and gridbox modules.
+ */
+
+/* ========================================================================
+   Meta-level: Placeholders for zero-specificity selector groups
+   ======================================================================== */
+
+/**
+ * Reset border and outline styles (transparent, none, 0px)
+ * Use: @extend %reset-borders; or include in selectors
+ */
+%reset-borders {
+    border: none 0px transparent;
+    outline: none 0px transparent;
+}
+
+/**
+ * Disable user interaction (pointer-events, touch-action, user-select)
+ * Use: @extend %disable-interaction;
+ */
+%disable-interaction {
+    pointer-events: none;
+    touch-action: none;
+    user-select: none;
+}
+
+/**
+ * Lock interaction (pointer-events: none + touch + select disabled)
+ * Stronger version with explicit !important for state overrides
+ */
+%lock-interaction {
+    pointer-events: none !important;
+    touch-action: none !important;
+    user-select: none !important;
+}
+
+/**
+ * Basic box-model reset: margin, padding, box-sizing
+ */
+%reset-box-model {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* ========================================================================
+   Mixins: Common property/style groups
+   ======================================================================== */
+
+/**
+ * Reset box model (margin, padding, sizing)
+ * @usage: @include reset-box-model();
+ */
+@mixin reset-box-model {
+    /*margin: 0;
+    padding: 0;*/
+    box-sizing: border-box;
+}
+
+/**
+ * Reset borders and outlines
+ * @usage: @include reset-borders();
+ */
+@mixin reset-borders {
+    border: none 0px transparent;
+    outline: none 0px transparent;
+}
+
+/**
+ * Disable interaction via pointer-events, touch-action, user-select
+ * @param $importance [false] - if true, use !important
+ * @usage: @include disable-interaction(); or @include disable-interaction(true);
+ */
+@mixin disable-interaction($importance: false) {
+    $imp: if(sass($importance): !important; else: null);
+    pointer-events: none if(sass($imp != null): #{$imp}; else: null);
+    touch-action: none if(sass($imp != null): #{$imp}; else: null);
+    user-select: none if(sass($imp != null): #{$imp}; else: null);
+}
+
+/**
+ * Reset form element appearance (font, line-height, margin, text-transform)
+ * @usage: @include reset-form-appearance();
+ */
+@mixin reset-form-appearance {
+    font: inherit;
+    color: inherit;
+    letter-spacing: inherit;
+    margin: 0;
+    border: none;
+    outline: none;
+}
+
+/**
+ * Scrollbar styling for webkit browsers
+ * @param $size [8px] - scrollbar width/height
+ * @param $color [var(--color-scrollbar, currentColor)] - thumb color
+ * @param $radius [var(--border-radius, 4px)] - thumb border-radius
+ * @usage: @include scrollbar-webkit(8px, var(--color-scrollbar));
+ */
+@mixin scrollbar-webkit($size: 8px, $color: var(--color-scrollbar, currentColor), $radius: var(--border-radius, 4px)) {
+    &::-webkit-scrollbar {
+        inline-size: $size;
+        block-size: $size;
+    }
+
+    &::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    &::-webkit-scrollbar-thumb {
+        background-color: $color;
+        border-radius: $radius;
+    }
+
+    &::-webkit-scrollbar-thumb:hover {
+        background: var(--color-outline, #9ca3af);
+    }
+}
+
+/**
+ * Scrollbar styling (both webkit and Firefox)
+ * @param $color [var(--color-scrollbar, currentColor)] - scrollbar color
+ * @usage: @include scrollbar-styling(var(--color-scrollbar));
+ */
+@mixin scrollbar-styling($color: var(--color-scrollbar, currentColor)) {
+    scrollbar-width: thin;
+    scrollbar-color: $color transparent;
+
+    @include scrollbar-webkit(var(--scrollbar-size, 8px), $color);
+}
+
+/**
+ * Flex row layout with space-between and wrap
+ * Used for nav-like layouts
+ * @usage: @include flex-row-wrap();
+ */
+@mixin flex-row-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+}
+
+/**
+ * Flex column centered (used for labels, stacked content)
+ * @usage: @include flex-column-center();
+ */
+@mixin flex-column-center {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+}
+
+/**
+ * Stretch to viewport size (used for root/body containers)
+ * Combines inline-size, block-size with min/max constraints
+ * @usage: @include stretch-viewport();
+ */
+@mixin stretch-viewport {
+    inline-size: stretch;
+    block-size: stretch;
+    min-inline-size: 0px;
+    min-block-size: 0px;
+    max-inline-size: min(100%, min(100cqi, 100dvi));
+    max-block-size: min(100%, min(100cqb, 100dvb));
+}
+
+/**
+ * Hidden state: display none + pointer/touch disabled
+ * @param $opacity [false] - if true, also apply opacity: 0
+ * @usage: @include hidden-state(); or @include hidden-state(true);
+ */
+@mixin hidden-state($opacity: false) {
+    display: none !important;
+    pointer-events: none !important;
+    touch-action: none !important;
+    @if $opacity {
+        opacity: 0;
+        visibility: collapse;
+    }
+}
+
+/**
+ * Prevent dragging of element
+ * @usage: @include no-drag();
+ */
+@mixin no-drag {
+    -webkit-user-drag: none;
+    -moz-user-drag: none;
+    user-select: none;
+}
+
+/**
+ * Focus ring without outline (M3-style)
+ * @param $color [var(--color-primary, #0066cc)] - focus color
+ * @param $radius [var(--radius-sm, 8px)] - border radius
+ * @usage: @include focus-ring(var(--color-primary));
+ */
+@mixin focus-ring($color: var(--color-primary, #0066cc), $radius: var(--radius-sm, 8px)) {
+    outline: none;
+    box-shadow: 0 0 0 3px color-mix(in oklab, $color 35%, transparent);
+    border-radius: $radius;
+}
+
+/**
+ * Media element sizing (img, video, canvas, svg)
+ * @usage: @include media-sizing();
+ */
+@mixin media-sizing {
+    display: block;
+    max-inline-size: 100%;
+    block-size: auto;
+}
+
+/**
+ * Code element font and sizing
+ * @param $font [var(--font-family-mono, 'SF Mono', 'Monaco', 'Roboto Mono', monospace)] - monospace font
+ * @usage: @include code-styling();
+ */
+@mixin code-styling($font: var(--font-family-mono, 'SF Mono', 'Monaco', 'Roboto Mono', monospace)) {
+    font-family: $font;
+    background-color: var(--bgColor-muted);
+    border-radius: 0.3em;
+    padding: 0.2em 0.4em;
+    font-size: 85%;
+}

@@ -1,0 +1,135 @@
+@use "./shared" as *;
+
+//
+@layer ux-existence {
+    //
+    *[data-hidden]:not([data-hidden="false"]):not([data-opacity-animation]) {
+        &, * {
+            display: none !important;
+            pointer-events: none !important;
+            touch-action: none !important;
+            content-visibility: auto !important;
+        }
+    }
+
+    //
+    :host([data-hidden]:not([data-hidden="false"]:not([data-opacity-animation]))) {
+        &, *, ::slotted(*) {
+            display: none !important;
+            pointer-events: none !important;
+            touch-action: none !important;
+            content-visibility: auto !important;
+        }
+    }
+
+    //
+    :host([data-hidden]:not([data-hidden="false"])) {
+        &, *, ::slotted(*) {
+            pointer-events: none !important;
+            touch-action: none !important;
+        }
+    }
+
+    //
+    *[data-hidden]:not([data-hidden="false"]) {
+        &, * {
+            pointer-events: none !important;
+            touch-action: none !important;
+        }
+    }
+    
+    //
+    *[data-hidden]:not([data-hidden="false"]):not([data-opacity-animation]) {
+        &, * {
+            @include hidden-state(true);
+        }
+    }
+
+    //
+    :host([data-hidden]:not([data-hidden="false"]:not([data-opacity-animation]))) {
+        &, *, ::slotted(*) {
+            @include hidden-state(true);
+        }
+    }
+
+    //
+    :host([data-hidden]:not([data-hidden="false"])) {
+        &, *, ::slotted(*) {
+            @include disable-interaction(true);
+        }
+    }
+
+    //
+    *[data-hidden]:not([data-hidden="false"]) {
+        &, * {
+            @include disable-interaction(true);
+        }
+    }
+
+    //
+    *[data-hidden]:not([data-hidden="false"]):not([data-opacity-animation]) {
+        &, * {
+            display: none !important;
+            pointer-events: none !important;
+            touch-action: none !important;
+            content-visibility: auto !important;
+        }
+    }
+
+    //
+    :host([data-hidden]:not([data-hidden="false"]:not([data-opacity-animation]))) {
+        &, *, ::slotted(*) {
+            display: none !important;
+            pointer-events: none !important;
+            touch-action: none !important;
+            content-visibility: auto !important;
+        }
+    }
+
+    //
+    :host([data-hidden]:not([data-hidden="false"])) {
+        &, *, ::slotted(*) {
+            pointer-events: none !important;
+            touch-action: none !important;
+        }
+    }
+
+    //
+    *[data-hidden]:not([data-hidden="false"]) {
+        &, * {
+            pointer-events: none !important;
+            touch-action: none !important;
+        }
+    }
+}
+
+//
+@layer ux-existence {
+    //
+    *[data-hidden]:not([data-hidden="false"]):not([data-opacity-animation]) {
+        &, * {
+            @include hidden-state(true);
+        }
+    }
+
+    //
+    :host([data-hidden]:not([data-hidden="false"]:not([data-opacity-animation]))) {
+        &, *, ::slotted(*) {
+            @include hidden-state(true);
+        }
+    }
+
+    //
+    :host([data-hidden]:not([data-hidden="false"])) {
+        &, *, ::slotted(*) {
+            @include disable-interaction(true);
+        }
+    }
+
+    //
+    *[data-hidden]:not([data-hidden="false"]) {
+        &, * {
+            @include disable-interaction(true);
+        }
+    }
+}

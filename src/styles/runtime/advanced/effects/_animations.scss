@@ -1,0 +1,124 @@
+@layer ux-animation {
+
+    // Keyframe definitions
+    @keyframes fade-in {
+        from {
+            opacity: 0;
+        }
+
+        to {
+            opacity: 1;
+        }
+    }
+
+    @keyframes slide-up {
+        from {
+            opacity: 0;
+            transform: translateY(1rem);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes scale-in {
+        from {
+            opacity: 0;
+            transform: scale(0.95);
+        }
+
+        to {
+            opacity: 1;
+            transform: scale(1);
+        }
+    }
+
+
+    @keyframes validationPulse {
+        0% {
+            transform: scale(1);
+        }
+        50% {
+            transform: scale(1.01);
+        }
+        100% {
+            transform: scale(1);
+        }
+    }
+
+    /* animations */
+    @keyframes lift {
+        from { --elev: 6; }
+        to   { --elev: 32; }
+    }
+
+    /* */
+    @keyframes daylight {
+        0%   { --light-az: 210deg; --light-alt: 30deg; }
+        50%  { --light-az: 270deg; --light-alt: 70deg; }
+        100% { --light-az: 330deg; --light-alt: 30deg; }
+    }
+
+    // Keyframe definitions
+    @keyframes fade-in {
+        from {
+            opacity: 0;
+        }
+
+        to {
+            opacity: 1;
+        }
+    }
+
+    @keyframes slide-up {
+        from {
+            opacity: 0;
+            transform: translateY(1rem);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes scale-in {
+        from {
+            opacity: 0;
+            transform: scale(0.95);
+        }
+
+        to {
+            opacity: 1;
+            transform: scale(1);
+        }
+    }
+
+
+    @keyframes validationPulse {
+        0% {
+            transform: scale(1);
+        }
+        50% {
+            transform: scale(1.01);
+        }
+        100% {
+            transform: scale(1);
+        }
+    }
+
+    /* animations */
+    @keyframes lift {
+        from { --elev: 6; }
+        to   { --elev: 32; }
+    }
+
+    /* */
+    @keyframes daylight {
+        0%   { --light-az: 210deg; --light-alt: 30deg; }
+        50%  { --light-az: 270deg; --light-alt: 70deg; }
+        100% { --light-az: 330deg; --light-alt: 30deg; }
+    }
+}

@@ -1,3 +1,274 @@
+@use "./layout" as layout;
+@use "./typography" as type;
+@use "./colorize" as colorize;
+@use "./buttons" as button;
+@use "./color" as color;
+
+//
+@use "./forms_misc" as *;
+
+//
+@mixin input-base {
+    @include variable-colorization("input");
+    @include appearance-decl();
+
+    //
+    position: relative;
+    align-items: center;
+    gap: var(--input-gap, var(--space-sm));
+
+    //
+    inline-size: var(--input-inline-size, fit-content); block-size: fit-content;
+    min-inline-size: var(--input-min-inline-size, 0px); min-block-size: var(--input-min-block-size, fit-content);
+    max-inline-size: var(--input-max-inline-size, 100%);
+
+    //
+    box-sizing: border-box;
+
+    //
+    padding-block: var(--input-padding-block, var(--input-padding, var(--padding-sm)));
+    padding-inline: var(--input-padding-inline, var(--input-padding, var(--padding-md)));
+    padding-inline-start: var(--input-padding-inline-start, var(--padding-lg, 1rem));
+    padding-inline-end: var(--input-padding-inline-end, var(--input-padding-inline, var(--input-padding, var(--padding-md))));
+
+    //
+    /*border-radius: var(--input-radius);
+    border-width: var(--input-border-width, 1px);
+    border-color: var(--_input-border-current);*/
+
+    border: none 0px transparent;
+    outline: none 0px transparent;
+
+    border-style: solid;
+
+    //
+    background-clip: padding-box;
+    outline: none;
+
+    //
+    pointer-events: auto;
+    field-sizing: content;
+    user-select: text;
+
+    //
+    caret-color: var(--_input-text-current);
+    font-weight: var(--input-font-weight, inherit);
+    line-height: var(--input-line-height, 1.4);
+    letter-spacing: var(--input-letter-spacing, 0.01em);
+
+    //
+    z-index: 0;
+    display: inline-block;
+
+    //
+    &:is(textarea) {
+        border-radius: var(--radius-md);
+    }
+
+    //
+    &:where([type="checkbox"], [type="radio"]) {
+        @include button.button-filled;
+
+        & {
+            display: inline-flex;
+            aspect-ratio: 1 / 1;
+        }
+    }
+}
+
+//
+@mixin form-field-base() {
+    @include variable-colorization("form");
+    @include input-base();
+    @include appearance-decl();
+
+    //
+    display: block;
+    border: none;
+    border-width: 0px;
+
+    //
+    place-content: start;
+    place-items: start;
+
+    //
+    inline-size: stretch; block-size: fit-content;
+    min-inline-size: min(var(--form-min-inline-size, 24ch), fit-content); min-block-size: var(--form-min-block-size, fit-content);
+
+    //
+    padding-block: var(--form-padding-block, var(--input-padding-block, var(--padding-md)));
+    padding-inline-start: var(--form-padding-inline-start, var(--input-padding-inline-start, var(--padding-lg, 1rem)));
+    padding-inline-end: var(--form-padding-inline-end, calc(var(--space-lg) * 2));
+
+    //
+    line-height: var(--form-line-height, 1.5);
+
+    //
+    user-select: text;
+    resize: var(--form-resize, vertical);
+    overflow: hidden;
+    overflow-y: auto
+}
+
+//
+@mixin option-style() {
+    @include variable-colorization("option");
+    @include option-radius();
+    @include appearance-decl();
+
+    //
+    border-style: solid;
+    border-color: var(--_option-border-current);
+
+    //
+    padding-inline: var(--option-padding-inline, calc(var(--padding-lg, 1rem) * 0.75));
+    padding-block: var(--option-padding-block, var(--padding-sm));
+    gap: var(--space-md);
+
+    //
+    display: flex;
+    place-items: center;
+    place-content: center;
+    justify-content: flex-start;
+
+    //
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    text-wrap: nowrap;
+    word-break: keep-all;
+    overflow: hidden;
+
+    //
+    min-inline-size: fit-content; inline-size: stretch;
+
+    //
+    outline: none;
+}
+
+//
+@mixin select-base() {
+    @include appearance-decl();
+
+    //
+    & {
+        cursor: pointer;
+        position: relative;
+    }
+
+    //
+    &:where(select) {
+        @include button.button-filled();
+        @include variable-colorization("select");
+
+        //
+        display: inline-flex;
+
+        //
+        place-content: center;
+        place-items: center;
+        justify-content: space-between;
+
+        //
+        color: transparent;
+        appearance: base-select;
+
+        //
+        text-indent: 0;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        text-wrap: nowrap;
+        word-break: keep-all;
+        overflow: hidden;
+
+        //
+        min-inline-size: fit-content; inline-size: stretch;
+
+        //
+        gap: var(--select-gap, var(--input-gap, var(--space-sm)));
+        padding-inline: var(--option-padding-inline);
+        padding-block: var(--option-padding-block);
+    }
+
+    //
+    &::picker(select) {
+        appearance: base-select;
+        background-color: transparent;
+        color: transparent;
+
+        //
+        padding: 0px;
+        border: none;
+        outline: none;
+        z-index: 9999;
+        line-height: 0;
+
+        //
+        overflow: visible;
+        visibility: visible;
+        content-visibility: visible;
+    }
+
+    //
+    & option { @include option-style(); }
+    & > option { @include option-style(); }
+    &:is(option) { @include option-style(); }
+    &::-ms-expand { display: none; }
+
+    //
+    &::after, &::picker-icon {
+        @include icon-style("select", $select-icon);
+    }
+
+    //
+    span, a {
+        font-size: var(--font-size-md);
+        font-weight: var(--font-weight-medium);
+        line-height: var(--line-height-md);
+        letter-spacing: var(--letter-spacing-md);
+        text-transform: var(--text-transform-md);
+        text-decoration: none;
+    }
+}
+
+//
+@mixin checkbox-base() {
+    @include button.button-filled;
+    @include variable-colorization("checkbox");
+    @include appearance-decl();
+
+    //
+    margin: 0;
+    padding: 0;
+
+    //
+    contain: strict;
+    line-height: 0;
+
+    //
+    display: flex;
+    content: " ";
+    cursor: pointer;
+    user-select: none;
+    pointer-events: auto;
+    place-content: center;
+    place-items: center;
+    place-self: center;
+
+    //
+    inline-size: var(--checkbox-size, 1.25rem);
+    block-size: var(--checkbox-size, 1.25rem);
+    aspect-ratio: 1 / 1;
+
+    //
+    border-radius: var(--checkbox-radius, var(--radius-sm));
+    border-width: 0px;/*var(--checkbox-border-width, 0px);*/
+    border-style: solid;
+
+    //
+    &::before { @include icon-style("checkbox", $checkbox-icon); }
+    &:checked::before { --icon-color: var(--surface-color, currentColor); }
+}
+
 @use "veela-lib" as *;
 
 //

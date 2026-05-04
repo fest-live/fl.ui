@@ -1,0 +1,50 @@
+/* подключайте этот блок к любому «поднятому» элементу */
+.elev, ui-window-frame, .shadow-wrap, .ui-frame {
+    filter: drop-shadow(0px 0px calc(max(0.125 + var(--z-index, 0) * 0.125, 0) * 1rem) #00000040);
+}
+
+/* scene */
+.scene, :root {
+    /* куда «смотрит» свет: -x,-y, +z — пример «сверху-слева» */
+    --lx: -0.01;
+    --ly: -0.01;
+    --lz: 8;
+
+    /* базовые углы из вектора */
+    --az-base:  calc(atan2(var(--ly), var(--lx)));
+    --alt-base: calc(atan2(var(--lz), hypot(var(--lx), var(--ly))));
+
+    /* азимут и высота из вектора */
+    --light-az: calc(atan2(var(--ly), var(--lx))); /* направление в плоскости XY */
+    --light-alt: calc(atan2(var(--lz), hypot(var(--lx), var(--ly))));
+
+    /* угловой размер источника (мягкость) */
+    --soft-ang: 12deg;
+
+    /* плотности для разных слоёв тени */
+    --umbra-density: 0.32;     /* основная тень */
+    --penumbra-density: 0.18;  /* полутень */
+}
+
+/* animations */
+.pulsing { animation: lift 1.6s ease-in-out infinite alternate; }
+.scene.sun-move { animation: daylight 8s linear infinite; }
+
+/*
+.elev-drop {
+    --elev: 12px;
+    --cotA: calc(1 / max(0.001, tan(var(--light-alt))));
+    --L: calc(abs(var(--elev)) * var(--cotA));
+    --dx: calc(cos(var(--light-az)) * var(--L) * sign(var(--elev)));
+    --dy: calc(sin(var(--light-az)) * var(--L) * sign(var(--elev)));
+
+    --b1: calc(max(0.5px, abs(var(--elev)) * tan(var(--soft-ang)) * 0.8));
+    --b2: calc(var(--b1) * 2.0);
+    --b3: calc(var(--b1) * 3.2);
+
+    filter:
+        drop-shadow(calc(var(--dx) * 0.15) calc(var(--dy) * 0.15) var(--b1) rgb(0 0 0 / 0.20))
+        drop-shadow(var(--dx) var(--dy) var(--b2) rgb(0 0 0 / 0.12))
+        drop-shadow(var(--dx) var(--dy) var(--b3) rgb(0 0 0 / 0.07));
+}
+*/

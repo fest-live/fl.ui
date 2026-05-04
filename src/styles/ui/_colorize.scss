@@ -1,0 +1,5 @@
+@mixin solid-colorize($selector: "&", $options: ()) {
+    #{$selector} {
+        color: var(--on-surface-color, currentColor);
+    }
+}

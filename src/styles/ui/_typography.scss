@@ -1,0 +1,11 @@
+@function md3-type($role, $token: size) {
+    @return var(--type-#{$role}-#{$token}, inherit);
+}
+
+@mixin type($role) {
+    font: var(--type-#{$role}, inherit);
+}
+
+@mixin text-wrap() {
+    overflow-wrap: anywhere;
+}

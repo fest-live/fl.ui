@@ -1,4 +1,5 @@
 @use "veela-lib" as *;
+@use "../../library/mixins" as ui;
 
 //
 @mixin modal {

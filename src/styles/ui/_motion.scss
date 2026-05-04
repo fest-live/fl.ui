@@ -1,0 +1,3 @@
+@mixin transition($property: all, $transition: var(--transition-base, 160ms ease)) {
+    transition: #{$property} #{$transition};
+}

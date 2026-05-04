@@ -120,7 +120,7 @@
     @if $include-base { @include button-structure; }
 
     // Compute the CSS variable to use for state overlays
-    $state-var: sass(if(
+    $state-var: if(
         $variant == tonal,
         color.md3-var($state-role),
         color.md3-var($role)

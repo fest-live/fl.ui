@@ -3,6 +3,7 @@
 @use "./colorize" as colorize;
 @use "./buttons" as button;
 @use "./color" as color;
+@use "veela-lib" as *;
 
 //
 @use "./forms_misc" as *;
@@ -268,8 +269,6 @@
     &::before { @include icon-style("checkbox", $checkbox-icon); }
     &:checked::before { --icon-color: var(--surface-color, currentColor); }
 }
-
-@use "veela-lib" as *;
 
 //
 @layer layer.shell.faint.forms {

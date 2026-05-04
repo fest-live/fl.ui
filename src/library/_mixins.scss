@@ -1,0 +1,76 @@
+@mixin vstack($gap: var(--space-md)) {
+    display: flex;
+    flex-direction: column;
+    gap: $gap;
+}
+
+@mixin inline-toolbar($gap: var(--space-sm)) {
+    display: inline-flex;
+    align-items: center;
+    gap: $gap;
+}
+
+@mixin tonal-surface($role: surface, $opacity: var(--surface-opacity-subtle), $radius: var(--radius-md), $border: null, $shadow: 0, $clip: false) {
+    background-color: color-mix(in oklch, var(--#{$role}-color, var(--surface-color, transparent)) calc(100% * #{$opacity}), transparent);
+    border-radius: $radius;
+
+    @if $border != null {
+        border: $border solid var(--border-color, transparent);
+    }
+
+    @if $shadow != 0 {
+        box-shadow: var(--shadow-#{$shadow}, none);
+    }
+
+    @if $clip {
+        overflow: hidden;
+    }
+}
+
+@mixin tonal-list($role: surface, $opacity: var(--surface-opacity-subtle), $radius: var(--radius-md), $border: 0) {
+    @include tonal-surface($role, $opacity, $radius, $border);
+}
+
+@mixin glass-backdrop() {
+    backdrop-filter: blur(var(--backdrop-blur, 16px));
+    background-color: var(--backdrop-color, color-mix(in oklch, var(--surface-color, black) 40%, transparent));
+}
+
+@mixin container-inline() {
+    inline-size: min(100%, var(--container-inline-size, 100%));
+}
+
+@mixin text-heading($role: "headline-small", $align: start) {
+    font: var(--type-#{$role}, inherit);
+    text-align: $align;
+}
+
+@mixin text-body($role: "body-medium") {
+    font: var(--type-#{$role}, inherit);
+}
+
+@mixin text-label($role: "label-medium", $strong: false) {
+    font: var(--type-#{$role}, inherit);
+
+    @if $strong {
+        font-weight: var(--font-weight-semibold, 600);
+    }
+}
+
+@mixin section-stack($gap: var(--space-md)) {
+    @include vstack($gap);
+}
+
+@mixin field-stack($gap: var(--space-sm)) {
+    @include vstack($gap);
+}
+
+@mixin scrollbars($size: 8px, $color: currentColor) {
+    scrollbar-width: thin;
+    scrollbar-color: $color transparent;
+
+    &::-webkit-scrollbar {
+        inline-size: $size;
+        block-size: $size;
+    }
+}

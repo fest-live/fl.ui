@@ -58,6 +58,10 @@
             "import": "./src/styles/lib/_index.scss",
             "default": "./src/styles/lib/_index.scss"
         },
+        "./styles/patch-global-native-controls": {
+            "import": "./src/styles/patch-global-native-controls.scss",
+            "default": "./src/styles/patch-global-native-controls.scss"
+        },
         "./items/*": {
             "import": "./src/ui/items/*",
             "default": "./src/ui/items/*"

@@ -1,7 +1,10 @@
 /**
  * FL.UI - UI Components Library
  *
- * This is the default entry point that uses veela-advanced for styling.
+ * Default stylesheet scopes native control chrome to `.btn` and omits host-wide
+ * `input` / `select` / `textarea` overrides. For legacy document-wide styling, set
+ * `configureFlUI({ includeGlobalNativeControlStyles: true })` before importing components,
+ * or call `loadFlUIGlobalNativeControlStyles()` after bootstrap.
  *
  * Entry points by style variant:
  * - `fest/fl-ui` - Default (veela-advanced)
@@ -32,12 +35,18 @@ export type FlUIStyleVariant = "veela-basic" | "veela-advanced";
 export interface FlUIConfig {
     /** Whether to load styles automatically (default: true) */
     loadStyles?: boolean;
+    /**
+     * When true, also loads host-wide rules for native `button` and bare `input`/`select`/`textarea`.
+     * Default false so fl-ui does not restyle the whole document.
+     */
+    includeGlobalNativeControlStyles?: boolean;
     /** Style variant to use (default: "veela-advanced") */
     styleVariant?: FlUIStyleVariant;
 }
 
 const defaultConfig: FlUIConfig = {
     loadStyles: true,
+    includeGlobalNativeControlStyles: false,
     styleVariant: "veela-basic"
 };
 
@@ -65,15 +74,19 @@ import styles from "./styles/index.scss?inline";
 // EXPORTS
 // ============================================================================
 
-import { loader } from "./styles";
+import { loader, loadFlUIGlobalNativeControlStyles } from "./styles";
 
 //
 (async () => {
-    await loader();
+    const cfg = getFlUIConfig();
+    if (cfg.loadStyles === false) return;
+    await loader({ includeGlobalNativeControls: cfg.includeGlobalNativeControlStyles === true });
     // Inline <style> only: bundled SCSS often still contains @import, which
     // CSSStyleSheet.replaceSync() rejects (constructable sheets limitation).
     await loadInlineStyle(styles);
 })()?.catch?.(() => undefined);
+
+export { loadFlUIGlobalNativeControlStyles };
 
 //
 export * from "./ui/index";

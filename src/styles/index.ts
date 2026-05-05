@@ -8,6 +8,7 @@
 import { loadAllFonts, loadFontRegistry } from './font-loader';
 import { loadAsAdopted } from 'fest/dom'; //@ts-ignore
 import styles from './index.scss?inline';
+import globalNativeControlStyles from './patch-global-native-controls.scss?inline';
 
 //
 const fontStyles = `
@@ -17,8 +18,16 @@ const fontStyles = `
 //
 export * from './font-loader';
 export type { FontMetadata } from './font-loader';
-export const loader = async ()=>{
+export const loader = async (options?: { includeGlobalNativeControls?: boolean }) => {
     await loadAsAdopted(fontStyles)?.catch(() => undefined);
     await loadAllFonts().catch(() => undefined);
     await loadAsAdopted(styles)?.catch(() => undefined);
+    if (options?.includeGlobalNativeControls) {
+        await loadAsAdopted(globalNativeControlStyles)?.catch(() => undefined);
+    }
 };
+
+/** Host-wide native control chrome (legacy). Prefer scoping with `.btn` / field mixins. */
+export async function loadFlUIGlobalNativeControlStyles(): Promise<void> {
+    await loadAsAdopted(globalNativeControlStyles)?.catch(() => undefined);
+}

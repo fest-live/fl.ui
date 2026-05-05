@@ -4,6 +4,10 @@
 @use "./buttons" as button;
 @use "./color" as color;
 @use "veela-lib" as *;
+@use "./forms-options" as fo;
+@use "./forms-bare-host-elements" as bare_forms;
+
+// WHY: Host-wide `input, select, textarea` rules override third-party forms; default off (`forms-options`).
 
 //
 @use "./forms_misc" as *;
@@ -271,29 +275,6 @@
 }
 
 //
-@layer layer.shell.faint.forms {
-
-    // Enhanced input/select/textarea styling
-    input,
-    select,
-    textarea {
-        & {
-            background-repeat: no-repeat;
-            min-block-size: 2.5rem;
-            font-size: inherit;
-            max-inline-size: stretch;
-            max-inline-size: 100cqi;
-
-            text-overflow: ellipsis;
-            overflow: auto;
-            scrollbar-width: none;
-        }
-    }
-
-    //
-    textarea[data-multiline="true"] {
-        min-block-size: 5rem;
-        resize: vertical;
-    }
-
+@if fo.$include-bare-form-element-rules {
+    @include bare_forms.emit-bare-form-element-layer;
 }

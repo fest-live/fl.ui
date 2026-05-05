@@ -2,38 +2,22 @@
 @use "sass:string";
 
 /* ai-refactor: optimized/refactored at 2026-02-13T00:45:12Z */
+// WHY: Bare `button` + unscoped `input/select/textarea` rules leak into the host document.
+// Default off; opt in via `patch-global-native-controls.scss` / `loadFlUIGlobalNativeControlStyles()`.
+@use "./essentials-options" as eo;
+@use "./native-host-button-chrome" as hostbtn;
+
 @layer tokens, base, layout, utilities, shells, shell, views, view, viewer, components, ux-layer, markdown, essentials, print, print-breaks, overrides;
 
 @layer components {
-    button,
-    .btn {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        gap: var(--space-sm);
-        padding-block: 0px;
-        padding-inline: 0px;
-        font-size: var(--font-size-sm);
-        font-weight: 500;
-        border-radius: var(--radius-md);
-        background: var(--color-bg-alt);
-        color: var(--color-fg);
-        border: 1px solid var(--color-border);
-        cursor: pointer;
-        transition: all var(--transition-fast);
-
-        &:hover:not(:disabled) {
-            background: var(--color-border);
+    @if eo.$include-native-button-styles {
+        button,
+        .btn {
+            @include hostbtn.essentials-native-host-button-chrome-base;
         }
-
-        &:focus-visible {
-            outline: 2px solid var(--color-primary);
-            outline-offset: 2px;
-        }
-
-        &:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
+    } @else {
+        .btn {
+            @include hostbtn.essentials-native-host-button-chrome-base;
         }
     }
 

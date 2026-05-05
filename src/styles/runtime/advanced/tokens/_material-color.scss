@@ -60,23 +60,19 @@
     --c2h-lightness-extract: sass(if(
         style(--c2h-theme-type: 1): var(--c2h-lightness-extract-ds);
         style(--c2h-theme-type: 0): var(--c2h-lightness-extract-ls);
-        else: light-dark(var(--c2h-lightness-extract-ls), var(--c2h-lightness-extract-ds));
-    );
+        else: light-dark(var(--c2h-lightness-extract-ls), var(--c2h-lightness-extract-ds)));
     --c2h-chromatic-extract: sass(if(
         style(--c2h-theme-type: 1): var(--c2h-chromatic-extract-ds);
         style(--c2h-theme-type: 0): var(--c2h-chromatic-extract-ls);
-        else: light-dark(var(--c2h-chromatic-extract-ls), var(--c2h-chromatic-extract-ds));
-    );
+        else: light-dark(var(--c2h-chromatic-extract-ls), var(--c2h-chromatic-extract-ds)));
     --c2h-lightness-inverse: sass(if(
         style(--c2h-theme-type: 1): var(--c2h-lightness-extract-ds);
         style(--c2h-theme-type: 0): var(--c2h-lightness-extract-ls);
-        else: light-dark(var(--c2h-lightness-inverse-ls), var(--c2h-lightness-inverse-ds));
-    );
+        else: light-dark(var(--c2h-lightness-inverse-ls), var(--c2h-lightness-inverse-ds)));
     --c2h-chromatic-inverse: sass(if(
         style(--c2h-theme-type: 1): var(--c2h-chromatic-inverse-ds);
         style(--c2h-theme-type: 0): var(--c2h-chromatic-inverse-ls);
-        else: light-dark(var(--c2h-chromatic-inverse-ls), var(--c2h-chromatic-inverse-ds));
-    );
+        else: light-dark(var(--c2h-chromatic-inverse-ls), var(--c2h-chromatic-inverse-ds)));
 
     /* */
     result: --c2h-triple-mix(

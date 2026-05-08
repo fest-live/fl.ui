@@ -324,18 +324,22 @@
         text-overflow: ellipsis;
     }
 
+    /*
+     * WHY: Launcher caption rows use `[data-layer="labels"]`; a global `span { aspect-ratio: 1/1 }` makes each pill as tall as its width (“box” tiles).
+     * Square helpers apply only outside label captions (icon/grid tiles still use spans elsewhere).
+     */
+    .ui-ws-item:not([data-layer="labels"]) span {
+        pointer-events: none;
+        aspect-ratio: 1 / 1;
+        inline-size: fit-content;
+        block-size: fit-content;
+        display: inline;
+    }
+
     .ui-ws-item {
         cursor: pointer;
         user-select: none;
         pointer-events: auto;
-
-        span {
-            pointer-events: none;
-            aspect-ratio: 1 / 1;
-            inline-size: fit-content;
-            block-size: fit-content;
-            display: inline;
-        }
 
         &:active,
         &:has(:active) {

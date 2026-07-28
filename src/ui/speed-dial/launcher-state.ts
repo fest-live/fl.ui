@@ -4,7 +4,7 @@
  */
 
 import { makeObjectAssignable, observe, stringRef, safe } from "fest/object";
-import { makeUIState } from "fest/lure";
+import { decodeDesktopState, loadDesktopRaw, makeUIState } from "fest/lure";
 
 export type GridCell = [number, number];
 
@@ -483,6 +483,90 @@ export const gridLayoutState = makeUIState(GRID_LAYOUT_KEY, () => observe({
 }), (state) => ({ ...state })) as unknown as GridLayoutSettings;
 
 export const persistGridLayout = () => (gridLayoutState as any)?.$save?.();
+
+const hasStoredValue = (key: string): boolean => {
+    try {
+        return typeof localStorage !== "undefined" && localStorage.getItem(key) !== null;
+    } catch {
+        return false;
+    }
+};
+
+const storedSpeedDialStateIsCustom = (): boolean => {
+    try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return false;
+        const parsed = JSON.parse(raw);
+        if (!Array.isArray(parsed)) return false;
+        const signature = (entry: any): string => JSON.stringify([
+            String(entry?.id || ""),
+            Number(entry?.cell?.[0]) || 0,
+            Number(entry?.cell?.[1]) || 0,
+            String(entry?.icon || ""),
+            String(entry?.label || ""),
+            String(entry?.action || "")
+        ]);
+        const defaults = DEFAULT_SPEED_DIAL_DATA.map(signature).sort();
+        const current = parsed.map(signature).sort();
+        return defaults.length !== current.length || defaults.some((value, index) => value !== current[index]);
+    } catch {
+        return false;
+    }
+};
+
+/**
+ * Import the former orient-layer storage once. The renderer now has one state
+ * model, but old users must not lose shortcuts when the new entrypoint mounts.
+ */
+const migrateLegacyDesktopState = (): void => {
+    const legacy = loadDesktopRaw();
+    const decoded = legacy ? decodeDesktopState(legacy) : null;
+    if (!decoded?.items?.length) return;
+    if (hasStoredValue(STORAGE_KEY) && storedSpeedDialStateIsCustom()) return;
+
+    const columns = Math.max(1, Math.min(32, Number(decoded.columns) || 4));
+    const rows = Math.max(1, Math.min(32, Number(decoded.rows) || 8));
+    const nextItems: SpeedDialItem[] = [];
+
+    speedDialItems.splice(0, speedDialItems.length);
+    speedDialMeta.clear();
+
+    for (const raw of decoded.items as Array<Record<string, any>>) {
+        const action = raw?.action === "open-link" ? "open-link" : "open-view";
+        const item = createStatefulItem({
+            id: String(raw?.id || generateItemId()),
+            cell: observe([
+                Number(raw?.cell?.[0]) || 0,
+                Number(raw?.cell?.[1]) || 0
+            ]),
+            icon: String(raw?.icon || (action === "open-link" ? "link" : "sparkle")),
+            label: String(raw?.label || "Shortcut"),
+            action
+        });
+        const meta: SpeedDialItemMeta = {
+            action,
+            view: action === "open-view" ? String(raw?.viewId || "") : "",
+            href: action === "open-link" ? String(raw?.href || "") : "",
+            description: String(raw?.description || ""),
+            shape: String(raw?.shape || "squircle"),
+            iconSrc: String(raw?.iconSrc || "")
+        };
+        speedDialItems.push(item);
+        ensureSpeedDialMeta(item.id, meta);
+        nextItems.push(item);
+    }
+
+    if (!nextItems.length) return;
+
+    gridLayoutState.columns = columns;
+    gridLayoutState.rows = rows;
+    gridLayoutState.shape = "square";
+    persistSpeedDialItems();
+    persistSpeedDialMeta();
+    persistGridLayout();
+};
+
+migrateLegacyDesktopState();
 
 export const applyGridSettings = (settings?: { grid?: GridLayoutSettings }) => {
     const gridConfig = settings?.grid || gridLayoutState;

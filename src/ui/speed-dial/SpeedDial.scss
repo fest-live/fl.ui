@@ -1,6 +1,9 @@
-// Orientbox + launcher grid: swaps logical 4×8 into 8×4 on landscape (orient 1/3) via `--cs-layout-*`.
-// WHY: fl.ui tsconfig `veela-lib` historically pointed at missing `scss/lib/`; use real barrel.
-@use "../../../../veela.css/src/scss/index.scss" as *;
+/*
+ * Filename: SpeedDial.scss
+ * FullPath: modules/projects/fl.ui/src/ui/speed-dial/SpeedDial.scss
+ * Change date and time: 21.26.37_28.07.2026
+ * Reason for changes: Keep labels in an inert layer and place edge captions inside the visible boundary.
+ */
 
 @layer views {
 
@@ -56,30 +59,12 @@
     }
 
     .speed-dial-grid {
-        --grid-cols: 4;
-        --grid-rows: 8;
-
         grid-row: 1 / -1;
         grid-column: 1 / -1;
-        padding: var(--padding-lg);
-
-        &[data-grid-columns="4"] { --grid-cols: 4; }
-        &[data-grid-columns="5"] { --grid-cols: 5; }
-        &[data-grid-columns="6"] { --grid-cols: 6; }
-        &[data-grid-columns="7"] { --grid-cols: 7; }
-        &[data-grid-columns="8"] { --grid-cols: 8; }
-
-        &[data-grid-rows="6"] { --grid-rows: 6; }
-        &[data-grid-rows="7"] { --grid-rows: 7; }
-        &[data-grid-rows="8"] { --grid-rows: 8; }
-        &[data-grid-rows="9"] { --grid-rows: 9; }
-        &[data-grid-rows="10"] { --grid-rows: 10; }
-        &[data-grid-rows="11"] { --grid-rows: 11; }
-        &[data-grid-rows="12"] { --grid-rows: 12; }
-
-        --layout-c: var(--grid-cols, 4);
-        --layout-r: var(--grid-rows, 8);
-
+        display: grid;
+        grid-template-columns: repeat(var(--grid-columns, 4), minmax(0, 1fr));
+        grid-template-rows: repeat(var(--grid-rows, 8), minmax(0, 1fr));
+        padding: var(--speed-dial-padding, 1rem);
         border-radius: 0px;
 
         // Stack order: labels on top so overflowing text below icon tiles is visible.
@@ -105,14 +90,12 @@
         }
 
         .ui-ws-item {
-            --drag-x: 0;
-            --drag-y: 0;
-            --cs-drag-x: calc(var(--drag-x, 0) * 1px);
-            --cs-drag-y: calc(var(--drag-y, 0) * 1px);
-            --tile-size: clamp(3.2rem, 7.5vmin, 4.6rem);
+            --drag-x: 0px;
+            --drag-y: 0px;
+            --tile-size: 4rem;
 
-            grid-column: clamp(1, calc(1 + round(nearest, var(--cs-grid-c, 0), 1)), var(--cs-layout-c, 4));
-            grid-row: clamp(1, calc(1 + round(nearest, var(--cs-grid-r, 0), 1)), var(--cs-layout-r, 8));
+            grid-column: var(--cell-column, auto);
+            grid-row: var(--cell-row, auto);
 
             position: relative;
             display: grid;
@@ -120,13 +103,18 @@
             place-items: center;
             place-self: center;
             aspect-ratio: 1 / 1;
-            min-inline-size: var(--tile-size);
-            min-block-size: var(--tile-size);
+            inline-size: 100%;
+            block-size: 100%;
+            min-inline-size: 0;
+            min-block-size: 0;
+            max-inline-size: var(--tile-size);
+            max-block-size: var(--tile-size);
             grid-template-columns: minmax(0px, 1fr);
             grid-template-rows: minmax(0px, 1fr);
 
             background-color: transparent;
             pointer-events: auto;
+            text-align: center;
             touch-action: none;
             user-select: none;
             -webkit-user-select: none;
@@ -136,18 +124,10 @@
             z-index: 1;
             filter: none;
 
-            transform:
-                translate3d(
-                    calc(var(--cs-drag-x, 0px) + var(--cs-transition-c, 0px)),
-                    calc(var(--cs-drag-y, 0px) + var(--cs-transition-r, 0px)),
-                    0px
-                );
+            transform: translate3d(var(--drag-x, 0px), var(--drag-y, 0px), 0);
             transform-origin: 50% 50%;
 
-            transition:
-                transform var(--drag-settle-ms, 200ms) cubic-bezier(0.22, 0.8, 0.3, 1),
-                scale 180ms var(--ease-out, ease-out),
-                filter 180ms var(--ease-out, ease-out);
+            transition: transform 240ms cubic-bezier(0.22, 0.8, 0.3, 1), scale 180ms ease-out, filter 180ms ease-out;
 
             &:hover {
                 scale: 1.06;
@@ -179,12 +159,12 @@
                 contain: layout style;
                 cursor: pointer;
 
-                inline-size: var(--tile-size);
-                block-size: var(--tile-size);
-                min-inline-size: fit-content;
-                min-block-size: fit-content;
-                max-inline-size: 100%;
-                max-block-size: 100%;
+                inline-size: 100%;
+                block-size: 100%;
+                min-inline-size: 0;
+                min-block-size: 0;
+                max-inline-size: var(--tile-size);
+                max-block-size: var(--tile-size);
                 padding: 0.8rem;
 
                 background: color-mix(in oklab, var(--color-surface-container, #111827) 56%, transparent);
@@ -221,7 +201,7 @@
                 }
 
                 ui-icon {
-                    --icon-size: clamp(1.6rem, 60%, 2.4rem);
+                    --icon-size: 2.2rem;
                     color: var(--on-surface-variant, var(--on-surface-color, currentColor));
                     aspect-ratio: 1 / 1;
                     max-inline-size: var(--icon-size, 1.8rem);
@@ -286,6 +266,15 @@
                 }
             }
 
+            &[data-label-placement="above"] .ui-ws-item-label {
+                // Keep the last visual row inside the root/viewport instead
+                // of placing its caption below the available space.
+                inset-block-start: auto;
+                inset-block-end: 100%;
+                padding-block-start: 0;
+                padding-block-end: 0.35rem;
+            }
+
             &:active {
                 will-change: transform;
             }
@@ -296,12 +285,7 @@
                 cursor: grabbing;
                 z-index: 120;
                 transition: none !important;
-                transform:
-                    translate3d(
-                        calc(var(--cs-drag-x, 0px) + var(--cs-transition-c, 0px)),
-                        calc(var(--cs-drag-y, 0px) + var(--cs-transition-r, 0px)),
-                        0px
-                    ) !important;
+                transform: translate3d(var(--drag-x, 0px), var(--drag-y, 0px), 0);
 
                 .ui-ws-item-label {
                     opacity: 1;
@@ -312,26 +296,15 @@
             &[data-interaction-state="onRelax"] {
                 will-change: transform;
                 z-index: 120;
-                transform:
-                    translate3d(
-                        calc(var(--cs-drag-x, 0px) + var(--cs-transition-c, 0px)),
-                        calc(var(--cs-drag-y, 0px) + var(--cs-transition-r, 0px)),
-                        0px
-                    ) !important;
+                transition: none !important;
+                transform: translate3d(var(--drag-x, 0px), var(--drag-y, 0px), 0);
             }
 
             &[data-interaction-state="onPlace"] {
                 will-change: transform;
                 z-index: 120;
-                transition:
-                    transform var(--drag-settle-ms, 240ms) cubic-bezier(0.22, 0.8, 0.3, 1),
-                    filter var(--transition-fast) var(--ease-out) !important;
-                transform:
-                    translate3d(
-                        calc(var(--cs-drag-x, 0px) + var(--cs-transition-c, 0px)),
-                        calc(var(--cs-drag-y, 0px) + var(--cs-transition-r, 0px)),
-                        0px
-                    ) !important;
+                transition: none !important;
+                transform: translate3d(var(--drag-x, 0px), var(--drag-y, 0px), 0);
             }
 
             &[data-layer="labels"] {
@@ -339,8 +312,7 @@
                 filter: none;
                 background: transparent !important;
                 pointer-events: none !important;
-                transition:
-                    transform var(--drag-settle-ms, 240ms) cubic-bezier(0.22, 0.8, 0.3, 1);
+                transition: transform 240ms cubic-bezier(0.22, 0.8, 0.3, 1);
 
                 .ui-ws-item-label {
                     background: transparent !important;
@@ -352,18 +324,6 @@
                 }
             }
 
-            // Label layer: independent of icon drag offset; only grid cell (synced on m-dragsettled).
-            &[data-layer="labels"][data-interaction-state="onLabelDocked"] {
-                transform: none !important;
-                transition: none !important;
-                cursor: default;
-            }
-
-            &[data-layer="labels"][data-interaction-state="onGrab"],
-            &[data-layer="labels"][data-interaction-state="onMoving"] {
-                transition: none !important;
-            }
-
             &[data-layer="icons"] {
                 z-index: 99;
                 filter: none;
@@ -372,33 +332,46 @@
 
             &[data-layer="icons"][data-interaction-state="onGrab"],
             &[data-layer="icons"][data-interaction-state="onMoving"],
-            &[data-layer="icons"][data-interaction-state="onRelax"] {
+            &[data-layer="icons"][data-interaction-state="onRelax"],
+            &[data-layer="icons"][data-interaction-state="onPlace"] {
                 z-index: 120;
             }
         }
     }
 
-    // Home orient layer: tighter padding and tiles on narrow / short containers (parent `ui-orientbox` is `container-type: size`).
+    // Labels are a projection layer: they follow committed grid cells, but
+    // never participate in pointer capture, hover scaling, or icon FLIP.
+    .speed-dial-label-layer {
+        pointer-events: none !important;
+
+        .ui-ws-item {
+            pointer-events: none;
+            touch-action: auto;
+            scale: 1;
+            transform: none;
+            transition: none;
+            z-index: 0;
+        }
+
+        .ui-ws-item:hover,
+        .ui-ws-item:active {
+            scale: 1;
+            transform: none;
+        }
+    }
+
+    // Keep the narrow layout predictable without coupling placement to container math.
     .speed-dial-root.app-oriented-desktop {
         .speed-dial-grid.app-oriented-desktop__grid--labels,
         .speed-dial-grid.app-oriented-desktop__grid--icons {
-            @container (max-width: 28rem) {
-                padding-inline: clamp(0.35rem, 3.2cqw, var(--padding-lg));
-                padding-block: clamp(0.35rem, 2.8cqh, var(--padding-lg));
-            }
-
-            @container (max-height: 29rem) {
-                padding-block: clamp(0.3rem, 2.2cqh, var(--padding-md));
-            }
+            padding: 0.65rem;
         }
 
         .ui-ws-item {
-            @container (max-width: 28rem) {
-                --tile-size: clamp(2.6rem, 11cqmin, 4.2rem);
+            --tile-size: 3.2rem;
 
-                .ui-ws-item-icon {
-                    padding: 0.65rem;
-                }
+            .ui-ws-item-icon {
+                padding: 0.65rem;
             }
         }
     }

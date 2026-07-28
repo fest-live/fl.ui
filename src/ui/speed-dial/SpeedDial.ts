@@ -1,8 +1,24 @@
+/*
+ * Filename: SpeedDial.ts
+ * FullPath: modules/projects/fl.ui/src/ui/speed-dial/SpeedDial.ts
+ * Change date and time: 21.34.27_28.07.2026
+ * Reason for changes: Keep committed labels inside the visible boundary at grid edges.
+ */
+
 import { observe, numberRef, propRef, stringRef, affected } from "fest/object";
 import { E, H, orientRef, M, provide, handleIncomingEntries } from "fest/lure";
 import { pointerAnchorRef } from "fest/lure";
-import { bindInteraction, resolveGridCellFromClientPoint } from "./Interact";
-import { showSuccess, showError } from "../misc/Toast";
+import { bindPointerInteraction } from "./pointer-interaction";
+import {
+    logicalToVisualCell,
+    normalizeOrient,
+    pointToLogicalCell,
+    visualLayout,
+    type GridCell,
+    type GridLayout,
+    type Orient
+} from "./layout";
+import { showSuccess, showError } from "../../misc/Toast";
 import { openUnifiedContextMenu, type ContextMenuEntry } from "../explorer/ContextMenu";
 import {
     speedDialMeta,
@@ -23,8 +39,7 @@ import {
     createSpeedDialItemFromClipboard,
     parseSpeedDialItemFromJSON,
     parseSpeedDialItemFromURL,
-    type SpeedDialItem,
-    type GridCell
+    type SpeedDialItem
 } from "./launcher-state";
 import { isInFocus, MOCElement } from "fest/dom";
 import { openShortcutEditor } from "./ShortcutEditor";
@@ -46,6 +61,123 @@ function getLayout(): ReturnType<typeof observe<[number, number]>> {
     }
     return layoutSingleton;
 }
+
+const getScreenOrient = (): Orient => {
+    const type = String(globalThis.screen?.orientation?.type || "");
+    if (type.includes("landscape")) return type.endsWith("secondary") ? 3 : 1;
+    return type.endsWith("secondary") ? 2 : 0;
+};
+
+const getRootOrient = (root?: HTMLElement | null): Orient => {
+    return normalizeOrient(root?.getAttribute("orient") ?? getScreenOrient());
+};
+
+const getGridLayout = (): GridLayout => [
+    Number(gridLayoutState.columns) || 4,
+    Number(gridLayoutState.rows) || 8
+];
+
+const getItemCell = (item: SpeedDialItem): GridCell => [
+    Number(item.cell?.[0]) || 0,
+    Number(item.cell?.[1]) || 0
+];
+
+const applyVisualCell = (el: HTMLElement, item: SpeedDialItem, root?: HTMLElement | null): void => {
+    const orient = getRootOrient(root);
+    const layout = getGridLayout();
+    const visualCell = logicalToVisualCell(getItemCell(item), layout, orient);
+    el.dataset.cellX = String(item.cell?.[0] ?? 0);
+    el.dataset.cellY = String(item.cell?.[1] ?? 0);
+    el.style.setProperty("--cell-column", String(visualCell[0] + 1));
+    el.style.setProperty("--cell-row", String(visualCell[1] + 1));
+    if (el.dataset.layer === "labels") {
+        const [, visualRows] = visualLayout(layout, orient);
+        let placement = visualCell[1] >= visualRows - 1 ? "above" : "below";
+        const rootRect = root?.getBoundingClientRect();
+        const itemRect = el.getBoundingClientRect();
+        const labelRect = el.querySelector<HTMLElement>(".ui-ws-item-label")?.getBoundingClientRect();
+        // The first ref pass can happen before the caption has a layout box.
+        const labelHeight = labelRect?.height || 28;
+        if (rootRect && itemRect.height > 0) {
+            const viewportBottom = Number(globalThis.innerHeight) || rootRect.bottom;
+            const visibleTop = Math.max(rootRect.top, 0);
+            const visibleBottom = Math.min(rootRect.bottom, viewportBottom);
+            const fitsBelow = itemRect.bottom + labelHeight <= visibleBottom + 1;
+            const fitsAbove = itemRect.top - labelHeight >= visibleTop - 1;
+            if (placement !== "above") {
+                placement = fitsBelow ? "below" : fitsAbove ? "above" : placement;
+            }
+        }
+        el.dataset.labelPlacement = placement;
+    }
+};
+
+const scheduleLabelPlacementSync = (root: HTMLElement): void => {
+    if (root.dataset.labelPlacementFrame === "pending") return;
+    root.dataset.labelPlacementFrame = "pending";
+    const sync = (): void => {
+        delete root.dataset.labelPlacementFrame;
+        root.querySelectorAll<HTMLElement>('[data-speed-dial-item][data-layer="labels"]').forEach((node) => {
+            const item = findSpeedDialItem(node.dataset.id);
+            if (item) applyVisualCell(node, item, root);
+        });
+    };
+    if (typeof globalThis.requestAnimationFrame === "function") {
+        globalThis.requestAnimationFrame(sync);
+    } else {
+        globalThis.setTimeout(sync, 0);
+    }
+};
+
+const syncGridLayout = (root: HTMLElement): void => {
+    const logicalLayout = getGridLayout();
+    const orient = getRootOrient(root);
+    const [columns, rows] = visualLayout(logicalLayout, orient);
+
+    root.dataset.orient = String(orient);
+    root.style.setProperty("--orient", String(orient));
+    root.querySelectorAll<HTMLElement>(".speed-dial-grid").forEach((grid) => {
+        grid.style.setProperty("--grid-columns", String(columns));
+        grid.style.setProperty("--grid-rows", String(rows));
+        grid.dataset.gridColumns = String(columns);
+        grid.dataset.gridRows = String(rows);
+    });
+    root.querySelectorAll<HTMLElement>("[data-speed-dial-item]").forEach((node) => {
+        const item = findSpeedDialItem(node.dataset.id);
+        if (item) applyVisualCell(node, item, root);
+    });
+    scheduleLabelPlacementSync(root);
+};
+
+const bindRootOrientation = (root: HTMLElement): void => {
+    if (root.dataset.orientObserverBound === "true") {
+        syncGridLayout(root);
+        return;
+    }
+    root.dataset.orientObserverBound = "true";
+    const observer = new MutationObserver((records) => {
+        if (records.some((record) => record.attributeName === "orient")) {
+            syncGridLayout(root);
+        }
+    });
+    observer.observe(root, { attributes: true, attributeFilter: ["orient"] });
+    const screenOrientation = globalThis.screen?.orientation;
+    const onScreenOrientationChange = (): void => {
+        if (!root.hasAttribute("orient")) syncGridLayout(root);
+    };
+    screenOrientation?.addEventListener?.("change", onScreenOrientationChange);
+    affected(gridLayoutState, () => syncGridLayout(root));
+    syncGridLayout(root);
+    queueMicrotask(() => syncGridLayout(root));
+};
+
+const refreshRootCells = (root: HTMLElement): void => {
+    root.querySelectorAll<HTMLElement>("[data-speed-dial-item]").forEach((node) => {
+        const item = findSpeedDialItem(node.dataset.id);
+        if (item) applyVisualCell(node, item, root);
+    });
+    scheduleLabelPlacementSync(root);
+};
 
 type PointerAnchorPair = ReturnType<typeof pointerAnchorRef>;
 type NumberRefPair = [ReturnType<typeof numberRef>, ReturnType<typeof numberRef>];
@@ -98,18 +230,14 @@ const buildDescriptor = (item: SpeedDialItem) => {
     };
 };
 
-//
-const bindCell = (el: HTMLElement, args: any) => {
-    const { item } = args;
-    const cell = item?.cell ?? [0, 0];
-    E(el, {
-        style: {
-            "--cell-x": propRef(cell, 0),
-            "--cell-y": propRef(cell, 1),
-            "--p-cell-x": propRef(cell, 0),
-            "--p-cell-y": propRef(cell, 1)
-        }
-    });
+const bindCell = (el: HTMLElement, args: any): void => {
+    const item = args?.item as SpeedDialItem | undefined;
+    if (!item) return;
+    const root = el.closest<HTMLElement>(".speed-dial-root");
+    const sync = (): void => applyVisualCell(el, item, root);
+    sync();
+    affected([item.cell, 0], sync);
+    affected([item.cell, 1], sync);
 };
 
 //
@@ -136,51 +264,23 @@ const runItemAction = (item: SpeedDialItem, actionId?: string, extras: { event?:
 const attachItemNode = (item: SpeedDialItem, el?: HTMLElement | null, interactive = true, makeView?: any) => {
     if (!el) return;
     const args = { layout: getLayout(), items: speedDialItems, item, meta: speedDialMeta };
+    const root = el.closest<HTMLElement>(".speed-dial-root")
+        || el.ownerDocument?.getElementById("home");
     el.dataset.id = item.id;
     el.dataset.speedDialItem = "true";
-    el.addEventListener("dragstart", (ev)=>ev.preventDefault());
     if (interactive) {
-        let pointerDownAt: [number, number] | null = null;
-        let pointerDownTs = 0;
-        let suppressClickUntil = 0;
-        const blockTapUntil = (ms = 280) => {
-            suppressClickUntil = Math.max(suppressClickUntil, Date.now() + ms);
-        };
+        el.addEventListener("dragstart", (ev)=>ev.preventDefault());
         if (!el.dataset.dragGuardBound) {
             el.dataset.dragGuardBound = "1";
-            el.addEventListener("m-dragstart", () => blockTapUntil(420));
             el.addEventListener("m-dragsettled", () => {
-                blockTapUntil(320);
                 schedulePersistItems();
             });
         }
         el.addEventListener("click", (ev)=>{
-            if (Date.now() < suppressClickUntil) {
-                ev?.preventDefault?.();
-                ev?.stopPropagation?.();
-                return;
-            }
             ev?.preventDefault?.();
             const interactionState = String((el as HTMLElement)?.dataset?.interactionState || "");
             const blockedByInteraction = interactionState === "onGrab" || interactionState === "onMoving" || interactionState === "onRelax";
             if (!blockedByInteraction && !MOCElement(ev?.target as any, '[data-interaction-state="onMoving"],[data-interaction-state="onGrab"],[data-interaction-state="onRelax"]')) {
-                runItemAction(item, undefined, { event: ev, initiator: el }, makeView);
-            }
-        });
-        el.addEventListener("pointerdown", (ev: PointerEvent)=>{
-            pointerDownAt = [ev.clientX, ev.clientY];
-            pointerDownTs = Date.now();
-        });
-        el.addEventListener("pointerup", (ev: PointerEvent)=>{
-            if (!pointerDownAt) return;
-            const dx = ev.clientX - pointerDownAt[0];
-            const dy = ev.clientY - pointerDownAt[1];
-            const distance = Math.hypot(dx, dy);
-            const elapsed = Date.now() - pointerDownTs;
-            pointerDownAt = null;
-            if (distance <= 6 && elapsed <= 350) {
-                // PointerAPI drag helper may swallow synthetic click even for tap-like gestures.
-                blockTapUntil(250);
                 runItemAction(item, undefined, { event: ev, initiator: el }, makeView);
             }
         });
@@ -196,31 +296,69 @@ const attachItemNode = (item: SpeedDialItem, el?: HTMLElement | null, interactiv
         bindCell(el, args);
     }
     if (el.dataset.layer === "icons") {
-        bindInteraction(el, { ...args, immediateDragStyles: true });
-        const cell = item?.cell ?? [0, 0];
-        E(el, {
-            style: {
-                "--cell-x": propRef(cell, 0),
-                "--cell-y": propRef(cell, 1)
-            }
-        });
+        const dragItem = { id: item.id, cell: getItemCell(item) };
+        const bindDrag = (mountedRoot: HTMLElement | null): void => {
+            if (!mountedRoot || el.dataset.pointerInteractionBound === "true") return;
+            el.dataset.pointerInteractionBound = "true";
+            bindPointerInteraction(el, {
+                root: mountedRoot,
+                item: dragItem,
+                items: speedDialItems as unknown as Array<{ id: string; cell: GridCell }>,
+                getLayout: getGridLayout,
+                getOrient: () => getRootOrient(mountedRoot),
+                onCommitCell: (cell) => {
+                    dragItem.cell = [...cell];
+                    item.cell[0] = cell[0];
+                    item.cell[1] = cell[1];
+                    refreshRootCells(mountedRoot);
+                }
+            });
+        };
+        bindDrag(root);
+        if (!root) {
+            queueMicrotask(() => bindDrag(
+                el.closest<HTMLElement>(".speed-dial-root")
+                || el.ownerDocument?.getElementById("home")
+            ));
+        }
+        applyVisualCell(el, item, root);
     }
+};
+
+const resolveCellFromGrid = (
+    grid: HTMLElement | null,
+    coordinate: [number, number] | null | undefined
+): GridCell => {
+    if (!grid || !coordinate) return [0, 0];
+    const rect = grid.getBoundingClientRect();
+    const styles = getComputedStyle(grid);
+    const paddingLeft = parseFloat(styles.paddingLeft) || 0;
+    const paddingRight = parseFloat(styles.paddingRight) || 0;
+    const paddingTop = parseFloat(styles.paddingTop) || 0;
+    const paddingBottom = parseFloat(styles.paddingBottom) || 0;
+    const size: [number, number] = [
+        Math.max(1, rect.width - paddingLeft - paddingRight),
+        Math.max(1, rect.height - paddingTop - paddingBottom)
+    ];
+    const point: [number, number] = [
+        coordinate[0] - rect.left - paddingLeft,
+        coordinate[1] - rect.top - paddingTop
+    ];
+    return pointToLogicalCell(point, size, getGridLayout(), getRootOrient(grid.closest(".speed-dial-root")));
 };
 
 const deriveCellFromEvent = (ev?: MouseEvent): GridCell => {
     const grid = document.querySelector<HTMLElement>('#home .speed-dial-grid[data-grid-layer="icons"]')
         || document.querySelector<HTMLElement>("#home .speed-dial-grid:last-of-type")
         || document.querySelector<HTMLElement>("#home .speed-dial-grid");
-    if (!grid || !ev) return [0, 0];
-    return resolveGridCellFromClientPoint(grid, [ev.clientX, ev.clientY], { layout: getLayout() as [number, number] }, "floor");
+    return resolveCellFromGrid(grid, ev ? [ev.clientX, ev.clientY] : null);
 };
 
 const deriveCellFromCoordinate = (coordinate: [number, number]): GridCell => {
     const grid = document.querySelector<HTMLElement>('#home .speed-dial-grid[data-grid-layer="icons"]')
         || document.querySelector<HTMLElement>("#home .speed-dial-grid:last-of-type")
         || document.querySelector<HTMLElement>("#home .speed-dial-grid");
-    if (!grid || !coordinate) return [0, 0];
-    return resolveGridCellFromClientPoint(grid, coordinate, { layout: getLayout() as [number, number] }, "floor");
+    return resolveCellFromGrid(grid, coordinate);
 };
 
 const deriveCellFromAnchor = (): GridCell => {
@@ -416,7 +554,7 @@ export function SpeedDial(makeView: any) {
 
     //
     const renderLabelItem = (item: SpeedDialItem)=>{
-        return H`<div style="background-color: transparent;" class="ui-ws-item" data-speed-dial-item data-layer="labels" ref=${(el) => attachItemNode(item, el as HTMLElement, true, makeView)}>
+        return H`<div style="background-color: transparent;" class="ui-ws-item" data-speed-dial-item data-layer="labels" ref=${(el) => attachItemNode(item, el as HTMLElement, false, makeView)}>
             <div class="ui-ws-item-label" style="background-color: transparent;">
                 <span style="background-color: transparent;">${getRefValue(item.label)}</span>
             </div>
@@ -424,12 +562,11 @@ export function SpeedDial(makeView: any) {
     };
 
     //
-    const oRef = orientRef();
-    const box = H`<div slot="underlay" style="pointer-events: auto; position: relative; contain: strict; overflow: hidden; display: grid;" id="home" data-mixin="ui-orientbox" class="speed-dial-root" prop:orient=${oRef} ref=${(el: HTMLElement) => E(el, { style: { "--orient": oRef } })} on:dragover=${(ev: DragEvent) => ev.preventDefault()} on:drop=${(ev: DragEvent) => handleWallpaperDropOrPaste(ev)} prop:onPaste=${async (ev: ClipboardEvent) => await handleWallpaperDropOrPaste(ev)}>
-        <div style="background-color: transparent; color-scheme: dark; pointer-events: none;" class="speed-dial-grid speed-dial-grid--labels ui-launcher-grid" data-layer="items" data-grid-layer="labels" data-grid-columns=${columnsRef} data-grid-rows=${rowsRef} data-grid-shape=${shapeRef} ref=${(el: HTMLElement) => E(el, { style: { "--layout-c": columnsRef, "--layout-r": rowsRef } })}>
+    const box = H`<div slot="underlay" style="pointer-events: auto; position: relative; contain: strict; overflow: hidden; display: grid;" id="home" class="speed-dial-root" ref=${(el: HTMLElement) => bindRootOrientation(el)} on:dragover=${(ev: DragEvent) => ev.preventDefault()} on:drop=${(ev: DragEvent) => handleWallpaperDropOrPaste(ev)} prop:onPaste=${async (ev: ClipboardEvent) => await handleWallpaperDropOrPaste(ev)}>
+        <div style="background-color: transparent; color-scheme: dark; pointer-events: none;" class="speed-dial-grid speed-dial-label-layer speed-dial-grid--labels ui-launcher-grid" data-layer="items" data-grid-layer="labels" data-grid-columns=${columnsRef} data-grid-rows=${rowsRef} data-grid-shape=${shapeRef}>
             ${M(speedDialItems, renderLabelItem)}
         </div>
-        <div style="background-color: transparent; pointer-events: none;" class="speed-dial-grid speed-dial-grid--icons ui-launcher-grid" data-layer="items" data-grid-layer="icons" data-grid-columns=${columnsRef} data-grid-rows=${rowsRef} data-grid-shape=${shapeRef} ref=${(el: HTMLElement) => E(el, { style: { "--layout-c": columnsRef, "--layout-r": rowsRef } })}>
+        <div style="background-color: transparent; pointer-events: none;" class="speed-dial-grid speed-dial-icon-layer speed-dial-grid--icons ui-launcher-grid" data-layer="items" data-grid-layer="icons" data-grid-columns=${columnsRef} data-grid-rows=${rowsRef} data-grid-shape=${shapeRef}>
             ${M(speedDialItems, renderIconItem)}
         </div>
     </div>`;

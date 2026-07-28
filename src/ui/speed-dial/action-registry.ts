@@ -10,7 +10,7 @@ import {
     type SpeedDialItem,
     type SpeedDialMetaRegistry
 } from "./launcher-state";
-import { showSuccess, showError } from "../misc/Toast";
+import { showSuccess, showError } from "../../misc/Toast";
 import { getSpeedDialViewOpener } from "./view-opener";
 
 /** Same arity as handlers invoked from SpeedDial.runItemAction. */

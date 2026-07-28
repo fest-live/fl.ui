@@ -1,49 +1,18 @@
-/**
- * Grid/tile interaction helpers for the home/orient workspace.
- *
- * This module centralizes draggable tile behavior, CSS custom-property based
- * animation state, and cell reflection logic so the home view can keep its
- * layout deterministic across HMR, resize, and drag/drop interactions.
+/*
+ * Filename: Interact.ts
+ * FullPath: modules/projects/fl.ui/src/ui/speed-dial/Interact.ts
+ * Change date and time: 21.12.00_28.07.2026
+ * Reason for changes: Keep the public interaction entrypoint as a compatibility facade over Pointer Events.
  */
 import { RAFBehavior, orientOf, setStyleProperty, resolveGridCellFromClientPoint } from "fest/dom";
 import { makeObjectAssignable, observe, affected, numberRef } from "fest/object";
 import { makeShiftTrigger, LongPressHandler, clampCell, bindDraggable } from "fest/lure";
 import { redirectCell } from "fest/core";
 import type { GridArgsType, GridItemType } from "fest/core";
+import { bindPointerInteraction } from "./pointer-interaction";
+import { normalizeOrient, type GridCell } from "./layout";
 
 export { resolveGridCellFromClientPoint };
-
-// Register CSS custom properties for WAAPI interpolation.
-// Tracked per-property to survive HMR without duplicate-registration errors.
-const registeredCSSProperties = new Set<string>();
-([
-    { name: "--drag-x", syntax: "<number>", inherits: false, initialValue: "0" },
-    { name: "--drag-y", syntax: "<number>", inherits: false, initialValue: "0" },
-    { name: "--cs-drag-x", syntax: "<length-percentage>", inherits: false, initialValue: "0px" },
-    { name: "--cs-drag-y", syntax: "<length-percentage>", inherits: false, initialValue: "0px" },
-    { name: "--grid-r", syntax: "<number>", inherits: false, initialValue: "0" },
-    { name: "--grid-c", syntax: "<number>", inherits: false, initialValue: "0" },
-    { name: "--resize-x", syntax: "<number>", inherits: false, initialValue: "0" },
-    { name: "--resize-y", syntax: "<number>", inherits: false, initialValue: "0" },
-    { name: "--shift-x", syntax: "<number>", inherits: false, initialValue: "0" },
-    { name: "--shift-y", syntax: "<number>", inherits: false, initialValue: "0" },
-    { name: "--cs-grid-r", syntax: "<number>", inherits: false, initialValue: "0" },
-    { name: "--cs-grid-c", syntax: "<number>", inherits: false, initialValue: "0" },
-    { name: "--cs-transition-r", syntax: "<length-percentage>", inherits: false, initialValue: "0px" },
-    { name: "--cs-transition-c", syntax: "<length-percentage>", inherits: false, initialValue: "0px" },
-    { name: "--cs-p-grid-r", syntax: "<number>", inherits: false, initialValue: "0" },
-    { name: "--cs-p-grid-c", syntax: "<number>", inherits: false, initialValue: "0" },
-    { name: "--os-grid-r", syntax: "<number>", inherits: false, initialValue: "0" },
-    { name: "--os-grid-c", syntax: "<number>", inherits: false, initialValue: "0" },
-    { name: "--rv-grid-r", syntax: "<number>", inherits: false, initialValue: "0" },
-    { name: "--rv-grid-c", syntax: "<number>", inherits: false, initialValue: "0" },
-    { name: "--cell-x", syntax: "<number>", inherits: false, initialValue: "0" },
-    { name: "--cell-y", syntax: "<number>", inherits: false, initialValue: "0" },
-] as PropertyDefinition[]).forEach((prop) => {
-    if (typeof CSS !== "undefined" && !registeredCSSProperties.has(prop.name)) {
-        try { CSS.registerProperty?.(prop); registeredCSSProperties.add(prop.name); } catch {}
-    }
-});
 
 // --rv-grid-c always drives --cs-transition-c → X axis of translate3d.
 // --rv-grid-r always drives --cs-transition-r → Y axis of translate3d.
@@ -375,7 +344,7 @@ export const makeDragEvents = async (
 // ── Public entry point ──
 export const ROOT = typeof document !== "undefined" ? document?.documentElement : null;
 
-export const bindInteraction = (newItem: HTMLElement, pArgs: any): [any, any] => {
+const bindLegacyInteraction = (newItem: HTMLElement, pArgs: any): [any, any] => {
     reflectCell(newItem, pArgs, true);
 
     const { item, items, list } = pArgs;
@@ -451,4 +420,49 @@ export const bindInteraction = (newItem: HTMLElement, pArgs: any): [any, any] =>
 
     makeDragEvents(newItem, { layout: layout as [number, number], currentCell, dragging, syncDragStyles }, { item, items, list });
     return currentCell as [any, any];
+};
+
+/**
+ * Compatibility facade for older callers. New speed-dial mounts use
+ * `bindPointerInteraction` directly; this adapter keeps the public name while
+ * removing the old CSS-variable drag path from active behavior.
+ */
+export const bindInteraction = (newItem: HTMLElement, pArgs: any): [any, any] => {
+    const root = newItem.closest<HTMLElement>(".speed-dial-root")
+        || newItem.ownerDocument?.getElementById("home");
+    const sourceItem = pArgs?.item || {};
+    const dragItem: { id: string; cell: GridCell } = {
+        id: String(sourceItem.id || newItem.dataset.id || "speed-dial-item"),
+        cell: [
+            Number(sourceItem.cell?.[0]) || 0,
+            Number(sourceItem.cell?.[1]) || 0
+        ]
+    };
+    const sourceItems = Array.isArray(pArgs?.items)
+        ? pArgs.items
+        : Object.values(pArgs?.items || {});
+
+    if (!root) return [dragItem, () => undefined];
+
+    const cleanup = bindPointerInteraction(newItem, {
+        root,
+        item: dragItem,
+        items: sourceItems as Array<{ id: string; cell: GridCell }>,
+        getLayout: () => [
+            Number(pArgs?.layout?.columns || pArgs?.layout?.[0]) || 4,
+            Number(pArgs?.layout?.rows || pArgs?.layout?.[1]) || 8
+        ],
+        getOrient: () => normalizeOrient(root.getAttribute("orient") || 0),
+        onCommitCell: (cell) => {
+            dragItem.cell = [...cell];
+            if (sourceItem.cell) {
+                sourceItem.cell[0] = cell[0];
+                sourceItem.cell[1] = cell[1];
+            }
+            pArgs?.onCommitCell?.(cell);
+        },
+        onSettled: (cell) => pArgs?.onSettled?.(cell)
+    });
+
+    return [dragItem, cleanup];
 };

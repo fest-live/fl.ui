@@ -1,6 +1,14 @@
+/*
+ * Filename: OrientDesktop.ts
+ * FullPath: modules/projects/fl.ui/src/ui/speed-dial/OrientDesktop.ts
+ * Change date and time: 21.13.00_28.07.2026
+ * Reason for changes: Preserve the legacy mount API while delegating rendering to SpeedDial.
+ */
+
 import { loadAsAdopted, getCorrectOrientation, orientationNumberMap } from "fest/dom";
 import type { GridItemType } from "fest/core";
 import { bindInteraction, resolveGridCellFromClientPoint } from "./Interact";
+import { SpeedDial } from "./SpeedDial";
 
 import { openShortcutEditor } from "./ShortcutEditor";
 import {
@@ -412,7 +420,21 @@ const prettifyView = (viewId: string): string => {
     return value.charAt(0).toUpperCase() + value.slice(1);
 };
 
-export const initializeOrientedDesktop = (host: HTMLElement): void => {
+/**
+ * Compatibility entrypoint for shells that used the former manual desktop
+ * renderer. All new mounts now use the canonical SpeedDial renderer.
+ */
+export const initializeOrientedDesktop = (host: HTMLElement, makeView?: any): void => {
+    if (!host || host.dataset.desktopMounted === "true") return;
+    host.dataset.desktopMounted = "true";
+    ensureOrientDesktopStyles();
+    const root = SpeedDial(makeView) as HTMLElement;
+    root.classList.add("app-oriented-desktop");
+    host.appendChild(root);
+};
+
+/** @deprecated Kept privately while older imports are migrated to SpeedDial. */
+const initializeLegacyOrientedDesktop = (host: HTMLElement): void => {
     if (!host || host.dataset.desktopMounted === "true") return;
     host.dataset.desktopMounted = "true";
 

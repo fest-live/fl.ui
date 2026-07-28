@@ -26,6 +26,8 @@
             max-block-size: none;
             max-inline-size: none;
             flex-grow: 1;
+            block-size: stretch;
+            inline-size: stretch;
 
             background-color: var(--color-surface);
             color: var(--color-on-surface);

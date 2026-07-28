@@ -1,0 +1,287 @@
+/*
+ * Filename: Windows2.scss
+ * FullPath: modules/projects/fl.ui/src/ui/containers/window/Windows2.scss
+ * Change date and time: 18.05.00_28.07.2026
+ * Reason for changes: High-quality ui-window chrome with light/dark tokens and control buttons.
+ */
+
+/* WHY: Inline adopted sheet for <ui-window>; light-dark() + explicit theme attrs keep parity
+ * without requiring full veela runtime on the host document. */
+
+:host(ui-window) {
+    /* Tokens — light defaults via light-dark(); dark flips with color-scheme / data-theme */
+    --ui-win-radius: 0.75rem;
+    --ui-win-titlebar-height: 2.5rem;
+    --ui-win-footer-min: 2.25rem;
+    --ui-win-control-size: 1.75rem;
+    --ui-win-icon-size: 0.95rem;
+    --ui-win-gap: 0.5rem;
+    --ui-win-pad-inline: 0.75rem;
+    --ui-win-pad-block: 0.65rem;
+
+    --ui-win-bg: light-dark(#f7f8fb, #121826);
+    --ui-win-fg: light-dark(#152033, #e8edf5);
+    --ui-win-muted: light-dark(#5b6b86, #8b9bb8);
+    --ui-win-border: light-dark(rgb(21 32 51 / 0.12), rgb(232 237 245 / 0.12));
+    --ui-win-titlebar-bg: light-dark(#eef1f7, #1a2233);
+    --ui-win-content-bg: light-dark(#ffffff, #0f1624);
+    --ui-win-footer-bg: light-dark(#f0f3f9, #151d2e);
+    --ui-win-shadow:
+        light-dark(
+            0 18px 40px -18px rgb(15 23 42 / 0.28),
+            0 22px 48px -16px rgb(0 0 0 / 0.55)
+        );
+    --ui-win-control-bg: light-dark(rgb(21 32 51 / 0.06), rgb(232 237 245 / 0.08));
+    --ui-win-control-bg-hover: light-dark(rgb(21 32 51 / 0.12), rgb(232 237 245 / 0.16));
+    --ui-win-control-fg: var(--ui-win-fg);
+    --ui-win-close-bg: light-dark(rgb(220 38 38 / 0.12), rgb(248 113 113 / 0.16));
+    --ui-win-close-bg-hover: light-dark(rgb(220 38 38 / 0.92), rgb(239 68 68 / 0.95));
+    --ui-win-close-fg: light-dark(#b91c1c, #fecaca);
+    --ui-win-close-fg-hover: #fff;
+    --icon-color: var(--ui-win-fg);
+    --icon-size: var(--ui-win-icon-size);
+
+    color-scheme: light dark;
+    box-sizing: border-box;
+    display: block;
+    position: relative;
+    inline-size: var(--ui-win-width, min(32rem, 92vw));
+    block-size: var(--ui-win-height, min(22rem, 70vh));
+    min-inline-size: 16rem;
+    min-block-size: 10rem;
+    color: var(--ui-win-fg);
+    font-family: "InterVariable", "Inter", "Segoe UI", ui-sans-serif, system-ui, sans-serif;
+    font-size: 0.875rem;
+    line-height: 1.35;
+    border-radius: var(--ui-win-radius);
+    overflow: hidden;
+    box-shadow: var(--ui-win-shadow);
+    isolation: isolate;
+    contain: layout paint style;
+
+    &,
+    *,
+    *::before,
+    *::after {
+        box-sizing: border-box;
+    }
+}
+
+/* Explicit theme overrides (playground / app shell) */
+:host(ui-window[data-theme="light"]),
+:host(ui-window.theme-light) {
+    color-scheme: light;
+}
+
+:host(ui-window[data-theme="dark"]),
+:host(ui-window.theme-dark) {
+    color-scheme: dark;
+}
+
+:host(ui-window[maximized]) {
+    --ui-win-radius: 0;
+    inset: 0;
+    inline-size: 100%;
+    block-size: 100%;
+    border-radius: 0;
+}
+
+:host(ui-window[minimized]) {
+    block-size: var(--ui-win-titlebar-height);
+    min-block-size: var(--ui-win-titlebar-height);
+}
+
+:host(ui-window[minimized]) .content-handler,
+:host(ui-window[minimized]) .footer-handler {
+    display: none;
+}
+
+.window-container {
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    grid-template-areas:
+        "title"
+        "content"
+        "footer";
+    inline-size: 100%;
+    block-size: 100%;
+    background: var(--ui-win-bg);
+    color: var(--ui-win-fg);
+    border: 1px solid var(--ui-win-border);
+    border-radius: inherit;
+    overflow: hidden;
+}
+
+.title-handler {
+    grid-area: title;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    align-items: center;
+    gap: var(--ui-win-gap);
+    min-block-size: var(--ui-win-titlebar-height);
+    padding-inline: var(--ui-win-pad-inline);
+    padding-block: 0.35rem;
+    background: var(--ui-win-titlebar-bg);
+    border-block-end: 1px solid var(--ui-win-border);
+    cursor: grab;
+    user-select: none;
+    touch-action: none;
+
+    &:active {
+        cursor: grabbing;
+    }
+}
+
+.title-handler-main {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-inline-size: 0;
+    overflow: hidden;
+    pointer-events: none;
+
+    ::slotted(*),
+    .title-text {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        font-weight: 600;
+        letter-spacing: -0.01em;
+    }
+}
+
+.title-handler-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    min-inline-size: 0;
+}
+
+.title-handler-buttons {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    flex-shrink: 0;
+}
+
+.title-handler-buttons button,
+.title-handler-actions button {
+    appearance: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    inline-size: var(--ui-win-control-size);
+    block-size: var(--ui-win-control-size);
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 999px;
+    background: var(--ui-win-control-bg);
+    color: var(--ui-win-control-fg);
+    --icon-color: currentColor;
+    cursor: pointer;
+    pointer-events: auto;
+    transition:
+        background-color 0.15s ease,
+        color 0.15s ease,
+        transform 0.12s ease;
+
+    &:hover {
+        background: var(--ui-win-control-bg-hover);
+    }
+
+    &:active {
+        transform: scale(0.94);
+    }
+
+    &:focus-visible {
+        outline: 2px solid light-dark(#3794ff, #6ee7b7);
+        outline-offset: 2px;
+    }
+
+    ui-icon {
+        inline-size: var(--ui-win-icon-size);
+        block-size: var(--ui-win-icon-size);
+        pointer-events: none;
+    }
+}
+
+.title-handler-buttons .title-close {
+    background: var(--ui-win-close-bg);
+    color: var(--ui-win-close-fg);
+    --icon-color: currentColor;
+
+    &:hover {
+        background: var(--ui-win-close-bg-hover);
+        color: var(--ui-win-close-fg-hover);
+    }
+}
+
+/* WHY: wrap ui-icon — it sets display:grid !important unlayered, which beats host-layer rules. */
+.title-maximize .icon-restore {
+    display: none !important;
+}
+
+:host([maximized]) .title-maximize .icon-maximize {
+    display: none !important;
+}
+
+:host([maximized]) .title-maximize .icon-restore {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+}
+
+.content-handler {
+    grid-area: content;
+    min-block-size: 0;
+    min-inline-size: 0;
+    overflow: auto;
+    padding: var(--ui-win-pad-block) var(--ui-win-pad-inline);
+    background: var(--ui-win-content-bg);
+    color: var(--ui-win-fg);
+
+    ::slotted(*) {
+        max-inline-size: 100%;
+    }
+}
+
+.footer-handler {
+    grid-area: footer;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    min-block-size: var(--ui-win-footer-min);
+    padding: 0.45rem var(--ui-win-pad-inline);
+    background: var(--ui-win-footer-bg);
+    border-block-start: 1px solid var(--ui-win-border);
+    color: var(--ui-win-muted);
+
+    &:empty,
+    &:not(:has(*)):not(:has(::slotted(*))) {
+        display: none;
+    }
+}
+
+/* SE resize affordance (optional slot / child) */
+.window-resizer {
+    position: absolute;
+    inset-inline-end: 4px;
+    inset-block-end: 4px;
+    inline-size: 12px;
+    block-size: 12px;
+    cursor: nwse-resize;
+    border-radius: 2px;
+    background: linear-gradient(
+        135deg,
+        transparent 48%,
+        color-mix(in oklab, var(--ui-win-muted) 55%, transparent) 50%
+    );
+    opacity: 0.55;
+    pointer-events: auto;
+
+    &:hover {
+        opacity: 0.9;
+    }
+}

@@ -1,3 +1,9 @@
+/*
+ * Filename: speed-dial.ts
+ * FullPath: modules/projects/fl.ui/test/suites/speed-dial.ts
+ * Change date and time: 18.48.00_28.07.2026
+ * Reason for changes: Point at restored src/ui/speed-dial (moved out in c4d76d9; brought back for playground).
+ */
 import { initializeOrientedDesktop } from "../../src/ui/speed-dial/OrientDesktop";
 
 export function mount(el: HTMLElement): void {

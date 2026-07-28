@@ -83,10 +83,10 @@
                 "../../../modules/shared/fest/veela/index.ts"
             ],
             "veela-lib": [
-                "../veela.css/src/scss/lib/index.scss"
+                "../veela.css/src/scss/index.scss"
             ],
             "veela-lib/*": [
-                "../veela.css/src/scss/lib/*"
+                "../veela.css/src/scss/*"
             ]
         },
         "target": "ESNext",

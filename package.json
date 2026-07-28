@@ -1,6 +1,6 @@
 {
     "name": "@fest-lib/fl-ui",
-    "description": "FL-UI components and services (fest-lib). Dev: open index.html — suite picker + /test/playground.ts loader; ?suite=explorer|markdown|misc|speed-dial",
+    "description": "FL-UI components and services (fest-lib). Dev: open index.html — suite picker + /test/playground.ts loader; ?suite=explorer|markdown|misc|speed-dial|window",
     "version": "0.1.0",
     "license": "MIT",
     "type": "module",

@@ -3,6 +3,7 @@
 @use "./essentials" as *;
 @use "./forms" as *;
 @forward "./scrollbar";
+@forward "./layers";
 @forward "./content";
 @forward "./sidebar";
 @forward "./tabs";

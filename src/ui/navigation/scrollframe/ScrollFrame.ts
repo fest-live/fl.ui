@@ -1,6 +1,5 @@
-import { property, defineElement, H, registerOverlayElement } from "fest/lure"
+import { property, defineElement, H, registerOverlayElement, createDropShadow, ScrollBar } from "fest/lure"
 import { UIElement } from "fl-ui/base/UIElement"
-import { createUnderlyingShadow, createDropShadow } from "../../../../modules/projects/lur.e/src/extension/overlay/UnderlyingShadow"
 
 //
 const withScrollbars = new WeakMap();

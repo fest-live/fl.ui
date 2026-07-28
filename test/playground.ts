@@ -6,7 +6,7 @@ import "fest/icon";
 
 const MOUNT_ID = "fl-ui-playground";
 
-export const SUITE_IDS = ["explorer", "markdown", "misc", "speed-dial", "window"] as const;
+export const SUITE_IDS = ["explorer", "markdown", "misc", "speed-dial", "window", "layers"] as const;
 export type SuiteId = (typeof SUITE_IDS)[number];
 
 const loaders: Record<SuiteId, () => Promise<{ mount: (el: HTMLElement) => void | Promise<void> }>> = {
@@ -14,7 +14,8 @@ const loaders: Record<SuiteId, () => Promise<{ mount: (el: HTMLElement) => void 
     markdown: () => import("./suites/markdown"),
     misc: () => import("./suites/misc-canvas"),
     "speed-dial": () => import("./suites/speed-dial"),
-    window: () => import("./suites/window")
+    window: () => import("./suites/window"),
+    layers: () => import("./suites/layers")
 };
 
 export async function loadSuite(id: SuiteId): Promise<void> {

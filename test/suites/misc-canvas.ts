@@ -8,7 +8,7 @@ export function mount(el: HTMLElement): void {
     el.appendChild(cap);
 
     el.style.position = "relative";
-    el.style.minBlockSize = "280px";
+    el.style.minBlockSize = "640px";
 
     const layer = document.createElement("div");
     layer.setAttribute("data-app-layer", "canvas");

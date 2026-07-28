@@ -1,8 +1,8 @@
 /*
  * Filename: explorer-layout.test.ts
  * FullPath: modules/projects/fl.ui/test/explorer-layout.test.ts
- * Change date and time: 22.55.00_28.07.2026
- * Reason for changes: Cover immediate user-scope upload and visible listing refresh.
+ * Change date and time: 01.30.00_29.07.2026
+ * Reason for changes: Cover non-composed shadow drop path used by real Chromium DragEvents.
  */
 
 import assert from "node:assert/strict";
@@ -498,6 +498,97 @@ test("empty explorer surface accepts component drop and paste", async () => {
         assert.equal(result.dropped, true);
         assert.equal(result.pasted, true);
         assert.equal(result.explorerFocused, true);
+    } finally {
+        await browser.close();
+    }
+});
+
+test("non-composed shadow drop reaches the explorer and refreshes /user listing", async () => {
+    const browser = await puppeteer.launch({
+        executablePath: "/snap/bin/chromium",
+        headless: true,
+        args: ["--no-sandbox"]
+    });
+
+    try {
+        const page = await browser.newPage();
+        await page.setViewport({ width: 1280, height: 800 });
+        await page.goto(EXPLORER_URL, { waitUntil: "networkidle0", timeout: 30_000 });
+        await page.waitForSelector("ui-file-manager");
+
+        const result = await page.evaluate(async () => {
+            const content = document.querySelector("ui-file-manager-content") as any;
+            const operative = content?.operativeInstance;
+            const rows = content?.shadowRoot?.querySelector(".fm-grid-rows") as HTMLElement | null;
+            if (!content || !operative || !rows || !navigator.storage?.getDirectory) {
+                throw new Error("explorer surface and OPFS are required");
+            }
+
+            const root = await navigator.storage.getDirectory();
+            const dropName = `explorer-shadow-drop-${Date.now()}.txt`;
+            const transfer = new DataTransfer();
+            transfer.items.add(new File(["payload"], dropName, { type: "text/plain" }));
+
+            try {
+                operative.path = "/user/";
+                await operative.refreshList("/user/");
+
+                // Real Chromium DragEvents are not composed — this is the path that
+                // previously never reached a host-only listener.
+                const dragover = new DragEvent("dragover", {
+                    bubbles: true,
+                    cancelable: true,
+                    composed: false,
+                    dataTransfer: transfer
+                });
+                const drop = new DragEvent("drop", {
+                    bubbles: true,
+                    cancelable: true,
+                    composed: false,
+                    dataTransfer: transfer
+                });
+                rows.dispatchEvent(dragover);
+                rows.dispatchEvent(drop);
+
+                let listed = false;
+                let rendered = false;
+                for (let attempt = 0; attempt < 40; attempt += 1) {
+                    const handle = await root.getFileHandle(dropName, { create: false }).catch(() => null);
+                    const file = await handle?.getFile?.();
+                    const entries = Array.isArray(operative.entries?.value) ? operative.entries.value : [];
+                    listed = entries.some((entry: any) => entry?.name === dropName);
+                    rendered = Boolean(content.shadowRoot?.querySelector(`.row[data-entry-key="file:${dropName}"]`));
+                    if (file && listed && rendered) {
+                        return {
+                            dropped: file.size === 7,
+                            dragoverPrevented: dragover.defaultPrevented,
+                            dropPrevented: drop.defaultPrevented,
+                            listed,
+                            rendered,
+                            path: operative.path
+                        };
+                    }
+                    await new Promise((resolve) => setTimeout(resolve, 50));
+                }
+
+                return {
+                    dropped: false,
+                    dragoverPrevented: dragover.defaultPrevented,
+                    dropPrevented: drop.defaultPrevented,
+                    listed,
+                    rendered,
+                    path: operative.path
+                };
+            } finally {
+                await root.removeEntry(dropName).catch(() => null);
+            }
+        });
+
+        assert.equal(result.dragoverPrevented, true);
+        assert.equal(result.dropPrevented, true);
+        assert.equal(result.dropped, true);
+        assert.equal(result.listed, true);
+        assert.equal(result.rendered, true);
     } finally {
         await browser.close();
     }

@@ -297,7 +297,7 @@ $_h-sizes: (
         overflow: auto;
         padding: var(--space-2xl) var(--space-xl);
         background: var(--color-surface);
-        box-shadow: var(--elev-1);
+        box-shadow: none;
         transition: box-shadow var(--motion-normal);
         overflow-wrap: break-word;
         word-wrap: break-word;
@@ -308,6 +308,7 @@ $_h-sizes: (
         contain: inline-size layout paint style;
         container-type: inline-size;
         isolation: isolate;
+        box-shadow: none !important;
 
         &, & * {
             user-select: auto;

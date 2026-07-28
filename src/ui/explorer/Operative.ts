@@ -1,8 +1,8 @@
 /*
  * Filename: Operative.ts
  * FullPath: modules/projects/fl.ui/src/ui/explorer/Operative.ts
- * Change date and time: 22.52.00_28.07.2026
- * Reason for changes: Keep immediate /user/ navigation and upload state consistent.
+ * Change date and time: 01.20.00_29.07.2026
+ * Reason for changes: Serialize path loads so OPFS listings refresh after drop/paste/upload.
  */
 
 import { observe, iterated, ref, affected } from "fest/object";
@@ -183,6 +183,9 @@ export class FileOperative {
     #fsRoot: any = null;
     #dirProxy: any = null;
     #loadLock = false;
+    /** Coalesce overlapping loadPath calls onto the latest requested path. */
+    #pendingLoadPath: any = null;
+    #loadWaiters: Array<(value: this) => void> = [];
     #clipboard: { items: string[]; cut?: boolean } | null = null;
     #subscribed: any = null;
     #loaderDebounceTimer: any = null;
@@ -310,9 +313,10 @@ export class FileOperative {
         }
         const entries = (await Promise.all(
             (pairs || []).map(async ($pair: any) => {
-                return Promise.try(async () => {
+                try {
                     const [name, handle] = $pair as any;
-                    return handleCache?.getOrInsertComputed?.(handle, async () => {
+                    if (!name || !handle) return null;
+                    const build = async () => {
                         const kind: EntryKind = handle?.kind || (name?.endsWith?.("/") ? "directory" : "file");
                         const item: any = observe({ name, kind, handle });
                         if (kind === "file") {
@@ -326,8 +330,16 @@ export class FileOperative {
                             } catch {}
                         }
                         return item;
-                    });
-                })?.catch?.(console.warn.bind(console));
+                    };
+                    // Prefer WeakMap cache when the runtime polyfill is present; otherwise build directly.
+                    if (typeof handleCache?.getOrInsertComputed === "function") {
+                        return await handleCache.getOrInsertComputed(handle, build);
+                    }
+                    return await build();
+                } catch (error) {
+                    console.warn(error);
+                    return null;
+                }
             })
         ))?.filter?.(($item: any) => $item != null);
         return entries || [];
@@ -717,18 +729,34 @@ export class FileOperative {
 
     //
     async loadPath(path: any|string = this.path) {
-        const self: any = this;
-
-        //
+        // INVARIANT: callers (drop/paste/upload/refresh) must await a completed
+        // listing for the latest path. Overlapping loads coalesce onto the newest
+        // request and resolve every waiter after that listing is applied.
+        this.#pendingLoadPath = path;
         if (this.#loadLock) {
-            if (typeof globalThis.requestIdleCallback === "function") {
-                return globalThis.requestIdleCallback(() => this.loadPath(path), { timeout: 1000 });
-            }
-            return globalThis.setTimeout(() => this.loadPath(path), 0);
+            return new Promise<this>((resolve) => {
+                this.#loadWaiters.push(resolve);
+            });
         }
         this.#loadLock = true;
 
-        //
+        try {
+            while (this.#pendingLoadPath != null) {
+                const nextPath = this.#pendingLoadPath;
+                this.#pendingLoadPath = null;
+                await this.#loadPathNow(nextPath);
+            }
+        } finally {
+            this.#loadLock = false;
+            const waiters = this.#loadWaiters.splice(0, this.#loadWaiters.length);
+            for (const resolve of waiters) resolve(this);
+        }
+        return this;
+    }
+
+    async #loadPathNow(path: any|string = this.path) {
+        const self: any = this;
+
         try {
             this.#loading.value = true;
             this.#error.value = "";
@@ -760,8 +788,6 @@ export class FileOperative {
                 await this.#dirProxy;
             }
 
-            console.log("rel", rel);
-            
             //
             const loader = async () => {
                 const entries = await this.collectDirectoryEntries();
@@ -786,7 +812,6 @@ export class FileOperative {
             console.warn(e);
         } finally {
             this.#loading.value = false;
-            this.#loadLock = false;
         }
         return this;
     }

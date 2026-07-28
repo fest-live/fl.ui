@@ -1,6 +1,6 @@
 {
     "name": "@fest-lib/fl-ui",
-    "description": "FL-UI components and services (fest-lib). Dev: open index.html — suite picker + /test/playground.ts loader; ?suite=explorer|markdown|misc|speed-dial|window",
+    "description": "FL-UI components and services (fest-lib). Dev HTTPS: npm run dev → https://localhost:8434/?suite=explorer (OPFS). HTTP-only: npm run dev:http.",
     "version": "0.1.0",
     "license": "MIT",
     "type": "module",
@@ -78,6 +78,8 @@
     "scripts": {
         "test": "vite --host 0.0.0.0",
         "dev": "vite --host 0.0.0.0",
+        "dev:http": "VIEW_DEV_HTTP=1 vite --host 0.0.0.0",
+        "dev:8434": "VIEW_DEV_PORT=8434 vite --host 0.0.0.0",
         "watch": "vite build --watch",
         "build": "vite build --config vite.config.js && npm run docs && npm run docs:md",
         "build:publish": "FEST_NPM_IMPORTS=1 vite build --config vite.config.js",
@@ -90,6 +92,7 @@
     },
     "devDependencies": {
         "@types/node": ">=22.8.1",
+        "@vitejs/plugin-basic-ssl": "^2.1.0",
         "puppeteer": ">=24.42.0",
         "sass": ">=1.93.3",
         "typescript": ">=6.0.0-beta",

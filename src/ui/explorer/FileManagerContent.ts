@@ -1,8 +1,8 @@
 /*
  * Filename: FileManagerContent.ts
  * FullPath: modules/projects/fl.ui/src/ui/explorer/FileManagerContent.ts
- * Change date and time: 22.55.00_28.07.2026
- * Reason for changes: Accept file ingress on empty explorer space and preserve clipboard ownership.
+ * Change date and time: 01.15.00_29.07.2026
+ * Reason for changes: Bind drop inside shadowRoot (DragEvent is not composed) and keep list rows in sync.
  */
 
 import { property, defineElement, H, bindWith, initGlobalClipboard } from "fest/lure";
@@ -20,7 +20,7 @@ import { type FileEntryItem, FileOperative } from "./Operative";
 import { createItemCtxMenu } from "./ContextMenu";
 
 //
-import { entryKey, entryKind, iconFor, formatDate } from "./utils";
+import { entryKey, entryKind, iconFor, formatDate, formatSize } from "./utils";
 
 //
 initGlobalClipboard();
@@ -73,9 +73,13 @@ export class FileManagerContent extends UIElement {
         if (!ev) return false;
         const path = typeof ev.composedPath === "function" ? ev.composedPath() : [];
         if (path.includes(this)) return true;
+        // Non-composed drag events stop at the shadow boundary; still treat
+        // anything inside this component's shadow tree as in-scope.
+        if (this.shadowRoot && path.includes(this.shadowRoot)) return true;
 
         const target = ev.target as Node | null;
         if (target === this || (target && this.contains(target))) return true;
+        if (target && this.shadowRoot?.contains(target)) return true;
 
         // Clipboard events may target the window while the empty explorer
         // surface owns focus. Walk out of nested shadow roots before deciding.
@@ -90,12 +94,16 @@ export class FileManagerContent extends UIElement {
     }
 
     protected bindDropHandlers() {
-        const container = this;
-        if (!container || this.#dropHandlersBound) return;
+        if (this.#dropHandlersBound) return;
+        // WHY: Real browser DragEvents are not `composed`, so a host-only listener
+        // never sees drops that land on `.fm-grid-rows` inside the shadow tree.
+        // Listen on shadowRoot (and the host) so empty-space and row drops both work.
+        const shadow = this.shadowRoot;
+        if (!shadow) return;
         this.#dropHandlersBound = true;
         if (!this.hasAttribute("tabindex")) this.tabIndex = 0;
 
-        addEvent(container, "pointerdown", (ev: PointerEvent) => {
+        addEvent(this, "pointerdown", (ev: PointerEvent) => {
             const path = typeof ev.composedPath === "function" ? ev.composedPath() : [];
             const pressedButton = path.some((node) => node instanceof HTMLButtonElement);
             if (pressedButton) return;
@@ -108,14 +116,24 @@ export class FileManagerContent extends UIElement {
             if (ev.dataTransfer) ev.dataTransfer.dropEffect = "copy";
         };
 
-        addEvent(container, "dragenter", acceptDrag);
-        addEvent(container, "dragover", acceptDrag);
-        addEvent(container, "drop", (ev: DragEvent) => {
+        const onDrop = (ev: DragEvent) => {
             if (!this.eventBelongsToExplorer(ev)) return;
             ev.preventDefault();
             ev.stopPropagation();
             void this.operativeInstance?.onDrop?.(ev);
-        });
+        };
+
+        // Capture on shadowRoot so dragover/drop fire for the real (non-composed) event path.
+        const dragOpts = { capture: true, passive: false };
+        for (const target of [shadow, this] as EventTarget[]) {
+            addEvent(target, "dragenter", acceptDrag, dragOpts);
+            addEvent(target, "dragover", acceptDrag, dragOpts);
+            addEvent(target, "drop", onDrop, dragOpts);
+        }
+
+        // Paste is composed, but binding the surface keeps Ctrl+V reliable after a blank-area click.
+        addEvent(this, "paste", (ev: ClipboardEvent) => this.onPaste(ev));
+        addEvent(shadow, "paste", (ev: ClipboardEvent) => this.onPaste(ev));
     }
 
     //
@@ -198,7 +216,7 @@ export class FileManagerContent extends UIElement {
         >
             <div style="pointer-events: none; background-color: transparent;" class="c icon"><ui-icon icon=${iconFor(item)} /></div>
             <div style="pointer-events: none; background-color: transparent;" class="c name" title=${item?.name || ""}>${item?.name || ""}</div>
-            <div style="pointer-events: none; background-color: transparent;" class="c size">${isFile ? (item?.size ?? "") : ""}</div>
+            <div style="pointer-events: none; background-color: transparent;" class="c size">${isFile ? formatSize(item?.size) : ""}</div>
             <div style="pointer-events: none; background-color: transparent;" class="c date">${isFile ? formatDate(item?.lastModified ?? 0) : ""}</div>
             <div style="pointer-events: none; background-color: transparent;" class="c actions">
                 <button class="action-btn" title="Copy Path" on:click=${(ev: MouseEvent) => { ev.stopPropagation(); requestAnimationFrame(() => op.onMenuAction?.(item, "copyPath", ev)); }}>

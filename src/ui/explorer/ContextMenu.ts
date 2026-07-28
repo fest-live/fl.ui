@@ -1,6 +1,14 @@
+/*
+ * Filename: ContextMenu.ts
+ * FullPath: modules/projects/fl.ui/src/ui/explorer/ContextMenu.ts
+ * Change date and time: 22.42.00_28.07.2026
+ * Reason for changes: Keep the page click surface active while menus are open.
+ */
+
 import { MOCElement } from "fest/dom";
 import type { FileEntryItem } from "./Operative";
-import { ctxMenuTrigger, H } from "fest/lure";
+import { canReceiveIncomingPath } from "./Operative";
+import { entryKey, entryKind } from "./utils";
 
 
 type ContextMenuEntry = {
@@ -18,10 +26,13 @@ type ContextMenuOpenRequest = {
     y: number;
     items: ContextMenuEntry[];
     compact?: boolean;
+    anchor?: Element | null;
 };
 
 const SUBMENU_HOVER_OPEN_MS = 320;
 const SUBMENU_HOVER_CLOSE_MS = 220;
+const CONTEXT_MENU_LAYER_Z_FALLBACK = "2147483640";
+const IMPORTANT_CSS = "important";
 
 let styleMounted = false;
 let menuSession = 0;
@@ -40,6 +51,82 @@ const supportsAnchorPositioning = typeof CSS !== "undefined"
         || CSS.supports("anchor-name: --cw-anchor-test"));
 const ENABLE_CSS_ANCHOR_POSITIONING = false;
 
+/**
+ * WHY: Explorer menus can be mounted beside host-shell controls that apply
+ * broad `button`, `ul`, and `ui-icon` rules. Inline important styles keep the
+ * menu panel and rows deterministic even when the host cascade changes.
+ */
+const stampContextMenuPanel = (menu: HTMLElement, compact: boolean): void => {
+    const light =
+        typeof matchMedia !== "undefined" &&
+        matchMedia("(prefers-color-scheme: light)").matches;
+    menu.style.setProperty("position", "fixed", IMPORTANT_CSS);
+    menu.style.setProperty("box-sizing", "border-box", IMPORTANT_CSS);
+    menu.style.setProperty("min-width", compact ? "188px" : "220px", IMPORTANT_CSS);
+    menu.style.setProperty("max-width", "min(320px, calc(100vw - 24px))", IMPORTANT_CSS);
+    menu.style.setProperty("padding", compact ? "0.3rem" : "0.4rem", IMPORTANT_CSS);
+    menu.style.setProperty("border-radius", "14px", IMPORTANT_CSS);
+    menu.style.setProperty(
+        "border",
+        light ? "1px solid rgba(15, 23, 42, 0.14)" : "1px solid rgba(255, 255, 255, 0.1)",
+        IMPORTANT_CSS
+    );
+    menu.style.setProperty(
+        "background",
+        light ? "rgba(241, 245, 249, 0.98)" : "rgba(15, 23, 42, 0.97)",
+        IMPORTANT_CSS
+    );
+    menu.style.setProperty("color", light ? "#0f172a" : "#e8eaed", IMPORTANT_CSS);
+    menu.style.setProperty(
+        "box-shadow",
+        light
+            ? "0 14px 36px rgba(15, 23, 42, 0.12), 0 0 0 1px rgba(15, 23, 42, 0.06)"
+            : "0 14px 36px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(255, 255, 255, 0.06)",
+        IMPORTANT_CSS
+    );
+    menu.style.setProperty("backdrop-filter", "none", IMPORTANT_CSS);
+    menu.style.setProperty("-webkit-backdrop-filter", "none", IMPORTANT_CSS);
+    menu.style.setProperty("pointer-events", "auto", IMPORTANT_CSS);
+};
+
+const stampContextMenuList = (list: HTMLUListElement): void => {
+    list.style.setProperty("list-style", "none", IMPORTANT_CSS);
+    list.style.setProperty("list-style-type", "none", IMPORTANT_CSS);
+    list.style.setProperty("margin", "0", IMPORTANT_CSS);
+    list.style.setProperty("padding", "0", IMPORTANT_CSS);
+    list.style.setProperty("display", "flex", IMPORTANT_CSS);
+    list.style.setProperty("flex-direction", "column", IMPORTANT_CSS);
+    list.style.setProperty("align-items", "stretch", IMPORTANT_CSS);
+    list.style.setProperty("gap", "0.2rem", IMPORTANT_CSS);
+    list.style.setProperty("width", "100%", IMPORTANT_CSS);
+    list.style.setProperty("box-sizing", "border-box", IMPORTANT_CSS);
+};
+
+const stampContextMenuItem = (button: HTMLButtonElement, danger: boolean): void => {
+    button.style.setProperty("appearance", "none", IMPORTANT_CSS);
+    button.style.setProperty("-webkit-appearance", "none", IMPORTANT_CSS);
+    button.style.setProperty("box-sizing", "border-box", IMPORTANT_CSS);
+    button.style.setProperty("width", "100%", IMPORTANT_CSS);
+    button.style.setProperty("max-width", "100%", IMPORTANT_CSS);
+    button.style.setProperty("margin", "0", IMPORTANT_CSS);
+    button.style.setProperty("display", "grid", IMPORTANT_CSS);
+    button.style.setProperty("grid-template-columns", "1.375rem minmax(0, 1fr) auto", IMPORTANT_CSS);
+    button.style.setProperty("align-items", "center", IMPORTANT_CSS);
+    button.style.setProperty("justify-items", "start", IMPORTANT_CSS);
+    button.style.setProperty("gap", "0.55rem", IMPORTANT_CSS);
+    button.style.setProperty("border", "none", IMPORTANT_CSS);
+    button.style.setProperty("border-radius", "10px", IMPORTANT_CSS);
+    button.style.setProperty("padding", "0.5rem 0.6rem", IMPORTANT_CSS);
+    button.style.setProperty("min-height", "2.35rem", IMPORTANT_CSS);
+    button.style.setProperty("font", "inherit", IMPORTANT_CSS);
+    button.style.setProperty("font-size", "0.8125rem", IMPORTANT_CSS);
+    button.style.setProperty("line-height", "1.25", IMPORTANT_CSS);
+    button.style.setProperty("text-align", "start", IMPORTANT_CSS);
+    button.style.setProperty("cursor", "pointer", IMPORTANT_CSS);
+    button.style.setProperty("background", "transparent", IMPORTANT_CSS);
+    button.style.setProperty("color", danger ? "#fca5a5" : "inherit", IMPORTANT_CSS);
+};
+
 const ensureStyle = (): void => {
     if (styleMounted) return;
     styleMounted = true;
@@ -50,44 +137,71 @@ const ensureStyle = (): void => {
         .cw-context-menu-layer {
             position: fixed;
             inset: 0;
-            z-index: 2000;
+            z-index: var(--cw-context-menu-layer-z, 2147483640);
             pointer-events: none;
         }
 
         .cw-context-menu {
             position: fixed;
-            min-inline-size: 220px;
-            max-inline-size: min(320px, calc(100vw - 24px));
+            box-sizing: border-box;
+            min-width: 220px;
+            max-width: min(320px, calc(100vw - 24px));
             padding: 0.4rem;
             border-radius: 14px;
-            border: none;
-            background: color-mix(in oklab, #0c1018 88%, #1a2842 12%);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(15, 23, 42, 0.97);
+            color: #e8eaed;
             box-shadow:
                 0 14px 36px rgba(0, 0, 0, 0.45),
                 0 0 0 1px rgba(255, 255, 255, 0.06);
-            backdrop-filter: blur(14px);
+            backdrop-filter: none;
+            -webkit-backdrop-filter: none;
             pointer-events: auto;
             user-select: none;
         }
 
+        @media (prefers-color-scheme: light) {
+            .cw-context-menu {
+                border-color: rgba(15, 23, 42, 0.14);
+                background: rgba(241, 245, 249, 0.98);
+                color: #0f172a;
+                box-shadow:
+                    0 14px 36px rgba(15, 23, 42, 0.12),
+                    0 0 0 1px rgba(15, 23, 42, 0.06);
+            }
+        }
+
         .cw-context-menu.cw-context-menu--compact {
-            min-inline-size: 188px;
+            min-width: 188px;
             padding: 0.3rem;
         }
 
         .cw-context-menu__list {
-            list-style: none;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            flex-direction: column;
+            list-style: none !important;
+            list-style-type: none !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: stretch !important;
             gap: 0.2rem;
-            justify-items: stretch;
+            width: 100%;
+            box-sizing: border-box;
             text-align: left;
         }
 
+        .cw-context-menu__list > li {
+            list-style: none !important;
+            list-style-type: none !important;
+            display: block !important;
+            width: 100%;
+            margin: 0 !important;
+            padding: 0 !important;
+            box-sizing: border-box;
+        }
+
         .cw-context-menu__item {
-            inline-size: 100%;
+            width: 100%;
             display: grid;
             grid-template-columns: 1.375rem minmax(0, 1fr) auto;
             align-items: center;
@@ -103,6 +217,10 @@ const ensureStyle = (): void => {
             text-align: start !important;
             cursor: pointer;
             justify-items: start;
+        }
+
+        .cw-context-menu__item > * {
+            pointer-events: none;
         }
 
         .cw-context-menu__item:hover,
@@ -131,6 +249,12 @@ const ensureStyle = (): void => {
 
         .cw-context-menu__icon ui-icon {
             --icon-size: 1.125rem;
+            inline-size: 1.125rem !important;
+            block-size: 1.125rem !important;
+            min-inline-size: 1.125rem !important;
+            min-block-size: 1.125rem !important;
+            --icon-padding: 0px !important;
+            color: inherit !important;
             pointer-events: none;
         }
 
@@ -235,9 +359,11 @@ const buildMenuElement = (
     menu.className = `cw-context-menu${compact ? " cw-context-menu--compact" : ""}`;
     menu.setAttribute("role", "menu");
     menu.dataset.menuDepth = String(depth);
+    menu.style.zIndex = String(depth + 1);
 
     const list = document.createElement("ul");
     list.className = "cw-context-menu__list";
+    stampContextMenuList(list);
     menu.appendChild(list);
 
     const openSubmenu = (item: ContextMenuEntry, anchorButton: HTMLButtonElement, nextDepth: number): void => {
@@ -291,6 +417,7 @@ const buildMenuElement = (
         button.className = `cw-context-menu__item${item.danger ? " cw-context-menu__item--danger" : ""}`;
         button.setAttribute("role", "menuitem");
         button.disabled = Boolean(item.disabled);
+        stampContextMenuItem(button, Boolean(item.danger));
 
         const hasChildren = Boolean(item.children?.length);
         button.innerHTML = `
@@ -333,6 +460,7 @@ const buildMenuElement = (
         list.appendChild(li);
     }
 
+    stampContextMenuPanel(menu, compact);
     menu.addEventListener("pointerenter", () => cancelScheduledCloseFromDepth(depth));
     menu.addEventListener("pointerleave", () => {
         if (depth > 0) {
@@ -374,7 +502,6 @@ export const openUnifiedContextMenu = (request: ContextMenuOpenRequest): void =>
     const session = menuSession;
 
     const overlayHost = getOverlayHost();
-    overlayHost.style.pointerEvents = overlayHost.style.pointerEvents || "none";
 
     const layer = document.createElement("div");
     layer.className = "cw-context-menu-layer";
@@ -433,12 +560,6 @@ export const openUnifiedContextMenu = (request: ContextMenuOpenRequest): void =>
 export type { ContextMenuEntry, ContextMenuOpenRequest };
 
 //
-const disconnectRegistry = new FinalizationRegistry((ctxMenu: HTMLElement) => {
-    // utilize redundant ctx menu from DOM
-    //ctxMenu?.remove?.();
-});
-
-//
 const makeFileActionOps = () => {
     return [
         { id: "open", label: "Open", icon: "function" },
@@ -462,35 +583,61 @@ const makeFileSystemOps = () => {
     ];
 };
 
-//
-const makeContextMenu = () => {
-    const ctxMenu = H`<ul class="round-decor ctx-menu ux-anchor" style="position: fixed; z-index: 99999;" data-hidden></ul>`;
-    const overlay = document.querySelector('[data-app-layer="overlay"]') as HTMLElement | null;
-    const basicApp = document.querySelector(".basic-app") as HTMLElement | null;
-    (overlay || basicApp || document.body).append(ctxMenu);
-    return ctxMenu;
+const makeDirectoryOps = () => {
+    const allowed = new Set(["open", "download", "delete", "rename", "copyPath", "movePath"]);
+    return [...makeFileActionOps(), ...makeFileSystemOps()].filter((item) => allowed.has(item.id));
 };
 
+const makeEmptyOps = (path: string) => {
+    if (!canReceiveIncomingPath(path)) return [];
+    return [{ id: "paste", label: "Paste", icon: "clipboard" }];
+};
+
+const getExplorerOperative = (fileManager: HTMLElement): any =>
+    ((fileManager.getRootNode?.() as ShadowRoot | null)?.host as any)?.operativeInstance ?? null;
+
 //
-export const createItemCtxMenu = async (fileManager: any, onMenuAction: (item: FileEntryItem | null | undefined, actionId: string, ev: MouseEvent) => Promise<void>, entries: {value: FileEntryItem[]}) => {
-    const ctxMenuDesc = {
-        openedWith: null,
-        items: [
-            makeFileActionOps(),
-            makeFileSystemOps(),
-        ],
-        defaultAction: (initiator: HTMLElement, menuItem: any, ev: MouseEvent) => {
-            const rowFromCompose = Array.from(ev?.composedPath?.() || []).find((element: any) => element?.classList?.contains?.("row")) || MOCElement(initiator, ".row");
-            onMenuAction?.(((entries?.value ?? entries) as FileEntryItem[])?.find?.(item => (item?.name === (rowFromCompose as any)?.getAttribute?.("data-id"))), menuItem?.id, ev);
-        }
+export const createItemCtxMenu = (
+    fileManager: HTMLElement,
+    onMenuAction: (item: FileEntryItem | null | undefined, actionId: string, ev: MouseEvent) => Promise<void>,
+    entries: { value: FileEntryItem[] }
+) => {
+    const onContextMenu = (event: Event): void => {
+        const ev = event as MouseEvent;
+
+        const row = Array.from(ev.composedPath?.() || [])
+            .find((element: any) => element?.classList?.contains?.("row")) as HTMLElement | undefined
+            ?? MOCElement(ev.target as HTMLElement | null, ".row");
+        const rowKey = row?.getAttribute("data-entry-key");
+        const rowName = row?.getAttribute("data-id");
+        const item = ((entries?.value ?? entries) as FileEntryItem[]).find((entry) =>
+            rowKey ? entryKey(entry) === rowKey : entry?.name === rowName
+        ) ?? null;
+
+        const operative = getExplorerOperative(fileManager);
+        const currentPath = String(operative?.path || "/");
+        const baseItems = item
+            ? entryKind(item) === "directory" ? makeDirectoryOps() : [...makeFileActionOps(), ...makeFileSystemOps()]
+            : makeEmptyOps(currentPath);
+        if (baseItems.length === 0) return;
+
+        ev.preventDefault();
+        ev.stopPropagation();
+
+        const menuItems = baseItems.map((menuItem: any) => ({
+            ...menuItem,
+            danger: menuItem.id === "delete",
+            action: () => onMenuAction?.(item, menuItem.id, ev)
+        }));
+
+        openUnifiedContextMenu({
+            x: ev.clientX,
+            y: ev.clientY,
+            items: menuItems,
+            anchor: fileManager
+        });
     };
 
-    //
-    const initiatorElement = fileManager;
-
-    //
-    const ctxMenu = makeContextMenu();
-    ctxMenuTrigger(initiatorElement as any, ctxMenuDesc, ctxMenu);
-    disconnectRegistry.register(initiatorElement, ctxMenu);
-    return ctxMenu;
-}
+    fileManager.addEventListener("contextmenu", onContextMenu);
+    return () => fileManager.removeEventListener("contextmenu", onContextMenu);
+};

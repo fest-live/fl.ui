@@ -13,21 +13,21 @@
         & {
             perspective: 1000;
             container-type: inline-size;
-            display: grid;
-            inline-size: stretch;
-            block-size: stretch;
+            display: flex;
+            flex-direction: column;
+            flex: 1 1 auto;
+            inline-size: 100%;
+            block-size: 100%;
             min-block-size: 0;
             min-inline-size: 0;
-            content-visibility: auto;
+            /* WHY: Avoid skipped list painting under transformed frame ancestors. */
+            content-visibility: visible;
             border-radius: 0;
             overflow: hidden;
             margin: 0;
             line-height: normal;
             max-block-size: none;
             max-inline-size: none;
-            flex-grow: 1;
-            block-size: stretch;
-            inline-size: stretch;
 
             background-color: var(--color-surface);
             color: var(--color-on-surface);
@@ -38,9 +38,11 @@
             display: grid;
             grid-template-columns: [content-col] minmax(0px, 1fr);
             grid-template-rows: auto minmax(0px, 1fr);
-            inline-size: stretch;
-            block-size: stretch;
+            inline-size: 100%;
+            block-size: 100%;
+            min-inline-size: 0;
             min-block-size: 0;
+            flex: 1 1 auto;
             overflow: hidden;
         }
 
@@ -206,9 +208,13 @@
         .fm-content {
             grid-row: 2;
             grid-column: content-col;
-            inline-size: stretch;
-            block-size: stretch;
+            display: flex;
+            flex-direction: column;
+            inline-size: 100%;
+            block-size: 100%;
+            min-inline-size: 0;
             min-block-size: 0;
+            flex: 1 1 auto;
             overflow: hidden;
             border-radius: 0;
             padding: 0 0.35rem 0.45rem;

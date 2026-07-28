@@ -104,7 +104,9 @@
             .fl-ui-suite-status[data-state="ready"] { color: var(--fl-dev-accent); }
             #fl-ui-playground {
                 position: relative;
-                min-height: 12rem;
+                min-block-size: 32rem;
+                display: flex;
+                flex-direction: column;
                 border: 1px solid var(--fl-dev-border);
                 border-radius: 10px;
                 background: var(--fl-dev-surface);

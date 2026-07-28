@@ -95,6 +95,19 @@ export const iconFor = (item: FileEntry | string, type?: string): string => {
     return iconByMime(item?.type) || getFileIcon(item?.name || "");
 };
 
+/**
+ * Normalize the identity kind used by row rendering and context-menu lookup.
+ * A legacy entry may expose a File object without a `kind` field.
+ */
+export const entryKind = (item: Pick<FileEntry, "kind" | "file"> | null | undefined): "file" | "directory" =>
+    item?.kind === "file" || item?.file ? "file" : "directory";
+
+/**
+ * Keep file and directory rows distinct even when their names match.
+ */
+export const entryKey = (item: Pick<FileEntry, "name" | "kind" | "file">): string =>
+    `${entryKind(item)}:${item?.name ?? ""}`;
+
 // ============================================================================
 // SIZE FORMATTING
 // ============================================================================

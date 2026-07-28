@@ -1,3 +1,10 @@
+/*
+ * Filename: Operative.ts
+ * FullPath: modules/projects/fl.ui/src/ui/explorer/Operative.ts
+ * Change date and time: 22.52.00_28.07.2026
+ * Reason for changes: Keep immediate /user/ navigation and upload state consistent.
+ */
+
 import { observe, iterated, ref, affected } from "fest/object";
 import { isUserScopePath } from "fest/core";
 
@@ -56,6 +63,19 @@ const waitForClipboardFrame = (): Promise<void> =>
         resolve();
     });
 
+/**
+ * Accept File objects from the page, an iframe, or a WebView realm.
+ * `instanceof File` is not reliable across those realms.
+ */
+const isFileLike = (value: any): value is File =>
+    Boolean(
+        value &&
+        typeof value === "object" &&
+        typeof value.name === "string" &&
+        typeof value.size === "number" &&
+        (typeof value.arrayBuffer === "function" || typeof value.stream === "function")
+    );
+
 const ASSETS_ROOT = "/assets/";
 const ASSET_SEED_PATHS = [
     "/assets/crossword.css",
@@ -96,6 +116,16 @@ const isVirtualRootPath = (path?: string): boolean => normalizeDirectoryPath(pat
 const isReadonlyPath = (path?: string): boolean => isAssetsPath(path) || isVirtualRootPath(path);
 const isIconsPath = (path?: string): boolean => normalizeDirectoryPath(path).startsWith("/assets/icons/");
 const isUserPath = (path?: string): boolean => isUserScopePath(normalizeDirectoryPath(path));
+
+/**
+ * External ingress may target the virtual root, which is redirected to `/user/`.
+ * Keep this predicate shared with the context-menu layer so Paste visibility
+ * cannot drift from the actual drop/paste acceptance rules.
+ */
+export const canReceiveIncomingPath = (path?: string): boolean => {
+    const normalized = normalizeDirectoryPath(path);
+    return isVirtualRootPath(normalized) || isUserPath(normalized);
+};
 
 const buildVirtualAssetPaths = (path: string): string[] => {
     const target = normalizeDirectoryPath(path);
@@ -350,6 +380,147 @@ export class FileOperative {
     }
 
     /**
+     * Select files without assuming the File System Access constructors exist.
+     * Some shells expose a `showOpenFilePicker` polyfill that throws while
+     * evaluating `FileSystemHandle`; a normal file input is the safe fallback.
+     */
+    private async pickFilesForUpload(): Promise<File[]> {
+        const picker = (globalThis as any)?.showOpenFilePicker;
+        const hasNativePicker =
+            typeof picker === "function"
+            && typeof (globalThis as any)?.FileSystemHandle === "function";
+
+        if (hasNativePicker) {
+            const handles = await picker({ multiple: true }).catch(() => []);
+            const files: File[] = [];
+            for (const handle of handles || []) {
+                const file = await handle?.getFile?.().catch?.(() => null);
+                if (isFileLike(file)) files.push(file);
+            }
+            return files;
+        }
+
+        if (typeof document === "undefined") return [];
+        return new Promise<File[]>((resolve) => {
+            const input = document.createElement("input");
+            input.type = "file";
+            input.multiple = true;
+            input.style.cssText = "position:fixed;inline-size:1px;block-size:1px;opacity:0;pointer-events:none;";
+
+            let settled = false;
+            const finish = (files: File[] = []) => {
+                if (settled) return;
+                settled = true;
+                input.remove();
+                resolve(files);
+            };
+
+            input.addEventListener("change", () => {
+                finish(Array.from(input.files || []).filter(isFileLike));
+            }, { once: true });
+            input.addEventListener("cancel", () => finish(), { once: true });
+            (document.body || document.documentElement).appendChild(input);
+            input.click();
+        });
+    }
+
+    /**
+     * Resolve the only writable destinations for external file ingress.
+     * The virtual root is a navigation scope, so root drops/pastes are stored
+     * in `/user/` and then surfaced by navigating there.
+     */
+    private incomingDestinationPath(): string | null {
+        const currentPath = normalizeDirectoryPath(this.path);
+        if (canReceiveIncomingPath(currentPath) && isUserPath(currentPath)) return currentPath;
+        if (isVirtualRootPath(currentPath)) return "/user/";
+        return null;
+    }
+
+    /**
+     * Capture directory-handle promises during the original drop event.
+     *
+     * WHY: Chromium exposes `getAsFileSystemHandle()` only during the same
+     * event turn. Calling it after `extractFilesFromData()` has awaited, or
+     * calling it from an insecure HTTP page, can terminate the renderer with
+     * RESULT_CODE_KILLED_BAD_MESSAGE instead of throwing a normal exception.
+     */
+    private captureDirectoryHandlePromises(data: any): Promise<any>[] {
+        if ((globalThis as any).isSecureContext !== true) return [];
+
+        const promises: Promise<any>[] = [];
+        for (const item of Array.from(data?.items ?? []) as any[]) {
+            if (item?.kind !== "file" || typeof item?.getAsFileSystemHandle !== "function") continue;
+
+            // Avoid the experimental API for ordinary files. The File object
+            // path is handled by `extractFilesFromData()` and is more stable.
+            let legacyEntry: any = null;
+            try {
+                legacyEntry = item.webkitGetAsEntry?.() ?? null;
+            } catch { }
+            if (legacyEntry && !legacyEntry.isDirectory) continue;
+
+            if (!legacyEntry) {
+                try {
+                    if (isFileLike(item.getAsFile?.())) continue;
+                } catch { }
+            }
+
+            // INVARIANT: invoke this before any async boundary in onDrop.
+            try {
+                promises.push(Promise.resolve(item.getAsFileSystemHandle()));
+            } catch { }
+        }
+        return promises;
+    }
+
+    private async ingestIncomingData(
+        data: any,
+        destination: string,
+        directoryHandlePromises: Promise<any>[] = []
+    ): Promise<void> {
+        const files = await this.extractFilesFromData(data);
+        const directoryResults = await Promise.allSettled(directoryHandlePromises);
+        const directories = directoryResults.flatMap((result) =>
+            result.status === "fulfilled" && result.value?.kind === "directory"
+                ? [result.value]
+                : []
+        );
+        if (files.length > 0) {
+            for (const file of files) {
+                await this.writeUserFile(file, destination);
+            }
+        }
+
+        for (const directory of directories) {
+            const name = String(directory?.name || `folder-${Date.now()}`).trim().replace(/\s+/g, "-");
+            const target = await getDirectoryHandle(this.#fsRoot, `${destination}${name}`, { create: true });
+            if (target) await copyFromOneHandlerToAnother(directory, target, { create: true });
+        }
+
+        if (files.length > 0 || directories.length > 0) return;
+
+        // Do not pass live DataTransfer items to the legacy helper: it calls
+        // getAsFileSystemHandle() after an await and can recreate the Chromium
+        // crash. URI text is safe to pass through a data-only facade.
+        const transferItems = Array.from(data?.items ?? []);
+        const getData = (type: string) => data?.getData?.(type) || "";
+        const uriList = getData("text/uri-list");
+        const plainText = getData("text/plain");
+        if (transferItems.length > 0) {
+            if (!uriList && !plainText) return;
+            await handleIncomingEntries({ getData }, destination, this.#fsRoot);
+            return;
+        }
+
+        await handleIncomingEntries(data, destination, this.#fsRoot);
+    }
+
+    private async finishIncoming(destination: string): Promise<void> {
+        if (isVirtualRootPath(this.path)) this.path = destination;
+        await this.refreshList(this.path);
+    }
+
+    /**
      * Imperative save API for shells/channels — writes into the OPFS-backed workspace folder.
      * Defaults to {@link FileOperative.path}; optional `destPath` overrides the parent directory.
      */
@@ -411,14 +582,14 @@ export class FileOperative {
             return "bin";
         };
 
-        const nativeFiles = Array.from(data?.files ?? []).filter((f: any) => f instanceof File);
+        const nativeFiles = Array.from(data?.files ?? []).filter(isFileLike);
         files.push(...nativeFiles);
 
         const items = Array.from(data?.items ?? []);
         for (const item of items as any[]) {
             if (item?.kind === "file" && typeof item?.getAsFile === "function") {
                 const f = item.getAsFile();
-                if (f instanceof File) files.push(f);
+                if (isFileLike(f)) files.push(f);
                 continue;
             }
             const types = Array.from(item?.types ?? []);
@@ -680,6 +851,9 @@ export class FileOperative {
                 case "open":
                     await this.itemAction(item as FileEntryItem);
                     break;
+                case "paste":
+                    await this.requestPaste();
+                    break;
                 case "view":
                     // Dispatch custom event for unified messaging
                     this.dispatchEvent(new CustomEvent('context-action', {
@@ -743,27 +917,36 @@ export class FileOperative {
 
     //
     async requestUpload() {
-        if (this.readonly || isReadonlyPath(this.path)) return;
-        try {
-            const picker = (window as any)?.showOpenFilePicker;
-            if (picker && isUserPath(this.path)) {
-                const handles = await picker({ multiple: true }).catch(() => []);
-                for (const handle of handles || []) {
-                    const file = await handle?.getFile?.();
-                    if (file instanceof File) {
-                        await this.writeUserFile(file, this.path);
-                    }
+        // Read-only state is reactive and can still describe the previous `/`
+        // frame when the toolbar is used immediately after navigation. Resolve
+        // the current writable destination from the path itself so an upload
+        // cannot be dropped by a stale flag.
+        const destination = this.incomingDestinationPath();
+        if (destination) {
+            try {
+                const files = await this.pickFilesForUpload();
+                for (const file of files) {
+                    await this.writeUserFile(file, destination);
                 }
-            } else {
-                await uploadFile(this.path, null);
+                await this.finishIncoming(destination);
+            } catch (e) {
+                console.warn(e);
             }
-            await this.refreshList(this.path);
+            return;
+        }
+
+        const currentPath = normalizeDirectoryPath(this.path);
+        if (this.readonly || isReadonlyPath(currentPath)) return;
+        try {
+            await uploadFile(currentPath, null);
+            await this.refreshList(currentPath);
         } catch (e) { console.warn(e); }
     }
 
     //
     async requestPaste() {
-        if (this.readonly || isReadonlyPath(this.path)) return;
+        const destination = this.incomingDestinationPath();
+        if (!destination) return;
         try {
             // 1. Try modern Async Clipboard API first (images, files)
             try {
@@ -772,11 +955,11 @@ export class FileOperative {
                 const clipboardItems = await navigator.clipboard.read();
                 if (clipboardItems && clipboardItems.length > 0) {
                     const files = await this.extractFilesFromData(clipboardItems);
-                    if (files.length > 0 && isUserPath(this.path)) {
+                    if (files.length > 0) {
                         for (const file of files) {
-                            await this.writeUserFile(file, this.path);
+                            await this.writeUserFile(file, destination);
                         }
-                        await this.refreshList(this.path);
+                        await this.finishIncoming(destination);
                         return;
                     }
                 }
@@ -800,18 +983,18 @@ export class FileOperative {
                 // Preserve text paste behavior for non-file clipboard content.
                 await handleIncomingEntries({
                     getData: (type: string) => type === "text/plain" ? systemText : ""
-                }, this.path || "/");
-                await this.refreshList(this.path);
+                }, destination, this.#fsRoot);
+                await this.finishIncoming(destination);
                 return;
             }
 
             if (internalItems.length > 0) {
                 const txt = internalItems.join("\n");
-                if (isUserPath(this.path) && internalItems.every((x) => String(x || "").startsWith("/user/"))) {
+                if (internalItems.every((x) => String(x || "").startsWith("/user/"))) {
                     for (const src of internalItems) {
                         const file = await readFile(this.#fsRoot, src).catch(() => null);
-                        if (file instanceof File) {
-                            await this.writeUserFile(file, this.path);
+                        if (isFileLike(file)) {
+                            await this.writeUserFile(file, destination);
                             if (this.#clipboard?.cut) await this.removeUserEntry(src, true).catch(() => null);
                         }
                     }
@@ -819,31 +1002,25 @@ export class FileOperative {
                 } else {
                     await handleIncomingEntries({
                         getData: (type: string) => type === "text/plain" ? txt : ""
-                    }, this.path || "/");
+                    }, destination, this.#fsRoot);
                 }
-                await this.refreshList(this.path);
+                await this.finishIncoming(destination);
             }
         } catch (e) { console.warn(e); }
     }
 
     //
     public onPaste(ev: ClipboardEvent) {
-        if (this.readonly || isReadonlyPath(this.path)) return;
+        const destination = this.incomingDestinationPath();
+        if (!destination) return;
         ev.preventDefault();
 
         // Try to read from event first
         if (ev.clipboardData || (ev as any).dataTransfer) {
             void Promise.try(async () => {
                 const payload = ev.clipboardData || (ev as any).dataTransfer;
-                const files = await this.extractFilesFromData(payload);
-                if (files.length > 0 && isUserPath(this.path)) {
-                    for (const file of files) {
-                        await this.writeUserFile(file, this.path);
-                    }
-                } else {
-                    await handleIncomingEntries(payload, this.path || "/");
-                }
-                await this.refreshList(this.path);
+                await this.ingestIncomingData(payload, destination);
+                await this.finishIncoming(destination);
             }).catch(console.warn);
             return;
         }
@@ -859,21 +1036,18 @@ export class FileOperative {
 
     //
     public async onDrop(ev: DragEvent) {
-        if (this.readonly || isReadonlyPath(this.path)) return;
+        const destination = this.incomingDestinationPath();
+        if (!destination) return;
         ev.preventDefault();
 
         //
         if ((ev as any).clipboardData || (ev as any).dataTransfer) {
             const payload = (ev as any).clipboardData || (ev as any).dataTransfer;
-            const files = await this.extractFilesFromData(payload);
-            if (files.length > 0 && isUserPath(this.path)) {
-                for (const file of files) {
-                    await this.writeUserFile(file, this.path);
-                }
-            } else {
-                await handleIncomingEntries(payload, this.path || "/");
-            }
-            await this.refreshList(this.path);
+            // Must happen synchronously in this event handler, before the
+            // first await inside `ingestIncomingData()`.
+            const directoryHandlePromises = this.captureDirectoryHandlePromises(payload);
+            await this.ingestIncomingData(payload, destination, directoryHandlePromises);
+            await this.finishIncoming(destination);
             return;
         }
     }

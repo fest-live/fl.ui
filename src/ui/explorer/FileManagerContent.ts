@@ -1,5 +1,12 @@
+/*
+ * Filename: FileManagerContent.ts
+ * FullPath: modules/projects/fl.ui/src/ui/explorer/FileManagerContent.ts
+ * Change date and time: 22.55.00_28.07.2026
+ * Reason for changes: Accept file ingress on empty explorer space and preserve clipboard ownership.
+ */
+
 import { property, defineElement, H, bindWith, initGlobalClipboard } from "fest/lure";
-import { addEvent, handleStyleChange, isInFocus, preloadStyle } from "fest/dom";
+import { addEvent, handleStyleChange, preloadStyle } from "fest/dom";
 import { ref } from "fest/object";
 
 //
@@ -13,7 +20,7 @@ import { type FileEntryItem, FileOperative } from "./Operative";
 import { createItemCtxMenu } from "./ContextMenu";
 
 //
-import { iconFor, formatDate } from "./utils";
+import { entryKey, entryKind, iconFor, formatDate } from "./utils";
 
 //
 initGlobalClipboard();
@@ -31,6 +38,7 @@ export class FileManagerContent extends UIElement {
     public operativeInstance: FileOperative | null = null;
     public operativeInstanceRef = ref<FileOperative | null>(null);
     #rowsContainer: HTMLElement | null = null;
+    #dropHandlersBound = false;
 
     //
     get entries() { return this.operativeInstance?.entries ?? []; }
@@ -39,12 +47,19 @@ export class FileManagerContent extends UIElement {
     get pathRef() { return this.operativeInstance?.pathRef; }
 
     //
-    refreshList() {
-        if (this.gridRowsEl) this.gridRowsEl.innerHTML = ``;
-        if (this.gridEl) this.gridEl.innerHTML = ``;
-        if (this.operativeInstance) {
-            void this.operativeInstance.refreshList(this.path || "/").then(() => this.syncRows()).catch(console.warn);
+    refreshList(): Promise<void> {
+        // INVARIANT: the header belongs to `.fm-grid` and must survive a list refresh.
+        this.findRowsContainer()?.replaceChildren();
+        const operative = this.operativeInstance;
+        if (!operative) {
+            this.syncRows();
+            return Promise.resolve();
         }
+        return Promise.resolve(operative.refreshList(this.path || "/"))
+            .then(() => this.syncRows())
+            .catch((error) => {
+                console.warn(error);
+            });
     }
 
     //
@@ -54,38 +69,63 @@ export class FileManagerContent extends UIElement {
     }
 
     //
+    private eventBelongsToExplorer(ev: Event | null): boolean {
+        if (!ev) return false;
+        const path = typeof ev.composedPath === "function" ? ev.composedPath() : [];
+        if (path.includes(this)) return true;
+
+        const target = ev.target as Node | null;
+        if (target === this || (target && this.contains(target))) return true;
+
+        // Clipboard events may target the window while the empty explorer
+        // surface owns focus. Walk out of nested shadow roots before deciding.
+        let active: any = document.activeElement;
+        while (active) {
+            if (active === this || this.contains(active)) return true;
+            const host = active.getRootNode?.({ composed: true })?.host;
+            if (!host || host === active) break;
+            active = host;
+        }
+        return false;
+    }
+
     protected bindDropHandlers() {
         const container = this;
-        if (!container) return;
-        addEvent(container, "dragover", (ev: DragEvent) => {
-            if (isInFocus(ev?.target as HTMLElement, "ui-file-manager-content, ui-file-manager")) {
-                ev?.preventDefault?.();
-                if (ev.dataTransfer) {
-                    ev.dataTransfer.dropEffect = "copy";
-                }
-            }
+        if (!container || this.#dropHandlersBound) return;
+        this.#dropHandlersBound = true;
+        if (!this.hasAttribute("tabindex")) this.tabIndex = 0;
+
+        addEvent(container, "pointerdown", (ev: PointerEvent) => {
+            const path = typeof ev.composedPath === "function" ? ev.composedPath() : [];
+            const pressedButton = path.some((node) => node instanceof HTMLButtonElement);
+            if (pressedButton) return;
+            this.focus({ preventScroll: true });
         });
+
+        const acceptDrag = (ev: DragEvent) => {
+            if (!this.eventBelongsToExplorer(ev)) return;
+            ev.preventDefault();
+            if (ev.dataTransfer) ev.dataTransfer.dropEffect = "copy";
+        };
+
+        addEvent(container, "dragenter", acceptDrag);
+        addEvent(container, "dragover", acceptDrag);
         addEvent(container, "drop", (ev: DragEvent) => {
-            if (isInFocus(ev?.target as HTMLElement, "ui-file-manager-content, ui-file-manager")) {
-                ev?.preventDefault?.();
-                ev?.stopPropagation?.();
-                this.operativeInstance?.onDrop?.(ev)
-            }
+            if (!this.eventBelongsToExplorer(ev)) return;
+            ev.preventDefault();
+            ev.stopPropagation();
+            void this.operativeInstance?.onDrop?.(ev);
         });
     }
 
     //
     public onPaste(ev: ClipboardEvent) {
-        if (isInFocus(ev?.target as HTMLElement, "ui-file-manager-content, ui-file-manager")) {
-            if (this.operativeInstance) this.operativeInstance.onPaste(ev);
-        }
+        if (this.eventBelongsToExplorer(ev) && this.operativeInstance) this.operativeInstance.onPaste(ev);
     }
 
     //
     public onCopy(ev: ClipboardEvent) {
-        if (isInFocus(ev?.target as HTMLElement, "ui-file-manager-content, ui-file-manager")) {
-            if (this.operativeInstance) this.operativeInstance.onCopy(ev);
-        }
+        if (this.eventBelongsToExplorer(ev) && this.operativeInstance) this.operativeInstance.onCopy(ev);
     }
 
     //
@@ -104,40 +144,57 @@ export class FileManagerContent extends UIElement {
         this.refreshList();
     }
 
+    private findRowsContainer(): HTMLElement | null {
+        if (this.#rowsContainer?.isConnected) return this.#rowsContainer;
+        const grids = Array.from(this.shadowRoot?.querySelectorAll?.(".fm-grid") || []) as HTMLElement[];
+        const latest = grids.at(-1)?.querySelector<HTMLElement>(".fm-grid-rows") ?? null;
+        this.#rowsContainer = latest;
+        return latest;
+    }
+
     private syncRows() {
-        let rows = this.#rowsContainer;
-        if (!rows || !rows.isConnected) {
-            rows = (this.shadowRoot?.querySelector?.(".fm-grid:last-of-type .fm-grid-rows") as HTMLElement | null) ?? null;
-            this.#rowsContainer = rows;
-        }
+        const rows = this.findRowsContainer();
         const operative = this.operativeInstance;
         if (!rows || !operative) return;
         const rawEntries: any = operative.entries as any;
         const currentEntries =
             Array.isArray(rawEntries) ? rawEntries :
             (Array.isArray(rawEntries?.value) ? rawEntries.value : []);
-        const safeEntries = Array.isArray(currentEntries) ? currentEntries : [];
-        const seen = new Set<string>();
-        rows.innerHTML = "";
-        const fragment = document.createDocumentFragment();
-        for (const item of safeEntries) {
+        const uniqueEntries = new Map<string, FileEntryItem>();
+        for (const item of Array.isArray(currentEntries) ? currentEntries : []) {
             if (!item || typeof item !== "object" || item.name == null) continue;
-            const dedupeKey = `${item.kind}:${item.name}`;
-            if (seen.has(dedupeKey)) continue;
-            seen.add(dedupeKey);
-            fragment.append(this.makeListElement(item as FileEntryItem, operative));
+            const key = entryKey(item as FileEntryItem);
+            if (!uniqueEntries.has(key)) uniqueEntries.set(key, item as FileEntryItem);
         }
+
+        // WHY: Filesystem enumeration order is not stable across OPFS/FSA backends.
+        // Sorting once here keeps visual order and row identity deterministic.
+        const safeEntries = Array.from(uniqueEntries.values()).sort((left, right) => {
+            const kindOrder = Number(entryKind(left) === "file") - Number(entryKind(right) === "file");
+            return kindOrder
+                || left.name.localeCompare(right.name, undefined, { numeric: true, sensitivity: "base" })
+                || left.name.localeCompare(right.name);
+        });
+
+        rows.replaceChildren();
+        const fragment = document.createDocumentFragment();
+        safeEntries.forEach((item, index) => {
+            fragment.append(this.makeListElement(item, operative, index + 1));
+        });
         rows.append(fragment);
     }
 
-    private makeListElement(item: FileEntryItem, operative: FileOperative) {
+    private makeListElement(item: FileEntryItem, operative: FileOperative, order: number) {
         const op: any = operative as any;
-        const isFile = item?.kind === "file" || item?.file;
+        const kind = entryKind(item);
+        const isFile = kind === "file";
         const itemEl = H`<div draggable="${isFile}" class="row c2-surface"
             on:click=${(ev: MouseEvent) => requestAnimationFrame(() => op.onRowClick?.(item, ev))}
             on:dblclick=${(ev: MouseEvent) => requestAnimationFrame(() => op.onRowDblClick?.(item, ev))}
             on:dragstart=${(ev: DragEvent) => op.onRowDragStart?.(item, ev)}
             data-id=${item?.name || ""}
+            data-kind=${kind}
+            data-entry-key=${entryKey(item)}
         >
             <div style="pointer-events: none; background-color: transparent;" class="c icon"><ui-icon icon=${iconFor(item)} /></div>
             <div style="pointer-events: none; background-color: transparent;" class="c name" title=${item?.name || ""}>${item?.name || ""}</div>
@@ -155,7 +212,7 @@ export class FileManagerContent extends UIElement {
                 </button>
             </div>
         </div>`;
-        bindWith(itemEl, "--order", this.byFirstTwoLetterOrName(item?.name ?? ""), handleStyleChange);
+        bindWith(itemEl, "--order", order, handleStyleChange);
         return itemEl;
     }
 

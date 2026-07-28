@@ -16,10 +16,14 @@
 
         & {
             perspective: 1000;
-            display: block;
-            inline-size: stretch;
-            block-size: stretch;
-            overflow: auto;
+            display: flex;
+            flex-direction: column;
+            flex: 1 1 auto;
+            inline-size: 100%;
+            block-size: 100%;
+            min-inline-size: 0;
+            min-block-size: 0;
+            overflow: hidden;
             scrollbar-width: none;
             scrollbar-color: transparent transparent;
             scrollbar-gutter: auto;
@@ -37,6 +41,9 @@
 
             background-color: var(--color-surface);
             color: var(--color-on-surface);
+
+            outline: none 0px transparent;
+            border: none 0px transparent;
         }
 
         /* Grid with subgrid columns */
@@ -47,8 +54,10 @@
             row-gap: 0;
             align-content: start;
             inline-size: stretch;
+            min-inline-size: 0;
             min-block-size: 0;
             block-size: 100%;
+            flex: 1 1 auto;
             overflow: hidden;
             scrollbar-width: none;
             scrollbar-color: transparent transparent;
@@ -56,6 +65,8 @@
 
             touch-action: manipulation;
             pointer-events: none;
+            outline: none 0px transparent;
+            border: none 0px transparent;
 
             @container (inline-size <= 600px) {
                 grid-template-columns: #{$row-grid-mobile};
@@ -77,13 +88,14 @@
             scrollbar-width: thin;
             scrollbar-color: color-mix(in oklab, var(--color-on-surface) 22%, transparent) transparent;
 
-            inline-size: stretch;
-            block-size: stretch;
+            inline-size: 100%;
+            block-size: 100%;
+            min-inline-size: 0;
             z-index: 1;
 
-            content-visibility: auto;
+            content-visibility: visible;
             contain-intrinsic-size: 1px 2.625rem;
-            contain: strict;
+            contain: none;
 
             //
             touch-action: manipulation;

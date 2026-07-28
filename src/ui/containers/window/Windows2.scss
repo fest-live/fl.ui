@@ -1,8 +1,8 @@
 /*
  * Filename: Windows2.scss
  * FullPath: modules/projects/fl.ui/src/ui/containers/window/Windows2.scss
- * Change date and time: 18.05.00_28.07.2026
- * Reason for changes: High-quality ui-window chrome with light/dark tokens and control buttons.
+ * Change date and time: 06.00.00_29.07.2026
+ * Reason for changes: Managed absolute windows + resize grip + hide/minimize mobile maximize.
  */
 
 /* WHY: Inline adopted sheet for <ui-window>; light-dark() + explicit theme attrs keep parity
@@ -43,6 +43,7 @@
 
     color-scheme: light dark;
     box-sizing: border-box;
+    /* WHY: Prefer :host display over setting style attr in CE lifecycle (createElement rules). */
     display: block;
     position: relative;
     inline-size: var(--ui-win-width, min(32rem, 92vw));
@@ -78,21 +79,74 @@
     color-scheme: dark;
 }
 
-:host(ui-window[maximized]) {
-    --ui-win-radius: 0;
-    inset: 0;
+:host(ui-window[managed]) {
+    position: absolute;
+    /* WHY: environment-shell owns geometry via inline left/top/width/height. */
+    transform: none !important;
+}
+
+/* WHY: Focused window gets a slightly stronger edge so z-order changes are visible. */
+:host(ui-window[managed][data-focused]) {
+    box-shadow:
+        var(--ui-win-shadow),
+        0 0 0 1px color-mix(in oklab, var(--ui-win-fg) 22%, transparent);
+}
+
+/* WHY: CWSP views own their chrome padding; default ui-window pad crushed toolbars into overlaps. */
+:host(ui-window[managed]) .content-handler {
+    padding: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+:host(ui-window[managed]) .content-handler ::slotted(*) {
+    flex: 1 1 auto;
+    min-block-size: 0;
+    min-inline-size: 0;
+    max-inline-size: none;
     inline-size: 100%;
     block-size: 100%;
+}
+
+:host(ui-window[maximized]),
+:host(ui-window[data-mobile-max]) {
+    --ui-win-radius: 0;
+    inset: 0 !important;
+    inline-size: 100% !important;
+    block-size: 100% !important;
     border-radius: 0;
+    transform: none !important;
+}
+
+:host(ui-window[data-desk-max]) {
+    --ui-win-radius: 0;
+    inset: 8px !important;
+    inline-size: auto !important;
+    block-size: auto !important;
+    border-radius: 0;
+    transform: none !important;
 }
 
 :host(ui-window[minimized]) {
-    block-size: var(--ui-win-titlebar-height);
+    block-size: var(--ui-win-titlebar-height) !important;
     min-block-size: var(--ui-win-titlebar-height);
 }
 
 :host(ui-window[minimized]) .content-handler,
-:host(ui-window[minimized]) .footer-handler {
+:host(ui-window[minimized]) .footer-handler,
+:host(ui-window[minimized]) .window-resizer {
+    display: none;
+}
+
+:host(ui-window[hidden-window]) {
+    visibility: hidden !important;
+    pointer-events: none !important;
+}
+
+:host(ui-window[maximized]) .window-resizer,
+:host(ui-window[data-mobile-max]) .window-resizer,
+:host(ui-window[data-desk-max]) .window-resizer {
     display: none;
 }
 
@@ -162,6 +216,9 @@
     align-items: center;
     gap: 0.25rem;
     flex-shrink: 0;
+    position: relative;
+    z-index: 5;
+    pointer-events: auto;
 }
 
 .title-handler-buttons button,
@@ -222,11 +279,15 @@
     display: none !important;
 }
 
-:host([maximized]) .title-maximize .icon-maximize {
+:host([maximized]) .title-maximize .icon-maximize,
+:host([data-desk-max]) .title-maximize .icon-maximize,
+:host([data-mobile-max]) .title-maximize .icon-maximize {
     display: none !important;
 }
 
-:host([maximized]) .title-maximize .icon-restore {
+:host([maximized]) .title-maximize .icon-restore,
+:host([data-desk-max]) .title-maximize .icon-restore,
+:host([data-mobile-max]) .title-maximize .icon-restore {
     display: inline-flex !important;
     align-items: center;
     justify-content: center;

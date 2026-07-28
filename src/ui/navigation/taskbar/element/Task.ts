@@ -12,7 +12,7 @@ const styled = preloadStyle(styles);
 @defineElement("ui-task")
 export class UITask extends UIElement {
     @property({ source: "attr" }) public title?: string = "Task";
-    @property({ source: "attr" }) public icon?: string = "github";
+    @property({ source: "attr" }) public icon?: string = "app-window";
 
     //
     constructor() { super(); }

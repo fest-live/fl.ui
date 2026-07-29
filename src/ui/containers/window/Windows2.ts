@@ -1,8 +1,8 @@
 /*
  * Filename: Windows2.ts
  * FullPath: modules/projects/fl.ui/src/ui/containers/window/Windows2.ts
- * Change date and time: 10.40.00_29.07.2026
- * Reason for changes: Hide exit-native except standalone; single maximize glyph (no dual corners).
+ * Change date and time: 13.20.00_29.07.2026
+ * Reason for changes: Radical chrome fix — direct button onclick + MO rebind; content paint containment.
  */
 import { defineElement, property, H, numberRef, bindStyle, S } from "fest/lure";
 import { preloadStyle, addEvent } from "fest/dom";
@@ -66,10 +66,12 @@ export class Windows2 extends UIElement {
     #resizeUnbind: (() => void) | null = null;
     #focusUnbind: (() => void) | null = null;
     #controlsUnbind: (() => void) | null = null;
+    #controlsMo: MutationObserver | null = null;
     #nativeUnbind: (() => void) | null = null;
     #attrObserver: MutationObserver | null = null;
     #controlsReady = false;
     #wireAttempts = 0;
+    #lastChromeActionAt = 0;
     #lastNativeProbe: NativeWindowChromeProbe | null = null;
 
     // WHY: UIElement defines `render`/`styles` as instance fields; subclass methods would be shadowed.
@@ -84,10 +86,10 @@ export class Windows2 extends UIElement {
                     <slot name="actions"></slot>
                 </div>
                 <div class="title-handler-buttons" part="controls" data-no-drag>
-                    <button class="title-minimize" type="button" aria-label="Minimize" title="Minimize" data-no-drag>
+                    <button class="title-minimize" type="button" aria-label="Minimize" title="Minimize" data-no-drag data-ui-win-action="minimize">
                         <ui-icon icon=${ICON_MINIMIZE}></ui-icon>
                     </button>
-                    <button class="title-maximize" type="button" aria-label="Maximize" title="Maximize" data-no-drag>
+                    <button class="title-maximize" type="button" aria-label="Maximize" title="Maximize" data-no-drag data-ui-win-action="maximize">
                         <ui-icon icon=${ICON_MAXIMIZE}></ui-icon>
                     </button>
                     <button
@@ -96,11 +98,12 @@ export class Windows2 extends UIElement {
                         aria-label="Exit native"
                         title="Exit native"
                         data-no-drag
+                        data-ui-win-action="exit-native"
                         hidden
                     >
                         <ui-icon icon=${ICON_RESTORE}></ui-icon>
                     </button>
-                    <button class="title-close" type="button" aria-label="Close" title="Close" data-no-drag>
+                    <button class="title-close" type="button" aria-label="Close" title="Close" data-no-drag data-ui-win-action="close">
                         <ui-icon icon=${ICON_CLOSE}></ui-icon>
                     </button>
                 </div>
@@ -159,6 +162,19 @@ export class Windows2 extends UIElement {
         this.#nativeUnbind = null;
         this.#attrObserver?.disconnect();
         this.#attrObserver = null;
+        this.#controlsMo?.disconnect();
+        this.#controlsMo = null;
+        // WHY: re-connect must re-bind title controls; otherwise close/max/min go dead.
+        this.#controlsUnbind?.();
+        this.#controlsUnbind = null;
+        this.#controlsReady = false;
+        this.#wireAttempts = 0;
+        this.#focusUnbind?.();
+        this.#focusUnbind = null;
+        this.#dragUnbind?.();
+        this.#dragUnbind = null;
+        this.#resizeUnbind?.();
+        this.#resizeUnbind = null;
         // WHY: oxc rejects `(super as T).fn()` — only `super.prop` / `super()` forms are valid.
         super.disconnectedCallback?.();
     }
@@ -171,9 +187,10 @@ export class Windows2 extends UIElement {
             this.#wireResize();
             this.#syncNativeChrome();
             // WHY: first microtask can race shadow paint; retry until control host exists.
-            if (!this.#controlsReady && this.#wireAttempts < 20) {
+            // Even after ready, keep stamping button props a few frames (lure late replace).
+            if (this.#wireAttempts < 20) {
                 this.#wireAttempts += 1;
-                requestAnimationFrame(run);
+                if (!this.#controlsReady || this.#wireAttempts < 8) requestAnimationFrame(run);
             }
         };
         queueMicrotask(run);
@@ -399,9 +416,10 @@ export class Windows2 extends UIElement {
     }
 
     closeWindow(): void {
-        const allowed = this.#emitChrome("window-close", true);
-        if (!allowed) return;
-        this.remove();
+        // WHY: managed hosts preventDefault (= "I own map/task teardown") but must not leave
+        // an orphan node — CWSP-shell previously hid via `visible=false` and never removed.
+        this.#emitChrome("window-close", true);
+        if (this.isConnected) this.remove();
     }
 
     #wireFocus(): void {
@@ -430,11 +448,15 @@ export class Windows2 extends UIElement {
         (this as HTMLElement).toggleAttribute("data-focused", false);
     }
 
-    /** Resolve control hit from composedPath (works for ui-icon shadow retargeting). */
+    /** Resolve control hit from composedPath / data-ui-win-action (ui-icon retargeting). */
     #hitControl(ev: Event): "minimize" | "maximize" | "close" | "exit-native" | null {
         const path = typeof ev.composedPath === "function" ? ev.composedPath() : [];
         for (const n of path) {
             if (!(n instanceof Element)) continue;
+            const action = n.getAttribute?.("data-ui-win-action");
+            if (action === "close" || action === "exit-native" || action === "maximize" || action === "minimize") {
+                return action;
+            }
             if (n.matches?.(".title-close")) return "close";
             if (n.matches?.(".title-exit-native")) return "exit-native";
             if (n.matches?.(".title-maximize")) return "maximize";
@@ -442,12 +464,38 @@ export class Windows2 extends UIElement {
         }
         const t = ev.target;
         if (t instanceof Element) {
-            if (t.closest?.(".title-close")) return "close";
-            if (t.closest?.(".title-exit-native")) return "exit-native";
-            if (t.closest?.(".title-maximize")) return "maximize";
-            if (t.closest?.(".title-minimize")) return "minimize";
+            const el =
+                t.closest?.("[data-ui-win-action], .title-close, .title-exit-native, .title-maximize, .title-minimize") ??
+                null;
+            if (!el) return null;
+            const action = el.getAttribute("data-ui-win-action");
+            if (action === "close" || action === "exit-native" || action === "maximize" || action === "minimize") {
+                return action;
+            }
+            if (el.classList.contains("title-close")) return "close";
+            if (el.classList.contains("title-exit-native")) return "exit-native";
+            if (el.classList.contains("title-maximize")) return "maximize";
+            if (el.classList.contains("title-minimize")) return "minimize";
         }
         return null;
+    }
+
+    /** Debounce pointerup+click (and dual host/button listeners) within one gesture. */
+    #consumeChromeAction(): boolean {
+        const now = typeof performance !== "undefined" ? performance.now() : Date.now();
+        if (now - this.#lastChromeActionAt < 280) return false;
+        this.#lastChromeActionAt = now;
+        return true;
+    }
+
+    #runChromeAction(which: "minimize" | "maximize" | "close" | "exit-native"): void {
+        if (which === "close") this.closeWindow();
+        else if (which === "exit-native") this.exitNativeMode();
+        else if (which === "maximize") {
+            // WHY: from native fallback, maximize toggles exit; floating desk-max via shell intent.
+            if (this.nativeMode && this.nativeSurface === "fallback") this.exitNativeMode();
+            else this.toggleMaximize();
+        } else this.toggleMinimize();
     }
 
     #handleControlEvent(ev: Event): boolean {
@@ -456,18 +504,47 @@ export class Windows2 extends UIElement {
         ev.preventDefault();
         ev.stopPropagation();
         ev.stopImmediatePropagation?.();
-        if (which === "close") this.closeWindow();
-        else if (which === "exit-native") this.exitNativeMode();
-        else if (which === "maximize") {
-            // WHY: from native fallback, maximize toggles exit; from floating, enter native via dblclick host path.
-            if (this.nativeMode && this.nativeSurface === "fallback") this.exitNativeMode();
-            else this.toggleMaximize();
-        } else this.toggleMinimize();
+        if (!this.#consumeChromeAction()) return true;
+        this.#runChromeAction(which);
         return true;
     }
 
+    /**
+     * WHY (radical): H/lure can replace shadow buttons and kill addEventListener bindings.
+     * Assign `onclick` / `onpointerup` properties on the live nodes and re-stamp after every
+     * shadow mutation. Delegation on shadowRoot + host remains as a safety net.
+     */
+    #bindControlButtonProps(): void {
+        const root = this.shadowRoot;
+        if (!root) return;
+        const specs: Array<["minimize" | "maximize" | "close" | "exit-native", string]> = [
+            ["minimize", ".title-minimize"],
+            ["maximize", ".title-maximize"],
+            ["close", ".title-close"],
+            ["exit-native", ".title-exit-native"]
+        ];
+        for (const [which, sel] of specs) {
+            const btn = root.querySelector(sel) as HTMLButtonElement | null;
+            if (!btn) continue;
+            btn.setAttribute("data-ui-win-action", which);
+            const run = (ev: Event): void => {
+                ev.preventDefault();
+                ev.stopPropagation();
+                ev.stopImmediatePropagation?.();
+                if (!this.#consumeChromeAction()) return;
+                this.#runChromeAction(which);
+            };
+            // Property handlers (not addEventListener) — reassigned whenever the node is new.
+            btn.onclick = run;
+            btn.onpointerup = (ev: PointerEvent) => {
+                if (ev.button !== 0) return;
+                // WHY: titlebar `touch-action: none` can suppress click synthesis on some engines.
+                run(ev);
+            };
+        }
+    }
+
     #wireControls(): void {
-        if (this.#controlsReady) return;
         const root = this.shadowRoot;
         if (!root) return;
 
@@ -475,27 +552,57 @@ export class Windows2 extends UIElement {
         const buttons = root.querySelector(".title-handler-buttons") as HTMLElement | null;
         if (!titleBar || !buttons) return;
 
-        // WHY: only `click` (not also pointerup) — dual handlers double-toggle max/min.
-        const onClick = (ev: Event): void => {
+        // Always re-stamp button props (idempotent) — even after first wire, H may swap nodes.
+        this.#bindControlButtonProps();
+
+        if (this.#controlsReady) {
+            this.#syncExitNativeButton();
+            this.#syncMaximizeIcon();
+            return;
+        }
+
+        const onDelegated = (ev: Event): void => {
             this.#handleControlEvent(ev);
         };
         const onDbl = (ev: MouseEvent): void => {
             if (this.#hitControl(ev)) return;
+            const path = typeof ev.composedPath === "function" ? ev.composedPath() : [];
+            const fromTitle = path.some(
+                (n) => n instanceof Element && n.classList?.contains("title-handler")
+            );
+            if (!fromTitle) return;
             const t = ev.target as HTMLElement | null;
             if (t?.closest?.("button, a, input, textarea, select, [data-no-drag]")) return;
             ev.preventDefault();
+            if (!this.#consumeChromeAction()) return;
             this.toggleMaximize();
         };
 
-        // WHY: capture on controls host + stopImmediatePropagation so shell bubble fallback does not double-toggle.
-        const offBtnClick = addEvent(buttons, "click", onClick, { capture: true });
-        const offBarClick = addEvent(titleBar, "click", onClick, { capture: true });
-        const offDbl = addEvent(titleBar, "dblclick", onDbl);
+        // Shadow capture first (path includes live buttons), then host capture (composed).
+        const offShadowClick = addEvent(root, "click", onDelegated, { capture: true });
+        const offShadowPtr = addEvent(root, "pointerup", onDelegated, { capture: true });
+        const offHostClick = addEvent(this, "click", onDelegated, { capture: true });
+        const offHostPtr = addEvent(this, "pointerup", onDelegated, { capture: true });
+        const offHostDbl = addEvent(this, "dblclick", onDbl, { capture: true });
+
+        if (typeof MutationObserver !== "undefined" && !this.#controlsMo) {
+            this.#controlsMo = new MutationObserver(() => {
+                // Re-bind after lure/H replaces title chrome nodes.
+                this.#bindControlButtonProps();
+                this.#syncExitNativeButton();
+                this.#syncMaximizeIcon();
+            });
+            this.#controlsMo.observe(root, { childList: true, subtree: true });
+        }
 
         this.#controlsUnbind = () => {
-            offBtnClick?.();
-            offBarClick?.();
-            offDbl?.();
+            offShadowClick?.();
+            offShadowPtr?.();
+            offHostClick?.();
+            offHostPtr?.();
+            offHostDbl?.();
+            this.#controlsMo?.disconnect();
+            this.#controlsMo = null;
             this.#controlsUnbind = null;
             this.#controlsReady = false;
         };
@@ -511,6 +618,7 @@ export class Windows2 extends UIElement {
         if (!bar || this.#dragUnbind) return;
 
         // WHY: WCO / standalone — CSS `window-drag` moves the OS window; skip JS drag.
+        // NOTE: clearable unbind so a later probe can re-wire JS drag for floating managed windows.
         if (this.usesNativeWindowDrag) {
             this.#dragUnbind = () => {
                 this.#dragUnbind = null;

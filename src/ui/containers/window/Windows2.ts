@@ -1,18 +1,31 @@
 /*
  * Filename: Windows2.ts
  * FullPath: modules/projects/fl.ui/src/ui/containers/window/Windows2.ts
- * Change date and time: 07.25.00_29.07.2026
- * Reason for changes: Reliable titlebar controls via capture delegation + retry wire.
+ * Change date and time: 10.40.00_29.07.2026
+ * Reason for changes: Hide exit-native except standalone; single maximize glyph (no dual corners).
  */
 import { defineElement, property, H, numberRef, bindStyle, S } from "fest/lure";
 import { preloadStyle, addEvent } from "fest/dom";
 import { UIElement } from "fl-ui/base/UIElement";
 import "fest/icon";
+import {
+    probeNativeWindowChrome,
+    subscribeNativeWindowChrome,
+    type NativeWindowChromeProbe
+} from "./native-window-chrome";
 
 // @ts-ignore — Vite inline SCSS → adopted stylesheet
 import styles from "./Windows2.scss?inline";
 
 const styled = preloadStyle(styles);
+
+export {
+    probeNativeWindowChrome,
+    subscribeNativeWindowChrome,
+    type NativeWindowChromeProbe,
+    type NativeDisplayMode,
+    type NativeChromeSubscribeOptions
+} from "./native-window-chrome";
 
 /** Phosphor names (duotone registry): minimize / maximize / restore / close. */
 const ICON_MINIMIZE = "minus";
@@ -34,6 +47,9 @@ export type UiWindowBounds = {
  *
  * INVARIANT: when `managed` is set, the host shell owns left/top/width/height/z;
  * chrome emits `window-move` / `window-resize` / `window-focus` / max|min|close intents.
+ *
+ * INVARIANT (`native-mode`): when WCO is visible, OS owns min/max/close — custom buttons hide;
+ * titlebar uses CSS `window-drag` / `app-region` instead of JS pointer-drag.
  */
 // @ts-ignore
 @defineElement("ui-window")
@@ -50,8 +66,11 @@ export class Windows2 extends UIElement {
     #resizeUnbind: (() => void) | null = null;
     #focusUnbind: (() => void) | null = null;
     #controlsUnbind: (() => void) | null = null;
+    #nativeUnbind: (() => void) | null = null;
+    #attrObserver: MutationObserver | null = null;
     #controlsReady = false;
     #wireAttempts = 0;
+    #lastNativeProbe: NativeWindowChromeProbe | null = null;
 
     // WHY: UIElement defines `render`/`styles` as instance fields; subclass methods would be shadowed.
     styles = function () { return styled; };
@@ -64,15 +83,24 @@ export class Windows2 extends UIElement {
                 <div class="title-handler-actions" part="actions">
                     <slot name="actions"></slot>
                 </div>
-                <div class="title-handler-buttons" part="controls">
-                    <button class="title-minimize" type="button" aria-label="Minimize" title="Minimize">
+                <div class="title-handler-buttons" part="controls" data-no-drag>
+                    <button class="title-minimize" type="button" aria-label="Minimize" title="Minimize" data-no-drag>
                         <ui-icon icon=${ICON_MINIMIZE}></ui-icon>
                     </button>
-                    <button class="title-maximize" type="button" aria-label="Maximize" title="Maximize">
-                        <span class="icon-maximize" aria-hidden="true"><ui-icon icon=${ICON_MAXIMIZE}></ui-icon></span>
-                        <span class="icon-restore" aria-hidden="true"><ui-icon icon=${ICON_RESTORE}></ui-icon></span>
+                    <button class="title-maximize" type="button" aria-label="Maximize" title="Maximize" data-no-drag>
+                        <ui-icon icon=${ICON_MAXIMIZE}></ui-icon>
                     </button>
-                    <button class="title-close" type="button" aria-label="Close" title="Close">
+                    <button
+                        class="title-exit-native"
+                        type="button"
+                        aria-label="Exit native"
+                        title="Exit native"
+                        data-no-drag
+                        hidden
+                    >
+                        <ui-icon icon=${ICON_RESTORE}></ui-icon>
+                    </button>
+                    <button class="title-close" type="button" aria-label="Close" title="Close" data-no-drag>
                         <ui-icon icon=${ICON_CLOSE}></ui-icon>
                     </button>
                 </div>
@@ -97,6 +125,20 @@ export class Windows2 extends UIElement {
         return this.hasAttribute("managed");
     }
 
+    /** Host requested mono/task native chrome (WCO / standalone / fallback full-bleed). */
+    get nativeMode(): boolean {
+        return this.hasAttribute("native-mode");
+    }
+
+    set nativeMode(value: boolean) {
+        this.toggleAttribute("native-mode", Boolean(value));
+        this.#syncNativeChrome();
+    }
+
+    get nativeSurface(): NativeWindowChromeProbe["surface"] {
+        return this.#lastNativeProbe?.surface ?? (this.nativeMode ? "fallback" : "off");
+    }
+
     onInitialize() {
         super.onInitialize();
     }
@@ -109,6 +151,16 @@ export class Windows2 extends UIElement {
     connectedCallback(): void {
         super.connectedCallback?.();
         this.#scheduleChromeWire();
+        this.#bindNativeChrome();
+    }
+
+    disconnectedCallback(): void {
+        this.#nativeUnbind?.();
+        this.#nativeUnbind = null;
+        this.#attrObserver?.disconnect();
+        this.#attrObserver = null;
+        // WHY: oxc rejects `(super as T).fn()` — only `super.prop` / `super()` forms are valid.
+        super.disconnectedCallback?.();
     }
 
     #scheduleChromeWire(): void {
@@ -117,6 +169,7 @@ export class Windows2 extends UIElement {
             this.#wireFocus();
             this.#wireDrag();
             this.#wireResize();
+            this.#syncNativeChrome();
             // WHY: first microtask can race shadow paint; retry until control host exists.
             if (!this.#controlsReady && this.#wireAttempts < 20) {
                 this.#wireAttempts += 1;
@@ -124,6 +177,109 @@ export class Windows2 extends UIElement {
             }
         };
         queueMicrotask(run);
+    }
+
+    #bindNativeChrome(): void {
+        if (this.#nativeUnbind) return;
+        this.#nativeUnbind = subscribeNativeWindowChrome({
+            getRequested: () => this.nativeMode,
+            onChange: (probe) => this.#applyNativeProbe(probe)
+        });
+        if (typeof MutationObserver !== "undefined" && !this.#attrObserver) {
+            this.#attrObserver = new MutationObserver((records) => {
+                let native = false;
+                let maxIcon = false;
+                for (const r of records) {
+                    if (r.attributeName === "native-mode") native = true;
+                    if (
+                        r.attributeName === "maximized" ||
+                        r.attributeName === "data-desk-max" ||
+                        r.attributeName === "data-mobile-max"
+                    ) {
+                        maxIcon = true;
+                    }
+                }
+                if (native) this.#syncNativeChrome();
+                if (maxIcon) this.#syncMaximizeIcon();
+            });
+            this.#attrObserver.observe(this, {
+                attributes: true,
+                attributeFilter: ["native-mode", "maximized", "data-desk-max", "data-mobile-max"]
+            });
+        }
+    }
+
+    #syncNativeChrome(): void {
+        this.#applyNativeProbe(probeNativeWindowChrome(this.nativeMode));
+    }
+
+    #applyNativeProbe(probe: NativeWindowChromeProbe): void {
+        this.#lastNativeProbe = probe;
+        const host = this as HTMLElement;
+        host.toggleAttribute("data-native-wco", probe.surface === "wco");
+        host.toggleAttribute("data-native-standalone", probe.surface === "standalone");
+        host.toggleAttribute("data-native-fallback", probe.surface === "fallback");
+        host.toggleAttribute("data-native-active", probe.surface !== "off");
+
+        this.#syncExitNativeButton(probe.surface);
+
+        if (probe.titlebarRect) {
+            host.style.setProperty("--ui-win-titlebar-area-x", `${probe.titlebarRect.x}px`);
+            host.style.setProperty("--ui-win-titlebar-area-y", `${probe.titlebarRect.y}px`);
+            host.style.setProperty("--ui-win-titlebar-area-width", `${probe.titlebarRect.width}px`);
+            host.style.setProperty("--ui-win-titlebar-area-height", `${probe.titlebarRect.height}px`);
+        } else {
+            host.style.removeProperty("--ui-win-titlebar-area-x");
+            host.style.removeProperty("--ui-win-titlebar-area-y");
+            host.style.removeProperty("--ui-win-titlebar-area-width");
+            host.style.removeProperty("--ui-win-titlebar-area-height");
+        }
+
+        // WHY: re-wire drag/resize so native active disables JS pointer drag.
+        this.#dragUnbind?.();
+        this.#dragUnbind = null;
+        this.#resizeUnbind?.();
+        this.#resizeUnbind = null;
+        this.#wireDrag();
+        this.#wireResize();
+        this.#syncMaximizeIcon();
+
+        this.dispatchEvent(
+            new CustomEvent("window-native-change", {
+                bubbles: true,
+                composed: true,
+                detail: probe
+            })
+        );
+    }
+
+    /** Standalone-only control; `hidden` must win over button `display: inline-flex`. */
+    #syncExitNativeButton(surface = this.nativeSurface): void {
+        const exitBtn = this.shadowRoot?.querySelector(".title-exit-native") as HTMLButtonElement | null;
+        if (exitBtn) exitBtn.hidden = surface !== "standalone";
+    }
+
+    /**
+     * INVARIANT: one glyph on maximize — corners-out (max) or corners-in (restore).
+     * NOTE: native fallback stays corners-out (maximize = exit native, not restore-down).
+     */
+    #syncMaximizeIcon(): void {
+        const btn = this.shadowRoot?.querySelector(".title-maximize") as HTMLButtonElement | null;
+        const icon = btn?.querySelector("ui-icon") as HTMLElement | null;
+        if (!btn || !icon) return;
+
+        const fallbackNative = this.nativeMode && this.nativeSurface === "fallback";
+        const restoredLook =
+            !fallbackNative &&
+            (this.hasAttribute("maximized") ||
+                this.hasAttribute("data-desk-max") ||
+                this.hasAttribute("data-mobile-max"));
+
+        const name = restoredLook ? ICON_RESTORE : ICON_MAXIMIZE;
+        const label = restoredLook ? "Restore" : "Maximize";
+        if (icon.getAttribute("icon") !== name) icon.setAttribute("icon", name);
+        btn.setAttribute("aria-label", label);
+        btn.setAttribute("title", label);
     }
 
     /** Apply absolute bounds (managed shells / workspace layer). */
@@ -157,6 +313,7 @@ export class Windows2 extends UIElement {
     }
 
     get isMaximized(): boolean {
+        // WHY: `data-native-active` is full-bleed chrome, not desk maximize — do not conflate.
         return (
             this.hasAttribute("maximized") ||
             this.hasAttribute("data-desk-max") ||
@@ -166,6 +323,34 @@ export class Windows2 extends UIElement {
 
     get isMinimized(): boolean {
         return this.hasAttribute("minimized");
+    }
+
+    /** True when CSS window-drag owns titlebar (WCO / installed standalone). */
+    get usesNativeWindowDrag(): boolean {
+        const s = this.nativeSurface;
+        return s === "wco" || s === "standalone";
+    }
+
+    /**
+     * Enter/exit native-mode. Managed hosts should listen for `window-native` /
+     * `window-exit-native` instead of mutating attrs directly when preferred.
+     */
+    enterNativeMode(): void {
+        if (this.managed) {
+            this.#emitChrome("window-native");
+            return;
+        }
+        this.nativeMode = true;
+        this.#emitChrome("window-native");
+    }
+
+    exitNativeMode(): void {
+        if (this.managed) {
+            this.#emitChrome("window-exit-native");
+            return;
+        }
+        this.nativeMode = false;
+        this.#emitChrome("window-exit-native");
     }
 
     #emitChrome(name: string, cancelable = false): boolean {
@@ -186,6 +371,7 @@ export class Windows2 extends UIElement {
         const next = !restoring;
         this.toggleAttribute("maximized", next);
         if (next) this.removeAttribute("minimized");
+        this.#syncMaximizeIcon();
         this.#emitChrome(next ? "window-maximize" : "window-restore");
     }
 
@@ -245,17 +431,19 @@ export class Windows2 extends UIElement {
     }
 
     /** Resolve control hit from composedPath (works for ui-icon shadow retargeting). */
-    #hitControl(ev: Event): "minimize" | "maximize" | "close" | null {
+    #hitControl(ev: Event): "minimize" | "maximize" | "close" | "exit-native" | null {
         const path = typeof ev.composedPath === "function" ? ev.composedPath() : [];
         for (const n of path) {
             if (!(n instanceof Element)) continue;
             if (n.matches?.(".title-close")) return "close";
+            if (n.matches?.(".title-exit-native")) return "exit-native";
             if (n.matches?.(".title-maximize")) return "maximize";
             if (n.matches?.(".title-minimize")) return "minimize";
         }
         const t = ev.target;
         if (t instanceof Element) {
             if (t.closest?.(".title-close")) return "close";
+            if (t.closest?.(".title-exit-native")) return "exit-native";
             if (t.closest?.(".title-maximize")) return "maximize";
             if (t.closest?.(".title-minimize")) return "minimize";
         }
@@ -269,8 +457,12 @@ export class Windows2 extends UIElement {
         ev.stopPropagation();
         ev.stopImmediatePropagation?.();
         if (which === "close") this.closeWindow();
-        else if (which === "maximize") this.toggleMaximize();
-        else this.toggleMinimize();
+        else if (which === "exit-native") this.exitNativeMode();
+        else if (which === "maximize") {
+            // WHY: from native fallback, maximize toggles exit; from floating, enter native via dblclick host path.
+            if (this.nativeMode && this.nativeSurface === "fallback") this.exitNativeMode();
+            else this.toggleMaximize();
+        } else this.toggleMinimize();
         return true;
     }
 
@@ -309,12 +501,22 @@ export class Windows2 extends UIElement {
         };
         this.#controlsReady = true;
         this.#wireAttempts = 0;
+        this.#syncExitNativeButton();
+        this.#syncMaximizeIcon();
     }
 
     #wireDrag(): void {
         const root = this.shadowRoot ?? this;
         const bar = (this.titleHandler ?? root.querySelector?.(".title-handler")) as HTMLElement | null;
         if (!bar || this.#dragUnbind) return;
+
+        // WHY: WCO / standalone — CSS `window-drag` moves the OS window; skip JS drag.
+        if (this.usesNativeWindowDrag) {
+            this.#dragUnbind = () => {
+                this.#dragUnbind = null;
+            };
+            return;
+        }
 
         if (!this.managed) {
             bindStyle(this, S`transform: translate(${this.#ox}px, ${this.#oy}px)`);
@@ -328,7 +530,7 @@ export class Windows2 extends UIElement {
             if (this.#hitControl(ev)) return;
             const t = ev.target as HTMLElement | null;
             if (t?.closest("button, a, input, textarea, select, [data-no-drag]")) return;
-            if (this.isMaximized || this.isMinimized) return;
+            if (this.isMaximized || this.isMinimized || this.nativeMode) return;
 
             this.requestFocus();
             ev.preventDefault();
@@ -393,7 +595,7 @@ export class Windows2 extends UIElement {
 
         const offDown = addEvent(grip, "pointerdown", (ev: PointerEvent) => {
             if (ev.button !== 0) return;
-            if (this.isMaximized || this.isMinimized) return;
+            if (this.isMaximized || this.isMinimized || this.nativeMode) return;
             ev.preventDefault();
             ev.stopPropagation();
             this.requestFocus();

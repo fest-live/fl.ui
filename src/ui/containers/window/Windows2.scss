@@ -1,8 +1,8 @@
 /*
  * Filename: Windows2.scss
  * FullPath: modules/projects/fl.ui/src/ui/containers/window/Windows2.scss
- * Change date and time: 06.00.00_29.07.2026
- * Reason for changes: Managed absolute windows + resize grip + hide/minimize mobile maximize.
+ * Change date and time: 10.40.00_29.07.2026
+ * Reason for changes: exit-native [hidden] wins over button display; no dual maximize glyphs.
  */
 
 /* WHY: Inline adopted sheet for <ui-window>; light-dark() + explicit theme attrs keep parity
@@ -31,12 +31,13 @@
             0 18px 40px -18px rgb(15 23 42 / 0.28),
             0 22px 48px -16px rgb(0 0 0 / 0.55)
         );
-    --ui-win-control-bg: light-dark(rgb(21 32 51 / 0.06), rgb(232 237 245 / 0.08));
+    /* WHY: transparent idle so controls share the solid titlebar fill (no “chip strip”). */
+    --ui-win-control-bg: transparent;
     --ui-win-control-bg-hover: light-dark(rgb(21 32 51 / 0.12), rgb(232 237 245 / 0.16));
     --ui-win-control-fg: var(--ui-win-fg);
-    --ui-win-close-bg: light-dark(rgb(220 38 38 / 0.12), rgb(248 113 113 / 0.16));
+    --ui-win-close-bg: transparent;
     --ui-win-close-bg-hover: light-dark(rgb(220 38 38 / 0.92), rgb(239 68 68 / 0.95));
-    --ui-win-close-fg: light-dark(#b91c1c, #fecaca);
+    --ui-win-close-fg: var(--ui-win-fg);
     --ui-win-close-fg-hover: #fff;
     --icon-color: var(--ui-win-fg);
     --icon-size: var(--ui-win-icon-size);
@@ -92,15 +93,23 @@
         0 0 0 1px color-mix(in oklab, var(--ui-win-fg) 22%, transparent);
 }
 
-/* WHY: CWSP views own their chrome padding; default ui-window pad crushed toolbars into overlaps. */
-:host(ui-window[managed]) .content-handler {
+/*
+ * WHY: CWSP views own their chrome padding; default ui-window pad crushed toolbars into overlaps.
+ * INVARIANT: `native-mode` / `data-native-active` need the same flex fill as `managed`, otherwise
+ * slotted Explorer (`.view-explorer` → `ui-file-manager`) collapses to toolbar-only height.
+ */
+:host(ui-window[managed]) .content-handler,
+:host(ui-window[native-mode]) .content-handler,
+:host(ui-window[data-native-active]) .content-handler {
     padding: 0;
     overflow: hidden;
     display: flex;
     flex-direction: column;
 }
 
-:host(ui-window[managed]) .content-handler ::slotted(*) {
+:host(ui-window[managed]) .content-handler ::slotted(*),
+:host(ui-window[native-mode]) .content-handler ::slotted(*),
+:host(ui-window[data-native-active]) .content-handler ::slotted(*) {
     flex: 1 1 auto;
     min-block-size: 0;
     min-inline-size: 0;
@@ -146,8 +155,99 @@
 
 :host(ui-window[maximized]) .window-resizer,
 :host(ui-window[data-mobile-max]) .window-resizer,
-:host(ui-window[data-desk-max]) .window-resizer {
+:host(ui-window[data-desk-max]) .window-resizer,
+:host(ui-window[data-native-active]) .window-resizer {
     display: none;
+}
+
+/* -------------------------------------------------------------------------- */
+/* native-mode: full-bleed + WCO / standalone / in-tab fallback               */
+/* -------------------------------------------------------------------------- */
+
+:host(ui-window[native-mode]),
+:host(ui-window[data-native-active]) {
+    --ui-win-radius: 0;
+    position: fixed !important;
+    inset: 0 !important;
+    inline-size: 100% !important;
+    block-size: 100% !important;
+    max-inline-size: none;
+    max-block-size: none;
+    border-radius: 0;
+    transform: none !important;
+    box-shadow: none;
+    /* WHY: above env chrome (~2e9 in env vars can minify oddly); stay under system overlays. */
+    z-index: 100000;
+}
+
+:host(ui-window[data-native-wco]) .title-handler,
+:host(ui-window[data-native-standalone]) .title-handler {
+    /* Prefer standardized window-drag; keep Chromium legacy aliases. */
+    window-drag: move;
+    app-region: drag;
+    -webkit-app-region: drag;
+    cursor: default;
+    /* Titleband: cover WCO / safe-area strip */
+    min-block-size: max(
+        var(--ui-win-titlebar-height),
+        env(titlebar-area-height, var(--ui-win-titlebar-area-height, 0px)),
+        calc(env(safe-area-inset-top, 0px) + 1.75rem)
+    );
+    padding-block-start: max(env(safe-area-inset-top, 0px), env(titlebar-area-y, 0px));
+    padding-inline-start: max(
+        env(safe-area-inset-left, 0px),
+        env(titlebar-area-x, var(--ui-win-titlebar-area-x, 0px)),
+        var(--ui-win-pad-inline)
+    );
+    padding-inline-end: max(
+        env(safe-area-inset-right, 0px),
+        max(0px, calc(100vi - env(titlebar-area-x, 0px) - env(titlebar-area-width, 100vi))),
+        var(--ui-win-pad-inline)
+    );
+}
+
+:host(ui-window[data-native-wco]) .title-handler-buttons,
+:host(ui-window[data-native-wco]) .title-handler-actions,
+:host(ui-window[data-native-standalone]) .title-handler-buttons,
+:host(ui-window[data-native-standalone]) .title-handler-actions,
+:host(ui-window[data-native-wco]) .title-handler-buttons button,
+:host(ui-window[data-native-standalone]) .title-handler-buttons button {
+    window-drag: none;
+    app-region: no-drag;
+    -webkit-app-region: no-drag;
+}
+
+/* WCO: OS owns min/max/close — hide custom duplicates. */
+:host(ui-window[data-native-wco]) .title-minimize,
+:host(ui-window[data-native-wco]) .title-maximize,
+:host(ui-window[data-native-wco]) .title-close,
+:host(ui-window[data-native-wco]) .title-exit-native {
+    display: none !important;
+}
+
+/* Mobile / installed standalone: hide resize-like chrome; keep exit-native for env restore. */
+:host(ui-window[data-native-standalone]) .title-minimize,
+:host(ui-window[data-native-standalone]) .title-maximize,
+:host(ui-window[data-native-standalone]) .title-close {
+    display: none !important;
+}
+
+:host(ui-window[data-native-active]) .footer-handler:empty {
+    display: none;
+}
+
+/*
+ * WHY: `.title-handler-buttons button { display: inline-flex }` beats bare `[hidden]` /
+ * `.title-exit-native { display: none }` — without !important the 4th control always leaks.
+ * INVARIANT: exit-native only for installed standalone; fallback uses maximize as exit.
+ */
+.title-exit-native,
+.title-exit-native[hidden] {
+    display: none !important;
+}
+
+:host(ui-window[data-native-standalone]) .title-exit-native:not([hidden]) {
+    display: inline-flex !important;
 }
 
 .window-container {
@@ -219,6 +319,7 @@
     position: relative;
     z-index: 5;
     pointer-events: auto;
+    background: transparent;
 }
 
 .title-handler-buttons button,
@@ -274,31 +375,14 @@
     }
 }
 
-/* WHY: wrap ui-icon — it sets display:grid !important unlayered, which beats host-layer rules. */
-.title-maximize .icon-restore {
-    display: none !important;
-}
-
-:host([maximized]) .title-maximize .icon-maximize,
-:host([data-desk-max]) .title-maximize .icon-maximize,
-:host([data-mobile-max]) .title-maximize .icon-maximize {
-    display: none !important;
-}
-
-:host([maximized]) .title-maximize .icon-restore,
-:host([data-desk-max]) .title-maximize .icon-restore,
-:host([data-mobile-max]) .title-maximize .icon-restore {
-    display: inline-flex !important;
-    align-items: center;
-    justify-content: center;
-}
+/* Maximize glyph swaps via JS (`#syncMaximizeIcon`) — one ui-icon, never dual corners. */
 
 .content-handler {
     grid-area: content;
     min-block-size: 0;
     min-inline-size: 0;
     overflow: auto;
-    padding: var(--ui-win-pad-block) var(--ui-win-pad-inline);
+    padding: 0px;/*var(--ui-win-pad-block) var(--ui-win-pad-inline);*/
     background: var(--ui-win-content-bg);
     color: var(--ui-win-fg);
 

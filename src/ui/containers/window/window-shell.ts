@@ -33,6 +33,11 @@ export type WindowChromeModel = {
     minimized: refType<boolean>;
     /** Desktop-only tile to viewport insets (not used on phone split). */
     desktopMaximized: refType<boolean>;
+    /**
+     * Mono/task native chrome: full-bleed `ui-window[native-mode]` (WCO / standalone / fallback).
+     * Distinct from desk/mobile maximize — hides env taskbar/statusbar while active.
+     */
+    nativeMode: refType<boolean>;
     /** False after close control — frame hidden until reset by host. */
     visible: refType<boolean>;
     isMobileMq: MediaQueryList;
@@ -80,6 +85,7 @@ export function createChromeModel(
         maximizedMobile: booleanRef(mq.matches),
         minimized: booleanRef(false),
         desktopMaximized: booleanRef(false),
+        nativeMode: booleanRef(false),
         visible: booleanRef(true),
         isMobileMq: mq
     };

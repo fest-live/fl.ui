@@ -39,10 +39,43 @@
     }
 
     .task-icon {
+        position: relative;
         display: inline-flex;
         place-content: center;
         place-items: center;
         line-height: 0;
+        inline-size: 1.25rem;
+        block-size: 1.25rem;
+        min-inline-size: 1.25rem;
+        min-block-size: 1.25rem;
+    }
+
+    .task-letter {
+        position: absolute;
+        inset: 0;
+        display: grid;
+        place-content: center;
+        place-items: center;
+        font-size: 0.72rem;
+        font-weight: 700;
+        line-height: 1;
+        letter-spacing: 0;
+        color: currentColor;
+        opacity: 0.92;
+        z-index: 0;
+        pointer-events: none;
+        user-select: none;
+    }
+
+    .task-icon-glyph {
+        position: relative;
+        z-index: 1;
+        inline-size: 100%;
+        block-size: 100%;
+        min-inline-size: 1rem;
+        min-block-size: 1rem;
+        /* WHY: blank/missing Phosphor masks leave the letter visible underneath. */
+        color: currentColor;
     }
 
     .task-title {

@@ -434,12 +434,19 @@
     padding: 0px;/*var(--ui-win-pad-block) var(--ui-win-pad-inline);*/
     background: var(--ui-win-content-bg);
     color: var(--ui-win-fg);
+    /*
+     * WHY: `:host(ui-window[hidden-window])` sets `pointer-events: none !important` on the host;
+     * without an explicit `auto` here the slotted view inherits `none` and the entire body
+     * (settings tabs, explorer, etc.) becomes unclickable even while visible.
+     */
+    pointer-events: auto;
 
     ::slotted(*) {
         max-inline-size: 100%;
         /* WHY: keep view roots inside the content box; do not cover chrome. */
         max-block-size: 100%;
         min-block-size: 0;
+        pointer-events: auto;
     }
 }
 

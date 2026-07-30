@@ -1,8 +1,8 @@
 /*
  * Filename: Windows2.ts
  * FullPath: modules/projects/fl.ui/src/ui/containers/window/Windows2.ts
- * Change date and time: 13.20.00_29.07.2026
- * Reason for changes: Radical chrome fix — direct button onclick + MO rebind; content paint containment.
+ * Change date and time: 19.22.00_30.07.2026
+ * Reason for changes: Defer titlebar drag until move threshold so dblclick can maximize again.
  */
 import { defineElement, property, H, numberRef, bindStyle, S } from "fest/lure";
 import { preloadStyle, addEvent } from "fest/dom";
@@ -630,7 +630,24 @@ export class Windows2 extends UIElement {
             bindStyle(this, S`transform: translate(${this.#ox}px, ${this.#oy}px)`);
         }
 
-        const pointerMap = new Map<number, { sx: number; sy: number; ox: number; oy: number; bx: number; by: number }>();
+        /*
+         * WHY: Immediate `preventDefault` + `setPointerCapture` on pointerdown cancels browser
+         * dblclick synthesis. Un-maximize worked (drag skipped while maximized); maximize via
+         * titlebar dblclick did not. Arm drag only after a small move threshold.
+         */
+        const DRAG_THRESHOLD_PX = 4;
+        const pointerMap = new Map<
+            number,
+            {
+                sx: number;
+                sy: number;
+                ox: number;
+                oy: number;
+                bx: number;
+                by: number;
+                dragging: boolean;
+            }
+        >();
 
         const offDown = addEvent(bar, "pointerdown", (ev: PointerEvent) => {
             if (ev.button !== 0) return;
@@ -641,8 +658,6 @@ export class Windows2 extends UIElement {
             if (this.isMaximized || this.isMinimized || this.nativeMode) return;
 
             this.requestFocus();
-            ev.preventDefault();
-            this.setPointerCapture?.(ev.pointerId);
             const host = this as HTMLElement;
             pointerMap.set(ev.pointerId, {
                 sx: ev.clientX,
@@ -650,7 +665,8 @@ export class Windows2 extends UIElement {
                 ox: this.#ox.value,
                 oy: this.#oy.value,
                 bx: Number.parseFloat(host.style.left || "0") || 0,
-                by: Number.parseFloat(host.style.top || "0") || 0
+                by: Number.parseFloat(host.style.top || "0") || 0,
+                dragging: false
             });
 
             const offMove = addEvent(document.body, "pointermove", (ev: PointerEvent) => {
@@ -658,6 +674,17 @@ export class Windows2 extends UIElement {
                 if (!p) return;
                 const dx = ev.clientX - p.sx;
                 const dy = ev.clientY - p.sy;
+                if (!p.dragging) {
+                    if (Math.hypot(dx, dy) < DRAG_THRESHOLD_PX) return;
+                    p.dragging = true;
+                    // INVARIANT: only suppress default / capture once drag is real — keeps dblclick.
+                    try {
+                        ev.preventDefault();
+                    } catch {
+                        /* ignore */
+                    }
+                    this.setPointerCapture?.(ev.pointerId);
+                }
                 if (this.managed) {
                     this.dispatchEvent(
                         new CustomEvent("window-move", {
@@ -674,11 +701,14 @@ export class Windows2 extends UIElement {
 
             const end = (ev: PointerEvent) => {
                 if (!pointerMap.has(ev.pointerId)) return;
+                const p = pointerMap.get(ev.pointerId);
                 pointerMap.delete(ev.pointerId);
-                try {
-                    this.releasePointerCapture?.(ev.pointerId);
-                } catch {
-                    /* already released */
+                if (p?.dragging) {
+                    try {
+                        this.releasePointerCapture?.(ev.pointerId);
+                    } catch {
+                        /* already released */
+                    }
                 }
                 offMove?.();
                 offUp?.();

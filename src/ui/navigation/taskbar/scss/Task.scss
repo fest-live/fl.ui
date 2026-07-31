@@ -78,6 +78,15 @@
         color: currentColor;
     }
 
+    /* When a real icon name is set, keep the letter under the glyph (not on top). */
+    .task-icon:has(ui-icon[icon]:not([icon=""])) .task-letter {
+        opacity: 0.35;
+    }
+
+    .task-icon:has(ui-icon[icon]:not([icon=""]):not([icon="app-window"])) .task-letter {
+        opacity: 0;
+    }
+
     .task-title {
         font-size: 0.75rem;
         font-weight: 500;

@@ -91,6 +91,9 @@
 // Mobile specific adjustments
 @mixin taskbar-type-mobile {
     & {
+        place-content: center;
+        place-items: center;
+        place-self: center;
         flex-direction: row;
         justify-content: space-evenly;
         gap: clamp(8px, 3vw, 18px);

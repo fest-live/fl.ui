@@ -133,7 +133,7 @@
  */
 :host(ui-window[data-mobile-max]) {
     --ui-win-radius: 0;
-    inset: 0 0 var(--env-mobile-dock-reserve, 3.25rem) 0 !important;
+    inset: 0 0 var(--env-mobile-dock-reserve, 0rem) 0 !important;
     inline-size: 100% !important;
     block-size: auto !important;
     border-radius: 0;

@@ -1,7 +1,7 @@
 export * from "./base/UIElement";
 
 //
-export * from "./navigation/statusbar/StatusBar";
+export * from "./navigation/statusbar/statusbar";
 export * from "./navigation/taskbar/element/TaskBar";
 export * from "./navigation/taskbar/element/Task";
 export * from "./navigation/appearance/Desktop";

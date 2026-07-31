@@ -1,2 +1,303 @@
-/* Taskbar */
+/*
+ * Filename: TaskBar.scss
+ * FullPath: modules/projects/fl.ui/src/ui/navigation/taskbar/scss/TaskBar.scss
+ * Change date and time: 13.35.00_31.07.2026
+ * Reason for changes: Reconnect after chrome.scss split — no cross-package Sass @use (use CSS var).
+ */
+/* Taskbar / env chrome (document + host). Former environment-shell/scss/chrome.scss. */
 @use "veela-lib" as m;
+
+@layer ui-taskbar {
+    /* Fixed chrome: taskbar (desktop + mobile dock) + FL-UI `ui-statusbar` (desktop meta). */
+    /* WHY: `--env-z-shell-chrome` is set in environment-shell `scss/root.scss` ($z-shell-chrome). */
+
+    .env-shell-chrome {
+        position: fixed;
+        inset-inline: 0;
+        inset-block-end: 0;
+        z-index: var(--env-z-shell-chrome, 2147483000);
+        isolation: isolate;
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+        font: 12px ui-sans-serif, system-ui, sans-serif;
+        color: var(--wf-md-on-surface-variant, oklch(0.78 0.03 274));
+        pointer-events: none;
+    }
+    
+    .env-shell-chrome > * {
+        pointer-events: auto;
+    }
+    
+    /*
+    * Taskbar base (desktop Win10 acrylic + mobile transparent dock share the same host).
+    * Soft elevation: `.env-shell-taskbar-under` (UnderlyingShadow) — not box-shadow on blur host.
+    */
+    .env-shell-taskbar {
+        order: 0;
+        position: relative;
+        display: flex;
+        flex-direction: row;
+        flex-wrap: nowrap;
+        align-items: stretch;
+        gap: 0.15rem;
+        block-size: 2.5rem;
+        min-block-size: 2.5rem;
+        padding: 0 0.25rem;
+        padding-block-end: env(safe-area-inset-bottom, 0);
+        background: color-mix(in oklab, #1a1a1a 72%, transparent);
+        border-block-start: 1px solid color-mix(in oklab, #fff 12%, transparent);
+        backdrop-filter: blur(22px) saturate(1.35);
+        -webkit-backdrop-filter: blur(22px) saturate(1.35);
+        color: #f3f3f3;
+        box-shadow: none;
+    }
+    
+    .env-shell-taskbar-under.underlying-shadow-container,
+    .env-shell-taskbar-under {
+        pointer-events: none !important;
+        overflow: visible !important;
+        z-index: -1 !important;
+    }
+    
+    .env-shell-taskbar-under .underlying-shadow-geometry {
+        background: transparent !important;
+        box-shadow: 0 -8px 28px rgba(0, 0, 0, 0.4) !important;
+    }
+    
+    .env-shell-taskbar::part(taskbar) {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: nowrap;
+        align-items: stretch;
+        gap: 0.15rem;
+        flex: 1;
+        min-inline-size: 0;
+        inline-size: 100%;
+    }
+    
+    .env-shell-taskbar__pins,
+    .env-shell-taskbar__windows {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: nowrap;
+        align-items: stretch;
+        gap: 0;
+        min-inline-size: 0;
+    }
+    
+    .env-shell-taskbar__pins {
+        flex: 0 0 auto;
+        
+        [data-env-home] {
+            backdrop-filter: blur(10px);
+            transform: translateY(-0.5rem);
+            outline: solid 1px light-dark(#0002, #fff2);
+        }
+    }
+    
+    .env-shell-taskbar__windows {
+        flex: 1 1 auto;
+        justify-content: flex-start;
+        overflow-x: auto;
+        scrollbar-width: thin;
+    }
+    
+    .env-shell-taskbar ui-task {
+        cursor: pointer;
+        color: inherit;
+        align-self: stretch;
+        min-inline-size: 2.75rem;
+        min-block-size: 100%;
+        padding-inline: 0.55rem;
+        border: 0;
+        border-radius: 0;
+        background: transparent;
+        outline: none;
+        opacity: 1;
+        /* Active underline via inset shadow so we don't fight ui-task border tokens. */
+        box-shadow: inset 0 -2px 0 transparent;
+    }
+    
+    .env-shell-taskbar ui-task:hover {
+        background: color-mix(in oklab, #fff 10%, transparent);
+        opacity: 1;
+    }
+    
+    .env-shell-taskbar ui-task[data-env-active="true"],
+    .env-shell-taskbar ui-task[data-active],
+    .env-shell-taskbar ui-task[data-focus] {
+        outline: none;
+        opacity: 1;
+        background: color-mix(in oklab, #fff 14%, transparent);
+        box-shadow: inset 0 -2px 0 #60cdff;
+    }
+    
+    .env-shell-taskbar ui-task[data-minimized] {
+        opacity: 0.65;
+    }
+    
+    .env-shell-taskbar__tray-host {
+        margin-inline-start: auto;
+        display: flex;
+        align-items: center;
+        flex: 0 0 auto;
+        gap: 0.35rem;
+        padding-inline: 0.35rem;
+        border-inline-start: 1px solid color-mix(in oklab, #fff 12%, transparent);
+    }
+    
+    .env-shell-taskbar__clock {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        justify-content: center;
+        gap: 0.05rem;
+        min-inline-size: 4.5rem;
+        padding-inline: 0.35rem 0.15rem;
+        line-height: 1.05;
+        user-select: none;
+        pointer-events: none;
+    }
+    
+    .env-shell-taskbar__clock-time {
+        font-size: 0.78rem;
+        font-weight: 600;
+        font-variant-numeric: tabular-nums;
+        color: #f3f3f3;
+    }
+    
+    .env-shell-taskbar__clock-date {
+        font-size: 0.62rem;
+        font-weight: 500;
+        color: color-mix(in oklab, #f3f3f3 72%, transparent);
+        white-space: nowrap;
+    }
+    
+    /* Desktop: icon-only tasks (tooltip via title / aria-label). */
+    .env-shell-chrome[data-desktop] .env-shell-taskbar ui-task::part(title) {
+        display: none !important;
+    }
+    
+    .env-shell-chrome[data-desktop] .env-shell-taskbar ui-task {
+        min-inline-size: 2.5rem;
+        padding-inline: 0.45rem;
+    }
+    
+    .env-shell-chrome[data-desktop] .env-shell-taskbar ui-task::part(icon) {
+        inline-size: 1.35rem;
+        block-size: 1.35rem;
+    }
+    
+    .env-shell-chrome[data-desktop] .env-shell-taskbar ui-task::part(glyph) {
+        inline-size: 1.35rem;
+        block-size: 1.35rem;
+    }
+    
+    .env-shell-chrome[data-desktop] .env-shell-taskbar ui-task::part(letter) {
+        font-size: 0.8rem;
+    }
+    
+    /* Desktop: Home pin is redundant (empty bar / menu → Show desktop). */
+    .env-shell-chrome[data-desktop] .env-shell-taskbar ui-task[data-env-home] {
+        display: none !important;
+    }
+    
+    /*
+    * Mobile nav bar: fully transparent; centered house icon only.
+    * Long-press Home → `.env-shell-navbar__switcher` (open processes).
+    */
+    .env-shell-chrome:not([data-desktop]) .env-shell-taskbar {
+        position: relative;
+        display: flex;
+        flex-direction: row;
+        place-content: center;
+        place-items: center;
+        place-self: center;
+        align-items: center;
+        justify-content: center;
+        gap: 0;
+        block-size: 3rem;
+        min-block-size: 3rem;
+        padding: 0.15rem 0.75rem;
+        padding-block-end: calc(0.15rem + env(safe-area-inset-bottom, 0px));
+        background: transparent;
+        border-block-start: none;
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
+        box-shadow: none;
+    }
+    
+    .env-shell-chrome:not([data-desktop]) .env-shell-taskbar-under {
+        display: none !important;
+    }
+    
+    .env-shell-chrome:not([data-desktop]) .env-shell-taskbar__pins {
+        flex: 0 0 auto;
+        justify-content: center;
+        align-items: center;
+    }
+    
+    .env-shell-chrome:not([data-desktop]) .env-shell-taskbar__pins ui-task:not([data-env-home]) {
+        display: none !important;
+    }
+    
+    .env-shell-chrome:not([data-desktop]) .env-shell-taskbar__windows {
+        display: none !important;
+    }
+    
+    .env-shell-chrome:not([data-desktop]) .env-shell-taskbar__tray-host {
+        display: none !important;
+    }
+    
+    .env-shell-chrome:not([data-desktop]) .env-shell-taskbar ui-task[data-env-home] {
+        min-inline-size: 2.75rem;
+        min-block-size: 2.75rem;
+        padding: 0;
+        border-radius: 999px;
+        background: transparent;
+        box-shadow: none;
+        touch-action: manipulation;
+        -webkit-user-select: none;
+        user-select: none;
+    }
+    
+    /* Icon-only Home (hide task title label). */
+    .env-shell-chrome:not([data-desktop]) .env-shell-taskbar ui-task[data-env-home]::part(title) {
+        display: none !important;
+    }
+    
+    .env-shell-chrome:not([data-desktop]) .env-shell-taskbar ui-task[data-env-home]::part(icon) {
+        inline-size: 1.5rem;
+        block-size: 1.5rem;
+    }
+    
+    /* Prefer Phosphor glyph; letter fallback is last resort (was wrongly showing "U"). */
+    .env-shell-chrome:not([data-desktop]) .env-shell-taskbar ui-task[data-env-home]::part(glyph) {
+        inline-size: 1.5rem;
+        block-size: 1.5rem;
+        opacity: 1;
+    }
+    
+    .env-shell-chrome:not([data-desktop]) .env-shell-taskbar ui-task[data-env-home]::part(letter) {
+        opacity: 0;
+    }
+    
+    .env-shell-chrome:not([data-desktop]) .env-shell-taskbar ui-task[data-env-home]:hover,
+    .env-shell-chrome:not([data-desktop]) .env-shell-taskbar ui-task[data-env-home]:active {
+        background: color-mix(in oklch, #fff 10%, transparent);
+    }
+    
+    .env-shell-chrome:not([data-desktop]) .env-shell-taskbar ui-task[data-env-home][data-env-active="true"],
+    .env-shell-chrome:not([data-desktop]) .env-shell-taskbar ui-task[data-env-home][data-active],
+    .env-shell-chrome:not([data-desktop]) .env-shell-taskbar ui-task[data-env-home][data-focus] {
+        background: color-mix(in oklch, #fff 8%, transparent);
+        /*box-shadow: inset 0 -2px 0 #60cdff;*/
+    }
+    
+    /* Mobile: statusbar meta is redundant — nav owns Home. */
+    .env-shell-chrome:not([data-desktop]) .env-ui-statusbar {
+        display: none !important;
+    }
+    
+}

@@ -1,12 +1,29 @@
 /*
  * Filename: Windows2.scss
  * FullPath: modules/projects/fl.ui/src/ui/containers/window/Windows2.scss
- * Change date and time: 13.00.00_29.07.2026
- * Reason for changes: Titlebar above content so drag/clicks are not swallowed (settings etc.).
+ * Change date and time: 16.25.00_31.07.2026
+ * Reason for changes: --ui-win-* palette via --u2-color-mod (token names kept).
  */
 
-/* WHY: Inline adopted sheet for <ui-window>; light-dark() + explicit theme attrs keep parity
- * without requiring full veela runtime on the host document. */
+/* WHY: Inline adopted sheet for <ui-window>; function local so shadow sheet resolves mods. */
+@#{"function --u2-color-mod(--base-color <color>, --index <number> : 550) returns <color>"} {
+    --i: clamp(0, var(--index), 1000);
+    --pivot: 550;
+    --white-distance: clamp(0, calc((var(--pivot) - var(--i)) / var(--pivot)), 1);
+    --black-distance: clamp(0, calc((var(--i) - var(--pivot)) / (1000 - var(--pivot))), 1);
+    --to-white: pow(var(--white-distance), 1.15);
+    --to-black: pow(var(--black-distance), 1.08);
+    --center-left: clamp(0, calc(var(--i) / var(--pivot)), 1);
+    --center-right: clamp(0, calc((1000 - var(--i)) / (1000 - var(--pivot))), 1);
+    --chroma-shape: sqrt(min(var(--center-left), var(--center-right)));
+    --chroma-scale: calc(0.08 + 0.92 * var(--chroma-shape));
+    result: oklch(
+        from var(--base-color)
+        calc(l + (0.985 - l) * var(--to-white) + (0.16 - l) * var(--to-black))
+        calc(c * var(--chroma-scale))
+        h
+    );
+}
 
 :host(ui-window) {
     /* Tokens — light defaults via light-dark(); dark flips with color-scheme / data-theme */
@@ -19,13 +36,33 @@
     --ui-win-pad-inline: 0.75rem;
     --ui-win-pad-block: 0.65rem;
 
-    --ui-win-bg: light-dark(#f7f8fb, #121826);
-    --ui-win-fg: light-dark(#152033, #e8edf5);
-    --ui-win-muted: light-dark(#5b6b86, #8b9bb8);
-    --ui-win-border: light-dark(rgb(21 32 51 / 0.12), rgb(232 237 245 / 0.12));
-    --ui-win-titlebar-bg: light-dark(#eef1f7, #1a2233);
-    --ui-win-content-bg: light-dark(#ffffff, #0f1624);
-    --ui-win-footer-bg: light-dark(#f0f3f9, #151d2e);
+    /* Prefer host/document brand; fallback seed keeps window usable without veela. */
+    --ui-win-seed: var(--base-color, var(--color-primary, #5a7fff));
+    --ui-win-bg: light-dark(
+        --u2-color-mod(var(--ui-win-seed), 70),
+        --u2-color-mod(var(--ui-win-seed), 930)
+    );
+    --ui-win-fg: light-dark(
+        --u2-color-mod(var(--ui-win-seed), 900),
+        --u2-color-mod(var(--ui-win-seed), 100)
+    );
+    --ui-win-muted: light-dark(
+        --u2-color-mod(var(--ui-win-seed), 700),
+        --u2-color-mod(var(--ui-win-seed), 280)
+    );
+    --ui-win-border: color-mix(in oklab, var(--ui-win-fg) 12%, transparent);
+    --ui-win-titlebar-bg: light-dark(
+        --u2-color-mod(var(--ui-win-seed), 140),
+        --u2-color-mod(var(--ui-win-seed), 860)
+    );
+    --ui-win-content-bg: light-dark(
+        --u2-color-mod(var(--ui-win-seed), 40),
+        --u2-color-mod(var(--ui-win-seed), 950)
+    );
+    --ui-win-footer-bg: light-dark(
+        --u2-color-mod(var(--ui-win-seed), 120),
+        --u2-color-mod(var(--ui-win-seed), 900)
+    );
     --ui-win-shadow:
         light-dark(
             0 18px 40px -18px rgb(15 23 42 / 0.28),
@@ -33,12 +70,15 @@
         );
     /* WHY: transparent idle so controls share the solid titlebar fill (no “chip strip”). */
     --ui-win-control-bg: transparent;
-    --ui-win-control-bg-hover: light-dark(rgb(21 32 51 / 0.12), rgb(232 237 245 / 0.16));
+    --ui-win-control-bg-hover: color-mix(in oklab, var(--ui-win-fg) 14%, transparent);
     --ui-win-control-fg: var(--ui-win-fg);
     --ui-win-close-bg: transparent;
-    --ui-win-close-bg-hover: light-dark(rgb(220 38 38 / 0.92), rgb(239 68 68 / 0.95));
+    --ui-win-close-bg-hover: light-dark(
+        --u2-color-mod(#ef4444, 550),
+        --u2-color-mod(#ef4444, 480)
+    );
     --ui-win-close-fg: var(--ui-win-fg);
-    --ui-win-close-fg-hover: #fff;
+    --ui-win-close-fg-hover: --u2-color-mod(var(--ui-win-seed), 40);
     --icon-color: var(--ui-win-fg);
     --icon-size: var(--ui-win-icon-size);
 

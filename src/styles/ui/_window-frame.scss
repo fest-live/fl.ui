@@ -502,9 +502,9 @@
 
 
 @mixin window-frame-variables {
-    // Window frame CSS custom properties
-    --ui-window-frame-bg: var(--fl-surface, #fff);
-    --ui-window-frame-color: var(--fl-on-surface, #111);
+    // Window frame CSS custom properties — prefer veela/MD tokens over raw hex
+    --ui-window-frame-bg: var(--fl-surface, var(--color-surface, --u2-color-mod(var(--base-color, #5a7fff), 40)));
+    --ui-window-frame-color: var(--fl-on-surface, var(--color-on-surface, --u2-color-mod(var(--base-color, #5a7fff), 900)));
     --ui-window-frame-border-radius: var(--fl-radius-lg, 0.85rem);
     --ui-window-frame-shadow: var(--fl-shadow-xl, 0 20px 25px rgba(0, 0, 0, 0.1));
     --ui-window-frame-titlebar-height: 2.5rem;

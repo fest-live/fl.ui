@@ -1,12 +1,40 @@
+/*
+ * Filename: _variables.scss
+ * FullPath: modules/projects/fl.ui/src/styles/ui/_variables.scss
+ * Change date and time: 16.25.00_31.07.2026
+ * Reason for changes: Fallback --color-* via --u2-color-mod (token names kept).
+ */
+
 // Design tokens for fl.ui when veela is not loaded (minimal fallback).
+// WHY: function duplicated so vl-basic / standalone fl.ui sheets still resolve mods.
+@#{"function --u2-color-mod(--base-color <color>, --index <number> : 550) returns <color>"} {
+    --i: clamp(0, var(--index), 1000);
+    --pivot: 550;
+    --white-distance: clamp(0, calc((var(--pivot) - var(--i)) / var(--pivot)), 1);
+    --black-distance: clamp(0, calc((var(--i) - var(--pivot)) / (1000 - var(--pivot))), 1);
+    --to-white: pow(var(--white-distance), 1.15);
+    --to-black: pow(var(--black-distance), 1.08);
+    --center-left: clamp(0, calc(var(--i) / var(--pivot)), 1);
+    --center-right: clamp(0, calc((1000 - var(--i)) / (1000 - var(--pivot))), 1);
+    --chroma-shape: sqrt(min(var(--center-left), var(--center-right)));
+    --chroma-scale: calc(0.08 + 0.92 * var(--chroma-shape));
+    result: oklch(
+        from var(--base-color)
+        calc(l + (0.985 - l) * var(--to-white) + (0.16 - l) * var(--to-black))
+        calc(c * var(--chroma-scale))
+        h
+    );
+}
+
 :root {
     --fl-ui-radius: 0.5rem;
     --fl-ui-gap: 0.75rem;
 
     /* Explorer / shell (used by _explorer.scss, _explorer-content.scss) */
-    --color-surface: #151d2e;
-    --color-on-surface: #e8edf5;
-    --color-on-surface-variant: #8b9bb8;
     --color-primary: #3794ff;
+    --base-color: var(--color-primary);
+    --color-surface: --u2-color-mod(var(--base-color), 920);
+    --color-on-surface: --u2-color-mod(var(--base-color), 100);
+    --color-on-surface-variant: --u2-color-mod(var(--base-color), 280);
     --error-color: #f87171;
 }

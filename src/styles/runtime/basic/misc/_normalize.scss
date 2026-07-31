@@ -1,5 +1,30 @@
-/* ai-refactor: optimized/refactored at 2026-02-13T00:44:57Z */
+/*
+ * Filename: _normalize.scss
+ * FullPath: modules/projects/fl.ui/src/styles/runtime/basic/misc/_normalize.scss
+ * Change date and time: 16.25.00_31.07.2026
+ * Reason for changes: vl-basic palette via --u2-color-mod (token names kept).
+ */
 @use "./shared" as *;
+
+// COMPAT: vl-basic may load without veela _tokens.scss — keep function local.
+@#{"function --u2-color-mod(--base-color <color>, --index <number> : 550) returns <color>"} {
+    --i: clamp(0, var(--index), 1000);
+    --pivot: 550;
+    --white-distance: clamp(0, calc((var(--pivot) - var(--i)) / var(--pivot)), 1);
+    --black-distance: clamp(0, calc((var(--i) - var(--pivot)) / (1000 - var(--pivot))), 1);
+    --to-white: pow(var(--white-distance), 1.15);
+    --to-black: pow(var(--black-distance), 1.08);
+    --center-left: clamp(0, calc(var(--i) / var(--pivot)), 1);
+    --center-right: clamp(0, calc((1000 - var(--i)) / (1000 - var(--pivot))), 1);
+    --chroma-shape: sqrt(min(var(--center-left), var(--center-right)));
+    --chroma-scale: calc(0.08 + 0.92 * var(--chroma-shape));
+    result: oklch(
+        from var(--base-color)
+        calc(l + (0.985 - l) * var(--to-white) + (0.16 - l) * var(--to-black))
+        calc(c * var(--chroma-scale))
+        h
+    );
+}
 
 @layer tokens, base, layout, utilities, shells, shell, views, view, viewer, components, ux-layer, markdown, essentials, print, print-breaks, overrides;
 
@@ -12,20 +37,54 @@
          * and light-dark() in views never resolves meaningfully.
          * Native CSS light-dark() follows the used color-scheme (Theme.ts sets html.style.colorScheme).
          */
-        --color-bg: light-dark(#f4f6fa, #0f1419);
-        --color-text: light-dark(#111827, #e5e7eb);
+        --color-primary: light-dark(#2563eb, #60a5fa);
+        --base-color: var(--color-primary);
+        --color-bg: light-dark(
+            --u2-color-mod(var(--base-color), 70),
+            --u2-color-mod(var(--base-color), 940)
+        );
+        --color-text: light-dark(
+            --u2-color-mod(var(--base-color), 900),
+            --u2-color-mod(var(--base-color), 100)
+        );
         --color-fg: var(--color-text);
-        --color-bg-secondary: light-dark(#e8ecf4, #1a2332);
-        --color-bg-alt: light-dark(#dfe6ee, #151f2e);
-        --color-text-secondary: light-dark(#64748b, #94a3b8);
-        --color-border: light-dark(#cbd5e1, #334155);
-        --color-table: light-dark(#f1f5f9, #1e293b);
-        --color-link: light-dark(#2563eb, #60a5fa);
-        --color-primary: var(--color-link);
-        --color-primary-hover: light-dark(#1d4ed8, #93c5fd);
-        --color-secondary: light-dark(#64748b, #94a3b8);
-        --color-outline: light-dark(#94a3b8, #475569);
-        --color-outline-variant: light-dark(#cbd5e1, #334155);
+        --color-bg-secondary: light-dark(
+            --u2-color-mod(var(--base-color), 160),
+            --u2-color-mod(var(--base-color), 840)
+        );
+        --color-bg-alt: light-dark(
+            --u2-color-mod(var(--base-color), 200),
+            --u2-color-mod(var(--base-color), 880)
+        );
+        --color-text-secondary: light-dark(
+            --u2-color-mod(var(--base-color), 700),
+            --u2-color-mod(var(--base-color), 280)
+        );
+        --color-border: light-dark(
+            --u2-color-mod(var(--base-color), 300),
+            --u2-color-mod(var(--base-color), 640)
+        );
+        --color-table: light-dark(
+            --u2-color-mod(var(--base-color), 120),
+            --u2-color-mod(var(--base-color), 860)
+        );
+        --color-link: var(--color-primary);
+        --color-primary-hover: light-dark(
+            --u2-color-mod(var(--base-color), 620),
+            --u2-color-mod(var(--base-color), 480)
+        );
+        --color-secondary: light-dark(
+            --u2-color-mod(var(--base-color), 420),
+            --u2-color-mod(var(--base-color), 680)
+        );
+        --color-outline: light-dark(
+            --u2-color-mod(var(--base-color), 400),
+            --u2-color-mod(var(--base-color), 720)
+        );
+        --color-outline-variant: light-dark(
+            --u2-color-mod(var(--base-color), 300),
+            --u2-color-mod(var(--base-color), 640)
+        );
         --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
         --line-height: 1.5;
         --border-radius: 0.5rem;

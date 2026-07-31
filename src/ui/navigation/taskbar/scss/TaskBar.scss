@@ -295,9 +295,13 @@
         /*box-shadow: inset 0 -2px 0 #60cdff;*/
     }
     
-    /* Mobile: statusbar meta is redundant — nav owns Home. */
-    .env-shell-chrome:not([data-desktop]) .env-ui-statusbar {
+    /*
+     * Mobile footer statusbar is replaced by the fixed overlay band when
+     * `[data-status-overlay]` is set (see statusbar.scss). Without overlay
+     * (standalone), hide the footer copy entirely.
+     */
+    .env-shell-chrome:not([data-desktop]):not([data-status-overlay]) .env-ui-statusbar {
         display: none !important;
     }
-    
+
 }

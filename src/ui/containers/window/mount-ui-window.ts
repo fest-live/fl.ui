@@ -1,9 +1,8 @@
 /*
  * Filename: mount-ui-window.ts
  * FullPath: modules/shells/environment-shell/src/mount-ui-window.ts
- * Change date and time: 11.20.00_31.07.2026
- * Reason for changes: Shell-side shadow chrome bind (dual-path) so max/min/close cannot go dead.
- *   2026-07-31: honor minimized on mobile — applyChrome was clearing it so Home never collapsed.
+ * Change date and time: 14.05.00_31.07.2026
+ * Reason for changes: data-status-gap / data-no-titlebar for overlay statusbar + standalone.
  */
 /**
  * WHY: Replaces `.wf-frame` / {@link mountWindowFrame} for environment-shell floating views.
@@ -155,10 +154,26 @@ export function mountUiWindow(
         const isDeskMax = !mqMobile && Boolean(desktopMaximized.value) && !isNative && !isMin;
         const isMobMax = mqMobile && !isNative && !isMin;
 
+        // WHY: title spacer under transparent overlay status; standalone mobile has no titlebar.
+        const shellEl =
+            host.closest?.(".env-shell-root") ??
+            host.closest?.("env-shell-container") ??
+            document.querySelector?.(".env-shell-root, env-shell-container");
+        const statusOverlay =
+            (shellEl instanceof HTMLElement && shellEl.hasAttribute("data-status-overlay")) ||
+            document.documentElement.hasAttribute("data-env-status-overlay");
+        const standalone =
+            (shellEl instanceof HTMLElement && shellEl.hasAttribute("data-standalone")) ||
+            document.documentElement.hasAttribute("data-env-standalone");
+        const statusGap = statusOverlay && !isNative && !isMin && (isMobMax || isDeskMax);
+        const noTitlebar = standalone && mqMobile && !isNative && !isMin;
+
         win.toggleAttribute("native-mode", isNative && !isMin);
         win.toggleAttribute("minimized", isMin);
         win.toggleAttribute("data-mobile-max", isMobMax);
         win.toggleAttribute("data-desk-max", isDeskMax);
+        win.toggleAttribute("data-status-gap", statusGap);
+        win.toggleAttribute("data-no-titlebar", noTitlebar);
         win.toggleAttribute("maximized", !isMin && (isDeskMax || isMobMax || isNative));
 
         if (isMin) {
@@ -247,6 +262,16 @@ export function mountUiWindow(
 
     isMobileMq.addEventListener("change", onMq);
     onMq();
+
+    const onChromeSurface = (): void => {
+        applyChrome();
+        notifyChrome();
+    };
+    const surfaceRoot =
+        host.closest?.(".env-shell-root") ??
+        host.closest?.("env-shell-container") ??
+        document.documentElement;
+    surfaceRoot?.addEventListener?.("env-chrome-surface", onChromeSurface);
 
     const onWinFocus = (): void => {
         // WHY: Focusing a minimized window restores it (taskbar / click-through).
@@ -421,6 +446,7 @@ export function mountUiWindow(
                 disposed = true;
                 stopFx?.();
                 isMobileMq.removeEventListener("change", onMq);
+                surfaceRoot?.removeEventListener?.("env-chrome-surface", onChromeSurface);
                 try {
                     if (win.isConnected) win.remove();
                 } catch {
@@ -563,6 +589,7 @@ export function mountUiWindow(
         chromeMo?.disconnect();
         chromeMo = null;
         isMobileMq.removeEventListener("change", onMq);
+        surfaceRoot?.removeEventListener?.("env-chrome-surface", onChromeSurface);
         win.removeEventListener("window-focus", onWinFocus);
         win.removeEventListener("window-move", onWinMove);
         win.removeEventListener("window-resize", onWinResize);

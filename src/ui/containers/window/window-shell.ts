@@ -43,7 +43,7 @@ export type WindowChromeModel = {
     isMobileMq: MediaQueryList;
 };
 
-const dragMin = Object.freeze({ w: 240, h: 160 });
+const dragMin = Object.freeze({ w: 360, h: 240 });
 const deskInset = 8;
 
 /** When mounted under `.env-shell-root`, add this boost so windows stack above the home layer. */
@@ -75,7 +75,7 @@ export function createChromeModel(
         demoRole: DemoWindowRole;
     }> = {}
 ): WindowChromeModel {
-    const { x = 48, y = 48, w = 460, h = 320, z = 10, demoRole } = seed;
+    const { x = 48, y = 48, w = 640, h = 480, z = 10, demoRole } = seed;
     const mq = matchMedia("(max-width: 640px)");
     return {
         demoRole,

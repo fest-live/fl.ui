@@ -130,14 +130,27 @@
 /*
  * Mobile (env shell): full-bleed except bottom dock reserve; no min/max/close —
  * Home on the mobile taskbar replaces Close.
+ * Titlebar becomes an empty spacer under the transparent overlay statusband
+ * (`--env-status-inset-top`) unless standalone (`data-no-titlebar`).
  */
 :host(ui-window[data-mobile-max]) {
     --ui-win-radius: 0;
-    inset: 0 0 var(--env-mobile-dock-reserve, 0rem) 0 !important;
+    /* Spacer height matches overlay status / notch when status-gap is on. */
+    --ui-win-titlebar-height: var(--env-status-inset-top, max(2rem, env(safe-area-inset-top, 0px)));
+    /*inset: 0 0 var(--env-mobile-dock-reserve, 0rem) 0 !important;*/
+    inset: 0px;
     inline-size: 100% !important;
-    block-size: auto !important;
+    block-size: calc(100% - var(--env-mobile-dock-reserve)) !important;
     border-radius: 0;
     transform: none !important;
+
+    @media screen and (pointer: fine) and ((min-width: 480px) or (hover: hover)) {
+        inset: 0 0 var(--env-mobile-dock-reserve, 0rem) 0 !important;
+    }
+
+    @media screen and (pointer: coarse) and (hover: none) {
+        block-size: stretch !important;
+    }
 }
 
 :host(ui-window[data-mobile-max]) .title-minimize,
@@ -149,9 +162,46 @@
 
 :host(ui-window[data-mobile-max]) .title-handler {
     cursor: default;
+    /* Empty gap under overlay statusbar — wallpaper / window edge shows through. */
+    background: transparent;
+    border-block-end: 0;
+    min-block-size: var(--ui-win-titlebar-height);
+    padding-block: 0;
+    pointer-events: none;
 }
 
+:host(ui-window[data-mobile-max]) .title-handler-main,
+:host(ui-window[data-mobile-max]) .title-handler-actions,
 :host(ui-window[data-mobile-max]) .title-handler-buttons {
+    display: none !important;
+}
+
+/* Standalone PWA mobile: no titlebar — content is edge-to-edge (safe-area via views if needed). */
+:host(ui-window[data-no-titlebar]) {
+    --ui-win-titlebar-height: 0px;
+}
+
+:host(ui-window[data-no-titlebar]) .title-handler {
+    display: none !important;
+}
+
+/* Desktop/fullscreen with status overlay: maximized windows also reserve the top band. */
+:host(ui-window[data-status-gap]:not([data-no-titlebar])) {
+    --ui-win-titlebar-height: var(--env-status-inset-top, max(2rem, env(safe-area-inset-top, 0px)));
+}
+
+:host(ui-window[data-status-gap]:not([data-no-titlebar])) .title-handler {
+    cursor: default;
+    background: transparent;
+    border-block-end: 0;
+    min-block-size: var(--ui-win-titlebar-height);
+    padding-block: 0;
+    pointer-events: none;
+}
+
+:host(ui-window[data-status-gap]:not([data-no-titlebar])) .title-handler-main,
+:host(ui-window[data-status-gap]:not([data-no-titlebar])) .title-handler-actions,
+:host(ui-window[data-status-gap]:not([data-no-titlebar])) .title-handler-buttons {
     display: none !important;
 }
 
@@ -159,9 +209,13 @@
     --ui-win-radius: 0;
     inset: 0px !important;
     inline-size: auto !important;
-    block-size: auto !important;
+    block-size: calc(100% - var(--ui-win-titlebar-height)) !important;
     border-radius: 0;
     transform: none !important;
+
+    @media screen and (pointer: coarse) and (hover: none) {
+        block-size: stretch !important;
+    }
 }
 
 :host(ui-window[minimized]) {

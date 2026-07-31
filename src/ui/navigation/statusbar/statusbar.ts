@@ -1,6 +1,13 @@
+/*
+ * Filename: statusbar.ts
+ * FullPath: modules/projects/fl.ui/src/ui/navigation/statusbar/statusbar.ts
+ * Change date and time: 14.00.00_31.07.2026
+ * Reason for changes: Overlay statusbar clock + contrast probe for mobile/fullscreen.
+ */
 /**
  * WHY: Uses FL-UI `ui-statusbar` (left/center/right slots) — not a parallel component.
  * Reactive network/battery chips are shared via {@link attachShellDeviceStatus} for the desktop taskbar.
+ * Overlay mode (mobile browser / fullscreen, not standalone): transparent top band, time L / icons R.
  */
 import { E, H, defineElement } from "fest/lure";
 import { effect, ref, type refType } from "fest/object";
@@ -13,6 +20,157 @@ import UIElement from "fl-ui/base/UIElement";
 import styles from "./statusbar.scss?inline";
 import { preloadStyle } from "fest/dom";
 const styled = preloadStyle(styles);
+
+/** Shell display surface for chrome / status overlay decisions. */
+export type ShellDisplayMode =
+    | "browser"
+    | "standalone"
+    | "fullscreen"
+    | "minimal-ui"
+    | "window-controls-overlay"
+    | "unknown";
+
+export function matchShellDisplayMode(): ShellDisplayMode {
+    if (typeof matchMedia !== "function") return "unknown";
+    try {
+        if (matchMedia("(display-mode: window-controls-overlay)").matches) {
+            return "window-controls-overlay";
+        }
+        if (matchMedia("(display-mode: fullscreen)").matches) return "fullscreen";
+        if (matchMedia("(display-mode: standalone)").matches) return "standalone";
+        if (matchMedia("(display-mode: minimal-ui)").matches) return "minimal-ui";
+        if (matchMedia("(display-mode: browser)").matches) return "browser";
+    } catch {
+        /* ignore */
+    }
+    return "unknown";
+}
+
+export function isShellStandaloneDisplay(): boolean {
+    const mode = matchShellDisplayMode();
+    if (mode === "standalone" || mode === "minimal-ui") return true;
+    // iOS Safari installed PWA
+    try {
+        if ((navigator as Navigator & { standalone?: boolean }).standalone === true) return true;
+    } catch {
+        /* ignore */
+    }
+    return false;
+}
+
+/**
+ * Transparent top status overlay when:
+ * - mobile browser (not standalone), or
+ * - PWA / CSS fullscreen, or
+ * - document fullscreen API on a mobile-sized viewport.
+ * Standalone installed PWA: no overlay (OS chrome / edge-to-edge windows).
+ */
+export function shouldShowStatusOverlay(opts: {
+    desktop: boolean;
+    standalone?: boolean;
+    displayMode?: ShellDisplayMode;
+}): boolean {
+    const standalone = opts.standalone ?? isShellStandaloneDisplay();
+    if (standalone) return false;
+    const mode = opts.displayMode ?? matchShellDisplayMode();
+    const docFs =
+        typeof document !== "undefined" &&
+        Boolean(document.fullscreenElement || (document as Document & { webkitFullscreenElement?: Element }).webkitFullscreenElement);
+    const fullscreen = mode === "fullscreen" || docFs;
+    if (fullscreen) return true;
+    return !opts.desktop;
+}
+
+function formatStatusClock(d = new Date()): string {
+    try {
+        return new Intl.DateTimeFormat(undefined, { hour: "numeric", minute: "2-digit" }).format(d);
+    } catch {
+        const h = d.getHours();
+        const m = String(d.getMinutes()).padStart(2, "0");
+        return `${h}:${m}`;
+    }
+}
+
+/**
+ * Sample luminance under the top status band (wallpaper canvas / focused window) → light|dark fg.
+ * Sets `--env-status-fg` on `target` (usually `.env-shell-root`).
+ */
+export function attachStatusBarContrast(target: HTMLElement): () => void {
+    let disposed = false;
+    let timer: ReturnType<typeof setTimeout> | null = null;
+
+    const applyFg = (luma: number): void => {
+        // WHY: light bg → dark icons; dark bg → light icons.
+        const darkFg = luma > 0.55;
+        target.style.setProperty("--env-status-fg", darkFg ? "#1c1c1e" : "#f5f5f7");
+        target.style.setProperty("--env-status-fg-muted", darkFg ? "rgba(28,28,30,0.72)" : "rgba(245,245,247,0.78)");
+        target.dataset.statusContrast = darkFg ? "dark" : "light";
+    };
+
+    const sample = (): void => {
+        if (disposed) return;
+        try {
+            const h = Math.max(8, Math.round(parseFloat(getComputedStyle(target).getPropertyValue("--env-status-inset-top")) || 32));
+            const w = Math.min(target.clientWidth || window.innerWidth || 360, 480);
+            const canvas =
+                target.querySelector(".env-shell-wallpaper canvas") ||
+                document.querySelector(".env-shell-wallpaper canvas");
+            if (canvas instanceof HTMLCanvasElement && canvas.width > 0 && canvas.height > 0) {
+                const ctx = canvas.getContext("2d", { willReadFrequently: true });
+                if (ctx) {
+                    const sy = 0;
+                    const sh = Math.max(1, Math.round((h / Math.max(1, canvas.clientHeight || h)) * canvas.height));
+                    const sw = canvas.width;
+                    const data = ctx.getImageData(0, sy, sw, Math.min(sh, canvas.height)).data;
+                    let sum = 0;
+                    let n = 0;
+                    // Sparse sample for PERF.
+                    for (let i = 0; i < data.length; i += 4 * 48) {
+                        const r = data[i] / 255;
+                        const g = data[i + 1] / 255;
+                        const b = data[i + 2] / 255;
+                        sum += 0.2126 * r + 0.7152 * g + 0.0722 * b;
+                        n++;
+                    }
+                    if (n > 0) {
+                        applyFg(sum / n);
+                        return;
+                    }
+                }
+            }
+        } catch {
+            /* tainted canvas / missing — fall through */
+        }
+        // Fallback: prefer light icons on typical dark wallpapers; flip with color-scheme.
+        const darkUi = matchMedia?.("(prefers-color-scheme: dark)")?.matches ?? true;
+        applyFg(darkUi ? 0.2 : 0.85);
+    };
+
+    const schedule = (): void => {
+        if (timer != null) clearTimeout(timer);
+        timer = setTimeout(sample, 120);
+    };
+
+    sample();
+    const mo = typeof MutationObserver === "function" ? new MutationObserver(schedule) : null;
+    const wallpaper = target.querySelector(".env-shell-wallpaper") || document.querySelector(".env-shell-wallpaper");
+    if (wallpaper && mo) mo.observe(wallpaper, { childList: true, subtree: true, attributes: true });
+    window.addEventListener("resize", schedule);
+    document.addEventListener("visibilitychange", schedule);
+    const mq = typeof matchMedia === "function" ? matchMedia("(prefers-color-scheme: dark)") : null;
+    mq?.addEventListener?.("change", schedule);
+    const interval = setInterval(sample, 8000);
+
+    return () => {
+        disposed = true;
+        if (timer != null) clearTimeout(timer);
+        clearInterval(interval);
+        mo?.disconnect();
+        window.removeEventListener("resize", schedule);
+        document.removeEventListener("visibilitychange", schedule);
+        mq?.removeEventListener?.("change", schedule);
+    };
+}
 
 //
 // @ts-ignore
@@ -171,7 +329,9 @@ export type MountStatusBarResult = {
 };
 
 /**
- * `ui-statusbar`: intro (left), shell meta (center), device tray (right, hidden on desktop when taskbar shows icons).
+ * `ui-statusbar`:
+ * - Desktop footer: intro (left), shell meta (center), device tray (right; often CSS-hidden).
+ * - Overlay (mobile/fullscreen): clock (left), device tray (right); intro/meta hidden.
  */
 export function mountEnvironmentStatusBar(
     shell: EnvironmentShellStatusRefs,
@@ -184,8 +344,19 @@ export function mountEnvironmentStatusBar(
 
     const left = document.createElement("div");
     left.slot = "left";
-    left.className = "env-ui-statusbar__intro";
-    if (introInnerHtml) left.innerHTML = introInnerHtml;
+    left.className = "env-ui-statusbar__left";
+
+    const clock = document.createElement("time");
+    clock.className = "env-ui-statusbar__clock";
+    clock.dateTime = "";
+    clock.textContent = formatStatusClock();
+    clock.setAttribute("aria-live", "polite");
+
+    const intro = document.createElement("div");
+    intro.className = "env-ui-statusbar__intro";
+    if (introInnerHtml) intro.innerHTML = introInnerHtml;
+
+    left.append(clock, intro);
 
     const center = document.createElement("div");
     center.slot = "center";
@@ -209,7 +380,16 @@ export function mountEnvironmentStatusBar(
         { triggerImmediately: true }
     );
 
+    const tickClock = (): void => {
+        const now = new Date();
+        clock.textContent = formatStatusClock(now);
+        clock.dateTime = now.toISOString();
+    };
+    tickClock();
+    const clockTimer = setInterval(tickClock, 15_000);
+
     const dispose = (): void => {
+        clearInterval(clockTimer);
         /* Host disposes {@link ShellDeviceStatus} once (shared with taskbar). */
     };
 

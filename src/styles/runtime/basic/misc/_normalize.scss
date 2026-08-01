@@ -37,7 +37,7 @@
          * and light-dark() in views never resolves meaningfully.
          * Native CSS light-dark() follows the used color-scheme (Theme.ts sets html.style.colorScheme).
          */
-        --color-primary: light-dark(#2563eb, #60a5fa);
+        --color-primary: light-dark(#91b6e3, #2e3a64);
         --base-color: var(--color-primary);
         --color-bg: light-dark(
             --u2-color-mod(var(--base-color), 70),

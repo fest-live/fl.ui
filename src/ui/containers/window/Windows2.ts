@@ -108,7 +108,7 @@ export class Windows2 extends UIElement {
                     </button>
                 </div>
             </header>
-            <div class="content-handler" part="content-handler">
+            <div class="content-handler" part="content-handler" style="container-type: size;">
                 <slot name="content"></slot>
                 <slot></slot>
             </div>

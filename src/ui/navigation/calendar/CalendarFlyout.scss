@@ -80,6 +80,8 @@
 
     ui-icon {
         --icon-size: 1.05rem;
+        /* WHY: mask fill must track button ink (dark/light); not a fixed @property slate. */
+        --icon-color: currentColor;
         inline-size: var(--icon-size);
         block-size: var(--icon-size);
         color: currentColor;

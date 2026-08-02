@@ -1,8 +1,8 @@
 /*
  * Filename: statusbar.ts
  * FullPath: modules/projects/fl.ui/src/ui/navigation/statusbar/statusbar.ts
- * Change date and time: 14.00.00_31.07.2026
- * Reason for changes: Overlay statusbar clock + contrast probe for mobile/fullscreen.
+ * Change date and time: 09.15.00_02.08.2026
+ * Reason for changes: Status fg follows open light windows (not wallpaper-only white icons).
  */
 /**
  * WHY: Uses FL-UI `ui-statusbar` (left/center/right slots) — not a parallel component.
@@ -11,6 +11,8 @@
  */
 import { E, H, defineElement } from "fest/lure";
 import { effect, ref, type refType } from "fest/object";
+import { toggleCalendarFlyout } from "../calendar/CalendarFlyout";
+import { toggleQuickSettingsFlyout } from "../settings/QuickSettings";
 
 /* Statusbar wrapper */
 import UIElement from "fl-ui/base/UIElement";
@@ -92,58 +94,153 @@ function formatStatusClock(d = new Date()): string {
 }
 
 /**
- * Sample luminance under the top status band (wallpaper canvas / focused window) → light|dark fg.
- * Sets `--env-status-fg` on `target` (usually `.env-shell-root`).
+ * Sample wallpaper + open-window chrome → status/launcher fg.
+ * WHY: Overlay status sits on wallpaper OR on light window title spacers (`data-status-gap`);
+ * wallpaper-only probe kept white icons over light titlebars in app light theme.
  */
 export function attachStatusBarContrast(target: HTMLElement): () => void {
     let disposed = false;
     let timer: ReturnType<typeof setTimeout> | null = null;
 
-    const applyFg = (luma: number): void => {
-        // WHY: light bg → dark icons; dark bg → light icons.
+    const lumaOf = (data: Uint8ClampedArray, step = 48): number | null => {
+        let sum = 0;
+        let n = 0;
+        for (let i = 0; i < data.length; i += 4 * step) {
+            const r = data[i]! / 255;
+            const g = data[i + 1]! / 255;
+            const b = data[i + 2]! / 255;
+            sum += 0.2126 * r + 0.7152 * g + 0.0722 * b;
+            n++;
+        }
+        return n > 0 ? sum / n : null;
+    };
+
+    const applyStatusFg = (luma: number): void => {
+        // WHY: light backdrop → dark status icons; dark backdrop → light icons.
         const darkFg = luma > 0.55;
         target.style.setProperty("--env-status-fg", darkFg ? "#1c1c1e" : "#f5f5f7");
         target.style.setProperty("--env-status-fg-muted", darkFg ? "rgba(28,28,30,0.72)" : "rgba(245,245,247,0.78)");
         target.dataset.statusContrast = darkFg ? "dark" : "light";
     };
 
+    const applyLauncherFg = (luma: number): void => {
+        /*
+         * WHY: Speed-dial captions sit on the wallpaper, not on UI chrome — must follow
+         * wallpaper luminance, not `html[data-theme]` (light theme + dark wood = invisible labels).
+         */
+        const darkFg = luma > 0.52;
+        target.style.setProperty("--env-launcher-fg", darkFg ? "#141416" : "#f7f7f8");
+        target.style.setProperty(
+            "--env-launcher-fg-shadow",
+            darkFg ? "rgb(255 255 255 / 0.72)" : "rgb(0 0 0 / 0.88)"
+        );
+        target.style.setProperty(
+            "--env-launcher-fg-glow",
+            darkFg ? "rgb(255 255 255 / 0.35)" : "rgb(0 0 0 / 0.45)"
+        );
+        target.dataset.launcherContrast = darkFg ? "dark" : "light";
+    };
+
+    /** Open managed windows that reserve the top status inset (title under overlay). */
+    const statusGapWindowsOpen = (): boolean => {
+        try {
+            for (const win of document.querySelectorAll<HTMLElement>("ui-window[managed]")) {
+                if (win.hidden || win.hasAttribute("hidden")) continue;
+                if (win.getAttribute("aria-hidden") === "true") continue;
+                const st = getComputedStyle(win);
+                if (st.display === "none" || st.visibility === "hidden" || Number(st.opacity) === 0) {
+                    continue;
+                }
+                if (win.hasAttribute("data-status-gap") || win.hasAttribute("data-status-overlay-gap")) {
+                    return true;
+                }
+                const top = win.getBoundingClientRect().top;
+                const inset = Math.max(
+                    8,
+                    parseFloat(getComputedStyle(target).getPropertyValue("--env-status-inset-top")) || 32
+                );
+                if (top < inset + 8) return true;
+            }
+        } catch {
+            /* ignore */
+        }
+        return false;
+    };
+
     const sample = (): void => {
         if (disposed) return;
+        const appTheme = (document.documentElement.getAttribute("data-theme") || "").toLowerCase();
+        const windowsUnderStatus = statusGapWindowsOpen();
+
+        /*
+         * INVARIANT: When a light-themed window owns the top band, status ink must be dark
+         * even if wallpaper behind is dark wood (probe would otherwise keep white icons).
+         */
+        if (windowsUnderStatus && appTheme === "light") {
+            applyStatusFg(0.9);
+        } else if (windowsUnderStatus && appTheme === "dark") {
+            applyStatusFg(0.15);
+        } else {
+            try {
+                const h = Math.max(
+                    8,
+                    Math.round(parseFloat(getComputedStyle(target).getPropertyValue("--env-status-inset-top")) || 32)
+                );
+                const canvas =
+                    target.querySelector(".env-shell-wallpaper canvas") ||
+                    document.querySelector(".env-shell-wallpaper canvas");
+                if (canvas instanceof HTMLCanvasElement && canvas.width > 0 && canvas.height > 0) {
+                    const ctx = canvas.getContext("2d", { willReadFrequently: true });
+                    if (ctx) {
+                        const sw = canvas.width;
+                        const shTop = Math.max(
+                            1,
+                            Math.round((h / Math.max(1, canvas.clientHeight || h)) * canvas.height)
+                        );
+                        const topLuma = lumaOf(
+                            ctx.getImageData(0, 0, sw, Math.min(shTop, canvas.height)).data
+                        );
+                        if (topLuma != null) applyStatusFg(topLuma);
+                        else {
+                            const darkUi = matchMedia?.("(prefers-color-scheme: dark)")?.matches ?? true;
+                            applyStatusFg(darkUi ? 0.2 : 0.85);
+                        }
+                    }
+                } else {
+                    const darkUi = matchMedia?.("(prefers-color-scheme: dark)")?.matches ?? true;
+                    applyStatusFg(darkUi ? 0.2 : 0.85);
+                }
+            } catch {
+                const darkUi = matchMedia?.("(prefers-color-scheme: dark)")?.matches ?? true;
+                applyStatusFg(darkUi ? 0.2 : 0.85);
+            }
+        }
+
+        /* Launcher labels always track wallpaper mid-frame (not window chrome). */
         try {
-            const h = Math.max(8, Math.round(parseFloat(getComputedStyle(target).getPropertyValue("--env-status-inset-top")) || 32));
-            const w = Math.min(target.clientWidth || window.innerWidth || 360, 480);
             const canvas =
                 target.querySelector(".env-shell-wallpaper canvas") ||
                 document.querySelector(".env-shell-wallpaper canvas");
             if (canvas instanceof HTMLCanvasElement && canvas.width > 0 && canvas.height > 0) {
                 const ctx = canvas.getContext("2d", { willReadFrequently: true });
                 if (ctx) {
-                    const sy = 0;
-                    const sh = Math.max(1, Math.round((h / Math.max(1, canvas.clientHeight || h)) * canvas.height));
                     const sw = canvas.width;
-                    const data = ctx.getImageData(0, sy, sw, Math.min(sh, canvas.height)).data;
-                    let sum = 0;
-                    let n = 0;
-                    // Sparse sample for PERF.
-                    for (let i = 0; i < data.length; i += 4 * 48) {
-                        const r = data[i] / 255;
-                        const g = data[i + 1] / 255;
-                        const b = data[i + 2] / 255;
-                        sum += 0.2126 * r + 0.7152 * g + 0.0722 * b;
-                        n++;
-                    }
-                    if (n > 0) {
-                        applyFg(sum / n);
+                    const midY = Math.max(0, Math.round(canvas.height * 0.28));
+                    const midH = Math.max(1, Math.round(canvas.height * 0.36));
+                    const midLuma = lumaOf(
+                        ctx.getImageData(0, midY, sw, Math.min(midH, canvas.height - midY)).data
+                    );
+                    if (midLuma != null) {
+                        applyLauncherFg(midLuma);
                         return;
                     }
                 }
             }
         } catch {
-            /* tainted canvas / missing — fall through */
+            /* fall through */
         }
-        // Fallback: prefer light icons on typical dark wallpapers; flip with color-scheme.
         const darkUi = matchMedia?.("(prefers-color-scheme: dark)")?.matches ?? true;
-        applyFg(darkUi ? 0.2 : 0.85);
+        applyLauncherFg(darkUi ? 0.2 : 0.85);
     };
 
     const schedule = (): void => {
@@ -155,8 +252,20 @@ export function attachStatusBarContrast(target: HTMLElement): () => void {
     const mo = typeof MutationObserver === "function" ? new MutationObserver(schedule) : null;
     const wallpaper = target.querySelector(".env-shell-wallpaper") || document.querySelector(".env-shell-wallpaper");
     if (wallpaper && mo) mo.observe(wallpaper, { childList: true, subtree: true, attributes: true });
+    /* Re-probe when windows open/close or gain status-gap under the overlay. */
+    const winMo =
+        typeof MutationObserver === "function"
+            ? new MutationObserver(schedule)
+            : null;
+    winMo?.observe(document.documentElement, {
+        childList: true,
+        subtree: true,
+        attributes: true,
+        attributeFilter: ["hidden", "data-status-gap", "data-theme", "aria-hidden", "style", "class"]
+    });
     window.addEventListener("resize", schedule);
     document.addEventListener("visibilitychange", schedule);
+    document.addEventListener("env-chrome-surface", schedule as EventListener);
     const mq = typeof matchMedia === "function" ? matchMedia("(prefers-color-scheme: dark)") : null;
     mq?.addEventListener?.("change", schedule);
     const interval = setInterval(sample, 8000);
@@ -166,8 +275,10 @@ export function attachStatusBarContrast(target: HTMLElement): () => void {
         if (timer != null) clearTimeout(timer);
         clearInterval(interval);
         mo?.disconnect();
+        winMo?.disconnect();
         window.removeEventListener("resize", schedule);
         document.removeEventListener("visibilitychange", schedule);
+        document.removeEventListener("env-chrome-surface", schedule as EventListener);
         mq?.removeEventListener?.("change", schedule);
     };
 }
@@ -350,7 +461,11 @@ export function mountEnvironmentStatusBar(
     clock.className = "env-ui-statusbar__clock";
     clock.dateTime = "";
     clock.textContent = formatStatusClock();
-    clock.setAttribute("aria-live", "polite");
+    clock.setAttribute("role", "button");
+    clock.setAttribute("tabindex", "0");
+    clock.setAttribute("aria-label", "Calendar");
+    clock.setAttribute("aria-haspopup", "dialog");
+    clock.setAttribute("data-chrome-flyout-anchor", "calendar");
 
     const intro = document.createElement("div");
     intro.className = "env-ui-statusbar__intro";
@@ -367,7 +482,32 @@ export function mountEnvironmentStatusBar(
     const right = document.createElement("div");
     right.slot = "right";
     right.className = "env-ui-statusbar__right";
-    right.appendChild(buildShellDeviceTray(device, "env-device-tray env-device-tray--footer"));
+    const deviceTray = buildShellDeviceTray(device, "env-device-tray env-device-tray--footer");
+    deviceTray.setAttribute("role", "button");
+    deviceTray.setAttribute("tabindex", "0");
+    deviceTray.setAttribute("aria-label", "Quick settings");
+    deviceTray.setAttribute("aria-haspopup", "dialog");
+    deviceTray.setAttribute("data-chrome-flyout-anchor", "quick-settings");
+    right.appendChild(deviceTray);
+
+    const onClockActivate = (ev: Event): void => {
+        ev.preventDefault();
+        ev.stopPropagation();
+        toggleCalendarFlyout(clock);
+    };
+    const onTrayActivate = (ev: Event): void => {
+        ev.preventDefault();
+        ev.stopPropagation();
+        toggleQuickSettingsFlyout(deviceTray);
+    };
+    clock.addEventListener("click", onClockActivate);
+    clock.addEventListener("keydown", (ev) => {
+        if (ev.key === "Enter" || ev.key === " ") onClockActivate(ev);
+    });
+    deviceTray.addEventListener("click", onTrayActivate);
+    deviceTray.addEventListener("keydown", (ev) => {
+        if (ev.key === "Enter" || ev.key === " ") onTrayActivate(ev);
+    });
 
     bar.append(left, center, right);
 

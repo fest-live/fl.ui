@@ -82,6 +82,17 @@ export function mountUiWindow(
     win.setAttribute("managed", "");
     win.className = "env-ui-window";
     win.setAttribute("part", "window");
+    /* WHY: Pin app theme so window light-dark() tokens do not follow OS while html is light. */
+    {
+        const pinned =
+            document.documentElement.getAttribute("data-theme") ||
+            document.documentElement.style.colorScheme ||
+            "";
+        if (pinned === "light" || pinned === "dark") {
+            win.dataset.theme = pinned;
+            win.style.colorScheme = pinned;
+        }
+    }
 
     const titleEl = document.createElement("span");
     titleEl.slot = "title";

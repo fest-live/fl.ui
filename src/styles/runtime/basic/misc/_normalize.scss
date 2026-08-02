@@ -748,7 +748,13 @@
         /* Scheme Overrides — align with Theme.ts data-scheme / data-theme */
         [data-scheme="dark"], [data-theme="dark"] { color-scheme: dark only; & * { color-scheme: dark; } }
         [data-scheme="light"], [data-theme="light"] { color-scheme: light only; & * { color-scheme: light; } }
-        [data-scheme="auto"], [data-theme="auto"],
-        [data-scheme="system"], [data-theme="system"] { color-scheme: light dark; }
+        /*
+         * WHY: When QS/Theme pins data-theme=light|dark, do NOT let stale data-scheme=auto
+         * win (same specificity, later rule used to force `light dark` and keep OS dark).
+         */
+        [data-scheme="auto"]:not([data-theme="light"]):not([data-theme="dark"]),
+        [data-theme="auto"],
+        [data-scheme="system"]:not([data-theme="light"]):not([data-theme="dark"]),
+        [data-theme="system"] { color-scheme: light dark; }
     }
 }

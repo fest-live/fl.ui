@@ -80,7 +80,28 @@
         letter-spacing: 0.01em;
         color: inherit;
         user-select: none;
-        pointer-events: none;
+        pointer-events: auto;
+        cursor: pointer;
+        border-radius: 0.35rem;
+        padding: 0.15rem 0.25rem;
+    }
+
+    .env-ui-statusbar__clock:hover,
+    .env-ui-statusbar__clock:focus-visible {
+        background: color-mix(in oklch, currentColor 12%, transparent);
+        outline: none;
+    }
+
+    .env-device-tray--footer {
+        pointer-events: auto;
+        cursor: pointer;
+        border-radius: 0.35rem;
+    }
+
+    .env-device-tray--footer:hover,
+    .env-device-tray--footer:focus-visible {
+        background: color-mix(in oklch, currentColor 12%, transparent);
+        outline: none;
     }
 
     .env-status-bar__tray {
@@ -105,8 +126,9 @@
     .env-status-bar__chip ui-icon {
         font-size: 1.15rem;
         display: block;
-        color: inherit;
-        --icon-color: currentColor;
+        color: var(--env-status-fg, inherit);
+        /* WHY: concrete ink — `currentColor` raced white before status contrast settled. */
+        --icon-color: var(--env-status-fg, #f5f5f7);
     }
 
     .env-status-bar__pct {
@@ -154,6 +176,17 @@
 
     .env-shell-chrome[data-status-overlay] .env-ui-statusbar__clock {
         display: block;
+        color: var(--env-status-fg, #f5f5f7);
+    }
+
+    .env-shell-chrome[data-status-overlay] .env-device-tray--footer,
+    .env-shell-chrome[data-status-overlay] .env-status-bar__chip {
+        color: var(--env-status-fg, #f5f5f7);
+    }
+
+    .env-shell-chrome[data-status-overlay] .env-status-bar__chip ui-icon {
+        --icon-color: var(--env-status-fg, #f5f5f7);
+        color: var(--env-status-fg, #f5f5f7);
     }
 
     .env-shell-chrome[data-status-overlay] .env-device-tray--footer {

@@ -36,33 +36,36 @@
     --ui-win-pad-inline: 0.75rem;
     --ui-win-pad-block: 0.65rem;
 
-    /* Prefer host/document brand; fallback seed keeps window usable without veela. */
+    /*
+     * Prefer document `--color-*` (concrete under data-theme) so Light/Dark pins win.
+     * light-dark() kept only as last-resort when veela tokens are absent.
+     */
     --ui-win-seed: var(--base-color, var(--color-primary, #5a7fff));
-    --ui-win-bg: light-dark(
+    --ui-win-bg: var(--color-surface, light-dark(
         --u2-color-mod(var(--ui-win-seed), 70),
         --u2-color-mod(var(--ui-win-seed), 930)
-    );
-    --ui-win-fg: light-dark(
+    ));
+    --ui-win-fg: var(--color-on-surface, light-dark(
         --u2-color-mod(var(--ui-win-seed), 900),
         --u2-color-mod(var(--ui-win-seed), 100)
-    );
-    --ui-win-muted: light-dark(
+    ));
+    --ui-win-muted: var(--color-on-surface-variant, light-dark(
         --u2-color-mod(var(--ui-win-seed), 700),
         --u2-color-mod(var(--ui-win-seed), 280)
-    );
+    ));
     --ui-win-border: color-mix(in oklab, var(--ui-win-fg) 12%, transparent);
-    --ui-win-titlebar-bg: light-dark(
+    --ui-win-titlebar-bg: var(--color-surface-container, light-dark(
         --u2-color-mod(var(--ui-win-seed), 140),
         --u2-color-mod(var(--ui-win-seed), 860)
-    );
-    --ui-win-content-bg: light-dark(
+    ));
+    --ui-win-content-bg: var(--color-surface-container-lowest, light-dark(
         --u2-color-mod(var(--ui-win-seed), 40),
         --u2-color-mod(var(--ui-win-seed), 950)
-    );
-    --ui-win-footer-bg: light-dark(
+    ));
+    --ui-win-footer-bg: var(--color-surface-container-low, light-dark(
         --u2-color-mod(var(--ui-win-seed), 120),
         --u2-color-mod(var(--ui-win-seed), 900)
-    );
+    ));
     --ui-win-shadow:
         light-dark(
             0 18px 40px -18px rgb(15 23 42 / 0.28),
@@ -82,7 +85,11 @@
     --icon-color: var(--ui-win-fg);
     --icon-size: var(--ui-win-icon-size);
 
-    color-scheme: light dark;
+    /*
+     * WHY: `light dark` made window chrome follow OS while Settings locked light — cream panel
+     * + dark-scheme fg. Inherit document/app scheme; explicit data-theme still wins below.
+     */
+    color-scheme: inherit;
     box-sizing: border-box;
     /* WHY: Prefer :host display over setting style attr in CE lifecycle (createElement rules). */
     display: block;

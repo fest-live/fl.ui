@@ -23,6 +23,8 @@ import {
 } from "views/explorer/ts/ContextMenu";
 
 import { buildShellDeviceTray, type ShellDeviceStatus } from "../../statusbar/statusbar";
+import { toggleCalendarFlyout } from "../../calendar/CalendarFlyout";
+import { toggleQuickSettingsFlyout } from "../../settings/QuickSettings";
 
 /* Taskbar wrapper */
 import UIElement from "fl-ui/base/UIElement";
@@ -167,8 +169,11 @@ export function mountEnvironmentTaskBar(opts: EnvironmentTaskbarOptions): MountT
 
     const clockHost = document.createElement("div");
     clockHost.className = "env-shell-taskbar__clock";
-    clockHost.setAttribute("role", "timer");
-    clockHost.setAttribute("aria-live", "polite");
+    clockHost.setAttribute("role", "button");
+    clockHost.setAttribute("tabindex", "0");
+    clockHost.setAttribute("aria-label", "Calendar");
+    clockHost.setAttribute("aria-haspopup", "dialog");
+    clockHost.setAttribute("data-chrome-flyout-anchor", "calendar");
     const clockTime = document.createElement("span");
     clockTime.className = "env-shell-taskbar__clock-time";
     const clockDate = document.createElement("span");
@@ -184,10 +189,36 @@ export function mountEnvironmentTaskBar(opts: EnvironmentTaskbarOptions): MountT
     paintClock();
     const clockTimer = setInterval(paintClock, CLOCK_TICK_MS);
 
-    trayHost.append(
-        buildShellDeviceTray(opts.device, "env-device-tray env-device-tray--taskbar"),
-        clockHost
+    const deviceTray = buildShellDeviceTray(
+        opts.device,
+        "env-device-tray env-device-tray--taskbar"
     );
+    deviceTray.setAttribute("role", "button");
+    deviceTray.setAttribute("tabindex", "0");
+    deviceTray.setAttribute("aria-label", "Quick settings");
+    deviceTray.setAttribute("aria-haspopup", "dialog");
+    deviceTray.setAttribute("data-chrome-flyout-anchor", "quick-settings");
+
+    const onClockActivate = (ev: Event): void => {
+        ev.preventDefault();
+        ev.stopPropagation();
+        toggleCalendarFlyout(clockHost);
+    };
+    const onTrayActivate = (ev: Event): void => {
+        ev.preventDefault();
+        ev.stopPropagation();
+        toggleQuickSettingsFlyout(deviceTray);
+    };
+    clockHost.addEventListener("click", onClockActivate);
+    clockHost.addEventListener("keydown", (ev) => {
+        if (ev.key === "Enter" || ev.key === " ") onClockActivate(ev);
+    });
+    deviceTray.addEventListener("click", onTrayActivate);
+    deviceTray.addEventListener("keydown", (ev) => {
+        if (ev.key === "Enter" || ev.key === " ") onTrayActivate(ev);
+    });
+
+    trayHost.append(deviceTray, clockHost);
 
     /* Mobile process switcher — lives above the nav bar, opened by Home long-press. */
     const switcher = document.createElement("div");

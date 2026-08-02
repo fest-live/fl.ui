@@ -157,7 +157,27 @@
         padding-inline: 0.35rem 0.15rem;
         line-height: 1.05;
         user-select: none;
-        pointer-events: none;
+        pointer-events: auto;
+        cursor: pointer;
+        border-radius: 0.35rem;
+    }
+
+    .env-shell-taskbar__clock:hover,
+    .env-shell-taskbar__clock:focus-visible {
+        background: color-mix(in oklab, #fff 10%, transparent);
+        outline: none;
+    }
+
+    .env-device-tray--taskbar {
+        pointer-events: auto;
+        cursor: pointer;
+        border-radius: 0.35rem;
+    }
+
+    .env-device-tray--taskbar:hover,
+    .env-device-tray--taskbar:focus-visible {
+        background: color-mix(in oklab, #fff 10%, transparent);
+        outline: none;
     }
     
     .env-shell-taskbar__clock-time {

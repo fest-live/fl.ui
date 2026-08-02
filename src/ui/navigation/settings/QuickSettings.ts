@@ -277,11 +277,12 @@ const wireQuickSettingsPanel = (host: HTMLElement): void => {
     const setPressed = (target: HTMLElement, pressed: boolean): void => target?.setAttribute?.("aria-pressed", String(pressed));
 
     root.querySelector?.('[data-qs-tile="orientation"]')?.addEventListener?.("click", (ev) => {
-        const realTarget = MOCElement((ev?.target?.matches?.('[data-qs-tile]') ? ev?.target as HTMLElement : ev?.target?.querySelector?.('[data-qs-tile]')) || ev?.target, '[data-qs-tile]');
-        unlockOrientationLock(isPressed(realTarget as HTMLElement));
+        const realTarget = MOCElement((ev?.target?.matches?.('[data-qs-tile="orientation"]') ? ev?.target as HTMLElement : ev?.target?.querySelector?.('[data-qs-tile="orientation"]')) || ev?.target, '[data-qs-tile="orientation"]');
+        const isUnlocking = isPressed(realTarget as HTMLElement);
+        unlockOrientationLock(isUnlocking);
         
         const icon = realTarget?.matches?.('ui-icon') ? realTarget as HTMLElement : realTarget?.querySelector?.('ui-icon');
-        if (icon) icon.setAttribute?.("icon", !isPressed(realTarget as HTMLElement) ? "lock" : "device-rotate");
+        if (icon) icon.setAttribute?.("icon", !isUnlocking ? "lock" : "device-rotate");
         if (icon) icon.setAttribute?.("icon-style", "duotone");
     });
 
@@ -474,3 +475,11 @@ export function closeQuickSettingsFlyout(): void {
 export function isQuickSettingsOpen(): boolean {
     return isChromeFlyoutOpen(FLYOUT_KIND);
 }
+
+Promise.try(() => {
+    if (typeof requestAnimationFrame === "function") requestAnimationFrame(() => {
+        void Promise.try(() => {
+            screen?.orientation?.lock?.("natural");
+        }).catch(console.warn.bind(console));
+    });
+}).catch(console.warn.bind(console));

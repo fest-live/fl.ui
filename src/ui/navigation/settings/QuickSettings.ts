@@ -13,7 +13,7 @@
  * subsystem can still react via the `u2-theme-change` event this module dispatches.
  */
 import { defineElement, H } from "fest/lure";
-import { preloadStyle } from "fest/dom";
+import { MOCElement, preloadStyle } from "fest/dom";
 import { UIElement } from "fl-ui/base/UIElement";
 import "fest/icon";
 
@@ -129,6 +129,24 @@ export const applyQuickTheme = (mode: QuickThemeMode): void => {
     );
 };
 
+/* */
+export const unlockOrientationLock = (unlocked: boolean): void => {
+    document.documentElement.style.setProperty("--orientation-lock", unlocked ? "unlocked" : "locked");
+    document.documentElement.style.setProperty("--orientation-lock-angle", unlocked ? "0deg" : "90deg");
+
+    void Promise.try(()=>{
+        try {
+            if (unlocked) {
+                screen.orientation.unlock();
+            } else {
+                screen.orientation.lock(screen.orientation.type || "natural");
+            }
+        } catch (error) {
+            console.warn(error);
+        }
+    })?.catch?.(console.warn.bind(console));
+};
+
 /* ---------------------------------------------------------------------- */
 /* Night light / brightness overlay filter (required)                     */
 /* ---------------------------------------------------------------------- */
@@ -225,8 +243,8 @@ if (typeof document !== "undefined") {
 /* Panel wiring (imperative — tiles/sliders are plain DOM, no reactive refs) */
 /* ---------------------------------------------------------------------- */
 
-type PlaceholderTileId = "wifi" | "bluetooth" | "focus" | "airplane";
-const PLACEHOLDER_TILE_IDS: PlaceholderTileId[] = ["wifi", "bluetooth", "focus", "airplane"];
+type PlaceholderTileId = "wifi" | "bluetooth" | "focus" | "airplane" | "orientation";
+const PLACEHOLDER_TILE_IDS: PlaceholderTileId[] = ["wifi", "bluetooth", "focus", "airplane", "orientation"];
 
 const THEME_TILE_ICON: Record<QuickThemeMode, string> = { light: "sun", dark: "moon" };
 const THEME_TILE_SUB: Record<QuickThemeMode, string> = { light: "Light", dark: "Dark" };
@@ -253,6 +271,18 @@ const wireQuickSettingsPanel = (host: HTMLElement): void => {
         const next: QuickThemeMode = getCurrentQuickTheme() === "dark" ? "light" : "dark";
         applyQuickTheme(next);
         syncThemeTile(root);
+    });
+
+    const isPressed = (target: HTMLElement): boolean => Boolean(target?.getAttribute?.("aria-pressed")) && (target?.getAttribute?.("aria-pressed") === "true");
+    const setPressed = (target: HTMLElement, pressed: boolean): void => target?.setAttribute?.("aria-pressed", String(pressed));
+
+    root.querySelector?.('[data-qs-tile="orientation"]')?.addEventListener?.("click", (ev) => {
+        const realTarget = MOCElement((ev?.target?.matches?.('[data-qs-tile]') ? ev?.target as HTMLElement : ev?.target?.querySelector?.('[data-qs-tile]')) || ev?.target, '[data-qs-tile]');
+        unlockOrientationLock(isPressed(realTarget as HTMLElement));
+        
+        const icon = realTarget?.matches?.('ui-icon') ? realTarget as HTMLElement : realTarget?.querySelector?.('ui-icon');
+        if (icon) icon.setAttribute?.("icon", !isPressed(realTarget as HTMLElement) ? "lock" : "device-rotate");
+        if (icon) icon.setAttribute?.("icon-style", "duotone");
     });
 
     for (const id of PLACEHOLDER_TILE_IDS) {
@@ -334,6 +364,13 @@ export class QuickSettings extends UIElement {
             <span class="qs-tile-text">
                 <span class="qs-tile-label">Airplane mode</span>
                 <span class="qs-tile-sub" data-qs-tile-sub>Off</span>
+            </span>
+        </button>
+        <button type="button" class="qs-tile qs-tile--orientation" part="tile" data-qs-tile="orientation" role="menuitemcheckbox" aria-pressed="true" title="Orientation lock">
+            <ui-icon class="qs-tile-icon" part="tile-icon" icon="lock" icon-style="duotone" aria-hidden="true"></ui-icon>
+            <span class="qs-tile-text">
+                <span class="qs-tile-label">Orientation lock</span>
+                <span class="qs-tile-sub" data-qs-tile-sub>On</span>
             </span>
         </button>
     </div>

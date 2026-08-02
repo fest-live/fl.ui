@@ -41,6 +41,7 @@
                 & {
                     flex: 1;
                     background-color: var(--rv-bg-color);
+                    color: contrast-color(var(--rv-bg-color));
                     padding: 0.5rem 1rem;
                     font-weight: bold;
                 }

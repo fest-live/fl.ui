@@ -61,6 +61,7 @@
         background: color-mix(in oklch, oklch(0.14 0.02 280) 82%, transparent);
         border-block-start: 1px solid var(--wf-md-outline-variant, color-mix(in oklch, white 12%, transparent));
         backdrop-filter: blur(10px);
+        color: contrast-color(color-mix(in oklch, oklch(0.14 0.02 280) 82%, transparent));
     }
 
     .env-ui-statusbar__intro p {
@@ -89,6 +90,7 @@
     .env-ui-statusbar__clock:hover,
     .env-ui-statusbar__clock:focus-visible {
         background: color-mix(in oklch, currentColor 12%, transparent);
+        color: contrast-color(inherit(background-color));
         outline: none;
     }
 
@@ -101,6 +103,7 @@
     .env-device-tray--footer:hover,
     .env-device-tray--footer:focus-visible {
         background: color-mix(in oklch, currentColor 12%, transparent);
+        color: contrast-color(inherit(background-color));
         outline: none;
     }
 
@@ -121,6 +124,7 @@
         border: 1px solid color-mix(in oklch, var(--env-status-fg, var(--wf-md-on-surface, white)) 18%, transparent);
         line-height: 1;
         color: inherit;
+        color: contrast-color(inherit(background-color));
     }
 
     .env-status-bar__chip ui-icon {

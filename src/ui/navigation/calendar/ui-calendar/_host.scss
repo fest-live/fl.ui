@@ -6,6 +6,7 @@
 
         //
         & { background-color: transparent !important; }
+        & { color: contrast-color(transparent); }
         &::slotted(*) { @include m.reset-vars("--tm-bg-alpha","--hl-co-state"); }
         :where(*)     { @include m.reset-vars("--tm-bg-alpha","--hl-co-state"); }
     }
@@ -30,6 +31,7 @@
         & {
             background-color: var(--rv-bg-color, currentColor);
             color: oklch(from var(--rv-color) l min(max(c,0.01),0.6) h / 1);
+            color: contrast-color(var(--rv-bg-color, currentColor));
             border: solid 0 transparent;
             outline: solid 0 transparent;
             box-sizing: border-box;

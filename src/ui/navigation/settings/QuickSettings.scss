@@ -61,6 +61,7 @@
         border: 1px solid var(--qs-outline);
         background: var(--qs-surface);
         color: var(--qs-on-surface);
+        color: contrast-color(var(--qs-surface));
         /* INVARIANT: no backdrop-filter — Win11-like solid panel per spec, keeps perf on low-end devices. */
         box-shadow:
             0 20px 48px -20px rgba(0, 0, 0, 0.4),
@@ -75,6 +76,19 @@
         gap: 0.5rem;
     }
 
+
+    .qs-tile-icon {
+        --icon-size: 1.35rem;
+        --icon-color: currentColor;
+        flex: 0 0 auto;
+        inline-size: var(--icon-size);
+        block-size: var(--icon-size);
+        line-height: 0;
+        color: contrast-color(var(--qs-surface));
+        color: color-mix(in oklch, contrast-color(var(--qs-surface)) 40%, var(--color-primary, var(--qs-primary)));
+    }
+
+
     .qs-tile {
         display: flex;
         align-items: center;
@@ -83,18 +97,21 @@
         padding: 0.55rem 0.65rem;
         border: none;
         border-radius: 10px;
-        background: color-mix(in oklab, var(--qs-on-surface) 8%, transparent);
         color: inherit;
+        background: color-mix(in oklab, var(--qs-on-surface) 8%, transparent);
+        color: contrast-color(inherit(background-color));
         text-align: start;
         cursor: pointer;
         transition: background-color 140ms ease, color 140ms ease;
 
         &:hover {
             background: color-mix(in oklab, var(--qs-on-surface) 14%, transparent);
+            color: contrast-color(inherit(background-color));
         }
 
         &:active {
             background: color-mix(in oklab, var(--qs-on-surface) 18%, transparent);
+            color: contrast-color(inherit(background-color));
         }
 
         &:focus-visible {
@@ -105,20 +122,14 @@
         &[aria-pressed="true"] {
             background: color-mix(in oklab, var(--color-primary, var(--qs-primary)) 26%, transparent);
             color: var(--color-primary, var(--qs-primary));
+            color: color-mix(in oklch, contrast-color(var(--qs-surface, var(--color-surface))) 60%, var(--color-primary, var(--qs-primary)));
 
             .qs-tile-icon {
                 --icon-color: var(--color-primary, var(--qs-primary));
+                --icon-color: color-mix(in oklch, contrast-color(var(--qs-surface, var(--color-surface))) 60%, var(--color-primary, var(--qs-primary)));
+                --icon-color: currentColor;
             }
         }
-    }
-
-    .qs-tile-icon {
-        --icon-size: 1.35rem;
-        --icon-color: currentColor;
-        flex: 0 0 auto;
-        inline-size: var(--icon-size);
-        block-size: var(--icon-size);
-        line-height: 0;
     }
 
     .qs-tile-text {
@@ -127,6 +138,7 @@
         gap: 0.05rem;
         min-inline-size: 0;
         overflow: hidden;
+        color: color-mix(in oklch, contrast-color(var(--qs-surface)) 40%, var(--color-primary, var(--qs-primary)));
     }
 
     .qs-tile-label {
@@ -135,6 +147,7 @@
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
+        color: contrast-color(var(--qs-surface));
     }
 
     .qs-tile-sub {
@@ -144,6 +157,7 @@
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
+        color: contrast-color(var(--qs-surface));
     }
 
     .qs-sliders {
@@ -151,6 +165,7 @@
         gap: 0.6rem;
         padding-block-start: 0.7rem;
         border-block-start: 1px solid var(--qs-outline);
+        color: contrast-color(var(--qs-surface));
     }
 
     .qs-slider-row {
@@ -162,11 +177,12 @@
 
     .qs-slider-icon {
         --icon-size: 1.15rem;
-        --icon-color: color-mix(in oklab, var(--qs-on-surface) 78%, transparent);
+        --icon-color: currentColor
         flex: 0 0 auto;
         inline-size: var(--icon-size);
         block-size: var(--icon-size);
         line-height: 0;
+        color: contrast-color(var(--qs-surface));
     }
 
     .qs-slider-col {
@@ -191,18 +207,21 @@
         block-size: 1.1rem;
         margin: 0;
         background: transparent;
+        color: contrast-color(inherit(background-color));
         cursor: pointer;
 
         &::-webkit-slider-runnable-track {
             block-size: 4px;
             border-radius: 999px;
             background: color-mix(in oklab, var(--qs-on-surface) 18%, transparent);
+            color: contrast-color(inherit(background-color));
         }
 
         &::-moz-range-track {
             block-size: 4px;
             border-radius: 999px;
             background: color-mix(in oklab, var(--qs-on-surface) 18%, transparent);
+            color: contrast-color(inherit(background-color));
         }
 
         &::-webkit-slider-thumb {
@@ -213,7 +232,8 @@
             margin-block-start: -6px;
             border-radius: 50%;
             border: none;
-            background: var(--color-primary, var(--qs-primary));
+            background: color-mix(in oklch, contrast-color(var(--qs-surface, var(--color-surface))) 40%, var(--color-primary, var(--qs-primary)));
+            color: color-mix(in oklch, contrast-color(var(--qs-surface, var(--color-surface))) 40%, var(--color-primary, var(--qs-primary)));
             box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
         }
 
@@ -222,13 +242,16 @@
             block-size: 1rem;
             border-radius: 50%;
             border: none;
-            background: var(--color-primary, var(--qs-primary));
+            background: color-mix(in oklch, contrast-color(var(--qs-surface, var(--color-surface))) 40%, var(--color-primary, var(--qs-primary)));
+            color: color-mix(in oklch, contrast-color(var(--qs-surface, var(--color-surface))) 40%, var(--color-primary, var(--qs-primary)));
             box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
         }
 
         &:focus-visible::-webkit-slider-thumb {
             outline: 2px solid var(--color-primary, var(--qs-primary));
             outline-offset: 2px;
+            color: color-mix(in oklch, contrast-color(var(--qs-surface, var(--color-surface))) 40%, var(--color-primary, var(--qs-primary)));
+            background: color-mix(in oklch, contrast-color(var(--qs-surface, var(--color-surface))) 40%, var(--color-primary, var(--qs-primary)));
         }
     }
 }

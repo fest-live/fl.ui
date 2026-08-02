@@ -21,6 +21,7 @@ import {
     compactIconSrcForStorage,
     expandIconSrcForDom,
     normalizeIconSrcFromPayload,
+    faviconRefForHref,
     hostnameToFaviconRef,
     serializeDesktopItemCompact,
     ITEM_COMPACT_KIND,
@@ -878,16 +879,8 @@ const initializeLegacyOrientedDesktop = (host: HTMLElement): void => {
                 workingItem.href = action === "open-link" ? nextHref : "";
                 workingItem.viewId = action === "open-link" ? "home" : `TODO: ${next.view}`;
                 workingItem.shape = normalizeTileShape(next.shape);
-                if (action === "open-link" && nextHref) {
-                    try {
-                        const u = new URL(nextHref, window.location.href);
-                        workingItem.iconSrc = /^https?:$/i.test(u.protocol) ? hostnameToFaviconRef(u.hostname) : "";
-                    } catch {
-                        workingItem.iconSrc = "";
-                    }
-                } else {
-                    workingItem.iconSrc = "";
-                }
+                workingItem.iconSrc =
+                    action === "open-link" && nextHref ? faviconRefForHref(nextHref) : "";
                 if (isNew) {
                     addItems([workingItem], suggestedCell);
                 } else {

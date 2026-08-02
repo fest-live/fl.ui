@@ -1,8 +1,8 @@
 /*
  * Filename: Windows2.ts
  * FullPath: modules/projects/fl.ui/src/ui/containers/window/Windows2.ts
- * Change date and time: 19.22.00_30.07.2026
- * Reason for changes: Defer titlebar drag until move threshold so dblclick can maximize again.
+ * Change date and time: 10.50.00_02.08.2026
+ * Reason for changes: Own theme-color for native + max windows from titlebar (not wallpaper).
  */
 import { defineElement, property, H, numberRef, bindStyle, S } from "fest/lure";
 import { preloadStyle, addEvent } from "fest/dom";
@@ -13,6 +13,11 @@ import {
     subscribeNativeWindowChrome,
     type NativeWindowChromeProbe
 } from "./native-window-chrome";
+import {
+    restoreThemeColorAfterNativeWindow,
+    syncAmbientThemeColor,
+    syncThemeColorFromNativeWindow
+} from "./native-theme-color";
 
 // @ts-ignore — Vite inline SCSS → adopted stylesheet
 import styles from "./Windows2.scss?inline";
@@ -216,7 +221,7 @@ export class Windows2 extends UIElement {
                         maxIcon = true;
                     }
                 }
-                if (native) this.#syncNativeChrome();
+                if (native || maxIcon) this.#syncNativeChrome();
                 if (maxIcon) this.#syncMaximizeIcon();
             });
             this.#attrObserver.observe(this, {
@@ -260,6 +265,23 @@ export class Windows2 extends UIElement {
         this.#wireDrag();
         this.#wireResize();
         this.#syncMaximizeIcon();
+
+        /*
+         * WHY: WCO / PWA title strip uses meta theme-color — match `.title-handler`.
+         * Also own theme-color when this window fills the viewport (desk-max), so
+         * DynamicEngine cannot sample the wallpaper behind it.
+         */
+        const covers =
+            this.nativeMode ||
+            this.hasAttribute("data-desk-max") ||
+            this.hasAttribute("maximized") ||
+            this.hasAttribute("data-mobile-max");
+        if (covers) {
+            syncThemeColorFromNativeWindow(this);
+        } else {
+            restoreThemeColorAfterNativeWindow(this);
+            syncAmbientThemeColor();
+        }
 
         this.dispatchEvent(
             new CustomEvent("window-native-change", {

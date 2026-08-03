@@ -1,10 +1,16 @@
-/**
+/*
+ * Filename: launcher-state.ts
+ * FullPath: modules/projects/fl.ui/src/ui/speed-dial/launcher-state.ts
+ * Change date and time: 19.47.00_03.08.2026
+ * Reason for changes: Fix Speed Dial persistence (plain pack, JSOX migrate check, singleton, saveUIState).
+ *
  * Speed-dial / launcher persistence for fl.ui only (no core).
  * Storage keys match CWSP-shell `StateStorage` so shells sharing one origin keep one grid.
  */
 
+import { JSOX } from "jsox";
 import { makeObjectAssignable, observe, stringRef, safe } from "fest/object";
-import { decodeDesktopState, loadDesktopRaw, makeUIState } from "fest/lure";
+import { decodeDesktopState, loadDesktopRaw, makeUIState, saveUIState } from "fest/lure";
 
 /*
  * WHY: fl.ui must stay standalone — it cannot import `core/routing/core/views`
@@ -134,7 +140,8 @@ export const resolveItemOpenLinkTarget = (meta?: SpeedDialItemMeta | null): Open
 
 export interface SpeedDialPersistedItem {
     id: string;
-    cell: ReturnType<typeof observe<GridCell>>;
+    /** Runtime uses observe([x,y]); packed storage uses a plain `[x,y]` tuple. */
+    cell: GridCell | ReturnType<typeof observe<GridCell>>;
     icon: string;
     label: string;
     action: string;
@@ -330,9 +337,10 @@ const unwrapRef = (value: any, fallback?: string) => {
 };
 
 const serializeItemState = (item: SpeedDialItem): SpeedDialRecord => {
+    // WHY: pack must be plain POJO — observe proxies in storage break migrate/custom checks and roundtrips.
     return {
         id: item.id,
-        cell: observe([item.cell?.[0] ?? 0, item.cell?.[1] ?? 0]),
+        cell: [Number(item.cell?.[0]) || 0, Number(item.cell?.[1]) || 0] as GridCell,
         icon: unwrapRef(item.icon, "sparkle"),
         label: unwrapRef(item.label, "Shortcut"),
         action: item.action
@@ -368,10 +376,54 @@ const unpackState = (raw?: SpeedDialPersistedItem[]) => {
 };
 const packState = (collection: SpeedDialItem[]) => collection.map(serializeItemState);
 
-export const speedDialMeta = makeUIState(META_STORAGE_KEY, createInitialMetaRegistry, unpackMetaRegistry, packMetaRegistry) as unknown as SpeedDialMetaRegistry;
-export const speedDialItems = makeUIState(STORAGE_KEY, createInitialState, unpackState, packState) as unknown as SpeedDialItem[];
-export const persistSpeedDialItems = () => (speedDialItems as any)?.$save?.();
-export const persistSpeedDialMeta = () => (speedDialMeta as any)?.$save?.();
+/**
+ * WHY: Vite `preserveSymlinks` can load this file via fl.ui and home-view paths as
+ * two module graphs. Without a process singleton, idle-save from the stale copy
+ * overwrites user shortcuts with defaults after refresh.
+ */
+const SPEED_DIAL_ITEMS_BOOT = "__CWSP_SPEED_DIAL_ITEMS_V1__";
+const SPEED_DIAL_META_BOOT = "__CWSP_SPEED_DIAL_META_V1__";
+
+const bootSpeedDialMeta = (): SpeedDialMetaRegistry => {
+    const g = globalThis as any;
+    if (g[SPEED_DIAL_META_BOOT]) return g[SPEED_DIAL_META_BOOT] as SpeedDialMetaRegistry;
+    const state = makeUIState(META_STORAGE_KEY, createInitialMetaRegistry, unpackMetaRegistry, packMetaRegistry) as unknown as SpeedDialMetaRegistry;
+    g[SPEED_DIAL_META_BOOT] = state;
+    return state;
+};
+
+const bootSpeedDialItems = (): SpeedDialItem[] => {
+    const g = globalThis as any;
+    if (g[SPEED_DIAL_ITEMS_BOOT]) return g[SPEED_DIAL_ITEMS_BOOT] as SpeedDialItem[];
+    const state = makeUIState(STORAGE_KEY, createInitialState, unpackState, packState) as unknown as SpeedDialItem[];
+    g[SPEED_DIAL_ITEMS_BOOT] = state;
+    return state;
+};
+
+export const speedDialMeta = bootSpeedDialMeta();
+export const speedDialItems = bootSpeedDialItems();
+
+export const persistSpeedDialItems = () => {
+    try {
+        saveUIState(STORAGE_KEY);
+        return;
+    } catch { /* fall through */ }
+    try {
+        if (typeof localStorage === "undefined") return;
+        localStorage.setItem(STORAGE_KEY, JSOX.stringify(packState(speedDialItems as any)));
+    } catch { /* quota / private mode */ }
+};
+
+export const persistSpeedDialMeta = () => {
+    try {
+        saveUIState(META_STORAGE_KEY);
+        return;
+    } catch { /* fall through */ }
+    try {
+        if (typeof localStorage === "undefined") return;
+        localStorage.setItem(META_STORAGE_KEY, JSOX.stringify(packMetaRegistry(speedDialMeta)));
+    } catch { /* quota / private mode */ }
+};
 
 export const getSpeedDialMeta = (id?: string | null) => {
     if (!id) return null;
@@ -715,6 +767,7 @@ export const isInstalledPwaDisplayContext = (): boolean => {
  *
  * Never hijack the opener via `location.assign`.
  */
+let windowOpenThrottled = Date.now();
 export const openInDetachedBrowserWindow = (href: string): boolean => {
     const url = String(href || "").trim();
     if (!url || typeof window === "undefined") return false;
@@ -722,7 +775,8 @@ export const openInDetachedBrowserWindow = (href: string): boolean => {
         /* Do NOT put noopener in the features string — that forces a null return even on success. */
         const name = `cwsp-native-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
         const features = "popup,menubar=false,toolbar=false,location=false,width=1280,height=800";
-        const opened = window.open(url, name, features);
+        const opened = ((Date.now() - windowOpenThrottled) > 200) ? window.open(url, name, features) : null;
+        windowOpenThrottled = Date.now();
         if (opened) {
             try {
                 opened.opener = null;
@@ -799,11 +853,10 @@ export const createEmptySpeedDialItem = (
 
 export const addSpeedDialItem = (item: SpeedDialItem) => {
     speedDialItems?.push?.(observe(item) as any);
-    const metaChanged = syncMetaActionFromItem(item);
+    syncMetaActionFromItem(item);
+    // INVARIANT: always flush both carriers — meta holds href/view for open-link tiles.
     persistSpeedDialItems();
-    if (metaChanged) {
-        persistSpeedDialMeta();
-    }
+    persistSpeedDialMeta();
     return item;
 };
 
@@ -814,11 +867,9 @@ export const upsertSpeedDialItem = (item: SpeedDialItem) => {
     } else if (speedDialItems[existingIndex] !== item) {
         speedDialItems.splice(existingIndex, 1, observe(item) as any);
     }
-    const metaChanged = syncMetaActionFromItem(item);
+    syncMetaActionFromItem(item);
     persistSpeedDialItems();
-    if (metaChanged) {
-        persistSpeedDialMeta();
-    }
+    persistSpeedDialMeta();
     return item;
 };
 
@@ -898,21 +949,24 @@ const storedSpeedDialStateIsCustom = (): boolean => {
     try {
         const raw = localStorage.getItem(STORAGE_KEY);
         if (!raw) return false;
-        const parsed = JSON.parse(raw);
+        // WHY: makeUIState writes JSOX (unquoted keys) — JSON.parse always fails and
+        // used to report "not custom", letting migrateLegacyDesktopState wipe user tiles.
+        const parsed = JSOX.parse(raw);
         if (!Array.isArray(parsed)) return false;
-        const signature = (entry: any): string => JSON.stringify([
+        const signature = (entry: any): string => JSOX.stringify([
             String(entry?.id || ""),
             Number(entry?.cell?.[0]) || 0,
             Number(entry?.cell?.[1]) || 0,
-            String(entry?.icon || ""),
-            String(entry?.label || ""),
+            String(unwrapRef(entry?.icon, "") || ""),
+            String(unwrapRef(entry?.label, "") || ""),
             String(entry?.action || "")
         ]);
         const defaults = DEFAULT_SPEED_DIAL_DATA.map(signature).sort();
         const current = parsed.map(signature).sort();
         return defaults.length !== current.length || defaults.some((value, index) => value !== current[index]);
     } catch {
-        return false;
+        // Prefer preserving whatever is already under STORAGE_KEY over a blind legacy wipe.
+        return true;
     }
 };
 

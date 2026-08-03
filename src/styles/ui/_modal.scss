@@ -185,6 +185,9 @@
             inline-size: stretch;
             min-inline-size: 0px;
             overflow: visible;
+            background: transparent;
+            border: none 0px transparent;
+            outline: none 0px transparent;
 
             //
             .modal-actions-right {

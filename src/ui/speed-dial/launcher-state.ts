@@ -197,87 +197,9 @@ const EXTERNAL_SHORTCUTS: SpeedDialPersistedItem[] = [
      * INVARIANT: `.md` → md.u2re.space (CWSP-document); `.cwsp` → cwsp.u2re.space (CWSP-transfer).
      * ensureExternalShortcuts() merges these into persisted grids on next load.
      */
-    {
-        id: "shortcut-cwsp-document",
-        cell: observe([2, 2]),
-        icon: "article",
-        label: "Document",
-        action: "open-link",
-        meta: {
-            href: "https://md.u2re.space/",
-            description: "CWSP-document — Markdown workspace (md.u2re.space)"
-        }
-    },
-    {
-        id: "shortcut-cwsp-transfer",
-        cell: observe([3, 2]),
-        icon: "arrows-left-right",
-        label: "Transfer",
-        action: "open-link",
-        meta: {
-            href: "https://cwsp.u2re.space/",
-            description: "CWSP-transfer — Control / transfer SPA (cwsp.u2re.space)"
-        }
-    },
-    {
-        id: "shortcut-docs",
-        cell: observe([0, 1]),
-        icon: "book-open-text",
-        label: "Docs",
-        action: "open-link",
-        meta: { href: "https://github.com/fest-live", description: "Project documentation" }
-    },
-    {
-        id: "shortcut-roadmap",
-        cell: observe([1, 1]),
-        icon: "signpost",
-        label: "Roadmap",
-        action: "open-link",
-        meta: { href: "https://github.com/u2re-space/unite-2.man", description: "Manifest notes" }
-    },
-    {
-        id: "shortcut-fest-live",
-        cell: observe([2, 1]),
-        icon: "github-logo",
-        label: "Fest Live",
-        action: "open-link",
-        meta: { href: "https://github.com/fest-live", description: "Fest Live Organization" }
-    },
-    {
-        id: "shortcut-l2ne-dev",
-        cell: observe([3, 1]),
-        icon: "user",
-        label: "L2NE Dev",
-        action: "open-link",
-        meta: { href: "https://github.com/L2NE-dev", description: "L2NE Developer Profile" }
-    },
-    {
-        id: "shortcut-u2re-space",
-        cell: observe([0, 2]),
-        icon: "planet",
-        label: "U2RE Space",
-        action: "open-link",
-        meta: { href: "https://github.com/u2re-space/", description: "U2RE Space Organization" }
-    },
-    {
-        id: "shortcut-telegram",
-        cell: observe([1, 2]),
-        icon: "telegram-logo",
-        label: "Telegram",
-        action: "open-link",
-        meta: { href: "https://t.me/u2re_space", description: "U2RE Space Telegram" }
-    }
 ];
 
 const DEFAULT_SPEED_DIAL_DATA_ALL: SpeedDialPersistedItem[] = [
-    {
-        id: "shortcut-network",
-        cell: observe([0, 0]),
-        icon: "wifi-high",
-        label: "Network",
-        action: "open-view",
-        meta: { view: "network" }
-    },
     {
         id: "shortcut-explorer",
         cell: observe([2, 0]),
@@ -301,23 +223,6 @@ const DEFAULT_SPEED_DIAL_DATA_ALL: SpeedDialPersistedItem[] = [
         label: "Markdown",
         action: "open-view",
         meta: { view: "viewer" }
-    },
-    {
-        id: "shortcut-workcenter",
-        /* WHY: [2,1]/[0,1] taken by external/history rows — keep a free default cell. */
-        cell: observe([2, 2]),
-        icon: "briefcase",
-        label: "Work Center",
-        action: "open-view",
-        meta: { view: "workcenter" }
-    },
-    {
-        id: "shortcut-history",
-        cell: observe([0, 1]),
-        icon: "clock-counter-clockwise",
-        label: "History",
-        action: "open-view",
-        meta: { view: "history" }
     },
     ...EXTERNAL_SHORTCUTS
 ];

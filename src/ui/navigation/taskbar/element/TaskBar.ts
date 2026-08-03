@@ -155,6 +155,7 @@ export function mountEnvironmentTaskBar(opts: EnvironmentTaskbarOptions): MountT
     tHome.setAttribute("aria-haspopup", "menu");
     tHome.setAttribute("aria-keyshortcuts", "LongPress");
 
+    /*
     const tViewer = document.createElement("ui-task");
     tViewer.setAttribute("title", "Markdown");
     tViewer.setAttribute("icon", "article");
@@ -163,6 +164,8 @@ export function mountEnvironmentTaskBar(opts: EnvironmentTaskbarOptions): MountT
     tViewer.setAttribute("aria-label", "Markdown");
 
     pinsHost.append(tHome, tViewer);
+    */
+    pinsHost.append(tHome);
 
     const trayHost = document.createElement("div");
     trayHost.className = "env-shell-taskbar__tray-host";
@@ -497,6 +500,7 @@ export function mountEnvironmentTaskBar(opts: EnvironmentTaskbarOptions): MountT
         openSwitcher();
     });
 
+    /*
     tViewer.addEventListener("click", () => {
         const desc = findWindowDesc("viewer") || findWindowDesc("markdown");
         if (desc) {
@@ -529,6 +533,7 @@ export function mountEnvironmentTaskBar(opts: EnvironmentTaskbarOptions): MountT
         }
         openTaskContextMenu(ev, String(desc.id || "viewer"), desc.title || "Markdown");
     });
+*/
 
     const onDocPointer = (ev: Event): void => {
         if (!switcherOpen) return;
@@ -550,7 +555,7 @@ export function mountEnvironmentTaskBar(opts: EnvironmentTaskbarOptions): MountT
             el.toggleAttribute("data-focus", active);
         };
         mark(tHome, id === "home");
-        mark(tViewer, id === "viewer" || id === "markdown");
+        /*mark(tViewer, id === "viewer" || id === "markdown");*/
         for (const [viewId, el] of windowTaskEls) {
             mark(el, id === viewId);
         }

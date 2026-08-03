@@ -185,11 +185,11 @@
                 scale: 0.94;
             }
 
-            .ui-ws-item-icon {
+            &.ui-ws-item-icon {
                 display: grid;
                 transition: background-color 200ms ease, box-shadow 200ms ease;
-                grid-column: 1 / -1;
-                grid-row: 1 / -1;
+                /*grid-column: 1 / -1;
+                grid-row: 1 / -1;*/
                 aspect-ratio: 1 / 1;
 
                 pointer-events: auto;
@@ -210,7 +210,7 @@
                 max-block-size: var(--tile-size);
                 padding: 0.8rem;
 
-                background: color-mix(in oklab, var(--color-surface-container, #111827) 56%, transparent);
+                background: color-mix(in oklab, var(--color-surface-container, #111827) 80%, transparent);
                 border: none;
                 box-shadow: 0 6px 24px -8px color-mix(in oklab, #000 38%, transparent);
                 backdrop-filter: blur(16px) saturate(1.2);
@@ -235,7 +235,7 @@
                     clip-path: var(--clip-path);
                 }
 
-                .ui-ws-item-icon-image {
+                &.ui-ws-item-icon-image {
                     position: absolute;
                     inset: 0.45rem;
                     inline-size: calc(100% - 0.9rem);
@@ -266,7 +266,7 @@
                 }
             }
 
-            .ui-ws-item-label {
+            &.ui-ws-item-label {
                 position: absolute;
                 inset-inline: 0;
                 inset-block-start: 100%;
@@ -318,7 +318,7 @@
              * Label-layer items already dock via `translate` — applying both double-offsets
              * lower-row titles far above their tiles.
              */
-            &:not([data-layer="labels"])[data-label-placement="above"] .ui-ws-item-label {
+            &:not([data-layer="labels"])[data-label-placement="above"] &.ui-ws-item-label {
                 inset-block-start: auto;
                 inset-block-end: 100%;
                 padding-block-start: 0;
@@ -337,7 +337,7 @@
                 transition: none !important;
                 transform: translate3d(var(--drag-x, 0px), var(--drag-y, 0px), 0);
 
-                .ui-ws-item-label {
+                &.ui-ws-item-label {
                     opacity: 1;
                     pointer-events: none;
                 }
@@ -370,7 +370,7 @@
                  * tile via `translate` (separate from drag `transform`). Host width uses
                  * `--sd-label-max` so long titles can center + ellipsize instead of clipping.
                  */
-                --sd-label-gap: 0.42rem;
+                --sd-label-gap: 0.8rem;
                 --sd-label-max: min(calc(var(--tile-size, 3.5rem) * 2.85), min(94dvi, 10.5rem));
                 aspect-ratio: auto;
                 display: grid;
@@ -385,7 +385,7 @@
                 place-self: center;
                 translate: 0 calc((var(--tile-size) * 0.5) + var(--sd-label-gap));
 
-                .ui-ws-item-label {
+                &.ui-ws-item-label {
                     background: transparent !important;
                     pointer-events: none !important;
                     position: relative;
@@ -403,7 +403,7 @@
                     color: var(--env-launcher-fg, #f7f7f8);
                 }
 
-                .ui-ws-item-label span {
+                &.ui-ws-item-label span {
                     pointer-events: none !important;
                     display: block;
                     inline-size: auto;
@@ -744,8 +744,11 @@
         gap: 0.5rem;
         padding: 0.75rem 1rem;
         border-block-start: 1px solid var(--sd-editor-border);
-        background: color-mix(in oklab, var(--sd-editor-field-bg) 55%, transparent);
+        /*background: color-mix(in oklab, var(--sd-editor-field-bg) 55%, transparent);*/
         color: var(--sd-editor-ink);
+        background: transparent;
+        border: none 0px transparent;
+        outline: none 0px transparent;
     }
 
     .speed-dial-editor__form :is(.modal-actions-left, .modal-actions-right) {

@@ -203,6 +203,7 @@
             overflow-y: auto;
             overflow-x: hidden;
             display: grid;
+            pointer-events: auto;
 
             //
             grid-template-columns: minmax(0px, 1fr);
@@ -237,6 +238,9 @@
                 inline-size: stretch;
                 min-inline-size: fit-content;
                 max-inline-size: stretch;
+
+                //
+                pointer-events: auto;
 
                 //
                 label {

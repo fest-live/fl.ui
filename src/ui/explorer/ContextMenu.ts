@@ -1,8 +1,8 @@
 /*
  * Filename: ContextMenu.ts
  * FullPath: modules/projects/fl.ui/src/ui/explorer/ContextMenu.ts
- * Change date and time: 22.42.00_28.07.2026
- * Reason for changes: Keep the page click surface active while menus are open.
+ * Change date and time: 12.18.00_03.08.2026
+ * Reason for changes: Wallpaper-seed menu chrome (no slate !important stamps); theme pin for light/dark ink.
  */
 
 import { MOCElement } from "fest/dom";
@@ -52,41 +52,48 @@ const supportsAnchorPositioning = typeof CSS !== "undefined"
 const ENABLE_CSS_ANCHOR_POSITIONING = false;
 
 /**
+ * WHY: Before Settings opens, `html[data-theme]` may lag OS prefers-color-scheme.
+ * Stamp the same pin QS/Theme uses so light panels never keep dark-default white ink.
+ */
+const resolveContextMenuTheme = (): "light" | "dark" => {
+    const root = document.documentElement;
+    const pinned = String(root.getAttribute("data-theme") || "").trim().toLowerCase();
+    if (pinned === "light" || pinned === "dark") return pinned;
+    const scheme = String(root.getAttribute("data-scheme") || "").trim().toLowerCase();
+    if (scheme === "light" || scheme === "dark") return scheme;
+    try {
+        const stored = String(localStorage.getItem("rs-appearance-theme") || "").trim().toLowerCase();
+        if (stored === "light" || stored === "dark") return stored;
+    } catch {
+        /* private mode */
+    }
+    return typeof matchMedia === "function" && matchMedia("(prefers-color-scheme: light)").matches
+        ? "light"
+        : "dark";
+};
+
+/**
  * WHY: Explorer menus can be mounted beside host-shell controls that apply
- * broad `button`, `ul`, and `ui-icon` rules. Inline important styles keep the
- * menu panel and rows deterministic even when the host cascade changes.
+ * broad `button`, `ul`, and `ui-icon` rules. Inline geometry stays important;
+ * INVARIANT: do not stamp slate/hex background/color — wallpaper `--base-color` must tint the panel.
  */
 const stampContextMenuPanel = (menu: HTMLElement, compact: boolean): void => {
-    const light =
-        typeof matchMedia !== "undefined" &&
-        matchMedia("(prefers-color-scheme: light)").matches;
     menu.style.setProperty("position", "fixed", IMPORTANT_CSS);
     menu.style.setProperty("box-sizing", "border-box", IMPORTANT_CSS);
     menu.style.setProperty("min-width", compact ? "188px" : "220px", IMPORTANT_CSS);
     menu.style.setProperty("max-width", "min(320px, calc(100vw - 24px))", IMPORTANT_CSS);
     menu.style.setProperty("padding", compact ? "0.3rem" : "0.4rem", IMPORTANT_CSS);
     menu.style.setProperty("border-radius", "14px", IMPORTANT_CSS);
-    menu.style.setProperty(
-        "border",
-        light ? "1px solid rgba(15, 23, 42, 0.14)" : "1px solid rgba(255, 255, 255, 0.1)",
-        IMPORTANT_CSS
-    );
-    menu.style.setProperty(
-        "background",
-        light ? "rgba(241, 245, 249, 0.98)" : "rgba(15, 23, 42, 0.97)",
-        IMPORTANT_CSS
-    );
-    menu.style.setProperty("color", light ? "#0f172a" : "#e8eaed", IMPORTANT_CSS);
-    menu.style.setProperty(
-        "box-shadow",
-        light
-            ? "0 14px 36px rgba(15, 23, 42, 0.12), 0 0 0 1px rgba(15, 23, 42, 0.06)"
-            : "0 14px 36px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(255, 255, 255, 0.06)",
-        IMPORTANT_CSS
-    );
+    menu.style.setProperty("pointer-events", "auto", IMPORTANT_CSS);
     menu.style.setProperty("backdrop-filter", "none", IMPORTANT_CSS);
     menu.style.setProperty("-webkit-backdrop-filter", "none", IMPORTANT_CSS);
-    menu.style.setProperty("pointer-events", "auto", IMPORTANT_CSS);
+    menu.style.removeProperty("border");
+    menu.style.removeProperty("background");
+    menu.style.removeProperty("color");
+    menu.style.removeProperty("box-shadow");
+    const theme = resolveContextMenuTheme();
+    menu.dataset.theme = theme;
+    menu.style.setProperty("color-scheme", theme === "light" ? "light only" : "dark only", IMPORTANT_CSS);
 };
 
 const stampContextMenuList = (list: HTMLUListElement): void => {
@@ -123,51 +130,96 @@ const stampContextMenuItem = (button: HTMLButtonElement, danger: boolean): void 
     button.style.setProperty("line-height", "1.25", IMPORTANT_CSS);
     button.style.setProperty("text-align", "start", IMPORTANT_CSS);
     button.style.setProperty("cursor", "pointer", IMPORTANT_CSS);
-    button.style.setProperty("background", "transparent", IMPORTANT_CSS);
-    button.style.setProperty("color", danger ? "#fca5a5" : "inherit", IMPORTANT_CSS);
+    /* WHY: leave background to stylesheet hover tint from wallpaper primary. */
+    button.style.removeProperty("background");
+    button.style.removeProperty("background-color");
+    if (!danger) {
+        button.style.setProperty("color", "inherit", IMPORTANT_CSS);
+    } else {
+        const dangerInk = resolveContextMenuTheme() === "light" ? "#9f1239" : "#fecaca";
+        button.style.setProperty("color", dangerInk, IMPORTANT_CSS);
+        button.style.setProperty("--cw-menu-fg", dangerInk, IMPORTANT_CSS);
+    }
 };
 
 const ensureStyle = (): void => {
-    if (styleMounted) return;
+    /*
+     * WHY: Always refresh textContent — HMR / early opens must not keep a stale slate sheet
+     * while `styleMounted` already flipped true in a prior module instance.
+     */
+    let style = document.getElementById("cw-unified-context-menu-style") as HTMLStyleElement | null;
+    if (!style) {
+        style = document.createElement("style");
+        style.id = "cw-unified-context-menu-style";
+        document.head.appendChild(style);
+    }
     styleMounted = true;
-
-    const style = document.createElement("style");
-    style.id = "cw-unified-context-menu-style";
     style.textContent = `
         .cw-context-menu-layer {
             position: fixed;
             inset: 0;
-            z-index: var(--cw-context-menu-layer-z, 2147483640);
+            z-index: var(--cw-context-menu-layer-z, ${CONTEXT_MENU_LAYER_Z_FALLBACK});
             pointer-events: none;
         }
 
         .cw-context-menu {
+            /* WHY: Menu often mounts outside .wf-demo-root — use :root wallpaper seeds. */
+            --cw-menu-seed: var(--base-color, var(--color-primary, #5a7fff));
+            --cw-menu-fg: --u2-color-mod(var(--cw-menu-seed), 100);
+            --cw-menu-bg: --u2-color-mod(var(--cw-menu-seed), 880);
+            --cw-menu-border: color-mix(in oklab, --u2-color-mod(var(--cw-menu-seed), 100) 14%, transparent);
             position: fixed;
             box-sizing: border-box;
             min-width: 220px;
             max-width: min(320px, calc(100vw - 24px));
             padding: 0.4rem;
             border-radius: 14px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            background: rgba(15, 23, 42, 0.97);
-            color: #e8eaed;
+            color-scheme: dark;
+            font-family: var(--cw-context-menu-font, ui-sans-serif, system-ui, sans-serif);
+            border: 1px solid var(--cw-menu-border);
+            background: color-mix(in oklab, var(--color-surface-container, var(--cw-menu-bg)) 94%, transparent);
+            color: var(--cw-menu-fg);
             box-shadow:
-                0 14px 36px rgba(0, 0, 0, 0.45),
-                0 0 0 1px rgba(255, 255, 255, 0.06);
+                var(--elev-3, 0 14px 36px rgba(0, 0, 0, 0.45)),
+                0 0 0 1px color-mix(in oklab, --u2-color-mod(var(--cw-menu-seed), 100) 8%, transparent);
             backdrop-filter: none;
             -webkit-backdrop-filter: none;
             pointer-events: auto;
             user-select: none;
         }
 
+        html[data-theme="light"] .cw-context-menu,
+        .cw-context-menu[data-theme="light"] {
+            color-scheme: light only;
+            --cw-menu-fg: --u2-color-mod(var(--cw-menu-seed), 900);
+            --cw-menu-bg: --u2-color-mod(var(--cw-menu-seed), 160);
+            --cw-menu-border: color-mix(in oklab, --u2-color-mod(var(--cw-menu-seed), 900) 14%, transparent);
+            border-color: var(--cw-menu-border);
+            background: color-mix(in oklab, var(--color-surface-container, var(--cw-menu-bg)) 96%, transparent);
+            color: var(--cw-menu-fg);
+            box-shadow: var(--elev-2, 0 10px 28px rgba(15, 23, 42, 0.16));
+        }
+
+        html[data-theme="dark"] .cw-context-menu,
+        .cw-context-menu[data-theme="dark"] {
+            color-scheme: dark only;
+            --cw-menu-fg: --u2-color-mod(var(--cw-menu-seed), 100);
+            --cw-menu-bg: --u2-color-mod(var(--cw-menu-seed), 880);
+            --cw-menu-border: color-mix(in oklab, --u2-color-mod(var(--cw-menu-seed), 100) 14%, transparent);
+            border-color: var(--cw-menu-border);
+            background: color-mix(in oklab, var(--color-surface-container, var(--cw-menu-bg)) 94%, transparent);
+            color: var(--cw-menu-fg);
+        }
+
         @media (prefers-color-scheme: light) {
-            .cw-context-menu {
-                border-color: rgba(15, 23, 42, 0.14);
-                background: rgba(241, 245, 249, 0.98);
-                color: #0f172a;
-                box-shadow:
-                    0 14px 36px rgba(15, 23, 42, 0.12),
-                    0 0 0 1px rgba(15, 23, 42, 0.06);
+            html:not([data-theme="dark"]) .cw-context-menu:not([data-theme="dark"]) {
+                color-scheme: light only;
+                --cw-menu-fg: --u2-color-mod(var(--cw-menu-seed), 900);
+                --cw-menu-bg: --u2-color-mod(var(--cw-menu-seed), 160);
+                --cw-menu-border: color-mix(in oklab, --u2-color-mod(var(--cw-menu-seed), 900) 14%, transparent);
+                border-color: var(--cw-menu-border);
+                background: color-mix(in oklab, var(--color-surface-container, var(--cw-menu-bg)) 96%, transparent);
+                color: var(--cw-menu-fg);
             }
         }
 
@@ -200,33 +252,43 @@ const ensureStyle = (): void => {
             box-sizing: border-box;
         }
 
-        .cw-context-menu__item {
-            width: 100%;
-            display: grid;
-            grid-template-columns: 1.375rem minmax(0, 1fr) auto;
-            align-items: center;
-            gap: 0.55rem;
-            border: 0;
-            border-radius: 10px;
-            background: transparent;
-            color: #eaf0ff;
-            padding: 0.5rem 0.6rem;
-            min-block-size: 2.35rem;
-            font-size: 0.8125rem;
-            line-height: 1.25;
+        button.cw-context-menu__item,
+        .cw-context-menu button.cw-context-menu__item {
+            appearance: none !important;
+            -webkit-appearance: none !important;
+            box-sizing: border-box !important;
+            width: 100% !important;
+            max-width: 100% !important;
+            margin: 0 !important;
+            display: grid !important;
+            grid-template-columns: 1.375rem minmax(0, 1fr) auto !important;
+            align-items: center !important;
+            justify-items: start !important;
+            gap: 0.55rem !important;
+            border: none !important;
+            border-radius: 10px !important;
+            padding: 0.5rem 0.6rem !important;
+            min-height: 2.35rem !important;
+            font: inherit !important;
+            font-size: 0.8125rem !important;
+            line-height: 1.25 !important;
             text-align: start !important;
-            cursor: pointer;
-            justify-items: start;
+            cursor: pointer !important;
+            background: transparent !important;
+            color: inherit !important;
+            box-shadow: none !important;
         }
 
         .cw-context-menu__item > * {
             pointer-events: none;
         }
 
-        .cw-context-menu__item:hover,
-        .cw-context-menu__item:focus-visible {
-            outline: none;
-            background: rgba(137, 176, 255, 0.14);
+        button.cw-context-menu__item:hover,
+        .cw-context-menu button.cw-context-menu__item:hover,
+        button.cw-context-menu__item:focus-visible,
+        .cw-context-menu button.cw-context-menu__item:focus-visible {
+            outline: none !important;
+            background: color-mix(in oklab, var(--color-primary, --u2-color-mod(var(--cw-menu-seed), 550)) 16%, transparent) !important;
         }
 
         .cw-context-menu__item[disabled] {
@@ -235,7 +297,12 @@ const ensureStyle = (): void => {
         }
 
         .cw-context-menu__item--danger {
-            color: #ff9da1;
+            color: #fecaca !important;
+        }
+
+        html[data-theme="light"] .cw-context-menu__item--danger,
+        .cw-context-menu[data-theme="light"] .cw-context-menu__item--danger {
+            color: #9f1239 !important;
         }
 
         .cw-context-menu__icon {
@@ -245,16 +312,18 @@ const ensureStyle = (): void => {
             display: inline-flex;
             align-items: center;
             justify-content: center;
+            color: var(--cw-menu-fg, inherit);
         }
 
         .cw-context-menu__icon ui-icon {
             --icon-size: 1.125rem;
+            --icon-color: var(--cw-menu-fg, currentColor);
             inline-size: 1.125rem !important;
             block-size: 1.125rem !important;
             min-inline-size: 1.125rem !important;
             min-block-size: 1.125rem !important;
             --icon-padding: 0px !important;
-            color: inherit !important;
+            color: var(--cw-menu-fg, inherit) !important;
             pointer-events: none;
         }
 
@@ -265,6 +334,7 @@ const ensureStyle = (): void => {
             overflow: hidden;
             text-overflow: ellipsis;
             min-inline-size: 0;
+            color: var(--cw-menu-fg, inherit);
         }
 
         .cw-context-menu__chevron {
@@ -273,14 +343,15 @@ const ensureStyle = (): void => {
             display: inline-flex;
             align-items: center;
             justify-content: center;
+            color: var(--cw-menu-fg, inherit);
         }
 
         .cw-context-menu__chevron ui-icon {
             --icon-size: 0.85rem;
+            --icon-color: var(--cw-menu-fg, currentColor);
             pointer-events: none;
         }
     `;
-    document.head.appendChild(style);
 };
 
 const getOverlayHost = (): HTMLElement => {

@@ -1,0 +1,10 @@
+/*
+ * Filename: home-host-apply.scss
+ * FullPath: modules/projects/fl.ui/src/styles/ui/home-host-apply.scss
+ * Change date and time: 12.15.00_03.08.2026
+ * Reason for changes: Symlink-safe entry for adopted SpeedDial host styles (no relative @use from ts/).
+ */
+
+@use "./home-host" as home-host;
+
+@include home-host.home-view-host-styles();

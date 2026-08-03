@@ -145,7 +145,7 @@ $bp-desktop-min: 641px;
         .env-shell-workspace
         > .env-shell-home-mount
         > .view-home.env-home-workspace.wf-mounted-view {
-        padding-block-end: var(--env-shell-chrome-stack-reserve, 3rem);
+        /*padding-block-end: var(--env-shell-chrome-stack-reserve, 3rem);*/
     }
 
     @media (min-width: $bp-desktop-min) {
@@ -154,9 +154,9 @@ $bp-desktop-min: 641px;
             .env-shell-workspace
             > .env-shell-home-mount
             > .view-home.env-home-workspace.wf-mounted-view {
-            padding-block-end: calc(
+            /*padding-block-end: calc(
                 var(--env-shell-chrome-stack-reserve, 7.5rem) + env(safe-area-inset-block-end, 0px)
-            );
+            );*/
         }
     }
 

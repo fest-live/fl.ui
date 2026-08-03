@@ -1,8 +1,8 @@
 /*
  * Filename: pointer-interaction.ts
  * FullPath: modules/projects/fl.ui/src/ui/speed-dial/pointer-interaction.ts
- * Change date and time: 21.20.49_28.07.2026
- * Reason for changes: Keep pointer drag and FLIP animation isolated to the icon layer.
+ * Change date and time: 11.30.00_03.08.2026
+ * Reason for changes: Track last pointer client during drag so touch drop uses finger position, not lagged tile center.
  */
 
 import {
@@ -152,6 +152,8 @@ export const bindPointerInteraction = (
     let pointerId: number | null = null;
     let pointerDownAt: [number, number] | null = null;
     let grabOffset: [number, number] = [0, 0];
+    // WHY: On touch, transformed tile center can lag; drop must prefer last move client coords.
+    let lastPointerClient: [number, number] | null = null;
     let dragging = false;
     let suppressClickUntil = 0;
     let animationRun = 0;
@@ -176,11 +178,13 @@ export const bindPointerInteraction = (
         pointerId = null;
         pointerDownAt = null;
         grabOffset = [0, 0];
+        lastPointerClient = null;
     };
 
     const onPointerDown = (event: PointerEvent): void => {
         if (pointerId !== null || event.button !== 0) return;
         pointerId = event.pointerId;
+        lastPointerClient = null;
         pointerDownAt = [event.clientX, event.clientY];
         const rect = node.getBoundingClientRect();
         const center = centerOf(rect);
@@ -203,6 +207,7 @@ export const bindPointerInteraction = (
         }
 
         event.preventDefault();
+        lastPointerClient = [event.clientX, event.clientY];
         const activeNodes = nodes();
         node.style.setProperty("--drag-x", `${dx}px`);
         node.style.setProperty("--drag-y", `${dy}px`);
@@ -218,6 +223,8 @@ export const bindPointerInteraction = (
         const wasDragging = dragging;
         dragging = false;
         node.releasePointerCapture?.(event.pointerId);
+        // WHY: Must read lastPointerClient before clearPointer nulls it.
+        const dropPoint = lastPointerClient ?? [event.clientX, event.clientY];
         clearPointer();
         if (!wasDragging) return;
 
@@ -226,7 +233,7 @@ export const bindPointerInteraction = (
         const fromRects = new Map<HTMLElement, DOMRect>(
             currentNodes.map((entry) => [entry, entry.getBoundingClientRect()])
         );
-        const targetCell = getDropCell([event.clientX, event.clientY]);
+        const targetCell = getDropCell(dropPoint);
         const run = ++animationRun;
 
         setInteractionState(currentNodes, "onRelax", "destination");

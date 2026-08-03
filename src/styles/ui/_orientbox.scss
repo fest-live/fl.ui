@@ -1,4 +1,9 @@
-@use "../lib/core/orient/viewport" as *;
+/*
+ * Filename: _orientbox.scss
+ * FullPath: modules/projects/fl.ui/src/styles/ui/_orientbox.scss
+ * Reason for changes: Restore Veela viewport import (typo viewrt→interact/viewport) and fix stray brace after merge mess.
+ */
+@use "../lib/core/interact/viewport" as *;
 
 //
 @layer ux-orientbox {
@@ -88,5 +93,5 @@
     //
     .native-portrait-optimized {
         @include oriented(--in-swap-cond, 0, 1);
-    };
+    }
 }

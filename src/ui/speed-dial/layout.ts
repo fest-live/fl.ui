@@ -73,7 +73,7 @@ export const logicalToVisualCell = (
 
     switch (normalizedOrient) {
         case 1:
-            return [y, x];
+            return [y, columns - 1 - x];
         case 2:
             return [columns - 1 - x, rows - 1 - y];
         case 3:
@@ -95,7 +95,7 @@ export const visualToLogicalCell = (
 
     switch (normalizedOrient) {
         case 1:
-            return [y, x];
+            return [columns - 1 - y, x];
         case 2:
             return [columns - 1 - x, rows - 1 - y];
         case 3:

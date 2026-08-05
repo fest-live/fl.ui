@@ -2,8 +2,11 @@
 
 @layer ui-navbar {
 
+
     /* Long-press process switcher sheet above the nav bar. */
     .env-shell-navbar__switcher {
+        --navbar-switcher-background: light-dark(color-mix(in oklch, #f2f2f7 96%, transparent), color-mix(in oklch, #1c1c1e 96%, transparent));
+
         position: fixed;
         inset-inline: 0.75rem;
         /*inset-block-end: calc(100% + 0.4rem);*/
@@ -13,12 +16,14 @@
         overflow: auto;
         padding: 0.35rem;
         border-radius: 0.85rem;
-        background: color-mix(in oklch, #1c1c1e 96%, transparent);
-        border: 1px solid color-mix(in oklch, #fff 12%, transparent);
+        background: var(--navbar-switcher-background);
+        color: contrast-color(var(--navbar-switcher-background));
+        --icon-color: contrast-color(var(--navbar-switcher-background));
+        border: 1px solid light-dark(color-mix(in oklch, #fff 12%, transparent), color-mix(in oklch, #1c1c1e 12%, transparent));
         box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
         backdrop-filter: blur(18px);
         -webkit-backdrop-filter: blur(18px);
-        color: #f2f2f7;
+        
         inline-size: calc(100cqi - 1rem);
         place-self: center;
     }
@@ -80,11 +85,11 @@
     .env-shell-navbar__switcher-item:hover,
     .env-shell-navbar__switcher-item:focus-visible {
         outline: none;
-        background: color-mix(in oklch, #fff 10%, transparent);
+        background: light-dark(color-mix(in oklch, #fff 10%, transparent), color-mix(in oklch, #1c1c1e 10%, transparent));
     }
 
     .env-shell-navbar__switcher-item[data-active] {
-        background: color-mix(in oklch, #60cdff 18%, transparent);
+        background: light-dark(color-mix(in oklch, #60cdff 18%, transparent), color-mix(in oklch, #60cdff 18%, transparent));
     }
 
     .env-shell-navbar__switcher-item[data-minimized] {
@@ -118,7 +123,7 @@
     .env-shell-navbar__switcher-close:hover,
     .env-shell-navbar__switcher-close:focus-visible {
         outline: none;
-        background: color-mix(in oklch, #ff6b6b 22%, transparent);
+        background: light-dark(color-mix(in oklch, #ff6b6b 22%, transparent), color-mix(in oklch, #ff6b6b 22%, transparent));
         color: #ffb4b4;
     }
 

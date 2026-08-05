@@ -95,9 +95,18 @@
             backdrop-filter: blur(10px);
             transform: translateY(-0.5rem);
             outline: solid 1px light-dark(#0002, #fff2);
+            background-color: color-mix(in oklab, var(--base-color, #1c1c1e) 10%, transparent);
         }
     }
     
+    :has(ui-window:not([minimized])) .env-shell-taskbar__pins [data-env-home] {
+        --color-surface: light-dark(--u2-color-mod(var(--base-color-neutralized), 10), --u2-color-mod(var(--base-color-neutralized), 980));
+
+        background-color: color-mix(in oklab, var(--color-surface, #1c1c1e) 10%, transparent);
+        color: contrast-color(var(--color-surface, #1c1c1e));
+        --icon-color: contrast-color(var(--color-surface, #1c1c1e));
+    }
+
     .env-shell-taskbar__windows {
         flex: 1 1 auto;
         justify-content: flex-start;

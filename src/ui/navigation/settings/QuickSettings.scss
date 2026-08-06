@@ -45,6 +45,12 @@
 
 @layer ui-quick-settings {
     .qs-panel {
+        /*
+         * NOTE: `--qs-*` are component-scoped aliases DERIVED from canonical `--color-*`
+         * (source of truth: veela `core/misc/_tokens.scss`). Values already trace to canonical;
+         * the local aliases remain as the QuickSettings contract + shadow-DOM self-sufficiency.
+         * Use sites chain `var(--color-*, var(--qs-*))` so canonical wins when veela is loaded.
+         */
         --qs-primary: var(--color-primary);
         --qs-surface: var(--color-surface);
         --qs-on-surface: var(--color-on-surface);

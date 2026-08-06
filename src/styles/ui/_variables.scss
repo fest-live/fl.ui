@@ -30,7 +30,12 @@
     --fl-ui-radius: 0.5rem;
     --fl-ui-gap: 0.75rem;
 
-    /* Explorer / shell (used by _explorer.scss, _explorer-content.scss) */
+    /*
+     * NOTE: Standalone fl.ui fallback (used by _explorer.scss, _explorer-content.scss).
+     * Canonical color-token source of truth is veela `core/misc/_tokens.scss`.
+     * When veela is loaded, its `:root` `--color-*` / `--error-color` win by source
+     * order; these remain as fallbacks for standalone fl.ui without veela.
+     */
     --color-primary: #2e3a64;
     --base-color: var(--color-primary);
     --color-surface: --u2-color-mod(var(--base-color), 920);

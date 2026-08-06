@@ -239,7 +239,7 @@ export const openShortcutEditor = (options: ShortcutEditorOptions): void => {
 
     fillTextControl(labelInput, labelValue);
     fillTextControl(iconInput, iconValue);
-    if (shapeSelect) shapeSelect.value = ["circle", "square", "squircle"].includes(shapeVal) ? shapeVal : "squircle";
+    if (shapeSelect) shapeSelect.value = ["circle", "square", "squircle", "wavy"].includes(shapeVal) ? shapeVal : "squircle";
     if (openLinkTargetSelect) {
         openLinkTargetSelect.value =
             olt === "native-window" || olt === "native" || olt === "window"

@@ -641,9 +641,10 @@ export function SpeedDial(makeView: any) {
     const rowsRef = propRef(gridLayoutState, "rows", 8);
     const shapeRef = propRef(gridLayoutState, "shape", "square");
 
-    const tileShapeForItem = (item: SpeedDialItem): string => {
+    const tileShapeForItem = (item: SpeedDialItem): ReturnType<typeof propRef> => {
         const raw = String(getSpeedDialMeta(item.id)?.shape || "squircle").toLowerCase();
-        return raw === "circle" || raw === "square" || raw === "squircle" ? raw : "squircle";
+        //return raw === "circle" || raw === "square" || raw === "squircle" ? raw : "squircle";
+        return propRef(getSpeedDialMeta(item.id) || {}, "shape", "squircle");
     };
 
     //

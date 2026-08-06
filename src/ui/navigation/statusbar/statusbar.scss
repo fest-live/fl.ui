@@ -4,7 +4,7 @@
  * Change date and time: 14.00.00_31.07.2026
  * Reason for changes: Mobile/fullscreen transparent overlay statusbar + desktop footer.
  */
-@use "veela-lib" as m;
+//@use "veela-lib" as m;
 
 /* Shadow layout for <ui-statusbar> slots. */
 :host(ui-statusbar) {

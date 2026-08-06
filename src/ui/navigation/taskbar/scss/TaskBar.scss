@@ -5,7 +5,7 @@
  * Reason for changes: Reconnect after chrome.scss split — no cross-package Sass @use (use CSS var).
  */
 /* Taskbar / env chrome (document + host). Former environment-shell/scss/chrome.scss. */
-@use "veela-lib" as m;
+//@use "veela-lib" as m;
 
 @layer ui-taskbar {
     /* Fixed chrome: taskbar (desktop + mobile dock) + FL-UI `ui-statusbar` (desktop meta). */

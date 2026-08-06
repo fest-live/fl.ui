@@ -1,7 +1,7 @@
 {
     "include": [
         "./**/*.ts",
-        "./index.ts",
+        "./index.ts", "../../veela.css/src/scss/basic/index.ts", "../../veela.css/src/scss/advanced/index.ts",
     ],
     "exclude": [
         "../../dist/**/*",

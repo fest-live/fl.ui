@@ -55,8 +55,8 @@
     ));
     --ui-win-border: color-mix(in oklab, var(--ui-win-fg) 12%, transparent);
     --ui-win-titlebar-bg: var(--color-surface-container, light-dark(
-        --u2-color-mod(var(--ui-win-seed), 140),
-        --u2-color-mod(var(--ui-win-seed), 860)
+        --u2-color-mod(var(--ui-win-seed), 20),
+        --u2-color-mod(var(--ui-win-seed), 980)
     ));
     --ui-win-content-bg: var(--color-surface-container-lowest, light-dark(
         --u2-color-mod(var(--ui-win-seed), 40),
@@ -113,6 +113,10 @@
     *::before,
     *::after {
         box-sizing: border-box;
+    }
+
+    :where(.footer-handler:empty, .footer-handler:not(:has-slotted)) {
+        display: none !important;
     }
 }
 
@@ -360,8 +364,8 @@
     display: none !important;
 }
 
-:host(ui-window[data-native-active]) .footer-handler:empty {
-    display: none;
+:host(ui-window[data-native-active]) :where(.footer-handler:empty, .footer-handler:not(:has-slotted)) {
+    display: none !important;
 }
 
 /*
@@ -380,7 +384,7 @@
 
 .window-container {
     display: grid;
-    grid-template-rows: auto minmax(0, 1fr) auto;
+    grid-template-rows: minmax(0, max-content) minmax(0, 1fr) minmax(0, max-content);
     grid-template-areas:
         "title"
         "content"

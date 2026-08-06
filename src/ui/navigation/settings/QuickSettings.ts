@@ -167,13 +167,15 @@ const ensureNightFilterEl = (): HTMLElement => {
     el.id = NIGHT_FILTER_ID;
     el.setAttribute("aria-hidden", "true");
     el.style.cssText = [
+        "dynamic-range-limit:no-limit",
+        "color-space:display-p3",
         "position:fixed",
         "inset:0",
         "pointer-events:none",
         `z-index:${NIGHT_FILTER_Z}`,
         /* WHY: warm orange + `mix-blend-mode: multiply` reads as a night-light tint without
          * washing out the whole screen the way plain `color` blending would (too harsh). */
-        "background-color:rgb(255 140 60)",
+        "background-color:color(display-p3 1 0.55 0.24)",
         "mix-blend-mode:multiply",
         "opacity:0",
         "visibility:hidden",
@@ -189,7 +191,7 @@ export const applyNightFilter = (value: number): void => {
     const el = ensureNightFilterEl();
     const opacity = v / 100;
     el.style.opacity = String(opacity);
-    el.style.visibility = opacity > 0 ? "visible" : "hidden";
+    el.style.visibility = opacity >= 0.01 ? "visible" : "hidden";
     try {
         localStorage.setItem(NIGHT_STORAGE_KEY, String(v));
     } catch {
@@ -202,7 +204,7 @@ export const applyBrightnessFilter = (value: number): void => {
     const v = clampPct(value);
     const el = ensureNightFilterEl();
     const brightness = v <= 50 ? 0.4 + (v / 50) * 0.6 : 1 + ((v - 50) / 50) * 0.2;
-    el.style.filter = `brightness(${brightness.toFixed(3)})`;
+    //el.style.filter = `brightness(${brightness.toFixed(3)})`;
     try {
         localStorage.setItem(BRIGHTNESS_STORAGE_KEY, String(v));
     } catch {

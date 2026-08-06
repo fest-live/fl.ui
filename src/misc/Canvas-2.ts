@@ -33,6 +33,7 @@ export const initializeAppCanvasLayer = (container: HTMLElement): CanvasLayerSta
         "radial-gradient(circle at 15% 20%, rgba(145,185,255,0.45) 0%, transparent 40%), radial-gradient(circle at 75% 72%, rgba(91,134,235,0.35) 0%, transparent 43%)";
 
     const canvas = document.createElement("canvas", { is: "ui-canvas" }) as HTMLCanvasElement;
+    canvas?.configureHighDynamicRange?.({ mode: "extended" });
     canvas.className = "app-canvas__image";
     canvas.style.position = "absolute";
     canvas.style.inset = "0";
@@ -43,6 +44,7 @@ export const initializeAppCanvasLayer = (container: HTMLElement): CanvasLayerSta
     canvas.style.maxBlockSize = "100%";
     canvas.style.opacity = "0.88";
     canvas.style.mixBlendMode = "normal";
+    canvas.style.setProperty("dynamic-range-limit", "no-limit");
     canvas.setAttribute("is", "ui-canvas");
 
     root.append(glow, canvas);
@@ -62,7 +64,10 @@ export const setAppWallpaper = (wallpaperUrl: string): void => {
     }
 
     const canvases = document.querySelectorAll<HTMLCanvasElement>('[data-app-layer="canvas"] canvas[is="ui-canvas"]');
-    canvases.forEach((canvas) => canvas.setAttribute("data-src", value));
+    canvases.forEach((canvas) => {
+        canvas.setAttribute("data-src", value);
+        canvas?.configureHighDynamicRange?.({ mode: "extended" });
+    });
 };
 
 const loadWallpaperUrl = (): string => {

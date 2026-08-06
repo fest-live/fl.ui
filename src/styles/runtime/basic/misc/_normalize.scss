@@ -31,6 +31,7 @@
 @layer tokens {
     :where(:root, html) {
         color-scheme: light dark;
+        dynamic-range-limit: no-limit;
         /*
          * WHY: vl-basic loads only this runtime sheet; advanced MD3 tokens are not bundled.
          * Body/normalize use var(--color-bg) etc. — without defaults, backgrounds stay transparent
@@ -78,12 +79,12 @@
             --u2-color-mod(var(--base-color), 680)
         );
         --color-outline: light-dark(
-            --u2-color-mod(var(--base-color), 400),
-            --u2-color-mod(var(--base-color), 720)
+            --u2-color-mod(var(--base-color), 100),
+            --u2-color-mod(var(--base-color), 900)
         );
         --color-outline-variant: light-dark(
-            --u2-color-mod(var(--base-color), 300),
-            --u2-color-mod(var(--base-color), 640)
+            --u2-color-mod(var(--base-color), 100),
+            --u2-color-mod(var(--base-color), 900)
         );
         --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
         --line-height: 1.5;
@@ -126,6 +127,7 @@
         *::after {
             @include reset-box-model;
             box-sizing: border-box;
+            dynamic-range-limit: no-limit;
         }
 
         :where(html) {
@@ -138,6 +140,7 @@
             font-family: var(--font-sans);
             font-size: 16px;
             line-height: 1.5;
+            dynamic-range-limit: no-limit;
         }
 
         :where(body) {
@@ -152,6 +155,7 @@
             line-height: var(--line-height);
             -webkit-font-smoothing: antialiased;
             text-rendering: optimizeLegibility;
+            dynamic-range-limit: no-limit;
         }
 
         :where(ul, ol) {
@@ -340,6 +344,7 @@
             border: none 0px transparent;
             outline: none 0px transparent;
             box-shadow: none 0px transparent;
+            dynamic-range-limit: no-limit;
         }
 
         :where(img, video, canvas, svg, picture) {

@@ -5,6 +5,9 @@
  * Reason for changes: Restore adaptive editor colors (--base-color / --u2-color-mod) like context menu.
  */
 
+@use "../design/_wavy-runtime.scss" as *;
+@use "../design/_shapes.scss" as *;
+
 /*
  * WHY: Do not @use ../../styles/... — Vite resolveSymlinks=false-ish / preserveSymlinks
  * resolves this sheet via home-view/ts symlink, so relative fl.ui styles paths break.
@@ -217,22 +220,53 @@
                 -webkit-backdrop-filter: blur(16px) saturate(1.2);
                 filter: none;
 
-                border-radius: 22%;
+                &:not([data-shape]) {
+                    @supports (cornet-shape: squircle) {
+                        corner-shape: squircle;
+                    }
+
+                    border-radius: 22%;
+                }
 
                 &[data-shape="circle"] {
                     border-radius: 50%;
+
+                    @supports (cornet-shape: superellipse(1)) {
+                        corner-shape: superellipse(1);
+                    }
                 }
 
                 &[data-shape="square"] {
                     border-radius: max(0.55rem, 14%);
+
+                    @supports (cornet-shape: square) {
+                        corner-shape: square;
+                    }
                 }
 
                 &[data-shape="squircle"] {
+                    @supports (cornet-shape: squircle) {
+                        corner-shape: squircle;
+                    }
+
                     border-radius: 22%;
                 }
 
                 &[data-shape="wavy"] {
+                    @include wavy-shaped(100);
+                    
+                    @supports (border-shape: inset(0)) {
+                        border-shape: var(--clip-path);
+                        overflow: hidden !important;
+                        corner-shape: superellipse(1);
+                        border-radius: 50% !important;
+                    }
+
                     clip-path: var(--clip-path);
+
+                    @supports not (border-shape: inset(0)) {
+                        
+                    }
                 }
 
                 &.ui-ws-item-icon-image {
@@ -286,6 +320,7 @@
                     display: inline-flex;
                     place-content: center;
                     place-items: center;
+                    overflow: visible;
 
                     font-size: 0.72rem;
                     font-weight: 500;

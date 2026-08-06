@@ -6,7 +6,7 @@
  */
 
 import { observe, numberRef, propRef, stringRef, affected } from "fest/object";
-import { E, H, orientRef, M, provide, handleIncomingEntries } from "fest/lure";
+import { E, H, orientRef, M, provide, handleIncomingEntries, createShapedTileShadow } from "fest/lure";
 import { pointerAnchorRef } from "fest/lure";
 import { bindPointerInteraction } from "./pointer-interaction";
 import {
@@ -648,16 +648,19 @@ export function SpeedDial(makeView: any) {
 
     //
     const renderIconItem = (item: SpeedDialItem)=>{
-        return H`<div data-shape=${tileShapeForItem(item)} class="ui-ws-item ui-ws-item-icon shaped" data-speed-dial-item data-layer="icons" ref=${(el) => attachItemNode(item, el as HTMLElement, true, makeView)}>
+        const element = H`<div data-shape=${tileShapeForItem(item)} class="ui-ws-item ui-ws-item-icon shaped" data-speed-dial-item data-layer="icons" ref=${(el) => attachItemNode(item, el as HTMLElement, true, makeView)}>
             <ui-icon icon=${item.icon}></ui-icon>
         </div>`;
+        const shadow = createShapedTileShadow(element);
+        return H`${element}${shadow.getShadowElement()}`;
     };
 
     //
     const renderLabelItem = (item: SpeedDialItem)=>{
-        return H`<div style="background-color: transparent;" class="ui-ws-item ui-ws-item-label" data-speed-dial-item data-layer="labels" ref=${(el) => attachItemNode(item, el as HTMLElement, false, makeView)}>
+        const element = H`<div style="background-color: transparent;" class="ui-ws-item ui-ws-item-label" data-speed-dial-item data-layer="labels" ref=${(el) => attachItemNode(item, el as HTMLElement, false, makeView)}>
             <span style="background-color: transparent;">${getRefValue(item.label)}</span>
         </div>`;
+        return element;
     };
 
     //

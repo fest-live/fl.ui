@@ -174,6 +174,7 @@ export const openShortcutEditor = (options: ShortcutEditorOptions): void => {
                         <option value="squircle">Squircle</option>
                         <option value="circle">Circle</option>
                         <option value="square">Rounded square</option>
+                        <option value="wavy">Wavy</option>
                     </select>
                 </div>
                 <div class="modal-field">

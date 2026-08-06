@@ -649,16 +649,19 @@ export function SpeedDial(makeView: any) {
 
     //
     const renderIconItem = (item: SpeedDialItem)=>{
-        const element = H`<div data-shape=${tileShapeForItem(item)} class="ui-ws-item ui-ws-item-icon shaped" data-speed-dial-item data-layer="icons" ref=${(el) => attachItemNode(item, el as HTMLElement, true, makeView)}>
+        const element = H`<div data-shape=${tileShapeForItem(item)} data-id=${item.id} class="ui-ws-item ui-ws-item-icon shaped" data-speed-dial-item data-layer="icons" ref=${(el) => attachItemNode(item, el as HTMLElement, true, makeView)}>
             <ui-icon icon=${item.icon}></ui-icon>
         </div>`;
         const shadow = createShapedTileShadow(element);
-        return H`${element}${shadow.getShadowElement()}`;
+        const SE = shadow.getShadowElement();
+        SE?.setAttribute?.("data-id", item.id);
+        SE?.setAttribute?.("data-layer", "shadows");
+        return H`${element}${SE}`;
     };
 
     //
     const renderLabelItem = (item: SpeedDialItem)=>{
-        const element = H`<div style="background-color: transparent;" class="ui-ws-item ui-ws-item-label" data-speed-dial-item data-layer="labels" ref=${(el) => attachItemNode(item, el as HTMLElement, false, makeView)}>
+        const element = H`<div style="background-color: transparent;" data-id=${item.id} class="ui-ws-item ui-ws-item-label" data-speed-dial-item data-layer="labels" ref=${(el) => attachItemNode(item, el as HTMLElement, false, makeView)}>
             <span style="background-color: transparent;">${getRefValue(item.label)}</span>
         </div>`;
         return element;
@@ -673,6 +676,17 @@ export function SpeedDial(makeView: any) {
             ${M(speedDialItems, renderIconItem)}
         </div>
     </div>`;
+
+    //
+    affected(speedDialItems, (items, index, prev, operation) => {
+        console.log("speedDialItems", prev, prev?.id, operation);
+        if (operation == "remove" || operation == "delete") {
+            removeSpeedDialItem(prev?.id ?? "");
+
+            const elements = document.body?.querySelectorAll?.(`[data-id="${prev?.id}"][data-layer]`);
+            [...elements]?.forEach?.((el) => el.remove?.());
+        }
+    });
 
     //
     return box;

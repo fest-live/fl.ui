@@ -105,7 +105,7 @@
         "@fest-lib/dom": "github:fest-live/dom.ts#main",
         "@fest-lib/lure": "github:fest-live/lur.e#main",
         "@fest-lib/object": "github:fest-live/object.ts#main",
-        "@fest-lib/veela": "github:fest-live/veela#main",
+        "@fest-lib/veela": "github:fest-live/veela.css#main",
         "@fest-lib/uniform": "github:fest-live/uniform.ts#main"
     }
 }

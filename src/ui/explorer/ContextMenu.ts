@@ -85,8 +85,13 @@ const stampContextMenuPanel = (menu: HTMLElement, compact: boolean): void => {
     menu.style.setProperty("padding", compact ? "0.3rem" : "0.4rem", IMPORTANT_CSS);
     menu.style.setProperty("border-radius", "14px", IMPORTANT_CSS);
     menu.style.setProperty("pointer-events", "auto", IMPORTANT_CSS);
-    menu.style.setProperty("backdrop-filter", "none", IMPORTANT_CSS);
-    menu.style.setProperty("-webkit-backdrop-filter", "none", IMPORTANT_CSS);
+    /*
+     * WHY: inline `backdrop-filter: none !important` would override the stylesheet `blur(10px) !important`
+     * (inline !important beats stylesheet !important). Mirror explorer-view: stamp the glass blur inline
+     * so the speed-dial context menu shows the same backdrop blur as the explorer unified menu.
+     */
+    menu.style.setProperty("backdrop-filter", "blur(10px)", IMPORTANT_CSS);
+    menu.style.setProperty("-webkit-backdrop-filter", "blur(10px)", IMPORTANT_CSS);
     menu.style.removeProperty("border");
     menu.style.removeProperty("background");
     menu.style.removeProperty("color");
@@ -179,11 +184,16 @@ const ensureStyle = (): void => {
             border: 1px solid var(--cw-menu-border);
             background: color-mix(in oklab, var(--color-surface-container, var(--cw-menu-bg)) 94%, transparent);
             color: var(--cw-menu-fg);
+            /*
+             * WHY: !important — unlayered button rules / token-fallback sheets shipped by some hosts
+             * override the panel shadow otherwise; mirror the explorer-view unified menu so the
+             * speed-dial context menu keeps visible elevation + glass blur.
+             */
             box-shadow:
                 var(--elev-3, 0 14px 36px rgba(0, 0, 0, 0.45)),
-                0 0 0 1px color-mix(in oklab, --u2-color-mod(var(--cw-menu-seed), 100) 8%, transparent);
-            backdrop-filter: none;
-            -webkit-backdrop-filter: none;
+                0 0 0 1px color-mix(in oklab, --u2-color-mod(var(--cw-menu-seed), 100) 8%, transparent) !important;
+            backdrop-filter: blur(10px) !important;
+            -webkit-backdrop-filter: blur(10px) !important;
             pointer-events: auto;
             user-select: none;
         }
@@ -197,7 +207,9 @@ const ensureStyle = (): void => {
             border-color: var(--cw-menu-border);
             background: color-mix(in oklab, var(--color-surface-container, var(--cw-menu-bg)) 96%, transparent);
             color: var(--cw-menu-fg);
-            box-shadow: var(--elev-2, 0 10px 28px rgba(15, 23, 42, 0.16));
+            box-shadow: var(--elev-2, 0 10px 28px rgba(15, 23, 42, 0.16)) !important;
+            backdrop-filter: blur(10px) !important;
+            -webkit-backdrop-filter: blur(10px) !important;
         }
 
         html[data-theme="dark"] .cw-context-menu,
@@ -209,6 +221,9 @@ const ensureStyle = (): void => {
             border-color: var(--cw-menu-border);
             background: color-mix(in oklab, var(--color-surface-container, var(--cw-menu-bg)) 94%, transparent);
             color: var(--cw-menu-fg);
+            box-shadow: var(--elev-3, 0 14px 36px rgba(0, 0, 0, 0.45)) !important;
+            backdrop-filter: blur(10px) !important;
+            -webkit-backdrop-filter: blur(10px) !important;
         }
 
         @media (prefers-color-scheme: light) {
@@ -220,6 +235,9 @@ const ensureStyle = (): void => {
                 border-color: var(--cw-menu-border);
                 background: color-mix(in oklab, var(--color-surface-container, var(--cw-menu-bg)) 96%, transparent);
                 color: var(--cw-menu-fg);
+                box-shadow: var(--elev-2, 0 10px 28px rgba(15, 23, 42, 0.16)) !important;
+                backdrop-filter: blur(10px) !important;
+                -webkit-backdrop-filter: blur(10px) !important;
             }
         }
 

@@ -1,5 +1,5 @@
 import { placeWithCursor, placeWithElement } from "../deprecated/ps-anchor.js";
-import { addEvent, addEvents, removeEvents, setChecked } from "fest/dom";
+import { addEvent, addEvents, removeEvents, setChecked } from "@fest-lib/dom";
 
 //
 const hasClosest  = (el: HTMLElement, exact: HTMLElement) => { do { if (el === exact) { return true; }; el = el?.parentElement as HTMLElement; } while (el?.parentElement && el?.parentElement != exact); return (el === exact); }

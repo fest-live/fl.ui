@@ -1,4 +1,4 @@
-import { property, defineElement, H, registerOverlayElement, createDropShadow, ScrollBar } from "fest/lure"
+import { property, defineElement, H, registerOverlayElement, createDropShadow, ScrollBar } from "@fest-lib/lure"
 import { UIElement } from "fl-ui/base/UIElement"
 
 //

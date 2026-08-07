@@ -9,8 +9,8 @@
  */
 
 import { JSOX } from "jsox";
-import { makeObjectAssignable, observe, stringRef, safe } from "fest/object";
-import { decodeDesktopState, loadDesktopRaw, makeUIState, saveUIState } from "fest/lure";
+import { makeObjectAssignable, observe, stringRef, safe } from "@fest-lib/object";
+import { decodeDesktopState, loadDesktopRaw, makeUIState, saveUIState } from "@fest-lib/lure";
 
 /*
  * WHY: fl.ui must stay standalone — it cannot import `core/routing/core/views`

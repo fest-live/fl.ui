@@ -4,7 +4,7 @@
  * Change date and time: 12.45.00_03.08.2026
  * Reason for changes: Default Open link in → inline; dialog top-layer + div fields (not wrapper label).
  */
-import { registerModal } from "fest/lure";
+import { registerModal } from "@fest-lib/lure";
 
 /** WHY: Match context-menu pin — Settings may not have applied data-theme yet. */
 function resolveEditorTheme(): "light" | "dark" {

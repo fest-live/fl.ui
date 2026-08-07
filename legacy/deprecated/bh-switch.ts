@@ -1,6 +1,6 @@
 // @ts-ignore
-import { importCdn } from "fest/cdnImport";
-import { addEvent, addEvents, removeEvents, setChecked } from "fest/dom";
+import { importCdn } from "@fest-lib/cdnImport";
+import { addEvent, addEvents, removeEvents, setChecked } from "@fest-lib/dom";
 
 //
 export const setStyle = async (self, confirm: boolean = false, exact: number = 0, val: number = 0)=>{
@@ -35,7 +35,7 @@ export const makeSwitchBH = async (self?: HTMLElement)=>{
     if (!self) return;
 
     // @ts-ignore
-    const { getBoundingOrientRect, agWrapEvent } = await Promise.try(importCdn, ["fest/dom"]);
+    const { getBoundingOrientRect, agWrapEvent } = await Promise.try(importCdn, ["@fest-lib/dom"]);
 
     //
     const sws  = { pointerId: -1 };

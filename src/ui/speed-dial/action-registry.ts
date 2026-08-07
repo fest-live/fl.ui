@@ -5,7 +5,7 @@
  * Reason for changes: Cherry-pick richer open-view / open-link builtins + markdown-view alias normalization from second half (Task 4).
  */
 
-import { navigate } from "fest/lure";
+import { navigate } from "@fest-lib/lure";
 import {
     NAVIGATION_SHORTCUTS,
     buildSpeedDialViewPathHref,

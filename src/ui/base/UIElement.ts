@@ -1,6 +1,6 @@
-import { preloadStyle, loadAsAdopted } from "fest/dom";
-import { defineElement, GLitElement, H, property } from "fest/lure";
-import { ensureStyleSheet } from "fest/icon";
+import { preloadStyle, loadAsAdopted } from "@fest-lib/dom";
+import { defineElement, GLitElement, H, property } from "@fest-lib/lure";
+import { ensureStyleSheet } from "@fest-lib/icon";
 
 // @ts-ignore
 @defineElement("ui-element")

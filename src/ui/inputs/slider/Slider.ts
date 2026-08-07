@@ -14,9 +14,9 @@
  */
 
 //
-import { attrRef, defineElement, H, property, valueAsNumberRef, valueRef, dragSlider, getInputValues, Q, bindWith } from "fest/lure";
-import { preloadStyle, handleProperty } from "fest/dom";
-import { computed, assign, propRef } from "fest/object";
+import { attrRef, defineElement, H, property, valueAsNumberRef, valueRef, dragSlider, getInputValues, Q, bindWith } from "@fest-lib/lure";
+import { preloadStyle, handleProperty } from "@fest-lib/dom";
+import { computed, assign, propRef } from "@fest-lib/object";
 
 //
 import { UIElement } from "fl-ui/base/UIElement";

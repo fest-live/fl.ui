@@ -4,7 +4,7 @@
  * Text formatting and manipulation utilities.
  */
 
-import { parseDateCorrectly, getISOWeekNumber, getTimeZone, formatDateTime } from "fest/core";
+import { parseDateCorrectly, getISOWeekNumber, getTimeZone, formatDateTime } from "@fest-lib/core";
 
 // ============================================================================
 // STRING UTILITIES

@@ -20,34 +20,34 @@
             "fl-ui/*": [
                 "./ui/*"
             ],
-            "fest/fl-ui": [
+            "@fest-lib/fl-ui": [
                 "./src/index.ts"
             ],
-            "fest/image": [
+            "@fest-lib/image": [
                 "../../image.ts/src/index.ts"
             ],
-            "fest/lure": [
+            "@fest-lib/lure": [
                 "../../lur.e/src/index.ts"
             ],
-            "fest/object": [
+            "@fest-lib/object": [
                 "../../object.ts/src/index.ts"
             ],
-            "fest/dom": [
+            "@fest-lib/dom": [
                 "../../dom.ts/src/index.ts"
             ],
-            "fest/uniform": [
+            "@fest-lib/uniform": [
                 "../../uniform.ts/src/index.ts"
             ],
-            "fest/theme": [
+            "@fest-lib/theme": [
                 "../../theme.core/src/index.ts"
             ],
-            "fest/core": [
+            "@fest-lib/core": [
                 "../../core.ts/src/index.ts"
             ],
-            "fest/icon": [
+            "@fest-lib/icon": [
                 "../../icon.ts/src/index.ts"
             ],
-            "fest/polyfill/*": [
+            "@fest-lib/polyfill/*": [
                 "../../shared/fest/polyfill/*"
             ]
         },

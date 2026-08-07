@@ -5,9 +5,9 @@
  * Reason for changes: Port IDB wallpaper + paste/drop URL hygiene from product line.
  */
 
-import { observe, numberRef, propRef, stringRef, affected } from "fest/object";
-import { E, H, orientRef, M, provide, handleIncomingEntries, createShapedTileShadow } from "fest/lure";
-import { pointerAnchorRef } from "fest/lure";
+import { observe, numberRef, propRef, stringRef, affected } from "@fest-lib/object";
+import { E, H, orientRef, M, provide, handleIncomingEntries, createShapedTileShadow } from "@fest-lib/lure";
+import { pointerAnchorRef } from "@fest-lib/lure";
 import { bindPointerInteraction } from "./pointer-interaction";
 import {
     logicalToVisualCell,
@@ -25,7 +25,7 @@ import {
     resolveAppWallpaperUrl,
     getWallpaperStoragePointer,
     WALLPAPER_IDB_MARKER
-} from "fest/image";
+} from "@fest-lib/image";
 import { openUnifiedContextMenu, type ContextMenuEntry } from "fl-ui/explorer/ContextMenu";
 import {
     speedDialMeta,
@@ -50,7 +50,7 @@ import {
     getDefaultOpenLinkTarget,
     type SpeedDialItem
 } from "./launcher-state";
-import { isInFocus, MOCElement } from "fest/dom";
+import { isInFocus, MOCElement } from "@fest-lib/dom";
 import { openShortcutEditor } from "./ShortcutEditor";
 import { setSpeedDialViewOpener, getSpeedDialViewOpener } from "./view-opener";
 import { getSpeedDialActionRegistry, getSpeedDialActionLabels, getSpeedDialActionIcons } from "./action-registry";

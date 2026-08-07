@@ -4,7 +4,7 @@
  * Consolidated types from RsExplorer, FileManagerContent, and Operative.
  * Supports both OPFS and File System Access API.
  */
-import type { DataAsset } from "fest/lure";
+import type { DataAsset } from "@fest-lib/lure";
 
 // ============================================================================
 // FILE ENTRY TYPES

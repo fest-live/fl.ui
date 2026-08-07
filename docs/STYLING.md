@@ -8,13 +8,13 @@ FL.UI provides multiple entry points for different styling needs:
 
 ### Default Entry (with Veela)
 ```ts
-import { ... } from "fest/fl-ui";
+import { ... } from "@fest-lib/fl-ui";
 ```
 Uses full veela.css integration with all advanced styling features.
 
 ### Core Entry (No Veela)
 ```ts
-import { ... } from "fest/fl-ui/core";
+import { ... } from "@fest-lib/fl-ui/core";
 ```
 Uses fl.ui's built-in mixins with no external CSS dependencies. Great for:
 - Projects that don't use veela.css
@@ -23,7 +23,7 @@ Uses fl.ui's built-in mixins with no external CSS dependencies. Great for:
 
 ### Explicit Veela Entry
 ```ts
-import { ... } from "fest/fl-ui/veela";
+import { ... } from "@fest-lib/fl-ui/veela";
 ```
 Explicitly uses veela.css integration. Same as default, but more explicit in intent.
 
@@ -153,7 +153,7 @@ FL.UI defines CSS custom properties that work with any theming system:
 ### With Tailwind CSS
 ```ts
 // Import core version (no veela)
-import { ... } from "fest/fl-ui/core";
+import { ... } from "@fest-lib/fl-ui/core";
 
 // Override CSS variables with Tailwind values
 :root {
@@ -166,7 +166,7 @@ import { ... } from "fest/fl-ui/core";
 ### With Custom CSS
 ```ts
 // Import core version
-import { ... } from "fest/fl-ui/core";
+import { ... } from "@fest-lib/fl-ui/core";
 
 // Provide your own styles
 import "./my-custom-styles.css";
@@ -175,7 +175,7 @@ import "./my-custom-styles.css";
 ### Completely Custom
 ```ts
 // Import only components without any styles
-import { UIWindowFrame } from "fest/fl-ui/ui/components/containers/window/WindowFrame";
+import { UIWindowFrame } from "@fest-lib/fl-ui/ui/components/containers/window/WindowFrame";
 
 // Apply your own styling
 ```
@@ -187,10 +187,10 @@ If you were previously using fl.ui with veela and want to switch to the core ver
 1. Change your import:
    ```ts
    // Before
-   import { ... } from "fest/fl-ui";
+   import { ... } from "@fest-lib/fl-ui";
    
    // After
-   import { ... } from "fest/fl-ui/core";
+   import { ... } from "@fest-lib/fl-ui/core";
    ```
 
 2. Update SCSS imports if using fl.ui mixins:

@@ -1,6 +1,6 @@
-import { ScrollBar } from "fest/fl-ui";
-import { addEvent, addEvents, includeSelf } from "fest/dom";
-import { setChecked } from "fest/dom";
+import { ScrollBar } from "@fest-lib/fl-ui";
+import { addEvent, addEvents, includeSelf } from "@fest-lib/dom";
+import { setChecked } from "@fest-lib/dom";
 
 //
 export const doButtonAction = (button, input: HTMLInputElement)=>{

@@ -1,5 +1,5 @@
-import { observableByMap, observableBySet } from "fest/object";
-import { H, M } from "fest/lure";
+import { observableByMap, observableBySet } from "@fest-lib/object";
+import { H, M } from "@fest-lib/lure";
 
 const buildPrimaryDayTitle = (dayDesc: any) => {
     return dayDesc?.title || dayDesc?.name || dayDesc?.id || "";

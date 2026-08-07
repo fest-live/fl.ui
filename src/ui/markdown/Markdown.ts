@@ -2,7 +2,7 @@
 import styles from "../../styles/ui/_markdown.scss?inline";
 import DOMPurify from 'dompurify';
 import { marked, type MarkedExtension } from "marked";
-import { E, H, provide, defineElement, property } from "fest/lure";
+import { E, H, provide, defineElement, property } from "@fest-lib/lure";
 import renderMathInElement from "katex/dist/contrib/auto-render.mjs";
 import UIElement from "../base/UIElement";
 import markedKatex from "marked-katex-extension";

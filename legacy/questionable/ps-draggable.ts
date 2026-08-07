@@ -1,6 +1,6 @@
 import   DragHandler from "@interface/Draggable";
 import ResizeHandler from "@interface/Resizable";
-import { addEvent } from "fest/dom";
+import { addEvent } from "@fest-lib/dom";
 
 //
 export const $control$ = Symbol("@control");

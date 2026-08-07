@@ -17,14 +17,14 @@
  * @example
  * ```ts
  * // Default (veela-advanced)
- * import { Button, Card } from "fest/fl-ui";
+ * import { Button, Card } from "@fest-lib/fl-ui";
  *
  * // With specific variant
- * import { Button } from "fest/fl-ui/veela-basic";
+ * import { Button } from "@fest-lib/fl-ui/veela-basic";
  * ```
  */
 
-import { loadInlineStyle } from "fest/dom";
+import { loadInlineStyle } from "@fest-lib/dom";
 
 // ============================================================================
 // CONFIGURATION

@@ -4,10 +4,10 @@
  * Change date and time: 08.30.00_02.08.2026
  * Reason for changes: Win11-like calendar flyout custom element (today header + month grid).
  */
-import { defineElement, H } from "fest/lure";
-import { preloadStyle, addEvent } from "fest/dom";
+import { defineElement, H } from "@fest-lib/lure";
+import { preloadStyle, addEvent } from "@fest-lib/dom";
 import { UIElement } from "fl-ui/base/UIElement";
-import "fest/icon";
+import "@fest-lib/icon";
 import {
     ensureOverlayRoot,
     positionFlyout,

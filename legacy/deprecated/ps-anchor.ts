@@ -1,5 +1,5 @@
 // @ts-ignore
-import {importCdn} from "fest/cdnImport";
+import {importCdn} from "@fest-lib/cdnImport";
 
 //
 export const generateId = (len = 16) => {
@@ -13,7 +13,7 @@ export const placeWithElement = async (self?: HTMLElement, element?: HTMLElement
         element && element.dataset?.hidden == null &&
         self && self?.dataset?.hidden == null
     ) { // @ts-ignore
-        const {getBoundingOrientRect} = await Promise.try(importCdn, ["fest/dom"]);
+        const {getBoundingOrientRect} = await Promise.try(importCdn, ["@fest-lib/dom"]);
 
         //
         const box      = getBoundingOrientRect(element);

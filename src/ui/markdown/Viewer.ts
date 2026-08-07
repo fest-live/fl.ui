@@ -5,7 +5,7 @@
  * source output while keeping the light-DOM render targets stable for the rest
  * of the viewer pipeline.
  */
-import { H } from "fest/lure";
+import { H } from "@fest-lib/lure";
 
 const FRAME_TAG = "cw-markdown-view-frame";
 

@@ -20,40 +20,40 @@
             "fonts/*": [
                 "../../../modules/shared/assets/fonts/*"
             ],
-            "fest/*": [
+            "@fest-lib/*": [
                 "../../../modules/shared/fest/*"
             ],
-            "fest/cdnImport": [
+            "@fest-lib/cdnImport": [
                 "./typings/cdnImport.d.ts"
             ],
-            "fest/dom": [
+            "@fest-lib/dom": [
                 "../dom.ts/src/index.ts"
             ],
-            "fest/lure": [
+            "@fest-lib/lure": [
                 "../lur.e/src/index.ts"
             ],
-            "fest/object": [
+            "@fest-lib/object": [
                 "../object.ts/src/index.ts"
             ],
-            "fest/core": [
+            "@fest-lib/core": [
                 "../core.ts/src/index.ts"
             ],
-            "fest/icon": [
+            "@fest-lib/icon": [
                 "../icon.ts/src/index.ts"
             ],
-            "fest/fl-ui": [
+            "@fest-lib/fl-ui": [
                 "./src/index.ts"
             ],
-            "fest/image": [
+            "@fest-lib/image": [
                 "../image.ts/src/index.ts"
             ],
-            "fest/ui": [
+            "@fest-lib/ui": [
                 "./src/index.ts"
             ],
-            "fest/uniform": [
+            "@fest-lib/uniform": [
                 "../uniform.ts/src/index.ts"
             ],
-            "fest/polyfill/*": [
+            "@fest-lib/polyfill/*": [
                 "../../../modules/shared/fest/polyfill/*"
             ],
             "polyfill/*": [
@@ -74,11 +74,11 @@
             "fl-ui/items/BaseElement.ts": [
                 "./src/ui/items/base/BaseElement.ts"
             ],
-            "fest/veela": [
+            "@fest-lib/veela": [
                 "../veela.css/src/index.ts",
                 "../../../modules/shared/fest/veela/index.ts"
             ],
-            "fest/veela-runtime": [
+            "@fest-lib/veela-runtime": [
                 "../veela.css/src/index.ts",
                 "../../../modules/shared/fest/veela/index.ts"
             ],

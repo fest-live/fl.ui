@@ -2,7 +2,7 @@
  * Dev playground: suite picker in index.html + dynamic loaders for smoke tests.
  * Puppeteer / manual: `?suite=explorer|markdown|misc|speed-dial|window` (alias `demo=`).
  */
-import "fest/icon";
+import "@fest-lib/icon";
 
 const MOUNT_ID = "fl-ui-playground";
 

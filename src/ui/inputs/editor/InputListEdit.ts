@@ -1,6 +1,6 @@
 // similar to DescriptorEdit, but use input[type="@N"]
-import { computed, isObservable, observe, propRef } from "fest/object";
-import { H, M, Q } from "fest/lure";
+import { computed, isObservable, observe, propRef } from "@fest-lib/object";
+import { H, M, Q } from "@fest-lib/lure";
 import { JSOX } from "jsox";
 import { canParseURL } from "core/utils/Runtime";
 

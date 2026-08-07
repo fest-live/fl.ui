@@ -9,8 +9,8 @@
  *
  * Tagged shell markup uses {@link ../dom-lite.ts}; controls use {@link ./buttons.ts}.
  */
-import type { refType } from "fest/object";
-import { booleanRef, effect, numberRef } from "fest/object";
+import type { refType } from "@fest-lib/object";
+import { booleanRef, effect, numberRef } from "@fest-lib/object";
 import { h } from "../dom-lite.js";
 import { mountChromeButtons } from "./buttons.ts";
 

@@ -9,7 +9,7 @@ import {
     type AppBoxElement,
     type WindowTitlebarElement
 } from "./WindowElements";
-import { JUNCTION_DRAG_EVENTS, JUNCTION_RESIZE_EVENTS, bindAnchorableDragResize } from "fest/lure";
+import { JUNCTION_DRAG_EVENTS, JUNCTION_RESIZE_EVENTS, bindAnchorableDragResize } from "@fest-lib/lure";
 
 export {
     APP_BOX_TAG,

@@ -12,11 +12,11 @@
  * Mobile: transparent nav, centered house icon; long-press lists open windows.
  * Desktop: no Home pin; icon-only tasks; Win-style click toggle; context menus; tray clock.
  */
-import { UITask } from "fest/fl-ui";
-import "fest/icon";
-import { createPanelUnderShadow, type UnderlyingShadow } from "fest/lure";
-import { effect, observe, type refType } from "fest/object";
-import { getBy, makeTask, navigationEnable, type ITask } from "fest/lure";
+import { UITask } from "@fest-lib/fl-ui";
+import "@fest-lib/icon";
+import { createPanelUnderShadow, type UnderlyingShadow } from "@fest-lib/lure";
+import { effect, observe, type refType } from "@fest-lib/object";
+import { getBy, makeTask, navigationEnable, type ITask } from "@fest-lib/lure";
 import {
     openUnifiedContextMenu,
     type ContextMenuEntry
@@ -28,12 +28,12 @@ import { toggleQuickSettingsFlyout } from "../../settings/QuickSettings";
 
 /* Taskbar wrapper */
 import UIElement from "fl-ui/base/UIElement";
-import { H, defineElement } from "fest/lure";
+import { H, defineElement } from "@fest-lib/lure";
 
 //
 // @ts-ignore
 import styles from "../scss/TaskBar.scss?inline";
-import { preloadStyle } from "fest/dom";
+import { preloadStyle } from "@fest-lib/dom";
 const styled = preloadStyle(styles);
 
 //

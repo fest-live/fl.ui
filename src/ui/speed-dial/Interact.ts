@@ -4,11 +4,11 @@
  * Change date and time: 21.12.00_28.07.2026
  * Reason for changes: Keep the public interaction entrypoint as a compatibility facade over Pointer Events.
  */
-import { RAFBehavior, orientOf, setStyleProperty, resolveGridCellFromClientPoint } from "fest/dom";
-import { makeObjectAssignable, observe, affected, numberRef } from "fest/object";
-import { makeShiftTrigger, LongPressHandler, clampCell, bindDraggable } from "fest/lure";
-import { redirectCell } from "fest/core";
-import type { GridArgsType, GridItemType } from "fest/core";
+import { RAFBehavior, orientOf, setStyleProperty, resolveGridCellFromClientPoint } from "@fest-lib/dom";
+import { makeObjectAssignable, observe, affected, numberRef } from "@fest-lib/object";
+import { makeShiftTrigger, LongPressHandler, clampCell, bindDraggable } from "@fest-lib/lure";
+import { redirectCell } from "@fest-lib/core";
+import type { GridArgsType, GridItemType } from "@fest-lib/core";
 import { bindPointerInteraction } from "./pointer-interaction";
 import { normalizeOrient, type GridCell } from "./layout";
 

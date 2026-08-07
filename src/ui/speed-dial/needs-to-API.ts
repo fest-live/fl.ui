@@ -2,7 +2,7 @@
  * Home view — lightweight landing / shortcuts shell when `home` is the default view.
  */
 
-import { H } from "fest/lure";
+import { H } from "@fest-lib/lure";
 
 export type HomeViewOptions = BaseViewOptions;
 

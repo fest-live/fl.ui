@@ -1,9 +1,9 @@
 import type { EntityInterface, TimeType } from "com/template/EntityInterface";
 import type { EntityDescriptor } from "core/utils/Types";
 import { scheduleFrame } from "core/utils/Runtime";
-import { removeFile, writeFile } from "fest/lure";
-import { H, Q, M } from "fest/lure";
-import { observe, stringRef, propRef } from "fest/object";
+import { removeFile, writeFile } from "@fest-lib/lure";
+import { H, Q, M } from "@fest-lib/lure";
+import { observe, stringRef, propRef } from "@fest-lib/object";
 
 // helpful imports (all from `core/template/*`, such as `EntityUtils`, `EntityId`, etc.)
 import { detectEntityTypeByJSON } from "com/template/EntityUtils";

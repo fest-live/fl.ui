@@ -2,7 +2,7 @@
  * Single source for markdown viewer toolbar chrome (standalone + shadow/slot modes).
  */
 
-import { H } from "fest/lure";
+import { H } from "@fest-lib/lure";
 
 export function createViewerToolbar(): HTMLElement {
     return H`

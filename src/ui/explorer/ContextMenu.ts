@@ -5,7 +5,7 @@
  * Reason for changes: Wallpaper-seed menu chrome (no slate !important stamps); theme pin for light/dark ink.
  */
 
-import { MOCElement } from "fest/dom";
+import { MOCElement } from "@fest-lib/dom";
 import type { FileEntryItem } from "./Operative";
 import { canReceiveIncomingPath } from "./Operative";
 import { entryKey, entryKind } from "./utils";

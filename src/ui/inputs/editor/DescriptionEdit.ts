@@ -1,5 +1,5 @@
-import { isObservable, observe } from "fest/object";
-import { H, M } from "fest/lure";
+import { isObservable, observe } from "@fest-lib/object";
+import { H, M } from "@fest-lib/lure";
 import { JSOX } from "jsox";
 
 //

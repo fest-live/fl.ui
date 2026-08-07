@@ -5,7 +5,7 @@
  * Reason for changes: Dev playground suite for <ui-window> light/dark chrome + controls.
  */
 import "../../src/ui/containers/window/Windows2";
-import "fest/icon";
+import "@fest-lib/icon";
 
 function el<K extends keyof HTMLElementTagNameMap>(
     tag: K,

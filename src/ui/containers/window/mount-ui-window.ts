@@ -12,8 +12,8 @@
  * `restore` / `close` / `window-native` / `window-exit-native`). This module applies attrs +
  * geometry and notifies the tasking layer.
  */
-import { booleanRef, effect } from "fest/object";
-import { Windows2 } from "fest/fl-ui";
+import { booleanRef, effect } from "@fest-lib/object";
+import { Windows2 } from "@fest-lib/fl-ui";
 import type { WindowChromeModel } from "../frame/window-shell.ts";
 
 void Windows2;

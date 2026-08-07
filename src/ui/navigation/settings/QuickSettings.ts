@@ -12,10 +12,10 @@
  * this component stays usable standalone inside `fl.ui`. Apps that ship a real Theme
  * subsystem can still react via the `u2-theme-change` event this module dispatches.
  */
-import { defineElement, H } from "fest/lure";
-import { MOCElement, preloadStyle } from "fest/dom";
+import { defineElement, H } from "@fest-lib/lure";
+import { MOCElement, preloadStyle } from "@fest-lib/dom";
 import { UIElement } from "fl-ui/base/UIElement";
-import "fest/icon";
+import "@fest-lib/icon";
 
 import {
     ensureOverlayRoot,

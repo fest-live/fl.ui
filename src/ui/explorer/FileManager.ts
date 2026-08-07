@@ -1,6 +1,6 @@
-import { H, defineElement, property, getDir, valueLink } from "fest/lure";
-import { addEvent, preloadStyle } from "fest/dom";
-import { affected, propRef } from "fest/object";
+import { H, defineElement, property, getDir, valueLink } from "@fest-lib/lure";
+import { addEvent, preloadStyle } from "@fest-lib/dom";
+import { affected, propRef } from "@fest-lib/object";
 
 //
 import { UIElement } from "../base/UIElement";

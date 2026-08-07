@@ -4,10 +4,10 @@
  * Change date and time: 10.50.00_02.08.2026
  * Reason for changes: Own theme-color for native + max windows from titlebar (not wallpaper).
  */
-import { defineElement, property, H, numberRef, bindStyle, S } from "fest/lure";
-import { preloadStyle, addEvent } from "fest/dom";
+import { defineElement, property, H, numberRef, bindStyle, S } from "@fest-lib/lure";
+import { preloadStyle, addEvent } from "@fest-lib/dom";
 import { UIElement } from "fl-ui/base/UIElement";
-import "fest/icon";
+import "@fest-lib/icon";
 import {
     probeNativeWindowChrome,
     subscribeNativeWindowChrome,

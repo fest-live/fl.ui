@@ -5,8 +5,8 @@
  * Reason for changes: Serialize path loads so OPFS listings refresh after drop/paste/upload.
  */
 
-import { observe, iterated, ref, affected } from "fest/object";
-import { isUserScopePath } from "fest/core";
+import { observe, iterated, ref, affected } from "@fest-lib/object";
+import { isUserScopePath } from "@fest-lib/core";
 
 // OPFS helpers
 import {
@@ -24,7 +24,7 @@ import {
     readFile,
     uploadDirectory,
     handleIncomingEntries
-} from "fest/lure";
+} from "@fest-lib/lure";
 
 //
 export type EntryKind = "file" | "directory";

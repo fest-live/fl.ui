@@ -1,7 +1,7 @@
-import { bindWith, defineElement, property, H } from "fest/lure";
-import { addEvent, preloadStyle, handleProperty } from "fest/dom";
+import { bindWith, defineElement, property, H } from "@fest-lib/lure";
+import { addEvent, preloadStyle, handleProperty } from "@fest-lib/dom";
 import { UIElement } from "fl-ui/base/UIElement";
-import { assign, propRef } from "fest/object";
+import { assign, propRef } from "@fest-lib/object";
 
 /* **
  * @module ui/inputs/text/Text

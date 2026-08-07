@@ -5,7 +5,7 @@
  * Reason for changes: Overlay scrollbars via positioning:contain + anchored ScrollBar (no CSS-anchor host).
  */
 
-import { createBlurShadow, appendAsOverlay, ScrollBar } from "fest/lure";
+import { createBlurShadow, appendAsOverlay, ScrollBar } from "@fest-lib/lure";
 
 export function mount(el: HTMLElement): void {
     el.style.cssText =

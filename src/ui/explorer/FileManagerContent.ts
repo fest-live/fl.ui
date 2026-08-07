@@ -5,9 +5,9 @@
  * Reason for changes: Bind drop inside shadowRoot (DragEvent is not composed) and keep list rows in sync.
  */
 
-import { property, defineElement, H, bindWith, initGlobalClipboard } from "fest/lure";
-import { addEvent, handleStyleChange, preloadStyle } from "fest/dom";
-import { ref } from "fest/object";
+import { property, defineElement, H, bindWith, initGlobalClipboard } from "@fest-lib/lure";
+import { addEvent, handleStyleChange, preloadStyle } from "@fest-lib/dom";
+import { ref } from "@fest-lib/object";
 
 //
 import { UIElement } from "fl-ui/base/UIElement";

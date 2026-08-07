@@ -9,8 +9,8 @@
  * Reactive network/battery chips are shared via {@link attachShellDeviceStatus} for the desktop taskbar.
  * Overlay mode (mobile browser / fullscreen, not standalone): transparent top band, time L / icons R.
  */
-import { E, H, defineElement } from "fest/lure";
-import { effect, ref, type refType } from "fest/object";
+import { E, H, defineElement } from "@fest-lib/lure";
+import { effect, ref, type refType } from "@fest-lib/object";
 import { toggleCalendarFlyout } from "../calendar/CalendarFlyout";
 import { toggleQuickSettingsFlyout } from "../settings/QuickSettings";
 
@@ -20,7 +20,7 @@ import UIElement from "fl-ui/base/UIElement";
 //
 // @ts-ignore
 import styles from "./statusbar.scss?inline";
-import { preloadStyle } from "fest/dom";
+import { preloadStyle } from "@fest-lib/dom";
 const styled = preloadStyle(styles);
 
 /** Shell display surface for chrome / status overlay decisions. */

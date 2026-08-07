@@ -4,7 +4,7 @@
  * Hosts background/image surface under shell windows.
  */
 
-import "fest/dom";
+import "@fest-lib/dom";
 
 const WALLPAPER_STORAGE_KEY = "rs-wallpaper-image";
 const DEFAULT_WALLPAPER_URL = "/assets/wallpaper.jpg";

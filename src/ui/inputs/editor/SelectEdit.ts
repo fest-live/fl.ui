@@ -1,5 +1,5 @@
-import { M, H, Q } from "fest/lure";
-import { stringRef } from "fest/object";
+import { M, H, Q } from "@fest-lib/lure";
+import { stringRef } from "@fest-lib/object";
 
 //
 const editBindings = new WeakMap<any, FieldWithKey>();

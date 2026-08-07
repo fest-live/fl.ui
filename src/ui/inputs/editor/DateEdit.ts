@@ -1,5 +1,5 @@
-import { stringRef } from "fest/object";
-import { H, M, Q } from "fest/lure";
+import { stringRef } from "@fest-lib/object";
+import { H, M, Q } from "@fest-lib/lure";
 import { parseDateCorrectly } from "core/time";
 
 //

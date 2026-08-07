@@ -1,4 +1,4 @@
-import { DOMMixin } from "fest/dom";
+import { DOMMixin } from "@fest-lib/dom";
 
 //
 export class ThinSlider extends DOMMixin {

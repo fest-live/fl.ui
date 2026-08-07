@@ -1,7 +1,7 @@
-import { elementPointerMap } from "fest/lure";
-import { DOMMixin, getCorrectOrientation, orientationNumberMap } from "fest/dom";
-import { numberRef } from "fest/object";
-import { Vector2D, vector2Ref } from "fest/lure";
+import { elementPointerMap } from "@fest-lib/lure";
+import { DOMMixin, getCorrectOrientation, orientationNumberMap } from "@fest-lib/dom";
+import { numberRef } from "@fest-lib/object";
+import { Vector2D, vector2Ref } from "@fest-lib/lure";
 
 //
 export class UIOrientBox extends DOMMixin {

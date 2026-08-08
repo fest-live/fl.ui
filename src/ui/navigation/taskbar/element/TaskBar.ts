@@ -20,7 +20,7 @@ import { getBy, makeTask, navigationEnable, type ITask } from "@fest-lib/lure";
 import {
     openUnifiedContextMenu,
     type ContextMenuEntry
-} from "../../../explorer/ContextMenu";
+} from "../../explorer/ContextMenu";
 
 import { buildShellDeviceTray, type ShellDeviceStatus } from "../../statusbar/statusbar";
 import { toggleCalendarFlyout } from "../../calendar/CalendarFlyout";

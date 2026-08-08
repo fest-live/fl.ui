@@ -1,8 +1,8 @@
 /*
  * Filename: Windows2.ts
  * FullPath: modules/projects/fl.ui/src/ui/containers/window/Windows2.ts
- * Change date and time: 10.50.00_02.08.2026
- * Reason for changes: Own theme-color for native + max windows from titlebar (not wallpaper).
+ * Change date and time: 17.50.00_08.08.2026
+ * Reason for changes: title/resizer live in shadow — use query-shadow so drag/resize get real HTMLElements.
  */
 import { defineElement, property, H, numberRef, bindStyle, S } from "@fest-lib/lure";
 import { preloadStyle, addEvent } from "@fest-lib/dom";
@@ -59,10 +59,10 @@ export type UiWindowBounds = {
 // @ts-ignore
 @defineElement("ui-window")
 export class Windows2 extends UIElement {
-    @property({ source: "query", name: ".title-handler" }) titleHandler?: HTMLElement;
-    @property({ source: "query", name: ".content-handler" }) contentHandler?: HTMLElement;
-    @property({ source: "query", name: ".footer-handler" }) footerHandler?: HTMLElement;
-    @property({ source: "query", name: ".window-resizer" }) resizer?: HTMLElement;
+    @property({ source: "query-shadow", name: ".title-handler" }) titleHandler?: HTMLElement;
+    @property({ source: "query-shadow", name: ".content-handler" }) contentHandler?: HTMLElement;
+    @property({ source: "query-shadow", name: ".footer-handler" }) footerHandler?: HTMLElement;
+    @property({ source: "query-shadow", name: ".window-resizer" }) resizer?: HTMLElement;
 
     /** Cumulative drag offset in CSS pixels (unmanaged / standalone mode). */
     #ox = numberRef(0);
@@ -570,7 +570,12 @@ export class Windows2 extends UIElement {
         const root = this.shadowRoot;
         if (!root) return;
 
-        const titleBar = (this.titleHandler ?? root.querySelector(".title-handler")) as HTMLElement | null;
+        const fromTitle = this.titleHandler;
+        const titleBar = (
+            fromTitle instanceof HTMLElement
+                ? fromTitle
+                : (root.querySelector(".title-handler") as HTMLElement | null)
+        );
         const buttons = root.querySelector(".title-handler-buttons") as HTMLElement | null;
         if (!titleBar || !buttons) return;
 
@@ -636,7 +641,14 @@ export class Windows2 extends UIElement {
 
     #wireDrag(): void {
         const root = this.shadowRoot ?? this;
-        const bar = (this.titleHandler ?? root.querySelector?.(".title-handler")) as HTMLElement | null;
+        // WHY: unresolved Q() proxy is truthy and blocked `shadowRoot.querySelector` fallback —
+        // pointerdown bound to the wrong target → drag/resize looked dead.
+        const fromProp = this.titleHandler;
+        const bar = (
+            fromProp instanceof HTMLElement
+                ? fromProp
+                : (root.querySelector?.(".title-handler") as HTMLElement | null)
+        );
         if (!bar || this.#dragUnbind) return;
 
         // WHY: WCO / standalone — CSS `window-drag` moves the OS window; skip JS drag.
@@ -748,7 +760,12 @@ export class Windows2 extends UIElement {
 
     #wireResize(): void {
         const root = this.shadowRoot ?? this;
-        const grip = (this.resizer ?? root.querySelector?.(".window-resizer")) as HTMLElement | null;
+        const fromProp = this.resizer;
+        const grip = (
+            fromProp instanceof HTMLElement
+                ? fromProp
+                : (root.querySelector?.(".window-resizer") as HTMLElement | null)
+        );
         if (!grip || this.#resizeUnbind) return;
 
         const pointerMap = new Map<number, { sx: number; sy: number; w: number; h: number }>();

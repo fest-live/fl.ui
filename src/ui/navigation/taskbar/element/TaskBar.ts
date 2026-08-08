@@ -1,10 +1,9 @@
 
 /*
- * Filename: taskbar.ts
- * FullPath: modules/shells/environment-shell/src/components/taskbar.ts
- * Change date and time: 11.15.00_31.07.2026
- * Reason for changes: Direct Win toggle (bypass ITask focus no-op); icon attrs before connect.
- *   2026-07-31: switcher close button; Home long-press lists minimized apps.
+ * Filename: TaskBar.ts
+ * FullPath: modules/projects/fl.ui/src/ui/navigation/taskbar/element/TaskBar.ts
+ * Change date and time: 08.36.00_08.08.2026
+ * Reason for changes: Import ContextMenu from fl.ui SoT (not app views/explorer alias).
  */
 /**
  * WHY: Desktop shell chrome — `ui-taskbar` + `ui-task` from FL-UI, `fest/lure` tasking `makeTask` / `getBy`,
@@ -17,10 +16,11 @@ import "@fest-lib/icon";
 import { createPanelUnderShadow, type UnderlyingShadow } from "@fest-lib/lure";
 import { effect, observe, type refType } from "@fest-lib/object";
 import { getBy, makeTask, navigationEnable, type ITask } from "@fest-lib/lure";
+// WHY: Library builds have no app `views/*` aliases; use the fl.ui ContextMenu SoT.
 import {
     openUnifiedContextMenu,
     type ContextMenuEntry
-} from "views/explorer/ts/ContextMenu";
+} from "../../../explorer/ContextMenu";
 
 import { buildShellDeviceTray, type ShellDeviceStatus } from "../../statusbar/statusbar";
 import { toggleCalendarFlyout } from "../../calendar/CalendarFlyout";

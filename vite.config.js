@@ -1,8 +1,8 @@
 /*
  * Filename: vite.config.js
  * FullPath: modules/projects/fl.ui/vite.config.js
- * Change date and time: 01.28.00_29.07.2026
- * Reason for changes: Serve File Manager demos over HTTPS so OPFS / drop / paste work off-localhost.
+ * Change date and time: 08.35.00_08.08.2026
+ * Reason for changes: cssMinify off — lightningcss crashes on Veela contrast-color / slotted CSS.
  */
 import { resolve } from "node:path";
 import { readFile } from "node:fs/promises";
@@ -32,6 +32,14 @@ export default defineConfig(async ({ command }) => {
                 ]
             }
         }
+    };
+
+    // WHY: Vite 8 defaults CSS minify to lightningcss, which fails on modern Veela output
+    // (`contrast-color()`, custom `--c2-surface()`, nested `::slotted(::slotted(*))`).
+    // INVARIANT: library publish must emit dist/fl-ui.js without CSS minify.
+    base.build = {
+        ...base.build,
+        cssMinify: false
     };
 
     if (command === "serve") {

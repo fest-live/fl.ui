@@ -1,7 +1,7 @@
 {
     "name": "@fest-lib/fl-ui",
     "description": "FL-UI components and services (fest-lib). Dev HTTPS: npm run dev → https://localhost:8434/?suite=explorer (OPFS). HTTP-only: npm run dev:http.",
-    "version": "0.1.0",
+    "version": "0.1.1",
     "license": "MIT",
     "type": "module",
     "sideEffects": true,
@@ -38,14 +38,6 @@
             "import": "./dist/fl-ui.js",
             "default": "./dist/fl-ui.js"
         },
-        "./core": {
-            "import": "./dist/fl-ui-core.js",
-            "default": "./dist/fl-ui-core.js"
-        },
-        "./veela": {
-            "import": "./dist/fl-ui-veela.js",
-            "default": "./dist/fl-ui-veela.js"
-        },
         "./styles": {
             "import": "./src/styles/_index.scss",
             "default": "./src/styles/_index.scss"
@@ -69,11 +61,17 @@
         "./package.json": "./package.json"
     },
     "peerDependencies": {
-        "@fest-lib/core": "^0.1.0",
-        "@fest-lib/dom": "^0.1.0",
-        "@fest-lib/lure": "^0.1.0",
-        "@fest-lib/object": "^0.1.0",
-        "@fest-lib/veela": "^0.1.0"
+        "@fest-lib/core": ">=0.1.0",
+        "@fest-lib/dom": ">=0.1.0",
+        "@fest-lib/lure": ">=0.1.0",
+        "@fest-lib/object": ">=0.1.0",
+        "@fest-lib/uniform": ">=0.1.0",
+        "@fest-lib/veela": ">=0.1.0"
+    },
+    "peerDependenciesMeta": {
+        "@fest-lib/veela": {
+            "optional": true
+        }
     },
     "scripts": {
         "test": "vite --host 0.0.0.0",
@@ -83,29 +81,24 @@
         "watch": "vite build --watch",
         "build": "vite build --config vite.config.js && npm run docs && npm run docs:md",
         "build:publish": "FEST_NPM_IMPORTS=1 vite build --config vite.config.js",
-        "publish": "npm install -D typedoc typedoc-plugin-markdown && npm audit fix && npm run build && npm publish --access public",
         "prepack": "npm run build:publish",
-        "preview": "vite preview",
         "docs": "typedoc ./src/index.ts --options ./typedoc.json --out ./docs --tsconfig ./tsconfig.json --excludeExternals --excludePrivate --excludeProtected --skipErrorChecking",
         "docs:clean": "rm -rf ./docs && typedoc --options ./typedoc.json",
         "docs:md": "typedoc --options ./typedoc.md.json",
-        "docs:md:clean": "rm -rf ./docs-md && typedoc --options ./typedoc.md.json"
+        "docs:md:clean": "rm -rf ./docs-md && typedoc --options ./typedoc.md.json",
+        "preview": "vite preview",
+        "release": "PUPPETEER_SKIP_DOWNLOAD=1 npm run build:publish && npm publish --access public --ignore-scripts",
+        "publish": "npm run release"
     },
     "devDependencies": {
         "@types/node": ">=22.8.1",
         "@vitejs/plugin-basic-ssl": "^2.1.0",
         "puppeteer": ">=24.42.0",
         "sass": ">=1.93.3",
+        "typedoc": "^0.28.20",
+        "typedoc-plugin-markdown": "^4.12.0",
         "typescript": ">=6.0.0-beta",
         "vite": ">=8.0.10",
         "vite-plugin-external": ">=6.2.2"
-    },
-    "dependencies": {
-        "@fest-lib/core": "github:fest-live/core.ts#main",
-        "@fest-lib/dom": "github:fest-live/dom.ts#main",
-        "@fest-lib/lure": "github:fest-live/lur.e#main",
-        "@fest-lib/object": "github:fest-live/object.ts#main",
-        "@fest-lib/veela": "github:fest-live/veela.css#main",
-        "@fest-lib/uniform": "github:fest-live/uniform.ts#main"
     }
 }

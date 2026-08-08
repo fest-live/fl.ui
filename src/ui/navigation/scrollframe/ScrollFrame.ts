@@ -2,7 +2,9 @@ import { property, defineElement, H, registerOverlayElement, createDropShadow, S
 import { UIElement } from "fl-ui/base/UIElement"
 
 //
-const withScrollbars = new WeakMap();
+const withScrollbarsSymbol = Symbol.for("ui.scrollframe.withScrollbars");
+globalThis[withScrollbarsSymbol] ??= new WeakMap();
+export const withScrollbars = globalThis[withScrollbarsSymbol];
 
 // @ts-ignore
 @defineElement("ui-scrollframe")

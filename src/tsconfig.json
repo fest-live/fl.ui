@@ -12,7 +12,8 @@
         "../test/**/*"
     ],
     "compilerOptions": {
-        "outDir": "../../dist/",
+        "rootDir": "../../",
+        "outDir": "./dist/",
         "paths": {
             "@phosphor-icons/core/assets/*": [
                 "../../../../node_modules/@phosphor-icons/core/assets/*"

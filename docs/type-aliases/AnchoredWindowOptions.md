@@ -1,0 +1,67 @@
+[**@fest-lib/fl-ui v0.1.7**](../README.md)
+
+***
+
+[@fest-lib/fl-ui](../README.md) / AnchoredWindowOptions
+
+# Type Alias: AnchoredWindowOptions
+
+```ts
+type AnchoredWindowOptions = object;
+```
+
+Defined in: fl.ui/src/ui/containers/window/Windows.ts:22
+
+## Properties
+
+### minHeight?
+
+```ts
+optional minHeight?: number;
+```
+
+Defined in: fl.ui/src/ui/containers/window/Windows.ts:29
+
+***
+
+### minWidth?
+
+```ts
+optional minWidth?: number;
+```
+
+Defined in: fl.ui/src/ui/containers/window/Windows.ts:28
+
+***
+
+### panePrimary?
+
+```ts
+optional panePrimary?: Node;
+```
+
+Defined in: fl.ui/src/ui/containers/window/Windows.ts:25
+
+First column / primary region.
+
+***
+
+### paneSecondary?
+
+```ts
+optional paneSecondary?: Node;
+```
+
+Defined in: fl.ui/src/ui/containers/window/Windows.ts:27
+
+Second column / secondary region.
+
+***
+
+### title?
+
+```ts
+optional title?: string;
+```
+
+Defined in: fl.ui/src/ui/containers/window/Windows.ts:23

@@ -1,0 +1,27 @@
+[**@fest-lib/fl-ui v0.1.7**](../README.md)
+
+***
+
+[@fest-lib/fl-ui](../README.md) / createAnchoredWindow
+
+# ~~Function: createAnchoredWindow()~~
+
+```ts
+function createAnchoredWindow(opts?): HTMLElement;
+```
+
+Defined in: fl.ui/src/ui/containers/window/Windows.ts:109
+
+## Parameters
+
+### opts?
+
+[`AnchoredWindowOptions`](../type-aliases/AnchoredWindowOptions.md) = `{}`
+
+## Returns
+
+`HTMLElement`
+
+## Deprecated
+
+Prefer `createAnchoredWindowShell` + `.frame`.

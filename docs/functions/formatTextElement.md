@@ -1,0 +1,23 @@
+[**@fest-lib/fl-ui v0.1.7**](../README.md)
+
+***
+
+[@fest-lib/fl-ui](../README.md) / formatTextElement
+
+# Function: formatTextElement()
+
+```ts
+function formatTextElement(text): any;
+```
+
+Defined in: fl.ui/src/misc/Format.ts:17
+
+## Parameters
+
+### text
+
+`string`
+
+## Returns
+
+`any`

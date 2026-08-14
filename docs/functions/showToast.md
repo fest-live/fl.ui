@@ -1,0 +1,29 @@
+[**@fest-lib/fl-ui v0.1.7**](../README.md)
+
+***
+
+[@fest-lib/fl-ui](../README.md) / showToast
+
+# Function: showToast()
+
+```ts
+function showToast(options): HTMLElement | null;
+```
+
+Defined in: fl.ui/src/misc/Toast.ts:336
+
+Create and show a toast notification
+
+## Parameters
+
+### options
+
+`string` \| [`ToastOptions`](../interfaces/ToastOptions.md)
+
+Toast options object or message string
+
+## Returns
+
+`HTMLElement` \| `null`
+
+The created toast element, or null if in service worker context

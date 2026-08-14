@@ -1,0 +1,34 @@
+[**@fest-lib/fl-ui v0.1.7**](../README.md)
+
+***
+
+[@fest-lib/fl-ui](../README.md) / makePropertyDesc
+
+# Function: makePropertyDesc()
+
+```ts
+function makePropertyDesc(
+   label, 
+   property, 
+   key?): any;
+```
+
+Defined in: fl.ui/src/misc/Format.ts:172
+
+## Parameters
+
+### label
+
+`any`
+
+### property
+
+`any`
+
+### key?
+
+`string` \| `null`
+
+## Returns
+
+`any`

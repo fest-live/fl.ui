@@ -1,0 +1,29 @@
+[**@fest-lib/fl-ui v0.1.7**](../README.md)
+
+***
+
+[@fest-lib/fl-ui](../README.md) / buildShellDeviceTray
+
+# Function: buildShellDeviceTray()
+
+```ts
+function buildShellDeviceTray(device, trayClass): HTMLElement;
+```
+
+Defined in: fl.ui/src/ui/navigation/statusbar/statusbar.ts:419
+
+Reactive tray; use two instances (taskbar + footer) with visibility toggled by CSS — same refs update both.
+
+## Parameters
+
+### device
+
+[`ShellDeviceStatus`](../type-aliases/ShellDeviceStatus.md)
+
+### trayClass
+
+`string`
+
+## Returns
+
+`HTMLElement`

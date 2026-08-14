@@ -1,0 +1,22 @@
+[**@fest-lib/fl-ui v0.1.7**](../README.md)
+
+***
+
+[@fest-lib/fl-ui](../README.md) / initToastReceiver
+
+# Function: initToastReceiver()
+
+```ts
+function initToastReceiver(): () => void;
+```
+
+Defined in: fl.ui/src/misc/Toast.ts:498
+
+Initialize toast listener for receiving broadcasts
+Call this in main thread contexts (content scripts, popup, etc.)
+
+## Returns
+
+Cleanup function to stop listening
+
+() => `void`

@@ -1,0 +1,21 @@
+[**@fest-lib/fl-ui v0.1.7**](../README.md)
+
+***
+
+[@fest-lib/fl-ui](../README.md) / listenForToasts
+
+# Function: listenForToasts()
+
+```ts
+function listenForToasts(): () => void;
+```
+
+Defined in: fl.ui/src/misc/Toast.ts:463
+
+Listen for toast broadcasts (call in main thread contexts)
+
+## Returns
+
+Cleanup function to stop listening
+
+() => `void`

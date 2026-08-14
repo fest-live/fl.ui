@@ -1,0 +1,15 @@
+[**@fest-lib/fl-ui v0.1.7**](../README.md)
+
+***
+
+[@fest-lib/fl-ui](../README.md) / WINDOW\_TITLEBAR\_TAG
+
+# Variable: WINDOW\_TITLEBAR\_TAG
+
+```ts
+const WINDOW_TITLEBAR_TAG: "window-titlebar";
+```
+
+Defined in: fl.ui/src/ui/containers/window/WindowElements.ts:11
+
+Draggable title strip; sets `data-junction-ignore-select` for junction select mixin.

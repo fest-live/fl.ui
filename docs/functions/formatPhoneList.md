@@ -1,0 +1,27 @@
+[**@fest-lib/fl-ui v0.1.7**](../README.md)
+
+***
+
+[@fest-lib/fl-ui](../README.md) / formatPhoneList
+
+# Function: formatPhoneList()
+
+```ts
+function formatPhoneList(label, phones): any;
+```
+
+Defined in: fl.ui/src/misc/Format.ts:127
+
+## Parameters
+
+### label
+
+`any`
+
+### phones
+
+`string` \| `any`[] \| `string`[] \| `Map`\<`any`, `any`\> \| `Set`\<`any`\>
+
+## Returns
+
+`any`

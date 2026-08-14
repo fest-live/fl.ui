@@ -1,0 +1,27 @@
+[**@fest-lib/fl-ui v0.1.7**](../README.md)
+
+***
+
+[@fest-lib/fl-ui](../README.md) / formatBiographyList
+
+# Function: formatBiographyList()
+
+```ts
+function formatBiographyList(label, biography): any;
+```
+
+Defined in: fl.ui/src/misc/Format.ts:132
+
+## Parameters
+
+### label
+
+`any`
+
+### biography
+
+`any`
+
+## Returns
+
+`any`

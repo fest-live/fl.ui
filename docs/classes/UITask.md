@@ -1,4 +1,4 @@
-[**@fest-lib/fl-ui v0.0.0**](../README.md)
+[**@fest-lib/fl-ui v0.1.7**](../README.md)
 
 ***
 
@@ -6,11 +6,11 @@
 
 # Class: UITask
 
-Defined in: [fl.ui/src/ui/navigation/taskbar/element/Task.ts:13](https://github.com/fest-live/fl.ui/blob/0d5540e32c0778f58f31d954bd75662104eddb32/src/ui/navigation/taskbar/element/Task.ts#L13)
+Defined in: fl.ui/src/ui/navigation/taskbar/element/Task.ts:45
 
 ## Extends
 
-- `UIElement`
+- [`UIElement`](UIElement.md)
 
 ## Constructors
 
@@ -20,7 +20,7 @@ Defined in: [fl.ui/src/ui/navigation/taskbar/element/Task.ts:13](https://github.
 new UITask(): UITask;
 ```
 
-Defined in: [fl.ui/src/ui/navigation/taskbar/element/Task.ts:18](https://github.com/fest-live/fl.ui/blob/0d5540e32c0778f58f31d954bd75662104eddb32/src/ui/navigation/taskbar/element/Task.ts#L18)
+Defined in: fl.ui/src/ui/navigation/taskbar/element/Task.ts:51
 
 #### Returns
 
@@ -28,29 +28,61 @@ Defined in: [fl.ui/src/ui/navigation/taskbar/element/Task.ts:18](https://github.
 
 #### Overrides
 
-```ts
-UIElement.constructor
-```
+[`UIElement`](UIElement.md).[`constructor`](UIElement.md#constructor)
 
 ## Properties
+
+### adoptedStyleSheets
+
+```ts
+adoptedStyleSheets: CSSStyleSheet[];
+```
+
+Defined in: lur.e/src/lure/misc/Glit.ts:143
+
+#### Inherited from
+
+[`UIElement`](UIElement.md).[`adoptedStyleSheets`](UIElement.md#adoptedstylesheets)
+
+***
 
 ### icon?
 
 ```ts
-optional icon: string = "github";
+optional icon?: string;
 ```
 
-Defined in: [fl.ui/src/ui/navigation/taskbar/element/Task.ts:15](https://github.com/fest-live/fl.ui/blob/0d5540e32c0778f58f31d954bd75662104eddb32/src/ui/navigation/taskbar/element/Task.ts#L15)
+Defined in: fl.ui/src/ui/navigation/taskbar/element/Task.ts:48
 
 ***
 
-### render()
+### initialAttributes?
 
 ```ts
-render: () => any;
+optional initialAttributes?: Record<string, any> | (() => Record<string, any>);
 ```
 
-Defined in: [fl.ui/src/ui/navigation/taskbar/element/Task.ts:20](https://github.com/fest-live/fl.ui/blob/0d5540e32c0778f58f31d954bd75662104eddb32/src/ui/navigation/taskbar/element/Task.ts#L20)
+Defined in: lur.e/src/lure/misc/Glit.ts:141
+
+#### Inherited from
+
+[`UIElement`](UIElement.md).[`initialAttributes`](UIElement.md#initialattributes)
+
+***
+
+### render
+
+```ts
+render: (this) => any;
+```
+
+Defined in: fl.ui/src/ui/navigation/taskbar/element/Task.ts:53
+
+#### Parameters
+
+##### this
+
+`UITask`
 
 #### Returns
 
@@ -58,9 +90,21 @@ Defined in: [fl.ui/src/ui/navigation/taskbar/element/Task.ts:20](https://github.
 
 #### Overrides
 
+[`UIElement`](UIElement.md).[`render`](UIElement.md#render)
+
+***
+
+### styleLibs
+
 ```ts
-UIElement.render
+styleLibs: HTMLStyleElement[];
 ```
+
+Defined in: lur.e/src/lure/misc/Glit.ts:142
+
+#### Inherited from
+
+[`UIElement`](UIElement.md).[`styleLibs`](UIElement.md#stylelibs)
 
 ***
 
@@ -70,33 +114,69 @@ UIElement.render
 theme: string = "default";
 ```
 
-Defined in: [fl.ui/src/ui/base/UIElement.ts:11](https://github.com/fest-live/fl.ui/blob/0d5540e32c0778f58f31d954bd75662104eddb32/src/ui/base/UIElement.ts#L11)
+Defined in: fl.ui/src/ui/base/UIElement.ts:8
 
 #### Inherited from
 
-```ts
-UIElement.theme
-```
+[`UIElement`](UIElement.md).[`theme`](UIElement.md#theme)
 
 ***
 
 ### title?
 
 ```ts
-optional title: string = "Task";
+optional title?: string;
 ```
 
-Defined in: [fl.ui/src/ui/navigation/taskbar/element/Task.ts:14](https://github.com/fest-live/fl.ui/blob/0d5540e32c0778f58f31d954bd75662104eddb32/src/ui/navigation/taskbar/element/Task.ts#L14)
+Defined in: fl.ui/src/ui/navigation/taskbar/element/Task.ts:47
+
+The **`HTMLElement.title`** property represents the title of the element: the text usually displayed in a 'tooltip' popup when the mouse is over the node.
+
+[MDN Reference](https://developer.mozilla.org/docs/Web/API/HTMLElement/title)
+
+#### Overrides
+
+```ts
+UIElement.title
+```
+
+***
+
+### formAssociated?
+
+```ts
+static optional formAssociated?: boolean;
+```
+
+Defined in: lur.e/src/lure/misc/Glit.ts:128
+
+#### Inherited from
+
+[`UIElement`](UIElement.md).[`formAssociated`](UIElement.md#formassociated)
+
+***
+
+### observedAttributes?
+
+```ts
+static optional observedAttributes?: string[];
+```
+
+Defined in: lur.e/src/lure/misc/Glit.ts:127
+
+#### Inherited from
+
+[`UIElement`](UIElement.md).[`observedAttributes`](UIElement.md#observedattributes)
 
 ## Methods
 
-### connectedCallback()
+### $init()?
 
 ```ts
-connectedCallback(): void;
+optional $init(): void;
 ```
 
-Defined in: [fl.ui/src/ui/base/UIElement.ts:25](https://github.com/fest-live/fl.ui/blob/0d5540e32c0778f58f31d954bd75662104eddb32/src/ui/base/UIElement.ts#L25)
+Defined in: lur.e/src/lure/misc/Glit.ts:150
 
 #### Returns
 
@@ -104,60 +184,209 @@ Defined in: [fl.ui/src/ui/base/UIElement.ts:25](https://github.com/fest-live/fl.
 
 #### Inherited from
 
+[`UIElement`](UIElement.md).[`$init`](UIElement.md#init)
+
+***
+
+### adoptedCallback()?
+
 ```ts
-UIElement.connectedCallback
+optional adoptedCallback(): void | UITask | undefined;
 ```
+
+Defined in: lur.e/src/lure/misc/Glit.ts:119
+
+#### Returns
+
+`void` \| `UITask` \| `undefined`
+
+#### Inherited from
+
+[`UIElement`](UIElement.md).[`adoptedCallback`](UIElement.md#adoptedcallback)
+
+***
+
+### attributeChangedCallback()?
+
+```ts
+optional attributeChangedCallback(
+   name, 
+   oldValue, 
+   newValue): void | UITask | undefined;
+```
+
+Defined in: lur.e/src/lure/misc/Glit.ts:120
+
+#### Parameters
+
+##### name
+
+`string`
+
+##### oldValue
+
+`string` \| `null`
+
+##### newValue
+
+`string` \| `null`
+
+#### Returns
+
+`void` \| `UITask` \| `undefined`
+
+#### Inherited from
+
+[`UIElement`](UIElement.md).[`attributeChangedCallback`](UIElement.md#attributechangedcallback)
+
+***
+
+### connectedCallback()
+
+```ts
+connectedCallback(): this;
+```
+
+Defined in: fl.ui/src/ui/base/UIElement.ts:22
+
+#### Returns
+
+`this`
+
+#### Inherited from
+
+[`UIElement`](UIElement.md).[`connectedCallback`](UIElement.md#connectedcallback)
+
+***
+
+### createShadowRoot()
+
+```ts
+createShadowRoot(): ShadowRoot;
+```
+
+Defined in: lur.e/src/lure/misc/Glit.ts:149
+
+#### Returns
+
+`ShadowRoot`
+
+#### Inherited from
+
+[`UIElement`](UIElement.md).[`createShadowRoot`](UIElement.md#createshadowroot)
+
+***
+
+### disconnectedCallback()?
+
+```ts
+optional disconnectedCallback(): void | UITask | undefined;
+```
+
+Defined in: lur.e/src/lure/misc/Glit.ts:118
+
+#### Returns
+
+`void` \| `UITask` \| `undefined`
+
+#### Inherited from
+
+[`UIElement`](UIElement.md).[`disconnectedCallback`](UIElement.md#disconnectedcallback)
+
+***
+
+### loadStyleLibrary()
+
+```ts
+loadStyleLibrary(module): void | UITask | undefined;
+```
+
+Defined in: lur.e/src/lure/misc/Glit.ts:148
+
+#### Parameters
+
+##### module
+
+`any`
+
+#### Returns
+
+`void` \| `UITask` \| `undefined`
+
+#### Inherited from
+
+[`UIElement`](UIElement.md).[`loadStyleLibrary`](UIElement.md#loadstylelibrary)
 
 ***
 
 ### onInitialize()
 
 ```ts
-onInitialize(): void;
+onInitialize(): this;
 ```
 
-Defined in: [fl.ui/src/ui/base/UIElement.ts:30](https://github.com/fest-live/fl.ui/blob/0d5540e32c0778f58f31d954bd75662104eddb32/src/ui/base/UIElement.ts#L30)
+Defined in: fl.ui/src/ui/base/UIElement.ts:29
 
 #### Returns
 
-`void`
+`this`
 
 #### Inherited from
 
-```ts
-UIElement.onInitialize
-```
+[`UIElement`](UIElement.md).[`onInitialize`](UIElement.md#oninitialize)
 
 ***
 
 ### onRender()
 
 ```ts
-onRender(): void;
+onRender(): void | UITask | undefined;
 ```
 
-Defined in: [fl.ui/src/ui/base/UIElement.ts:20](https://github.com/fest-live/fl.ui/blob/0d5540e32c0778f58f31d954bd75662104eddb32/src/ui/base/UIElement.ts#L20)
+Defined in: fl.ui/src/ui/base/UIElement.ts:17
 
 #### Returns
 
-`void`
+`void` \| `UITask` \| `undefined`
 
 #### Inherited from
 
+[`UIElement`](UIElement.md).[`onRender`](UIElement.md#onrender)
+
+***
+
+### styleLayers()
+
 ```ts
-UIElement.onRender
+styleLayers(): string[];
 ```
+
+Defined in: lur.e/src/lure/misc/Glit.ts:144
+
+#### Returns
+
+`string`[]
+
+#### Inherited from
+
+[`UIElement`](UIElement.md).[`styleLayers`](UIElement.md#stylelayers)
 
 ***
 
 ### styles()
 
 ```ts
-styles(): any;
+styles(): CSSStyleSheet | null;
 ```
 
-Defined in: [fl.ui/src/ui/navigation/taskbar/element/Task.ts:19](https://github.com/fest-live/fl.ui/blob/0d5540e32c0778f58f31d954bd75662104eddb32/src/ui/navigation/taskbar/element/Task.ts#L19)
+Defined in: fl.ui/src/ui/navigation/taskbar/element/Task.ts:52
 
 #### Returns
 
-`any`
+`CSSStyleSheet` \| `null`
+
+#### Overrides
+
+```ts
+UIElement.styles
+```

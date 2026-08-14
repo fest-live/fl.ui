@@ -2,11 +2,18 @@
 
 ***
 
-[@fest-lib/fl-ui](../README.md) / StatusBar
+[@fest-lib/fl-ui](../README.md) / QuickSettings
 
-# Class: StatusBar
+# Class: QuickSettings
 
-Defined in: fl.ui/src/ui/navigation/statusbar/statusbar.ts:289
+Defined in: fl.ui/src/ui/navigation/settings/QuickSettings.ts:329
+
+Win11-like Quick Settings flyout: theme toggle + placeholder tiles + night/brightness sliders.
+
+INVARIANT: instance `open()`/`close()`/`toggle()` only flip local visibility state
+(`hidden` + `open` attribute) — the shared exclusivity/singleton/positioning contract
+lives in the module-level [toggleQuickSettingsFlyout](../functions/toggleQuickSettingsFlyout.md) / [closeQuickSettingsFlyout](../functions/closeQuickSettingsFlyout.md)
+helpers, which wrap `ChromeFlyout` (mirrors `CalendarFlyout.ts`).
 
 ## Extends
 
@@ -17,14 +24,14 @@ Defined in: fl.ui/src/ui/navigation/statusbar/statusbar.ts:289
 ### Constructor
 
 ```ts
-new StatusBar(): StatusBar;
+new QuickSettings(): QuickSettings;
 ```
 
-Defined in: fl.ui/src/ui/navigation/statusbar/statusbar.ts:290
+Defined in: fl.ui/src/ui/navigation/settings/QuickSettings.ts:330
 
 #### Returns
 
-`StatusBar`
+`QuickSettings`
 
 #### Overrides
 
@@ -137,14 +144,14 @@ Defined in: lur.e/src/lure/misc/Glit.ts:150
 ### adoptedCallback()?
 
 ```ts
-optional adoptedCallback(): void | StatusBar | undefined;
+optional adoptedCallback(): void | QuickSettings | undefined;
 ```
 
 Defined in: lur.e/src/lure/misc/Glit.ts:119
 
 #### Returns
 
-`void` \| `StatusBar` \| `undefined`
+`void` \| `QuickSettings` \| `undefined`
 
 #### Inherited from
 
@@ -158,7 +165,7 @@ Defined in: lur.e/src/lure/misc/Glit.ts:119
 optional attributeChangedCallback(
    name, 
    oldValue, 
-   newValue): void | StatusBar | undefined;
+   newValue): void | QuickSettings | undefined;
 ```
 
 Defined in: lur.e/src/lure/misc/Glit.ts:120
@@ -179,11 +186,25 @@ Defined in: lur.e/src/lure/misc/Glit.ts:120
 
 #### Returns
 
-`void` \| `StatusBar` \| `undefined`
+`void` \| `QuickSettings` \| `undefined`
 
 #### Inherited from
 
 [`UIElement`](UIElement.md).[`attributeChangedCallback`](UIElement.md#attributechangedcallback)
+
+***
+
+### close()
+
+```ts
+close(): void;
+```
+
+Defined in: fl.ui/src/ui/navigation/settings/QuickSettings.ts:412
+
+#### Returns
+
+`void`
 
 ***
 
@@ -226,14 +247,14 @@ Defined in: lur.e/src/lure/misc/Glit.ts:149
 ### disconnectedCallback()?
 
 ```ts
-optional disconnectedCallback(): void | StatusBar | undefined;
+optional disconnectedCallback(): void | QuickSettings | undefined;
 ```
 
 Defined in: lur.e/src/lure/misc/Glit.ts:118
 
 #### Returns
 
-`void` \| `StatusBar` \| `undefined`
+`void` \| `QuickSettings` \| `undefined`
 
 #### Inherited from
 
@@ -244,7 +265,7 @@ Defined in: lur.e/src/lure/misc/Glit.ts:118
 ### loadStyleLibrary()
 
 ```ts
-loadStyleLibrary(module): void | StatusBar | undefined;
+loadStyleLibrary(module): void | QuickSettings | undefined;
 ```
 
 Defined in: lur.e/src/lure/misc/Glit.ts:148
@@ -257,7 +278,7 @@ Defined in: lur.e/src/lure/misc/Glit.ts:148
 
 #### Returns
 
-`void` \| `StatusBar` \| `undefined`
+`void` \| `QuickSettings` \| `undefined`
 
 #### Inherited from
 
@@ -286,18 +307,32 @@ Defined in: fl.ui/src/ui/base/UIElement.ts:29
 ### onRender()
 
 ```ts
-onRender(): void | StatusBar | undefined;
+onRender(): this;
 ```
 
-Defined in: fl.ui/src/ui/base/UIElement.ts:17
+Defined in: fl.ui/src/ui/navigation/settings/QuickSettings.ts:399
 
 #### Returns
 
-`void` \| `StatusBar` \| `undefined`
+`this`
 
-#### Inherited from
+#### Overrides
 
 [`UIElement`](UIElement.md).[`onRender`](UIElement.md#onrender)
+
+***
+
+### open()
+
+```ts
+open(): void;
+```
+
+Defined in: fl.ui/src/ui/navigation/settings/QuickSettings.ts:405
+
+#### Returns
+
+`void`
 
 ***
 
@@ -307,7 +342,7 @@ Defined in: fl.ui/src/ui/base/UIElement.ts:17
 render(): any;
 ```
 
-Defined in: fl.ui/src/ui/navigation/statusbar/statusbar.ts:294
+Defined in: fl.ui/src/ui/navigation/settings/QuickSettings.ts:334
 
 #### Returns
 
@@ -345,7 +380,7 @@ Defined in: lur.e/src/lure/misc/Glit.ts:144
 styles(): CSSStyleSheet | null;
 ```
 
-Defined in: fl.ui/src/ui/navigation/statusbar/statusbar.ts:293
+Defined in: fl.ui/src/ui/navigation/settings/QuickSettings.ts:333
 
 #### Returns
 
@@ -356,3 +391,23 @@ Defined in: fl.ui/src/ui/navigation/statusbar/statusbar.ts:293
 ```ts
 UIElement.styles
 ```
+
+***
+
+### toggle()
+
+```ts
+toggle(anchor?): void;
+```
+
+Defined in: fl.ui/src/ui/navigation/settings/QuickSettings.ts:418
+
+#### Parameters
+
+##### anchor?
+
+`HTMLElement` \| `null`
+
+#### Returns
+
+`void`

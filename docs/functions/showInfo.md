@@ -1,0 +1,27 @@
+[**@fest-lib/fl-ui v0.1.7**](../README.md)
+
+***
+
+[@fest-lib/fl-ui](../README.md) / showInfo
+
+# Function: showInfo()
+
+```ts
+function showInfo(message, duration?): HTMLElement | null;
+```
+
+Defined in: fl.ui/src/misc/Toast.ts:455
+
+## Parameters
+
+### message
+
+`string`
+
+### duration?
+
+`number`
+
+## Returns
+
+`HTMLElement` \| `null`

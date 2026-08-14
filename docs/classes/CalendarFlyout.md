@@ -2,11 +2,18 @@
 
 ***
 
-[@fest-lib/fl-ui](../README.md) / StatusBar
+[@fest-lib/fl-ui](../README.md) / CalendarFlyout
 
-# Class: StatusBar
+# Class: CalendarFlyout
 
-Defined in: fl.ui/src/ui/navigation/statusbar/statusbar.ts:289
+Defined in: fl.ui/src/ui/navigation/calendar/CalendarFlyout.ts:105
+
+Win11-like calendar flyout: today header + navigable month grid.
+
+INVARIANT: instance `open()`/`close()`/`toggle()` only flip local visibility state
+(`hidden` + `open` attribute) — the shared exclusivity/singleton/positioning contract
+lives in the module-level [toggleCalendarFlyout](../functions/toggleCalendarFlyout.md) / [closeCalendarFlyout](../functions/closeCalendarFlyout.md)
+helpers, which wrap `ChromeFlyout` (mirrors Quick Settings wiring).
 
 ## Extends
 
@@ -17,14 +24,14 @@ Defined in: fl.ui/src/ui/navigation/statusbar/statusbar.ts:289
 ### Constructor
 
 ```ts
-new StatusBar(): StatusBar;
+new CalendarFlyout(): CalendarFlyout;
 ```
 
-Defined in: fl.ui/src/ui/navigation/statusbar/statusbar.ts:290
+Defined in: fl.ui/src/ui/navigation/calendar/CalendarFlyout.ts:132
 
 #### Returns
 
-`StatusBar`
+`CalendarFlyout`
 
 #### Overrides
 
@@ -60,6 +67,24 @@ Defined in: lur.e/src/lure/misc/Glit.ts:141
 
 ***
 
+### render
+
+```ts
+render: () => any;
+```
+
+Defined in: fl.ui/src/ui/navigation/calendar/CalendarFlyout.ts:113
+
+#### Returns
+
+`any`
+
+#### Overrides
+
+[`UIElement`](UIElement.md).[`render`](UIElement.md#render)
+
+***
+
 ### styleLibs
 
 ```ts
@@ -71,6 +96,24 @@ Defined in: lur.e/src/lure/misc/Glit.ts:142
 #### Inherited from
 
 [`UIElement`](UIElement.md).[`styleLibs`](UIElement.md#stylelibs)
+
+***
+
+### styles
+
+```ts
+styles: () => CSSStyleSheet | null;
+```
+
+Defined in: fl.ui/src/ui/navigation/calendar/CalendarFlyout.ts:112
+
+#### Returns
+
+`CSSStyleSheet` \| `null`
+
+#### Overrides
+
+[`UIElement`](UIElement.md).[`styles`](UIElement.md#styles)
 
 ***
 
@@ -137,14 +180,14 @@ Defined in: lur.e/src/lure/misc/Glit.ts:150
 ### adoptedCallback()?
 
 ```ts
-optional adoptedCallback(): void | StatusBar | undefined;
+optional adoptedCallback(): void | CalendarFlyout | undefined;
 ```
 
 Defined in: lur.e/src/lure/misc/Glit.ts:119
 
 #### Returns
 
-`void` \| `StatusBar` \| `undefined`
+`void` \| `CalendarFlyout` \| `undefined`
 
 #### Inherited from
 
@@ -158,7 +201,7 @@ Defined in: lur.e/src/lure/misc/Glit.ts:119
 optional attributeChangedCallback(
    name, 
    oldValue, 
-   newValue): void | StatusBar | undefined;
+   newValue): void | CalendarFlyout | undefined;
 ```
 
 Defined in: lur.e/src/lure/misc/Glit.ts:120
@@ -179,11 +222,25 @@ Defined in: lur.e/src/lure/misc/Glit.ts:120
 
 #### Returns
 
-`void` \| `StatusBar` \| `undefined`
+`void` \| `CalendarFlyout` \| `undefined`
 
 #### Inherited from
 
 [`UIElement`](UIElement.md).[`attributeChangedCallback`](UIElement.md#attributechangedcallback)
+
+***
+
+### close()
+
+```ts
+close(): void;
+```
+
+Defined in: fl.ui/src/ui/navigation/calendar/CalendarFlyout.ts:264
+
+#### Returns
+
+`void`
 
 ***
 
@@ -223,19 +280,19 @@ Defined in: lur.e/src/lure/misc/Glit.ts:149
 
 ***
 
-### disconnectedCallback()?
+### disconnectedCallback()
 
 ```ts
-optional disconnectedCallback(): void | StatusBar | undefined;
+disconnectedCallback(): void;
 ```
 
-Defined in: lur.e/src/lure/misc/Glit.ts:118
+Defined in: fl.ui/src/ui/navigation/calendar/CalendarFlyout.ts:145
 
 #### Returns
 
-`void` \| `StatusBar` \| `undefined`
+`void`
 
-#### Inherited from
+#### Overrides
 
 [`UIElement`](UIElement.md).[`disconnectedCallback`](UIElement.md#disconnectedcallback)
 
@@ -244,7 +301,7 @@ Defined in: lur.e/src/lure/misc/Glit.ts:118
 ### loadStyleLibrary()
 
 ```ts
-loadStyleLibrary(module): void | StatusBar | undefined;
+loadStyleLibrary(module): void | CalendarFlyout | undefined;
 ```
 
 Defined in: lur.e/src/lure/misc/Glit.ts:148
@@ -257,7 +314,7 @@ Defined in: lur.e/src/lure/misc/Glit.ts:148
 
 #### Returns
 
-`void` \| `StatusBar` \| `undefined`
+`void` \| `CalendarFlyout` \| `undefined`
 
 #### Inherited from
 
@@ -286,38 +343,32 @@ Defined in: fl.ui/src/ui/base/UIElement.ts:29
 ### onRender()
 
 ```ts
-onRender(): void | StatusBar | undefined;
+onRender(): void;
 ```
 
-Defined in: fl.ui/src/ui/base/UIElement.ts:17
+Defined in: fl.ui/src/ui/navigation/calendar/CalendarFlyout.ts:139
 
 #### Returns
 
-`void` \| `StatusBar` \| `undefined`
+`void`
 
-#### Inherited from
+#### Overrides
 
 [`UIElement`](UIElement.md).[`onRender`](UIElement.md#onrender)
 
 ***
 
-### render()
+### open()
 
 ```ts
-render(): any;
+open(): void;
 ```
 
-Defined in: fl.ui/src/ui/navigation/statusbar/statusbar.ts:294
+Defined in: fl.ui/src/ui/navigation/calendar/CalendarFlyout.ts:257
 
 #### Returns
 
-`any`
-
-#### Overrides
-
-```ts
-UIElement.render
-```
+`void`
 
 ***
 
@@ -339,20 +390,20 @@ Defined in: lur.e/src/lure/misc/Glit.ts:144
 
 ***
 
-### styles()
+### toggle()
 
 ```ts
-styles(): CSSStyleSheet | null;
+toggle(anchor?): void;
 ```
 
-Defined in: fl.ui/src/ui/navigation/statusbar/statusbar.ts:293
+Defined in: fl.ui/src/ui/navigation/calendar/CalendarFlyout.ts:270
+
+#### Parameters
+
+##### anchor?
+
+`HTMLElement` \| `null`
 
 #### Returns
 
-`CSSStyleSheet` \| `null`
-
-#### Overrides
-
-```ts
-UIElement.styles
-```
+`void`

@@ -1,0 +1,25 @@
+[**@fest-lib/fl-ui v0.1.7**](../README.md)
+
+***
+
+[@fest-lib/fl-ui](../README.md) / setChromeFlyoutShellHost
+
+# Function: setChromeFlyoutShellHost()
+
+```ts
+function setChromeFlyoutShellHost(host): void;
+```
+
+Defined in: fl.ui/src/ui/navigation/flyout/ChromeFlyout.ts:39
+
+Optional: shell can register the env-shell host used for overlay mounting.
+
+## Parameters
+
+### host
+
+`HTMLElement` \| `null`
+
+## Returns
+
+`void`

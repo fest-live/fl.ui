@@ -1,0 +1,15 @@
+[**@fest-lib/fl-ui v0.1.7**](../README.md)
+
+***
+
+[@fest-lib/fl-ui](../README.md) / CHROME\_DESKTOP\_MQ
+
+# Variable: CHROME\_DESKTOP\_MQ
+
+```ts
+const CHROME_DESKTOP_MQ: "(min-width: 641px)" = "(min-width: 641px)";
+```
+
+Defined in: fl.ui/src/ui/navigation/flyout/ChromeFlyout.ts:9
+
+Matches env-shell `$bp-desktop-min` / chrome `data-desktop`.

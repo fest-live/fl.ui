@@ -1,7 +1,7 @@
 {
     "name": "@fest-lib/fl-ui",
     "description": "FL-UI components and services (fest-lib). Dev HTTPS: npm run dev → https://localhost:8434/?suite=explorer (OPFS). HTTP-only: npm run dev:http.",
-    "version": "0.1.9",
+    "version": "0.1.10",
     "license": "MIT",
     "type": "module",
     "sideEffects": true,
@@ -61,6 +61,13 @@
         "./package.json": "./package.json",
         "./dist/index.js": "./dist/fl-ui.js",
         "./index.js": "./dist/fl-ui.js"
+    },
+    "dependencies": {
+        "@fest-lib/uniform": "github:fest-live/uniform.ts#main",
+        "@fest-lib/core": "github:fest-live/core.ts#main",
+        "@fest-lib/dom": "github:fest-live/dom.ts#main",
+        "@fest-lib/object": "github:fest-live/object.ts#main",
+        "@fest-lib/lure": "github:fest-live/lur.e#main"
     },
     "peerDependencies": {
         "@fest-lib/core": ">=0.1.0",

@@ -1,4 +1,4 @@
-[**@fest-lib/fl-ui v0.1.10**](../README.md)
+[**@fest-lib/fl-ui v0.1.11**](../README.md)
 
 ***
 
@@ -139,14 +139,14 @@ Defined in: lur.e/src/lure/misc/Glit.ts:142
 ### styles
 
 ```ts
-styles: () => CSSStyleSheet | null;
+styles: () => any;
 ```
 
 Defined in: fl.ui/src/ui/containers/window/Windows2.ts:83
 
 #### Returns
 
-`CSSStyleSheet` \| `null`
+`any`
 
 #### Overrides
 

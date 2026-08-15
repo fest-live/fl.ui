@@ -113,7 +113,6 @@
         "declarationMap": true,
         "inlineSources": true,
         "inlineSourceMap": true,
-        "sourceMap": true,
         "typeRoots": [
             "plugins/global.d.ts"
         ],

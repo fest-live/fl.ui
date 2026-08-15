@@ -16,7 +16,7 @@ export const __dirname = resolve(import.meta.dirname, "./");
 
 export default defineConfig(async ({ command }) => {
     const tsconfig = JSON.parse(await readFile(resolve(__dirname, "./tsconfig.json"), { encoding: "utf8" }));
-    const base = initiate(NAME, tsconfig, __dirname);
+    const base = initiate(NAME, tsconfig, __dirname, command);
 
     // WHY: restored `_markdown.scss` / component SCSS use Veela `core/misc/*` and `veela-lib`.
     base.css = {

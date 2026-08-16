@@ -1,8 +1,8 @@
 /*
  * Filename: launcher-state.ts
  * FullPath: modules/projects/fl.ui/src/ui/speed-dial/launcher-state.ts
- * Change date and time: 19.47.00_03.08.2026
- * Reason for changes: Fix Speed Dial persistence (plain pack, JSOX migrate check, singleton, saveUIState).
+ * Change date and time: 10.12.00_16.08.2026
+ * Reason for changes: Clipboard paste accepts bare domains / uri-list lines for open-link tiles.
  *
  * Speed-dial / launcher persistence for fl.ui only (no core).
  * Storage keys match CWSP-shell `StateStorage` so shells sharing one origin keep one grid.
@@ -1163,12 +1163,35 @@ export const createSpeedDialItemFromClipboard = async (suggestedCell?: GridCell)
         const clipboardText = String(clipboardResult.data);
         if (!clipboardText.trim()) return null;
 
-        const trimmed = clipboardText.trim();
+        // WHY: take first non-comment line — same hygiene as drop uri-list parsing.
+        const firstLine =
+            clipboardText
+                .split(/\r?\n/)
+                .map((l) => l.trim())
+                .find((l) => l && !l.startsWith("#")) || clipboardText.trim();
+        let trimmed = firstLine;
+        if (trimmed.startsWith("<") && trimmed.endsWith(">")) {
+            trimmed = trimmed.slice(1, -1).trim();
+        }
 
-        const isURL = /^https?:\/\/[^\s]+$/i.test(trimmed) || /^[^\s]+\.[a-z]{2,}(\/|$)/i.test(trimmed);
+        let absolute: string | null = null;
+        try {
+            const parsed = new URL(trimmed);
+            if (/^https?:$/i.test(parsed.protocol)) absolute = parsed.href;
+        } catch {
+            const bare =
+                /^(?:www\.)?(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z]{2,}(?:[/:?#][^\s]*)?$/i.test(trimmed);
+            if (bare && !/\s/.test(trimmed)) {
+                try {
+                    absolute = new URL(`https://${trimmed.replace(/^\/+/, "")}`).href;
+                } catch {
+                    absolute = null;
+                }
+            }
+        }
 
-        if (isURL && typeof URL !== "undefined" && URL.canParse(trimmed, globalThis?.location?.origin)) {
-            return parseSpeedDialItemFromURL(trimmed, suggestedCell);
+        if (absolute) {
+            return parseSpeedDialItemFromURL(absolute, suggestedCell);
         }
 
         const isJSON = (trimmed.startsWith("{") && trimmed.endsWith("}")) || (trimmed.startsWith("[") && trimmed.endsWith("]"));

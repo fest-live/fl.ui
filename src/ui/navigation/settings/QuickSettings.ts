@@ -134,13 +134,19 @@ export const unlockOrientationLock = (unlocked: boolean): void => {
     document.documentElement.style.setProperty("--orientation-lock", unlocked ? "unlocked" : "locked");
     document.documentElement.style.setProperty("--orientation-lock-angle", unlocked ? "0deg" : "90deg");
 
-    void Promise.try(()=>{
+    void Promise.try(async () => {
         try {
+            const orientation = screen.orientation as ScreenOrientation & {
+                lock?: (orientation: string) => Promise<void>;
+                unlock?: () => void;
+            };
             if (unlocked) {
-                screen.orientation.unlock();
-            } else {
-                screen.orientation.lock(screen.orientation.type || "natural");
+                orientation.unlock?.();
+                return;
             }
+            // Desktop CRX / browsers often expose lock() but reject with NotSupportedError.
+            if (typeof orientation.lock !== "function") return;
+            await orientation.lock(orientation.type || "natural");
         } catch (error) {
             console.warn(error);
         }

@@ -1,8 +1,8 @@
 /*
  * Filename: SpeedDial.ts
  * FullPath: modules/projects/fl.ui/src/ui/speed-dial/SpeedDial.ts
- * Change date and time: 11.31.00_03.08.2026
- * Reason for changes: Port IDB wallpaper + paste/drop URL hygiene from product line.
+ * Change date and time: 10.25.00_16.08.2026
+ * Reason for changes: Guard item click bind-once + debounce open (duplicate ref → double open).
  */
 
 import { observe, numberRef, propRef, stringRef, affected } from "@fest-lib/object";
@@ -55,6 +55,8 @@ import { openShortcutEditor } from "./ShortcutEditor";
 import { setSpeedDialViewOpener, getSpeedDialViewOpener } from "./view-opener";
 import { getSpeedDialActionRegistry, getSpeedDialActionLabels, getSpeedDialActionIcons } from "./action-registry";
 let ctxMenuBound = false;
+/** Document-level paste/drop once — SpeedDial mount (not only createCtxMenu). */
+let homeTransferListenersBound = false;
 let persistItemsTimer: ReturnType<typeof setTimeout> | null = null;
 
 /** Lazy-init: top-level `observe` + `pointerAnchorRef` ran during chunk eval and hit TDZ vs `com-app` (see vite-chunk-placement). */
@@ -174,6 +176,26 @@ const bindRootOrientation = (root: HTMLElement): void => {
         return;
     }
     root.dataset.orientObserverBound = "true";
+    // WHY: Ctrl+V targets the focused node; keep #home focusable after a click/tap on the desktop.
+    if (!root.hasAttribute("tabindex")) root.tabIndex = -1;
+    if (root.dataset.focusOnPointerBound !== "1") {
+        root.dataset.focusOnPointerBound = "1";
+        root.addEventListener(
+            "pointerdown",
+            () => {
+                try {
+                    root.focus({ preventScroll: true });
+                } catch {
+                    try {
+                        root.focus();
+                    } catch {
+                        /* ignore */
+                    }
+                }
+            },
+            { capture: true }
+        );
+    }
     const observer = new MutationObserver((records) => {
         if (records.some((record) => record.attributeName === "orient")) {
             syncGridLayout(root);
@@ -260,11 +282,22 @@ const bindCell = (el: HTMLElement, args: any): void => {
 };
 
 //
+let lastItemOpenKey = "";
+let lastItemOpenAt = 0;
+
 const runItemAction = (item: SpeedDialItem, actionId?: string, extras: { event?: Event; initiator?: HTMLElement } = {}, makeView?: any) => {
     const resolvedAction = resolveItemAction(item, actionId);
+    const openKey = `${item?.id || ""}::${resolvedAction}`;
+    const now = typeof performance !== "undefined" ? performance.now() : Date.now();
+    // WHY: `ref=` can re-run attachItemNode and stack duplicate click listeners → double open.
+    if (openKey && openKey === lastItemOpenKey && now - lastItemOpenAt < 400) {
+        return;
+    }
+    lastItemOpenKey = openKey;
+    lastItemOpenAt = now;
+
     const action = getSpeedDialActionRegistry().get(resolvedAction);
     if (!action) { showError("Action is unavailable"); return; }
-    //const $meta = getSpeedDialMeta(item.id);
     const context = {
         id: item.id,
         items: speedDialItems,
@@ -295,18 +328,24 @@ const attachItemNode = (item: SpeedDialItem, el?: HTMLElement | null, interactiv
                 schedulePersistItems();
             });
         }
-        el.addEventListener("click", (ev)=>{
-            ev?.preventDefault?.();
-            const interactionState = String((el as HTMLElement)?.dataset?.interactionState || "");
-            const blockedByInteraction = interactionState === "onGrab" || interactionState === "onMoving" || interactionState === "onRelax";
-            if (!blockedByInteraction && !MOCElement(ev?.target as any, '[data-interaction-state="onMoving"],[data-interaction-state="onGrab"],[data-interaction-state="onRelax"]')) {
-                runItemAction(item, undefined, { event: ev, initiator: el }, makeView);
-            }
-        });
-        el.addEventListener("dblclick", (ev)=>{
-            ev?.preventDefault?.();
-            openItemEditor(item);
-        });
+        // INVARIANT: bind click/dblclick once per node — M()/ref re-entry must not stack handlers.
+        if (!el.dataset.itemActionBound) {
+            el.dataset.itemActionBound = "1";
+            el.addEventListener("click", (ev)=>{
+                ev?.preventDefault?.();
+                ev?.stopPropagation?.();
+                const interactionState = String((el as HTMLElement)?.dataset?.interactionState || "");
+                const blockedByInteraction = interactionState === "onGrab" || interactionState === "onMoving" || interactionState === "onRelax";
+                if (!blockedByInteraction && !MOCElement(ev?.target as any, '[data-interaction-state="onMoving"],[data-interaction-state="onGrab"],[data-interaction-state="onRelax"]')) {
+                    runItemAction(item, undefined, { event: ev, initiator: el }, getSpeedDialViewOpener() || makeView);
+                }
+            });
+            el.addEventListener("dblclick", (ev)=>{
+                ev?.preventDefault?.();
+                ev?.stopPropagation?.();
+                openItemEditor(item);
+            });
+        }
     }
 
     if (el.dataset.layer === "labels") {
@@ -394,6 +433,58 @@ const looksLikeImageFile = (file?: File | null): boolean => {
     return WALLPAPER_EXTENSIONS.has(ext);
 };
 
+/** Prefer `files`, then DataTransferItemList (clipboard paste often only populates `items`). */
+const extractImageFileFromTransfer = (dt: DataTransfer | null | undefined): File | null => {
+    if (!dt) return null;
+    for (const file of Array.from(dt.files || [])) {
+        if (looksLikeImageFile(file)) return file;
+    }
+    const items = dt.items;
+    if (!items?.length) return null;
+    for (let i = 0; i < items.length; i++) {
+        const item = items[i];
+        if (!item || item.kind !== "file") continue;
+        const type = String(item.type || "").toLowerCase();
+        if (type && !type.startsWith("image/")) continue;
+        const file = item.getAsFile?.();
+        if (looksLikeImageFile(file)) return file;
+    }
+    return null;
+};
+
+const applyWallpaperFromImageFile = (file: File): void => {
+    void setAppWallpaperFromBlob(file)
+        .then(() => {
+            wallpaperState.src = getWallpaperStoragePointer() || WALLPAPER_IDB_MARKER;
+            persistWallpaper();
+            showSuccess("Wallpaper updated");
+        })
+        .catch((err) => {
+            console.warn(err);
+            showError("Failed to set wallpaper");
+        });
+};
+
+/** Async Clipboard API fallback when paste event has empty `clipboardData` image slots. */
+const readImageFileFromClipboardApi = async (): Promise<File | null> => {
+    try {
+        const read = navigator.clipboard?.read;
+        if (typeof read !== "function") return null;
+        const items = await read.call(navigator.clipboard);
+        for (const item of items || []) {
+            const type = item.types?.find?.((t) => String(t).toLowerCase().startsWith("image/"));
+            if (!type) continue;
+            const blob = await item.getType(type);
+            if (!blob) continue;
+            const ext = type.includes("jpeg") || type.includes("jpg") ? "jpg" : type.includes("webp") ? "webp" : "png";
+            return new File([blob], `wallpaper-${Date.now()}.${ext}`, { type: blob.type || type });
+        }
+    } catch (e) {
+        console.warn("[speed-dial] clipboard.read image failed", e);
+    }
+    return null;
+};
+
 const parseUrlFromHtml = (html?: string | null): string | null => {
     const source = String(html || "").trim();
     if (!source) return null;
@@ -416,8 +507,12 @@ const BARE_HOST_PATTERN =
  * Returns the canonical href string, or null when not a usable http(s) URL.
  */
 const normalizePasteUrl = (text: string): string | null => {
-    const value = String(text || "").trim();
+    let value = String(text || "").trim();
     if (!value) return null;
+    // COMPAT: some apps wrap URLs in angle brackets (<https://…>).
+    if (value.startsWith("<") && value.endsWith(">")) {
+        value = value.slice(1, -1).trim();
+    }
     try {
         const parsed = new URL(value);
         if (/^https?:$/i.test(parsed.protocol)) return parsed.href;
@@ -436,13 +531,37 @@ const normalizePasteUrl = (text: string): string | null => {
     return null;
 };
 
+/**
+ * Flatten transfer payloads into URL candidates.
+ * WHY: `text/uri-list` is often multiline with `#` comments (Mozilla / bookmark drags);
+ * treating the whole blob as one string makes normalizePasteUrl return null.
+ */
+const extractUrlCandidatesFromTransfer = (transfer: DataTransfer): string[] => {
+    const out: string[] = [];
+    const pushBlob = (raw: string) => {
+        for (const line of String(raw || "").split(/\r?\n/)) {
+            const trimmed = line.trim();
+            if (!trimmed || trimmed.startsWith("#")) continue;
+            out.push(trimmed);
+        }
+    };
+    pushBlob(transfer.getData("text/uri-list") || "");
+    // COMPAT: Firefox bookmark / link drag (`url\ntitle`).
+    const moz = String(transfer.getData("text/x-moz-url") || "").trim();
+    if (moz) {
+        const first = moz.split(/\r?\n/).find((l) => l.trim() && !l.trim().startsWith("#"));
+        if (first) out.push(first.trim());
+    }
+    pushBlob(transfer.getData("text/plain") || "");
+    return out;
+};
+
 const parseShortcutFromTransfer = (transfer: DataTransfer | null | undefined, suggestedCell: GridCell): SpeedDialItem | null => {
     if (!transfer) return null;
     const plain = String(transfer.getData("text/plain") || "").trim();
-    const uriList = String(transfer.getData("text/uri-list") || "").trim();
     const html = String(transfer.getData("text/html") || "").trim();
-    // WHY: prefer text/uri-list + plain over HTML — HTML often carries relative/site chrome links.
-    for (const candidate of [uriList, plain].filter(Boolean)) {
+    // WHY: prefer uri-list / moz-url / plain lines over HTML — HTML often carries relative chrome links.
+    for (const candidate of extractUrlCandidatesFromTransfer(transfer)) {
         const normalized = normalizePasteUrl(candidate);
         if (!normalized) continue;
         const item = parseSpeedDialItemFromURL(normalized, suggestedCell);
@@ -463,6 +582,70 @@ const parseShortcutFromTransfer = (transfer: DataTransfer | null | undefined, su
         if (item) return item;
     }
     return null;
+};
+
+/** True when the event is on the launcher desktop (not a nested window/editor). */
+const isEditablePasteTarget = (el: HTMLElement | null): boolean => {
+    if (!el) return false;
+    if (el.isContentEditable) return true;
+    const tag = String(el.tagName || "").toUpperCase();
+    if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return true;
+    return !!el.closest?.(
+        'input, textarea, select, [contenteditable="true"], [role="textbox"], .speed-dial-editor, ui-modal, dialog'
+    );
+};
+
+const resolveDeepActiveElement = (): HTMLElement | null => {
+    let active = document.activeElement as HTMLElement | null;
+    while (active?.shadowRoot?.activeElement) {
+        active = active.shadowRoot.activeElement as HTMLElement;
+    }
+    return active;
+};
+
+const isHomeWorkspaceSurface = (event: Event): boolean => {
+    const current = event.currentTarget as HTMLElement | null;
+    if (current?.id === "home" || current?.classList?.contains("speed-dial-root")) return true;
+    const target = event.target as HTMLElement | null;
+    if (target?.closest?.("#home, .speed-dial-root")) return true;
+    // Capture listeners on `document` — currentTarget is document; walk composedPath instead.
+    if (typeof event.composedPath === "function") {
+        for (const node of event.composedPath()) {
+            if (!(node instanceof HTMLElement)) continue;
+            if (node.id === "home" || node.classList.contains("speed-dial-root")) return true;
+        }
+    }
+    /*
+     * WHY: Ctrl+V paste targets body/document, not #home. Accept when the home
+     * desktop is mounted/visible and focus is not inside an unrelated editor.
+     */
+    if (event instanceof ClipboardEvent) {
+        const home = document.getElementById("home");
+        if (!home?.isConnected) return false;
+        try {
+            if (home.checkVisibility && !home.checkVisibility({ checkOpacity: false, checkVisibilityCSS: true })) {
+                return false;
+            }
+        } catch {
+            /* ignore */
+        }
+        const deep = resolveDeepActiveElement();
+        if (isEditablePasteTarget(deep) && !home.contains(deep)) return false;
+        if (home.matches(":hover") || home.contains(deep) || deep === home) return true;
+        // Visible launcher with no conflicting editable focus → paste creates a link tile.
+        if (!deep || deep === document.body || deep === document.documentElement) return true;
+        // Focus elsewhere in the shell chrome (taskbar etc.) still allows desktop paste.
+        if (!isEditablePasteTarget(deep)) return true;
+        return false;
+    }
+    return (
+        isInFocus(target, "#home") ||
+        isInFocus(
+            target,
+            "#home:is(:hover, :focus, :focus-visible), #home:has(:hover, :focus, :focus-visible)",
+            "child"
+        )
+    );
 };
 
 const createMenuEntryForAction = (actionId: string, item: SpeedDialItem, fallbackLabel: string = "", makeView?: any) => {
@@ -531,9 +714,7 @@ const pickWallpaper = () => {
 
 //
 const handleSpeedDialPaste = async (event: ClipboardEvent, suggestedCell?: GridCell) => {
-    if (!isInFocus(event?.target as HTMLElement, "#home") &&
-        !isInFocus(event?.target as HTMLElement, "#home:is(:hover, :focus, :focus-visible), #home:has(:hover, :focus, :focus-visible)", "child")
-    ) {
+    if (!isHomeWorkspaceSurface(event)) {
         return false;
     }
 
@@ -561,69 +742,109 @@ const handleSpeedDialPaste = async (event: ClipboardEvent, suggestedCell?: GridC
 
 //
 const handleWallpaperDropOrPaste = (event: DragEvent | ClipboardEvent) => {
-    if (isInFocus(event?.target as HTMLElement, "#home") ||
-        isInFocus(event?.target as HTMLElement, "#home:is(:hover, :focus, :focus-visible), #home:has(:hover, :focus, :focus-visible)", "child")
-    ) {
-        const isPaste = event instanceof ClipboardEvent;
-        const targetEl = event.target as HTMLElement | null;
-        const droppedOnItem = !!targetEl?.closest?.("[data-speed-dial-item]");
-        const suggestedCell = deriveCellFromAnchor();
-        const dataTransfer = isPaste ? (event as ClipboardEvent).clipboardData : (event as DragEvent).dataTransfer;
+    if (!isHomeWorkspaceSurface(event)) return;
 
-        if (isPaste) {
-            const fromTransfer = parseShortcutFromTransfer(dataTransfer, suggestedCell);
-            if (fromTransfer) {
-                event.preventDefault();
-                event.stopPropagation();
-                addSpeedDialItem(fromTransfer);
-                persistSpeedDialItems();
-                persistSpeedDialMeta();
-                showSuccess("Shortcut created from pasted link");
-                return;
-            }
-            void handleSpeedDialPaste(event as ClipboardEvent, suggestedCell);
-        }
+    const isPaste = event instanceof ClipboardEvent;
+    const targetEl = event.target as HTMLElement | null;
+    const droppedOnItem = !!targetEl?.closest?.("[data-speed-dial-item]");
+    // WHY: place the new tile under the pointer for drops; paste uses last pointer anchor.
+    const suggestedCell =
+        !isPaste && event instanceof DragEvent
+            ? deriveCellFromEvent(event)
+            : deriveCellFromAnchor();
+    const dataTransfer = isPaste ? (event as ClipboardEvent).clipboardData : (event as DragEvent).dataTransfer;
 
-        if (!isPaste) {
-            const parsed = parseShortcutFromTransfer(dataTransfer, suggestedCell);
-            if (parsed) {
-                event.preventDefault();
-                event.stopPropagation();
-                addSpeedDialItem(parsed);
-                persistSpeedDialItems();
-                persistSpeedDialMeta();
-                showSuccess("Shortcut created from dropped link");
-                return;
-            }
-        }
-
+    /*
+     * INVARIANT: image paste/drop on empty desktop → wallpaper; http(s) → open-link tile.
+     * WHY: prior paste path returned after URL miss and never reached image handling;
+     * clipboard screenshots usually live in `items`, not `files`.
+     */
+    const imageFile = !droppedOnItem ? extractImageFileFromTransfer(dataTransfer) : null;
+    if (imageFile) {
         event.preventDefault();
         event.stopPropagation();
-
-        const dt = dataTransfer || ((event as any).clipboardData || (event as any).dataTransfer);
-        const hasImageFile = !!Array.from((dt as DataTransfer | null)?.files || []).find((file) => looksLikeImageFile(file));
-        if (!hasImageFile || droppedOnItem) {
-            return;
-        }
-        // Defer heavy file/clipboard scanning so the UI thread can process preventDefault first.
+        applyWallpaperFromImageFile(imageFile);
+        // Best-effort OPFS mirror (non-blocking); IDB is the source of truth for paint.
         queueMicrotask(() => {
-            handleIncomingEntries(dt, "/images/wallpaper/", null, (file, path) => {
-                if (!looksLikeImageFile(file)) return;
-                /* WHY: route wallpaper bytes through IDB; never persist raw blob:/data: URLs to localStorage. */
-                void setAppWallpaperFromBlob(file)
-                    .then(() => {
-                        wallpaperState.src =
-                            getWallpaperStoragePointer() || path || WALLPAPER_IDB_MARKER;
-                        persistWallpaper();
-                        showSuccess("Wallpaper updated");
-                    })
-                    .catch((err) => {
-                        console.warn(err);
-                        showError("Failed to set wallpaper");
-                    });
-            });
+            try {
+                handleIncomingEntries(dataTransfer, "/images/wallpaper/", null, (file) => {
+                    if (!looksLikeImageFile(file)) return;
+                });
+            } catch (e) {
+                console.warn(e);
+            }
         });
+        return;
     }
+
+    const parsed = parseShortcutFromTransfer(dataTransfer, suggestedCell);
+    if (parsed) {
+        event.preventDefault();
+        event.stopPropagation();
+        addSpeedDialItem(parsed);
+        persistSpeedDialItems();
+        persistSpeedDialMeta();
+        showSuccess(isPaste ? "Shortcut created from pasted link" : "Shortcut created from dropped link");
+        return;
+    }
+
+    if (isPaste) {
+        // Clipboard API image fallback (some hosts omit image from clipboardData).
+        event.preventDefault();
+        event.stopPropagation();
+        void (async () => {
+            if (!droppedOnItem) {
+                const apiImage = await readImageFileFromClipboardApi();
+                if (apiImage) {
+                    applyWallpaperFromImageFile(apiImage);
+                    return;
+                }
+            }
+            await handleSpeedDialPaste(event as ClipboardEvent, suggestedCell);
+        })();
+    }
+};
+
+const acceptHomeLinkDragOver = (ev: DragEvent) => {
+    if (!isHomeWorkspaceSurface(ev)) return;
+    // WHY: must preventDefault so browser allows drop of Files / uri-list onto the desktop.
+    ev.preventDefault();
+    if (ev.dataTransfer) ev.dataTransfer.dropEffect = "copy";
+};
+
+/** Install once: document paste/drop so Ctrl+V works without #home focus. */
+const ensureHomeTransferListeners = (): void => {
+    if (homeTransferListenersBound || typeof document === "undefined") return;
+    homeTransferListenersBound = true;
+    document.addEventListener(
+        "paste",
+        (event: ClipboardEvent) => {
+            void handleWallpaperDropOrPaste(event);
+        },
+        true
+    );
+    document.addEventListener(
+        "dragover",
+        (event: DragEvent) => {
+            const home = document.getElementById("home");
+            if (!home) return;
+            const path = typeof event.composedPath === "function" ? event.composedPath() : [];
+            if (!path.includes(home) && !home.contains(event.target as Node)) return;
+            acceptHomeLinkDragOver(event);
+        },
+        true
+    );
+    document.addEventListener(
+        "drop",
+        (event: DragEvent) => {
+            const home = document.getElementById("home");
+            if (!home) return;
+            const path = typeof event.composedPath === "function" ? event.composedPath() : [];
+            if (!path.includes(home) && !home.contains(event.target as Node)) return;
+            handleWallpaperDropOrPaste(event);
+        },
+        true
+    );
 };
 
 
@@ -637,6 +858,7 @@ export function SpeedDial(makeView: any) {
     if (typeof makeView === "function") {
         setSpeedDialViewOpener(makeView);
     }
+    ensureHomeTransferListeners();
     const columnsRef = propRef(gridLayoutState, "columns", 4);
     const rowsRef = propRef(gridLayoutState, "rows", 8);
     const shapeRef = propRef(gridLayoutState, "shape", "square");
@@ -668,7 +890,7 @@ export function SpeedDial(makeView: any) {
     };
 
     //
-    const box = H`<div slot="underlay" style="pointer-events: auto; position: relative; contain: strict; overflow: hidden; display: grid;" id="home" class="speed-dial-root" ref=${(el: HTMLElement) => bindRootOrientation(el)} on:dragover=${(ev: DragEvent) => ev.preventDefault()} on:drop=${(ev: DragEvent) => handleWallpaperDropOrPaste(ev)} prop:onPaste=${async (ev: ClipboardEvent) => await handleWallpaperDropOrPaste(ev)}>
+    const box = H`<div slot="underlay" style="pointer-events: auto; position: relative; contain: strict; overflow: hidden; display: grid;" id="home" class="speed-dial-root" tabindex="-1" ref=${(el: HTMLElement) => bindRootOrientation(el)} on:dragover=${(ev: DragEvent) => acceptHomeLinkDragOver(ev)} on:drop=${(ev: DragEvent) => handleWallpaperDropOrPaste(ev)} on:paste=${(ev: ClipboardEvent) => void handleWallpaperDropOrPaste(ev)} prop:onPaste=${async (ev: ClipboardEvent) => await handleWallpaperDropOrPaste(ev)}>
         <div style="background-color: transparent; pointer-events: none;" class="speed-dial-grid speed-dial-label-layer speed-dial-grid--labels ui-launcher-grid" data-layer="items" data-grid-layer="labels" data-grid-columns=${columnsRef} data-grid-rows=${rowsRef} data-grid-shape=${shapeRef}>
             ${M(speedDialItems, renderLabelItem)}
         </div>
@@ -798,6 +1020,7 @@ export function createCtxMenu(makeView?: any) {
     }
     if (!ctxMenuBound) {
         ctxMenuBound = true;
+        ensureHomeTransferListeners();
         document.addEventListener("contextmenu", (event: MouseEvent) => {
             const target = event.target as HTMLElement | null;
             /* WHY: accept SpeedDial root / home-view host — not only `#home` (host id may be `home-view`). */

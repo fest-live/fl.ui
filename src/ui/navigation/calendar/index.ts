@@ -8,6 +8,8 @@ import type { BranchId, CalendarBranch } from "./branches.ts";
 export type { BranchId, CalendarBranch } from "./branches.ts";
 export { UNASSIGNED_BRANCH_ID } from "./branches.ts";
 
+import { isoWeekNumber } from "./week-number.ts";
+
 export interface ScheduleInput {
     id?: string;
     title: string;
@@ -269,6 +271,17 @@ export class CalendarScheduler extends HTMLElement {
             return;
         }
 
+        if (action === "week") {
+            const value = actionElement?.dataset.weekStart;
+
+            if (value) {
+                this._activeDate = fromDateKey(value);
+                this.setView("week", false);
+            }
+
+            return;
+        }
+
         if (action === "day") {
             const value = actionElement?.dataset.date;
 
@@ -309,21 +322,9 @@ export class CalendarScheduler extends HTMLElement {
             return;
         }
 
-        // Пустой участок строки недели в режиме месяца.
-        if (
-            this._view === "month" &&
-            target.closest(".month-week") &&
-            !target.closest(".month-day") &&
-            !target.closest(".month-event")
-        ) {
-            const week = target.closest<HTMLElement>(".month-week");
-            const weekStart = week?.dataset.weekStart;
-
-            if (weekStart) {
-                this._activeDate = fromDateKey(weekStart);
-                this.setView("week");
-            }
-        }
+        // NOTE: empty .month-week background no longer opens week view.
+        // Week navigation is now explicit via the .month-week-number button
+        // (data-action="week"). Day cells still open day view via data-action="day".
     };
 
     private readonly onRootChange = (event: Event): void => {
@@ -729,22 +730,28 @@ export class CalendarScheduler extends HTMLElement {
             addDays(gridStart, index),
         );
 
-        const weekLabels = weekDays
-            .map(
-                (day) => `
+        // WHY: leading empty gutter cell keeps the weekday header aligned
+        // with the new week-number column added to each month-week row.
+        const weekLabels = `
+          <div class="weekday-gutter" aria-hidden="true"></div>
+          ${weekDays
+                .map(
+                    (day) => `
           <div class="weekday-label">
             ${escapeHtml(
-                    new Intl.DateTimeFormat(this.locale, {
-                        weekday: "short",
-                    }).format(day),
-                )}
+                        new Intl.DateTimeFormat(this.locale, {
+                            weekday: "short",
+                        }).format(day),
+                    )}
           </div>
         `,
-            )
-            .join("");
+                )
+                .join("")}
+        `;
 
         const weeks = Array.from({ length: 6 }, (_, weekIndex) => {
             const weekStart = addDays(gridStart, weekIndex * 7);
+            const weekNumber = isoWeekNumber(weekStart);
 
             const days = Array.from({ length: 7 }, (_, dayIndex) =>
                 addDays(weekStart, dayIndex),
@@ -754,8 +761,15 @@ export class CalendarScheduler extends HTMLElement {
         <section
           class="month-week"
           data-week-start="${dateKey(weekStart)}"
-          aria-label="Неделя ${escapeHtml(formatWeek(weekStart, this.locale))}"
+          aria-label="Неделя ${weekNumber}"
         >
+          <button
+            type="button"
+            class="month-week-number"
+            data-action="week"
+            data-week-start="${dateKey(weekStart)}"
+            aria-label="Неделя ${weekNumber}"
+          >${weekNumber}</button>
           ${days.map((day) => this.renderMonthDay(day)).join("")}
         </section>
       `;

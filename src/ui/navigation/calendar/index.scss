@@ -204,7 +204,7 @@ button {
 .month-weekdays,
 .month-week {
     display: grid;
-    grid-template-columns: repeat(7, minmax(0, 1fr));
+    grid-template-columns: 32px repeat(7, minmax(0, 1fr));
 }
 
 .month-weekdays {
@@ -222,20 +222,44 @@ button {
     text-transform: uppercase;
 }
 
+.weekday-gutter {
+    border-right: 1px solid var(--calendar-border);
+    background: var(--calendar-surface);
+}
+
+.month-week-number {
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 8px 0;
+    border: 0;
+    border-right: 1px solid var(--calendar-border);
+    background: var(--calendar-surface);
+    color: var(--calendar-muted);
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 1;
+    cursor: pointer;
+    transition: background 160ms ease, color 160ms ease;
+
+    &:hover {
+        background: var(--calendar-primary-soft);
+        color: var(--calendar-primary);
+    }
+
+    &:focus-visible {
+        outline: 2px solid var(--calendar-primary);
+        outline-offset: -2px;
+    }
+}
+
 .month-grid {
     overflow: hidden;
 }
 
 .month-week {
     min-height: 112px;
-    cursor: pointer;
     transition: background 160ms ease;
-
-    &:hover {
-        background: color-mix(in srgb,
-                var(--calendar-primary) 2%,
-                var(--calendar-bg));
-    }
 
     &:not(:last-child) {
         border-bottom: 1px solid var(--calendar-border);
@@ -573,6 +597,16 @@ button {
 
     .weekday-label {
         padding: 8px 3px;
+        font-size: 9px;
+    }
+
+    .month-weekdays,
+    .month-week {
+        grid-template-columns: 24px repeat(7, minmax(0, 1fr));
+    }
+
+    .month-week-number {
+        padding: 6px 0;
         font-size: 9px;
     }
 

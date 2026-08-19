@@ -45,6 +45,18 @@ test("day profile lanes by branchId / unassigned", () => {
     resolveAxes("day")!,
   );
   assert.equal(bare?.laneKey, UNASSIGNED_BRANCH_ID);
+
+  const emptyBranch = placeEvent(
+    {
+      id: "3b",
+      start: new Date(2026, 7, 19, 11, 0),
+      end: new Date(2026, 7, 19, 12, 0),
+      branchId: "",
+    },
+    day,
+    resolveAxes("day")!,
+  );
+  assert.equal(emptyBranch?.laneKey, UNASSIGNED_BRANCH_ID);
 });
 
 test("non-intersecting day returns null", () => {

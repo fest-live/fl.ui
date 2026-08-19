@@ -29,7 +29,7 @@ function normalizeBase(base: CalendarBranch[]): CalendarBranch[] {
   }));
 }
 
-function isUnassignedBranchId(branchId: BranchId | undefined): boolean {
+export function isUnassignedBranchId(branchId: BranchId | undefined): boolean {
   return branchId == null || branchId === "";
 }
 

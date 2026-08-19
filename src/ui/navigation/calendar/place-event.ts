@@ -6,7 +6,7 @@
  */
 
 import type { TimelineAxes } from "./timeline-axes.ts";
-import { UNASSIGNED_BRANCH_ID } from "./branches.ts";
+import { UNASSIGNED_BRANCH_ID, isUnassignedBranchId } from "./branches.ts";
 
 export interface PlaceableEvent {
   id: string;
@@ -79,7 +79,9 @@ function resolveLaneKey(
     return dateKey(activeDay);
   }
   if (isDayProfile(axes)) {
-    return event.branchId ?? UNASSIGNED_BRANCH_ID;
+    return isUnassignedBranchId(event.branchId)
+      ? UNASSIGNED_BRANCH_ID
+      : event.branchId!;
   }
   return dateKey(activeDay);
 }
@@ -87,7 +89,7 @@ function resolveLaneKey(
 /**
  * Clip event to `activeDay` (local calendar day) and map to a lane.
  * week axes → laneKey = YYYY-MM-DD of activeDay
- * day axes → laneKey = branchId ?? UNASSIGNED_BRANCH_ID
+ * day axes → laneKey = branchId or UNASSIGNED_BRANCH_ID when missing/empty
  * Returns null if event does not intersect activeDay.
  */
 export function placeEvent(

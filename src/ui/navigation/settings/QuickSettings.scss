@@ -1,8 +1,8 @@
 /*
  * Filename: QuickSettings.scss
  * FullPath: modules/projects/fl.ui/src/ui/navigation/settings/QuickSettings.scss
- * Change date and time: 08.30.00_02.08.2026
- * Reason for changes: Win11-like Quick Settings panel — tiles grid + sliders, no backdrop-filter.
+ * Change date and time: 09.40.00_19.08.2026
+ * Reason for changes: Footer row for Settings / Explorer shortcut buttons.
  */
 
 /* Unlayered `:host` rules beat `ux-preload`'s layered `:host{display:none}` default. */
@@ -259,5 +259,53 @@
             color: color-mix(in oklch, contrast-color(var(--qs-surface, var(--color-surface))) 40%, var(--color-primary, var(--qs-primary)));
             background: color-mix(in oklch, contrast-color(var(--qs-surface, var(--color-surface))) 40%, var(--color-primary, var(--qs-primary)));
         }
+    }
+
+    .qs-footer {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: nowrap;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 0.4rem;
+        padding-block-start: 0.65rem;
+        border-block-start: 1px solid var(--qs-outline);
+    }
+
+    .qs-footer-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        min-inline-size: 0;
+        padding: 0.28rem 0.55rem;
+        border: none;
+        border-radius: 8px;
+        background: color-mix(in oklab, var(--qs-on-surface) 8%, transparent);
+        color: contrast-color(var(--qs-surface));
+        font: 600 0.72rem/1.2 ui-sans-serif, system-ui, sans-serif;
+        cursor: pointer;
+        transition: background-color 140ms ease;
+
+        &:hover {
+            background: color-mix(in oklab, var(--qs-on-surface) 14%, transparent);
+        }
+
+        &:active {
+            background: color-mix(in oklab, var(--qs-on-surface) 18%, transparent);
+        }
+
+        &:focus-visible {
+            outline: 2px solid var(--color-primary, var(--qs-primary));
+            outline-offset: 2px;
+        }
+    }
+
+    .qs-footer-icon {
+        --icon-size: 0.95rem;
+        --icon-color: currentColor;
+        flex: 0 0 auto;
+        inline-size: var(--icon-size);
+        block-size: var(--icon-size);
+        line-height: 0;
     }
 }

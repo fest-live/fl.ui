@@ -10,6 +10,7 @@ import {
     logicalToVisualCell,
     normalizeOrient,
     pointToLogicalCell,
+    relocateItemsToLayout,
     visualLayout,
     visualToLogicalCell
 } from "../src/ui/speed-dial/layout.ts";
@@ -57,4 +58,21 @@ test("hit testing returns logical cells after orient projection", () => {
 
     assert.deepEqual(pointToLogicalCell([700, 300], size, layout, 1), [3, 7]);
     assert.deepEqual(pointToLogicalCell([700, 300], size, layout, 3), [3, 0]);
+});
+
+test("relocate keeps in-bounds tiles and spreads overflow instead of stacking", () => {
+    const items = [
+        { cell: [0, 0] as [number, number] },
+        { cell: [1, 0] as [number, number] },
+        { cell: [3, 0] as [number, number] },
+        { cell: [3, 1] as [number, number] }
+    ];
+
+    assert.equal(relocateItemsToLayout(items, [2, 2]), true);
+    assert.deepEqual(items[0].cell, [0, 0]);
+    assert.deepEqual(items[1].cell, [1, 0]);
+    const overflow = [items[2].cell, items[3].cell];
+    assert.ok(overflow.every(([x, y]) => x >= 0 && x < 2 && y >= 0 && y < 2));
+    const keys = items.map(({ cell }) => `${cell[0]}:${cell[1]}`);
+    assert.equal(new Set(keys).size, keys.length);
 });

@@ -83,14 +83,17 @@ export function shouldShowStatusOverlay(opts: {
     return !opts.desktop;
 }
 
+/** European 24h clock + DD.MM.YYYY for taskbar / status overlay. */
+export function formatChromeClock(now = new Date()): { time: string; date: string } {
+    const pad = (n: number): string => String(n).padStart(2, "0");
+    return {
+        time: `${pad(now.getHours())}:${pad(now.getMinutes())}`,
+        date: `${pad(now.getDate())}.${pad(now.getMonth() + 1)}.${now.getFullYear()}`
+    };
+}
+
 function formatStatusClock(d = new Date()): string {
-    try {
-        return new Intl.DateTimeFormat(undefined, { hour: "numeric", minute: "2-digit" }).format(d);
-    } catch {
-        const h = d.getHours();
-        const m = String(d.getMinutes()).padStart(2, "0");
-        return `${h}:${m}`;
-    }
+    return formatChromeClock(d).time;
 }
 
 /**

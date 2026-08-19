@@ -8,8 +8,8 @@
 /**
  * WHY: Desktop shell chrome — `ui-taskbar` + `ui-task` from FL-UI, `fest/lure` tasking `makeTask` / `getBy`,
  * and the same reactive device tray as {@link buildShellDeviceTray} (desktop-only via CSS + data-desktop).
- * Mobile: transparent nav, centered house icon; long-press lists open windows.
- * Desktop: no Home pin; icon-only tasks; Win-style click toggle; context menus; tray clock.
+ * Mobile: transparent nav, centered house icon; tap goes Home (Start); long-press lists open windows.
+ * Desktop: Start pin (same as mobile Home tap); icon-only tasks; Win-style click toggle; tray clock.
  */
 import { UITask } from "@fest-lib/fl-ui";
 import "@fest-lib/icon";
@@ -22,7 +22,7 @@ import {
     type ContextMenuEntry
 } from "../../explorer/ContextMenu";
 
-import { buildShellDeviceTray, type ShellDeviceStatus } from "../../statusbar/statusbar";
+import { buildShellDeviceTray, formatChromeClock, type ShellDeviceStatus } from "../../statusbar/statusbar";
 import { toggleCalendarFlyout } from "../../calendar/CalendarFlyout";
 import { toggleQuickSettingsFlyout } from "../../settings/QuickSettings";
 
@@ -97,16 +97,7 @@ function isMobileChrome(): boolean {
 }
 
 function formatTrayClock(now = new Date()): { time: string; date: string } {
-    const time = now.toLocaleTimeString(undefined, {
-        hour: "2-digit",
-        minute: "2-digit"
-    });
-    const date = now.toLocaleDateString(undefined, {
-        weekday: "short",
-        day: "numeric",
-        month: "short"
-    });
-    return { time, date };
+    return formatChromeClock(now);
 }
 
 /**
@@ -153,7 +144,6 @@ export function mountEnvironmentTaskBar(opts: EnvironmentTaskbarOptions): MountT
     tHome.setAttribute("data-env-home", "");
     tHome.setAttribute("aria-label", "Home");
     tHome.setAttribute("aria-haspopup", "menu");
-    tHome.setAttribute("aria-keyshortcuts", "LongPress");
 
     /*
     const tViewer = document.createElement("ui-task");
@@ -166,6 +156,17 @@ export function mountEnvironmentTaskBar(opts: EnvironmentTaskbarOptions): MountT
     pinsHost.append(tHome, tViewer);
     */
     pinsHost.append(tHome);
+
+    const syncStartChrome = (): void => {
+        const mobile = isMobileChrome();
+        tHome.setAttribute("title", mobile ? "Home" : "Start");
+        tHome.setAttribute("aria-label", mobile ? "Home" : "Start");
+        tHome.setAttribute("icon", mobile ? "house-line" : "windows-logo");
+        tHome.toggleAttribute("data-env-start", !mobile);
+        if (mobile) tHome.setAttribute("aria-keyshortcuts", "LongPress");
+        else tHome.removeAttribute("aria-keyshortcuts");
+    };
+    syncStartChrome();
 
     const trayHost = document.createElement("div");
     trayHost.className = "env-shell-taskbar__tray-host";
@@ -665,6 +666,7 @@ export function mountEnvironmentTaskBar(opts: EnvironmentTaskbarOptions): MountT
 
     const syncAcrylicUnder = (): void => {
         const desktop = !isMobileChrome();
+        syncStartChrome();
         if (desktop) {
             if (!barUnder && bar.isConnected) {
                 barUnder = createPanelUnderShadow(bar, {

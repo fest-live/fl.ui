@@ -178,3 +178,52 @@ export const findNearestFreeCell = (
 
     return start;
 };
+
+type CellHolder = { cell?: GridCell | { 0?: unknown; 1?: unknown } | null };
+
+const readCell = (item: CellHolder): GridCell => [
+    Math.floor(Number(item?.cell?.[0]) || 0),
+    Math.floor(Number(item?.cell?.[1]) || 0)
+];
+
+const writeCell = (item: CellHolder, cell: GridCell): boolean => {
+    const prev = readCell(item);
+    if (prev[0] === cell[0] && prev[1] === cell[1]) return false;
+    if (!item.cell) return false;
+    item.cell[0] = cell[0];
+    item.cell[1] = cell[1];
+    return true;
+};
+
+/**
+ * Keep tiles inside a new `[columns, rows]` without stacking everyone on the
+ * last track. In-bounds items keep their cells (collisions resolved); overflow
+ * items take the nearest free cell.
+ */
+export const relocateItemsToLayout = (
+    items: readonly CellHolder[],
+    layout: GridLayout | readonly number[] | null | undefined
+): boolean => {
+    const normalized = normalizeLayout(layout);
+    const [columns, rows] = normalized;
+    const inBounds: CellHolder[] = [];
+    const overflow: CellHolder[] = [];
+    for (const item of items) {
+        if (!item?.cell) continue;
+        const [x, y] = readCell(item);
+        if (x >= 0 && x < columns && y >= 0 && y < rows) inBounds.push(item);
+        else overflow.push(item);
+    }
+
+    const occupied = new Set<string>();
+    let changed = false;
+    const place = (item: CellHolder, preferred: GridCell): void => {
+        const cell = findNearestFreeCell(preferred, occupied, normalized);
+        occupied.add(cellKey(cell));
+        if (writeCell(item, cell)) changed = true;
+    };
+
+    for (const item of inBounds) place(item, readCell(item));
+    for (const item of overflow) place(item, clampLogicalCell(readCell(item), normalized));
+    return changed;
+};

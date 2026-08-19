@@ -35,6 +35,14 @@
     * Soft elevation: `.env-shell-taskbar-under` (UnderlyingShadow) — not box-shadow on blur host.
     */
     .env-shell-taskbar {
+        --env-taskbar-surface: light-dark(
+            color-mix(in oklab, #f4f4f5 82%, transparent),
+            color-mix(in oklab, #1c1c1e 78%, transparent)
+        );
+        --env-taskbar-ink: contrast-color(var(--env-taskbar-surface));
+        --env-taskbar-accent: var(--wf-md-primary, #60cdff);
+        --icon-color: var(--env-taskbar-ink);
+
         order: 0;
         position: relative;
         display: flex;
@@ -46,12 +54,14 @@
         min-block-size: 2.5rem;
         padding: 0 0.25rem;
         padding-block-end: env(safe-area-inset-bottom, 0);
-        background: color-mix(in oklab, #1a1a1a 72%, transparent);
-        border-block-start: 1px solid color-mix(in oklab, #fff 12%, transparent);
+        background: var(--env-taskbar-surface);
+        border-block-start: 1px solid light-dark(
+            color-mix(in oklab, #000 10%, transparent),
+            color-mix(in oklab, #fff 14%, transparent)
+        );
         backdrop-filter: blur(22px) saturate(1.35);
         -webkit-backdrop-filter: blur(22px) saturate(1.35);
-        color: #f3f3f3;
-        color: contrast-color(color-mix(in oklab, #1a1a1a 72%, transparent));
+        color: var(--env-taskbar-ink);
         box-shadow: none;
     }
     
@@ -93,23 +103,10 @@
         content-visibility: visible;
         
         [data-env-home] {
-            backdrop-filter: blur(10px);
-            transform: translateY(-0.5rem);
-            outline: solid 1px light-dark(#0002, #fff2);
-            background-color: color-mix(in oklab, var(--base-color, #1c1c1e) 10%, transparent);
             content-visibility: visible;
-
-            color: contrast-color(var(--base-color, #000));
-            --icon-color: contrast-color(var(--base-color, #000));
+            color: inherit;
+            --icon-color: currentColor;
         }
-    }
-    
-    :has(ui-window:not([minimized])) .env-shell-taskbar__pins [data-env-home] {
-        --color-surface: light-dark(--u2-color-mod(var(--base-color-neutralized), 10), --u2-color-mod(var(--base-color-neutralized), 980));
-
-        background-color: color-mix(in oklab, var(--color-surface, #1c1c1e) 10%, transparent);
-        color: contrast-color(var(--color-surface, #1c1c1e));
-        --icon-color: contrast-color(var(--color-surface, #1c1c1e));
     }
 
     .env-shell-taskbar__windows {
@@ -136,8 +133,8 @@
     }
     
     .env-shell-taskbar ui-task:hover {
-        background: color-mix(in oklab, #fff 10%, transparent);
-        color: contrast-color(inherit(background-color));
+        background: color-mix(in oklab, var(--env-taskbar-ink) 10%, transparent);
+        color: var(--env-taskbar-ink);
         opacity: 1;
     }
     
@@ -145,10 +142,10 @@
     .env-shell-taskbar ui-task[data-active],
     .env-shell-taskbar ui-task[data-focus] {
         outline: none;
-        color: contrast-color(inherit(background-color));
+        color: var(--env-taskbar-ink);
         opacity: 1;
-        background: color-mix(in oklab, #fff 14%, transparent);
-        box-shadow: inset 0 -2px 0 #60cdff;
+        background: color-mix(in oklab, var(--env-taskbar-ink) 12%, transparent);
+        box-shadow: inset 0 -2px 0 var(--env-taskbar-accent);
     }
     
     .env-shell-taskbar ui-task[data-minimized] {
@@ -162,7 +159,10 @@
         flex: 0 0 auto;
         gap: 0.35rem;
         padding-inline: 0.35rem;
-        border-inline-start: 1px solid color-mix(in oklab, #fff 12%, transparent);
+        border-inline-start: 1px solid light-dark(
+            color-mix(in oklab, #000 10%, transparent),
+            color-mix(in oklab, #fff 12%, transparent)
+        );
     }
     
     .env-shell-taskbar__clock {
@@ -171,7 +171,8 @@
         align-items: flex-end;
         justify-content: center;
         gap: 0.05rem;
-        min-inline-size: 4.5rem;
+        min-inline-size: 4rem;
+        inline-size: fit-content;
         padding-inline: 0.35rem 0.15rem;
         line-height: 1.05;
         user-select: none;
@@ -182,8 +183,8 @@
 
     .env-shell-taskbar__clock:hover,
     .env-shell-taskbar__clock:focus-visible {
-        background: color-mix(in oklab, #fff 10%, transparent);
-        color: contrast-color(inherit(background-color));
+        background: color-mix(in oklab, var(--env-taskbar-ink) 10%, transparent);
+        color: var(--env-taskbar-ink);
         outline: none;
     }
 
@@ -195,8 +196,8 @@
 
     .env-device-tray--taskbar:hover,
     .env-device-tray--taskbar:focus-visible {
-        background: color-mix(in oklab, #fff 10%, transparent);
-        color: contrast-color(inherit(background-color));
+        background: color-mix(in oklab, var(--env-taskbar-ink) 10%, transparent);
+        color: var(--env-taskbar-ink);
         outline: none;
     }
     
@@ -204,14 +205,15 @@
         font-size: 0.78rem;
         font-weight: 600;
         font-variant-numeric: tabular-nums;
-        color: #f3f3f3;
+        color: inherit;
     }
     
     .env-shell-taskbar__clock-date {
         font-size: 0.62rem;
         font-weight: 500;
-        color: color-mix(in oklab, #f3f3f3 72%, transparent);
+        color: color-mix(in oklab, currentColor 72%, transparent);
         white-space: nowrap;
+        font-variant-numeric: tabular-nums;
     }
     
     /* Desktop: icon-only tasks (tooltip via title / aria-label). */
@@ -238,9 +240,31 @@
         font-size: 0.8rem;
     }
     
-    /* Desktop: Home pin is redundant (empty bar / menu → Show desktop). */
+    /* Desktop Start — same action as a mobile Home tap (go home / show desktop). */
     .env-shell-chrome[data-desktop] .env-shell-taskbar ui-task[data-env-home] {
-        display: none !important;
+        display: inline-flex !important;
+        transform: none;
+        outline: none;
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
+        min-inline-size: 2.75rem;
+        margin-inline-end: 0.2rem;
+        border-radius: 0.4rem;
+        background: color-mix(in oklab, var(--env-taskbar-accent) 18%, transparent);
+        color: var(--env-taskbar-ink);
+        --icon-color: currentColor;
+    }
+
+    .env-shell-chrome[data-desktop] .env-shell-taskbar ui-task[data-env-home]:hover,
+    .env-shell-chrome[data-desktop] .env-shell-taskbar ui-task[data-env-home]:focus-visible {
+        background: color-mix(in oklab, var(--env-taskbar-accent) 32%, transparent);
+    }
+
+    .env-shell-chrome[data-desktop] .env-shell-taskbar ui-task[data-env-home][data-env-active="true"],
+    .env-shell-chrome[data-desktop] .env-shell-taskbar ui-task[data-env-home][data-active],
+    .env-shell-chrome[data-desktop] .env-shell-taskbar ui-task[data-env-home][data-focus] {
+        background: color-mix(in oklab, var(--env-taskbar-accent) 28%, transparent);
+        box-shadow: inset 0 -2px 0 var(--env-taskbar-accent);
     }
     
     /*
@@ -266,6 +290,8 @@
         backdrop-filter: none;
         -webkit-backdrop-filter: none;
         box-shadow: none;
+        color: var(--env-status-fg, var(--env-taskbar-ink));
+        --icon-color: currentColor;
     }
     
     .env-shell-chrome:not([data-desktop]) .env-shell-taskbar-under {

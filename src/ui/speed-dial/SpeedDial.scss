@@ -106,8 +106,10 @@
         grid-row: 1 / -1;
         grid-column: 1 / -1;
         display: grid;
-        grid-template-columns: repeat(var(--grid-columns, 4), minmax(0, 1fr));
-        grid-template-rows: repeat(var(--grid-rows, 8), minmax(0, 1fr));
+        /* WHY: `--cs-layout-*` follows `--layout-c/r` + `--orient` (ui-launcher-grid).
+         * `--grid-columns` is the JS visual count. They must agree after settings. */
+        grid-template-columns: repeat(var(--grid-columns, var(--cs-layout-c, 4)), minmax(0, 1fr));
+        grid-template-rows: repeat(var(--grid-rows, var(--cs-layout-r, 8)), minmax(0, 1fr));
         padding: var(--speed-dial-padding, 1rem);
         border-radius: 0px;
 
@@ -186,6 +188,16 @@
 
             &:active {
                 scale: 0.94;
+            }
+
+            /* WHY: hover/active scale shifts the visual center vs grabOffset; drop then misses the cell. */
+            &[data-dragging],
+            &[data-interaction-state="onGrab"],
+            &[data-interaction-state="onMoving"],
+            &[data-interaction-state="onRelax"],
+            &[data-interaction-state="onPlace"] {
+                scale: 1;
+                transition: none !important;
             }
 
             &.ui-ws-item-icon {

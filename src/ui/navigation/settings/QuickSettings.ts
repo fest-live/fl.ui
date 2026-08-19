@@ -1,8 +1,8 @@
 /*
  * Filename: QuickSettings.ts
  * FullPath: modules/projects/fl.ui/src/ui/navigation/settings/QuickSettings.ts
- * Change date and time: 08.30.00_02.08.2026
- * Reason for changes: Win11-like Quick Settings flyout (theme toggle + placeholder tiles + night/brightness sliders).
+ * Change date and time: 09.40.00_19.08.2026
+ * Reason for changes: Footer buttons open Settings / Explorer from Quick Settings.
  */
 /**
  * WHY: Singleton `ui-quick-settings` custom element mounted into the shared ChromeFlyout
@@ -12,10 +12,11 @@
  * this component stays usable standalone inside `fl.ui`. Apps that ship a real Theme
  * subsystem can still react via the `u2-theme-change` event this module dispatches.
  */
-import { defineElement, H } from "@fest-lib/lure";
+import { defineElement, H, navigate } from "@fest-lib/lure";
 import { MOCElement, preloadStyle } from "@fest-lib/dom";
 import { UIElement } from "fl-ui/base/UIElement";
 import "@fest-lib/icon";
+import { getSpeedDialViewOpener } from "fl-ui/speed-dial/view-opener";
 
 import {
     ensureOverlayRoot,
@@ -316,6 +317,28 @@ const wireQuickSettingsPanel = (host: HTMLElement): void => {
         brightnessSlider.value = String(brightness);
         brightnessSlider.addEventListener("input", () => applyBrightnessFilter(brightnessSlider.valueAsNumber));
     }
+
+    const openShellView = (view: "settings" | "explorer"): void => {
+        closeQuickSettingsFlyout();
+        const run = (): void => {
+            const opener = getSpeedDialViewOpener();
+            if (typeof opener === "function") {
+                opener(view, {});
+                return;
+            }
+            const hash = `#${view}`;
+            if (typeof location !== "undefined" && location.hash !== hash) navigate(hash);
+        };
+        /* WHY: close the flyout first so the new env window is not covered / dismissed. */
+        if (typeof requestAnimationFrame === "function") requestAnimationFrame(run);
+        else queueMicrotask(run);
+    };
+    root.querySelectorAll<HTMLElement>("[data-qs-open]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+            const view = String(btn.getAttribute("data-qs-open") || "").trim();
+            if (view === "settings" || view === "explorer") openShellView(view);
+        });
+    });
 };
 
 /* ---------------------------------------------------------------------- */
@@ -398,6 +421,16 @@ export class QuickSettings extends UIElement {
                 <input class="qs-slider" part="slider" type="range" min="0" max="100" step="1" value="50" data-qs-slider="brightness" aria-label="Brightness" />
             </span>
         </label>
+    </div>
+    <div class="qs-footer" part="footer" role="group" aria-label="Open apps">
+        <button type="button" class="qs-footer-btn" part="footer-btn" data-qs-open="explorer" role="menuitem" title="Explorer">
+            <ui-icon class="qs-footer-icon" icon="books" icon-style="duotone" aria-hidden="true"></ui-icon>
+            <span>Explorer</span>
+        </button>
+        <button type="button" class="qs-footer-btn" part="footer-btn" data-qs-open="settings" role="menuitem" title="Settings">
+            <ui-icon class="qs-footer-icon" icon="gear-six" icon-style="duotone" aria-hidden="true"></ui-icon>
+            <span>Settings</span>
+        </button>
     </div>
 </div>`;
 

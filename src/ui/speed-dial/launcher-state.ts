@@ -1,8 +1,8 @@
 /*
  * Filename: launcher-state.ts
  * FullPath: modules/projects/fl.ui/src/ui/speed-dial/launcher-state.ts
- * Change date and time: 09.05.00_19.08.2026
- * Reason for changes: Parse Explorer virtual-path / bookmark drops without JSON.parse on `/bookmarks/…`.
+ * Change date and time: 09.35.00_19.08.2026
+ * Reason for changes: Workspace settings apply grid/shape/default action via cwsp:workspace-grid.
  *
  * Speed-dial / launcher persistence for fl.ui only (no core).
  * Storage keys match CWSP-shell `StateStorage` so shells sharing one origin keep one grid.
@@ -10,6 +10,7 @@
 
 import { JSOX } from "jsox";
 import { makeObjectAssignable, observe, stringRef, safe } from "@fest-lib/object";
+import { relocateItemsToLayout } from "./layout.ts";
 import { decodeDesktopState, loadDesktopRaw, makeUIState, saveUIState } from "@fest-lib/lure";
 import {
     createOpfsLinkStoreIo,
@@ -1181,14 +1182,21 @@ export const findSpeedDialItem = (id?: string | null) => {
 export const createEmptySpeedDialItem = (
     cell: ReturnType<typeof observe<GridCell>> = observe([0, 0]) as ReturnType<typeof observe<GridCell>>
 ): SpeedDialItem => {
+    const action = getDefaultSpeedDialAction();
     const item = createStatefulItem({
         id: generateItemId(),
         cell,
         icon: "sparkle",
         label: "New shortcut",
-        action: "open-link"
+        action
     });
-    ensureSpeedDialMeta(item.id, { action: item.action, href: "", description: "" });
+    ensureSpeedDialMeta(item.id, {
+        action,
+        href: "",
+        description: "",
+        shape: getDefaultTileShape(),
+        openLinkTarget: getDefaultOpenLinkTarget()
+    });
     return item;
 };
 
@@ -1263,26 +1271,64 @@ export const wallpaperState = makeUIState(WALLPAPER_KEY, () => observe({
 
 export const persistWallpaper = () => (wallpaperState as any)?.$save?.();
 
-export type GridShape = "square" | "squircle" | "circle" | "rounded" | "hexagon" | "diamond";
+export type GridShape = "square" | "squircle" | "circle" | "rounded" | "hexagon" | "diamond" | "wavy";
 
 export interface GridLayoutSettings {
     columns: number;
     rows: number;
     shape: GridShape;
+    /** Default click action for newly created tiles (`open-link` / `open-view`). */
+    defaultAction?: string;
 }
 
 const GRID_LAYOUT_KEY = "cw::workspace::grid-layout";
+const WORKSPACE_GRID_EVENT = "cwsp:workspace-grid";
+const TILE_SHAPES = new Set<string>(["square", "squircle", "circle", "rounded", "hexagon", "diamond", "wavy"]);
+
+export const normalizeTileShape = (raw: unknown, fallback: GridShape = "squircle"): GridShape => {
+    const v = String(raw || "").trim().toLowerCase();
+    return TILE_SHAPES.has(v) ? (v as GridShape) : fallback;
+};
+
 export const gridLayoutState = makeUIState(GRID_LAYOUT_KEY, () => observe({
     columns: 4,
     rows: 8,
-    shape: "square" as GridShape
+    shape: "squircle" as GridShape,
+    defaultAction: "open-link"
 }), (raw) => observe(raw || {
     columns: 4,
     rows: 8,
-    shape: "square" as GridShape
+    shape: "squircle" as GridShape,
+    defaultAction: "open-link"
 }), (state) => ({ ...state })) as unknown as GridLayoutSettings;
 
 export const persistGridLayout = () => (gridLayoutState as any)?.$save?.();
+
+export function getDefaultTileShape(): GridShape {
+    return normalizeTileShape(gridLayoutState?.shape, "squircle");
+}
+
+export function setDefaultTileShape(shape: GridShape): void {
+    gridLayoutState.shape = normalizeTileShape(shape, "squircle");
+    persistGridLayout();
+}
+
+function normalizeDefaultAction(raw: unknown, fallback = "open-link"): string {
+    const v = String(raw || "").trim().toLowerCase();
+    if (v === "open-view" || v === "view") return "open-view";
+    if (v === "open-link" || v === "link") return "open-link";
+    return fallback;
+}
+
+/** Default action id for newly created shortcuts (Settings → Workspace). */
+export function getDefaultSpeedDialAction(): string {
+    return normalizeDefaultAction(gridLayoutState?.defaultAction, "open-link");
+}
+
+export function setDefaultSpeedDialAction(action: string): void {
+    gridLayoutState.defaultAction = normalizeDefaultAction(action, "open-link");
+    persistGridLayout();
+}
 
 const hasStoredValue = (key: string): boolean => {
     try {
@@ -1371,34 +1417,74 @@ const migrateLegacyDesktopState = (): void => {
 
 migrateLegacyDesktopState();
 
-export const applyGridSettings = (settings?: { grid?: GridLayoutSettings }) => {
+export const applyGridSettings = (settings?: {
+    grid?: Partial<GridLayoutSettings> & { defaultOpenLinkTarget?: string };
+}) => {
     const gridConfig = settings?.grid || gridLayoutState;
-    const columns = gridConfig?.columns ?? 4;
-    const rows = gridConfig?.rows ?? 8;
-    const shape = gridConfig?.shape ?? "square";
+    const columns = Math.max(1, Math.min(16, Number(gridConfig?.columns) || gridLayoutState.columns || 4));
+    const rows = Math.max(1, Math.min(16, Number(gridConfig?.rows) || gridLayoutState.rows || 8));
+    const shape = normalizeTileShape(gridConfig?.shape ?? gridLayoutState.shape, "squircle");
+    const defaultAction = normalizeDefaultAction(
+        gridConfig?.defaultAction ?? gridLayoutState.defaultAction,
+        "open-link"
+    );
+
+    // WHY: shrink before writing layout state so the first visual pass already
+    // has in-bounds cells. Clamping in logicalToVisualCell would stack overflow
+    // tiles on the last track; CSS grid-column then grows implicit columns.
+    if (relocateItemsToLayout(speedDialItems, [columns, rows])) {
+        persistSpeedDialItems();
+    }
 
     if (gridLayoutState) {
         gridLayoutState.columns = columns;
         gridLayoutState.rows = rows;
         gridLayoutState.shape = shape;
+        gridLayoutState.defaultAction = defaultAction;
         persistGridLayout();
+    }
+
+    const openTarget = (gridConfig as { defaultOpenLinkTarget?: string } | undefined)?.defaultOpenLinkTarget;
+    if (openTarget != null && String(openTarget).trim()) {
+        setDefaultOpenLinkTarget(normalizeOpenLinkTarget(openTarget));
     }
 
     if (typeof document === "undefined") {
         return;
     }
 
-    document.querySelectorAll(".speed-dial-grid").forEach((grid) => {
-        const el = grid as HTMLElement;
-        el.dataset.gridColumns = String(columns);
-        el.dataset.gridRows = String(rows);
-        el.dataset.gridShape = shape;
-    });
-
+    // INVARIANT: visual `data-grid-columns/rows` on `.speed-dial-grid` belong to
+    // syncGridLayout (orient-aware). Logical counts live on documentElement.
     document.documentElement.dataset.gridColumns = String(columns);
     document.documentElement.dataset.gridRows = String(rows);
     document.documentElement.dataset.gridShape = shape;
 };
+
+type WorkspaceGridEventDetail = Partial<GridLayoutSettings> & {
+    defaultOpenLinkTarget?: string;
+    query?: boolean;
+    receive?: (grid: Partial<GridLayoutSettings> & { defaultOpenLinkTarget: OpenLinkTarget }) => void;
+    ack?: () => void;
+};
+
+if (typeof window !== "undefined") {
+    window.addEventListener(WORKSPACE_GRID_EVENT, (ev: Event) => {
+        const detail = (ev as CustomEvent<WorkspaceGridEventDetail>).detail;
+        if (!detail) return;
+        if (detail.query && typeof detail.receive === "function") {
+            detail.receive({
+                columns: gridLayoutState.columns,
+                rows: gridLayoutState.rows,
+                shape: gridLayoutState.shape,
+                defaultAction: getDefaultSpeedDialAction(),
+                defaultOpenLinkTarget: getDefaultOpenLinkTarget()
+            });
+            return;
+        }
+        applyGridSettings({ grid: detail });
+        detail.ack?.();
+    });
+}
 
 if (typeof globalThis !== "undefined" && typeof document !== "undefined") {
     const run = () => applyGridSettings();

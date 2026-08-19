@@ -51,6 +51,7 @@ import {
     isSpeedDialVirtualPath,
     resolveItemOpenLinkTarget,
     getDefaultOpenLinkTarget,
+    getDefaultTileShape,
     mirrorSpeedDialItems,
     mirrorPathState,
     isMirrorMode,
@@ -110,9 +111,16 @@ const getItemCell = (item: SpeedDialItem): GridCell => [
 const applyVisualCell = (el: HTMLElement, item: SpeedDialItem, root?: HTMLElement | null): void => {
     const orient = getRootOrient(root);
     const layout = getGridLayout();
-    const visualCell = logicalToVisualCell(getItemCell(item), layout, orient);
-    el.dataset.cellX = String(item.cell?.[0] ?? 0);
-    el.dataset.cellY = String(item.cell?.[1] ?? 0);
+    const logicalCell = getItemCell(item);
+    const visualCell = logicalToVisualCell(logicalCell, layout, orient);
+    el.dataset.cellX = String(logicalCell[0]);
+    el.dataset.cellY = String(logicalCell[1]);
+    // WHY: `.ui-launcher-grid` places via `--cell-x/y` + `--orient`; SpeedDial.scss
+    // also uses 1-based `--cell-column`. Keep both in lockstep with persisted cells.
+    el.style.setProperty("--cell-x", String(logicalCell[0]));
+    el.style.setProperty("--cell-y", String(logicalCell[1]));
+    el.style.setProperty("--p-cell-x", String(logicalCell[0]));
+    el.style.setProperty("--p-cell-y", String(logicalCell[1]));
     el.style.setProperty("--cell-column", String(visualCell[0] + 1));
     el.style.setProperty("--cell-row", String(visualCell[1] + 1));
     if (el.dataset.layer === "labels") {
@@ -171,11 +179,18 @@ const syncGridLayout = (root: HTMLElement): void => {
 
     root.dataset.orient = String(orient);
     root.style.setProperty("--orient", String(orient));
+    root.style.setProperty("--layout-c", String(logicalLayout[0]));
+    root.style.setProperty("--layout-r", String(logicalLayout[1]));
     root.querySelectorAll<HTMLElement>(".speed-dial-grid").forEach((grid) => {
+        // INVARIANT: `.ui-launcher-grid` template is `repeat(var(--cs-layout-c))`,
+        // derived from logical `--layout-c/r` + `--orient`. `--grid-columns` is the
+        // visual count for SpeedDial.scss. Both must follow Workspace settings.
+        grid.style.setProperty("--layout-c", String(logicalLayout[0]));
+        grid.style.setProperty("--layout-r", String(logicalLayout[1]));
         grid.style.setProperty("--grid-columns", String(columns));
         grid.style.setProperty("--grid-rows", String(rows));
-        grid.dataset.gridColumns = String(columns);
-        grid.dataset.gridRows = String(rows);
+        grid.dataset.gridColumns = String(logicalLayout[0]);
+        grid.dataset.gridRows = String(logicalLayout[1]);
     });
     root.querySelectorAll<HTMLElement>("[data-speed-dial-item]").forEach((node) => {
         const item = findSpeedDialItem(node.dataset.id);
@@ -395,7 +410,12 @@ const attachItemNode = (item: SpeedDialItem, el?: HTMLElement | null, interactiv
                 || el.ownerDocument?.getElementById("home")
             ));
         }
-        applyVisualCell(el, item, root);
+        if (el.dataset.cellBound !== "true") {
+            el.dataset.cellBound = "true";
+            bindCell(el, args);
+        } else {
+            applyVisualCell(el, item, root);
+        }
     }
 };
 
@@ -975,7 +995,10 @@ const attachMirrorItemNode = (item: any, el?: HTMLElement | null, makeView?: any
     const sync = (): void => {
         const orient = getRootOrient(root);
         const layout = getGridLayout();
-        const visualCell = logicalToVisualCell([item.cell?.[0] || 0, item.cell?.[1] || 0], layout, orient);
+        const logicalCell: GridCell = [item.cell?.[0] || 0, item.cell?.[1] || 0];
+        const visualCell = logicalToVisualCell(logicalCell, layout, orient);
+        el.style.setProperty("--cell-x", String(logicalCell[0]));
+        el.style.setProperty("--cell-y", String(logicalCell[1]));
         el.style.setProperty("--cell-column", String(visualCell[0] + 1));
         el.style.setProperty("--cell-row", String(visualCell[1] + 1));
     };
@@ -1046,9 +1069,7 @@ export function SpeedDial(makeView: any) {
     const shapeRef = propRef(gridLayoutState, "shape", "square");
 
     const tileShapeForItem = (item: SpeedDialItem): ReturnType<typeof propRef> => {
-        const raw = String(getSpeedDialMeta(item.id)?.shape || "squircle").toLowerCase();
-        //return raw === "circle" || raw === "square" || raw === "squircle" ? raw : "squircle";
-        return propRef(getSpeedDialMeta(item.id) || {}, "shape", "squircle");
+        return propRef(getSpeedDialMeta(item.id) || {}, "shape", getDefaultTileShape());
     };
 
     //
@@ -1130,7 +1151,7 @@ const openItemEditor = (item?: SpeedDialItem, opts?: {
         href: String(workingMeta?.href || ""),
         view: String(workingMeta?.view || ""),
         description: String(workingMeta?.description || ""),
-        shape: String(workingMeta?.shape || "squircle"),
+        shape: String(workingMeta?.shape || getDefaultTileShape()),
         openLinkTarget: resolveItemOpenLinkTarget(workingMeta)
     };
 

@@ -132,10 +132,15 @@ const animateNodeToCell = async (
     }
 };
 
+const readCell = (cell: GridItem["cell"] | undefined): GridCell => [
+    Math.floor(Number(cell?.[0]) || 0),
+    Math.floor(Number(cell?.[1]) || 0)
+];
+
 const occupiedCells = (items: readonly GridItem[], exceptId: string): Set<string> => {
     const occupied = new Set<string>();
     for (const entry of items) {
-        if (entry.id !== exceptId) occupied.add(cellKey(entry.cell));
+        if (entry.id !== exceptId) occupied.add(cellKey(readCell(entry.cell)));
     }
     return occupied;
 };
@@ -158,13 +163,27 @@ export const bindPointerInteraction = (
     let suppressClickUntil = 0;
     let animationRun = 0;
 
-    // Labels live in a sibling visual layer and must not inherit pointer
-    // offsets or animation state from the draggable icon.
-    const nodes = () => [node];
+    const relatedNodes = (): HTMLElement[] => {
+        const id = node.dataset.id;
+        const extra: HTMLElement[] = [];
+        if (id) {
+            options.root.querySelectorAll<HTMLElement>('[data-speed-dial-item][data-layer="labels"]').forEach((el) => {
+                if (el.dataset.id === id) extra.push(el);
+            });
+        }
+        return [node, ...extra];
+    };
+
+    const liveCell = (): GridCell => {
+        const live = options.items.find((entry) => entry.id === options.item.id);
+        return readCell(live?.cell ?? options.item.cell);
+    };
+
+    const nodes = () => relatedNodes();
 
     const getDropCell = (clientPoint: [number, number]): GridCell => {
         const grid = node.closest<HTMLElement>(".speed-dial-grid");
-        if (!grid) return [...options.item.cell] as GridCell;
+        if (!grid) return liveCell();
         const { point, size } = getGridContentPoint(grid, clientPoint);
         const center = [point[0] - grabOffset[0], point[1] - grabOffset[1]] as [number, number];
         return findNearestFreeCell(
@@ -186,6 +205,7 @@ export const bindPointerInteraction = (
         pointerId = event.pointerId;
         lastPointerClient = null;
         pointerDownAt = [event.clientX, event.clientY];
+        options.item.cell = liveCell();
         const rect = node.getBoundingClientRect();
         const center = centerOf(rect);
         grabOffset = [event.clientX - center[0], event.clientY - center[1]];
@@ -201,7 +221,7 @@ export const bindPointerInteraction = (
         if (!dragging) {
             dragging = true;
             suppressClickUntil = performance.now() + SETTLE_DURATION_MS + 80;
-            node.dataset.dragging = "";
+            for (const entry of nodes()) entry.dataset.dragging = "";
             setInteractionState(nodes(), "onGrab", "source");
             node.dispatchEvent(new CustomEvent("m-dragstart", { bubbles: true }));
         }
@@ -209,8 +229,10 @@ export const bindPointerInteraction = (
         event.preventDefault();
         lastPointerClient = [event.clientX, event.clientY];
         const activeNodes = nodes();
-        node.style.setProperty("--drag-x", `${dx}px`);
-        node.style.setProperty("--drag-y", `${dy}px`);
+        for (const entry of activeNodes) {
+            entry.style.setProperty("--drag-x", `${dx}px`);
+            entry.style.setProperty("--drag-y", `${dy}px`);
+        }
         setInteractionState(activeNodes, "onMoving", "intermediate");
         node.dispatchEvent(new CustomEvent("m-dragging", {
             bubbles: true,

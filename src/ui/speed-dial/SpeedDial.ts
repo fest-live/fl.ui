@@ -34,6 +34,7 @@ import {
     addSpeedDialItem,
     upsertSpeedDialItem,
     removeSpeedDialItem,
+    markSpeedDialUserEditBeforeHydrate,
     persistSpeedDialItems,
     persistSpeedDialMeta,
     findSpeedDialItem,
@@ -46,14 +47,27 @@ import {
     createSpeedDialItemFromClipboard,
     parseSpeedDialItemFromJSON,
     parseSpeedDialItemFromURL,
+    parseSpeedDialItemFromVirtualPath,
+    isSpeedDialVirtualPath,
     resolveItemOpenLinkTarget,
     getDefaultOpenLinkTarget,
+    mirrorSpeedDialItems,
+    mirrorPathState,
+    isMirrorMode,
+    getSpeedDialMirrorPath,
+    setSpeedDialMirrorPath,
+    refreshSpeedDialMirror,
     type SpeedDialItem
 } from "./launcher-state";
 import { isInFocus, MOCElement } from "@fest-lib/dom";
 import { openShortcutEditor } from "./ShortcutEditor";
 import { setSpeedDialViewOpener, getSpeedDialViewOpener } from "./view-opener";
 import { getSpeedDialActionRegistry, getSpeedDialActionLabels, getSpeedDialActionIcons } from "./action-registry";
+// WHY (final review #1/#5): use the `fl-ui/explorer/path-router` alias so this
+// file resolves the canonical PathRouter module from any hardlinked copy
+// (e.g. `modules/views/home-view/src/ts/SpeedDial.ts`), avoiding a broken
+// relative `../explorer/…` path and dual registry registration.
+import { listVirtualRootEntriesFromRouter, resolveFsBackend } from "#fl-ui/explorer/path-router";
 let ctxMenuBound = false;
 /** Document-level paste/drop once — SpeedDial mount (not only createCtxMenu). */
 let homeTransferListenersBound = false;
@@ -236,6 +250,7 @@ const schedulePersistItems = () => {
     if (persistItemsTimer) clearTimeout(persistItemsTimer);
     persistItemsTimer = setTimeout(() => {
         persistItemsTimer = null;
+        markSpeedDialUserEditBeforeHydrate();
         persistSpeedDialItems();
     }, 80);
 };
@@ -248,6 +263,7 @@ const resolveItemAction = (item: SpeedDialItem, override?: string) => {
 const ACTION_OPTIONS = [
     { value: "open-view", label: "Open view" },
     { value: "open-link", label: "Open link" },
+    { value: "open-path", label: "Open path" },
     { value: "copy-link", label: "Copy link" },
     { value: "copy-state-desc", label: "Copy state + desc" }
 ];
@@ -560,12 +576,29 @@ const parseShortcutFromTransfer = (transfer: DataTransfer | null | undefined, su
     if (!transfer) return null;
     const plain = String(transfer.getData("text/plain") || "").trim();
     const html = String(transfer.getData("text/html") || "").trim();
+    const jsonMime = String(transfer.getData("application/json") || "").trim();
+    // WHY: prefer the Explorer JSON envelope (bookmark title + href/path) over
+    // a hostname-only `open-link` tile built from uri-list.
+    if (jsonMime) {
+        const item = parseSpeedDialItemFromJSON(jsonMime, suggestedCell);
+        if (item) return item;
+    }
     // WHY: prefer uri-list / moz-url / plain lines over HTML — HTML often carries relative chrome links.
     for (const candidate of extractUrlCandidatesFromTransfer(transfer)) {
         const normalized = normalizePasteUrl(candidate);
-        if (!normalized) continue;
-        const item = parseSpeedDialItemFromURL(normalized, suggestedCell);
-        if (item) return item;
+        if (normalized) {
+            const item = parseSpeedDialItemFromURL(normalized, suggestedCell);
+            if (item) return item;
+            continue;
+        }
+        if (isSpeedDialVirtualPath(candidate)) {
+            const item = parseSpeedDialItemFromVirtualPath(candidate, suggestedCell);
+            if (item) return item;
+        }
+        if (looksLikeJsonObjectForDrop(candidate)) {
+            const item = parseSpeedDialItemFromJSON(candidate, suggestedCell);
+            if (item) return item;
+        }
     }
     // Fallback: anchor href from HTML (only absolute http(s) per parseUrlFromHtml).
     const href = parseUrlFromHtml(html);
@@ -576,12 +609,20 @@ const parseShortcutFromTransfer = (transfer: DataTransfer | null | undefined, su
             if (item) return item;
         }
     }
-    // Last resort: shortcut JSON envelope carried in plain text.
+    // Last resort: shortcut JSON envelope or virtual path in plain text.
     if (plain) {
         const item = parseSpeedDialItemFromJSON(plain, suggestedCell);
         if (item) return item;
+        if (isSpeedDialVirtualPath(plain)) {
+            return parseSpeedDialItemFromVirtualPath(plain, suggestedCell);
+        }
     }
     return null;
+};
+
+const looksLikeJsonObjectForDrop = (raw: string): boolean => {
+    const t = String(raw || "").trim();
+    return (t.startsWith("{") && t.endsWith("}")) || (t.startsWith("[") && t.endsWith("]"));
 };
 
 /** True when the event is on the launcher desktop (not a nested window/editor). */
@@ -781,6 +822,42 @@ const handleWallpaperDropOrPaste = (event: DragEvent | ClipboardEvent) => {
     if (parsed) {
         event.preventDefault();
         event.stopPropagation();
+        /*
+         * Task 5: when SpeedDial is mirroring a `/bookmarks/…` path, a dropped
+         * http(s) URL should land in the live Chrome Bookmarks tree (via the
+         * registered bookmarks FsBackend `createUrl`) instead of becoming a
+         * curated link tile. WHY: the mirror grid is a view of the bookmarks
+         * store; creating a curated tile for a URL the user expected to appear
+         * in their Chrome bookmark manager would silently split the source of
+         * truth. We resolve the URL from the just-created item's meta (set by
+         * `parseSpeedDialItemFromURL` via `ensureSpeedDialMeta`), then call
+         * `createUrl` and refresh the mirror listing. The transient curated
+         * item is discarded (it was never `addSpeedDialItem`-ed).
+         *
+         * COMPAT: outside CRX, or when the bookmarks backend is not registered,
+         * or the mirror path is not under `/bookmarks/`, we fall through to the
+         * existing curated-tile creation so the drop still does something
+         * useful. This keeps the shell origin (no `chrome.bookmarks`) working.
+         */
+        const mirrorPath = getSpeedDialMirrorPath();
+        if (mirrorPath && mirrorPath.startsWith("/bookmarks/")) {
+            const backend = resolveFsBackend(mirrorPath);
+            if (backend?.createUrl) {
+                const meta = getSpeedDialMeta(parsed.id);
+                const dropHref = String(meta?.href || "");
+                if (/^https?:\/\//i.test(dropHref)) {
+                    const title = String(getRefValue(parsed.label, dropHref)) || dropHref;
+                    void Promise.resolve(backend.createUrl(mirrorPath, title, dropHref))
+                        .then(() => refreshSpeedDialMirror())
+                        .then(() => showSuccess("Bookmark created from dropped link"))
+                        .catch((e) => {
+                            console.warn(e);
+                            showError("Failed to create bookmark");
+                        });
+                    return;
+                }
+            }
+        }
         addSpeedDialItem(parsed);
         persistSpeedDialItems();
         persistSpeedDialMeta();
@@ -848,6 +925,108 @@ const ensureHomeTransferListeners = (): void => {
 };
 
 
+//
+// Mirror mode rendering (Task 3).
+//
+/*
+ * WHY: mirror tiles are display-only — they are not in `speedDialItems` /
+ * `speedDialMeta`, so the curated drag/edit handlers do not apply. Clicking a
+ * mirror tile runs its action (`open-path` or `open-link`) directly through
+ * the action registry with a context carrying the tile's path/href.
+ */
+const runMirrorItemAction = (item: any, makeView?: any): void => {
+    if (!item) return;
+    const actionId = String(item.action || "open-path");
+    const handler = getSpeedDialActionRegistry().get(actionId);
+    if (!handler) {
+        showError("Action is unavailable");
+        return;
+    }
+    const context = {
+        id: item.id,
+        items: mirrorSpeedDialItems,
+        meta: speedDialMeta,
+        action: actionId,
+        viewMaker: makeView,
+        path: item.path
+    };
+    try {
+        void handler(context as any, item);
+    } catch (error) {
+        console.warn(error);
+        showError("Failed to run action");
+    }
+};
+
+/*
+ * WHY: mirror render helpers live at module scope (outside `SpeedDial`), so
+ * they cannot close over the `makeView` parameter. Resolve the opener lazily
+ * on click instead — hosts register it via `setSpeedDialViewOpener` before
+ * the grid mounts.
+ */
+const resolveMirrorOpener = (makeView?: any) => makeView || getSpeedDialViewOpener();
+
+const attachMirrorItemNode = (item: any, el?: HTMLElement | null, makeView?: any): void => {
+    if (!el) return;
+    const root = el.closest<HTMLElement>(".speed-dial-root") || el.ownerDocument?.getElementById("home");
+    el.dataset.id = item.id;
+    el.dataset.speedDialItem = "true";
+    el.dataset.mirrorItem = "true";
+    const sync = (): void => {
+        const orient = getRootOrient(root);
+        const layout = getGridLayout();
+        const visualCell = logicalToVisualCell([item.cell?.[0] || 0, item.cell?.[1] || 0], layout, orient);
+        el.style.setProperty("--cell-column", String(visualCell[0] + 1));
+        el.style.setProperty("--cell-row", String(visualCell[1] + 1));
+    };
+    sync();
+    if (!el.dataset.mirrorActionBound) {
+        el.dataset.mirrorActionBound = "1";
+        el.addEventListener("click", (ev) => {
+            ev?.preventDefault?.();
+            ev?.stopPropagation?.();
+            runMirrorItemAction(item, resolveMirrorOpener(makeView));
+        });
+    }
+};
+
+const renderMirrorIconItem = (item: any, makeView?: any) => {
+    /*
+     * Task 5: prefer a favicon `<img>` for mirror items carrying an http(s)
+     * `iconUrl` (e.g. Chrome bookmark URL nodes). The `<img>` carries an
+     * `onerror` that swaps back to the named `<ui-icon>` fallback so a failed
+     * favicon load (offline / blocked host) never leaves a broken image.
+     */
+    const iconUrl = String(item?.iconUrl || "");
+    const fallbackIcon = String(item?.icon || "link");
+    const iconNode = iconUrl
+        ? H`<img src=${iconUrl} alt=${fallbackIcon} referrerpolicy="no-referrer" loading="lazy"
+            onerror=${(ev: Event) => {
+                const img = ev.currentTarget as HTMLImageElement;
+                if (!img || img.dataset.fallbackApplied === "1") return;
+                img.dataset.fallbackApplied = "1";
+                const parent = img.parentElement;
+                if (!parent) return;
+                img.remove();
+                parent.append(H`<ui-icon icon=${fallbackIcon}></ui-icon>` as any);
+            }} />`
+        : H`<ui-icon icon=${fallbackIcon}></ui-icon>`;
+    const element = H`<div data-shape="squircle" data-id=${item.id} class="ui-ws-item ui-ws-item-icon shaped" data-speed-dial-item data-layer="icons" data-mirror-item ref=${(el: HTMLElement) => attachMirrorItemNode(item, el, makeView)}>
+        ${iconNode}
+    </div>`;
+    const shadow = createShapedTileShadow(element);
+    const SE = shadow.getShadowElement();
+    SE?.setAttribute?.("data-id", item.id);
+    SE?.setAttribute?.("data-layer", "shadows");
+    return H`${element}${SE}`;
+};
+
+const renderMirrorLabelItem = (item: any, makeView?: any) => {
+    return H`<div style="background-color: transparent;" data-id=${item.id} class="ui-ws-item ui-ws-item-label" data-speed-dial-item data-layer="labels" data-mirror-item ref=${(el: HTMLElement) => attachMirrorItemNode(item, el, makeView)}>
+        <span style="background-color: transparent;">${String(item.label || "")}</span>
+    </div>`;
+};
+
 export function SpeedDial(makeView: any) {
     getLayout();
     getCoordinateRef();
@@ -859,6 +1038,9 @@ export function SpeedDial(makeView: any) {
         setSpeedDialViewOpener(makeView);
     }
     ensureHomeTransferListeners();
+    // WHY: fetch the mirror listing once SpeedDial mounts so mirror tiles
+    // appear alongside curated ones when mirror mode was persisted last boot.
+    void refreshSpeedDialMirror();
     const columnsRef = propRef(gridLayoutState, "columns", 4);
     const rowsRef = propRef(gridLayoutState, "rows", 8);
     const shapeRef = propRef(gridLayoutState, "shape", "square");
@@ -893,21 +1075,20 @@ export function SpeedDial(makeView: any) {
     const box = H`<div slot="underlay" style="pointer-events: auto; position: relative; contain: strict; overflow: hidden; display: grid;" id="home" class="speed-dial-root" tabindex="-1" ref=${(el: HTMLElement) => bindRootOrientation(el)} on:dragover=${(ev: DragEvent) => acceptHomeLinkDragOver(ev)} on:drop=${(ev: DragEvent) => handleWallpaperDropOrPaste(ev)} on:paste=${(ev: ClipboardEvent) => void handleWallpaperDropOrPaste(ev)} prop:onPaste=${async (ev: ClipboardEvent) => await handleWallpaperDropOrPaste(ev)}>
         <div style="background-color: transparent; pointer-events: none;" class="speed-dial-grid speed-dial-label-layer speed-dial-grid--labels ui-launcher-grid" data-layer="items" data-grid-layer="labels" data-grid-columns=${columnsRef} data-grid-rows=${rowsRef} data-grid-shape=${shapeRef}>
             ${M(speedDialItems, renderLabelItem)}
+            ${M(mirrorSpeedDialItems, renderMirrorLabelItem)}
         </div>
         <div style="background-color: transparent; pointer-events: none;" class="speed-dial-grid speed-dial-icon-layer speed-dial-grid--icons ui-launcher-grid" data-layer="items" data-grid-layer="icons" data-grid-columns=${columnsRef} data-grid-rows=${rowsRef} data-grid-shape=${shapeRef}>
             ${M(speedDialItems, renderIconItem)}
+            ${M(mirrorSpeedDialItems, renderMirrorIconItem)}
         </div>
     </div>`;
 
     //
-    affected(speedDialItems, (items, index, prev, operation) => {
-        console.log("speedDialItems", prev, prev?.id, operation);
-        if (operation == "remove" || operation == "delete") {
-            removeSpeedDialItem(prev?.id ?? "");
-
-            const elements = document.body?.querySelectorAll?.(`[data-id="${prev?.id}"][data-layer]`);
-            [...elements]?.forEach?.((el) => el.remove?.());
-        }
+    affected(speedDialItems, (_items, _index, prev, operation) => {
+        if (operation !== "remove" && operation !== "delete") return;
+        const id = prev?.id;
+        if (!id) return;
+        document.body?.querySelectorAll?.(`[data-id="${CSS.escape(String(id))}"][data-layer]`)?.forEach?.((el) => el.remove?.());
     });
 
     //
@@ -1214,6 +1395,95 @@ export function createCtxMenu(makeView?: any) {
                         action: () => {},
                         children: [
                             { id: "change-wallpaper", label: "Change wallpaper", icon: "image", action: pickWallpaper }
+                        ]
+                    },
+                    {
+                        id: "speed-dial-source",
+                        label: "Speed dial source",
+                        icon: "squares-four",
+                        action: () => {},
+                        children: [
+                            {
+                                id: "source-curated",
+                                label: "Curated",
+                                icon: "star",
+                                action: () => {
+                                    if (isMirrorMode()) {
+                                        setSpeedDialMirrorPath(null);
+                                        showSuccess("Switched to curated speed dial");
+                                    }
+                                }
+                            },
+                            {
+                                id: "source-mirror",
+                                label: "Mirror path…",
+                                icon: "folders",
+                                action: () => {
+                                    /*
+                                     * WHY: minimal picker — list registered PathRouter roots
+                                     * (e.g. `/user/`, `/bookmarks/` in CRX) as quick targets plus a
+                                     * "Custom path…" entry that prompts for an arbitrary virtual
+                                     * path. A full Explorer picker callback is a follow-up; this
+                                     * keeps Task 3 self-contained and testable without IPC.
+                                     *
+                                     * Task 5: the submenu now surfaces the current mirror path as a
+                                     * read-only header entry (when set) so the user can see which
+                                     * path is active before choosing to change or clear it.
+                                     */
+                                    const roots = listVirtualRootEntriesFromRouter().map((e) => `/${e.name}/`);
+                                    const current = getSpeedDialMirrorPath() || "";
+                                    const quick = roots.length
+                                        ? roots.map((r) => ({
+                                            id: `mirror-root-${r}`,
+                                            label: r,
+                                            icon: "folder",
+                                            action: () => {
+                                                setSpeedDialMirrorPath(r);
+                                                showSuccess(`Mirror source: ${r}`);
+                                            }
+                                        }))
+                                        : [];
+                                    openUnifiedContextMenu({
+                                        x: event.clientX + 4,
+                                        y: event.clientY + 4,
+                                        items: [
+                                            ...(current ? [{
+                                                id: "mirror-current",
+                                                label: `Current: ${current}`,
+                                                icon: "info",
+                                                action: () => {}
+                                            }] : []),
+                                            ...quick,
+                                            {
+                                                id: "mirror-custom",
+                                                label: "Custom path…",
+                                                icon: "pencil-simple-line",
+                                                action: () => {
+                                                    const entered = String(
+                                                        (typeof globalThis !== "undefined" && typeof globalThis.prompt === "function")
+                                                            ? globalThis.prompt("Mirror speed dial path", current || "/user/")
+                                                            : current || "/user/"
+                                                    ).trim();
+                                                    if (!entered) return;
+                                                    setSpeedDialMirrorPath(entered);
+                                                    showSuccess(`Mirror source: ${entered}`);
+                                                }
+                                            },
+                                            ...(current ? [{
+                                                id: "mirror-clear",
+                                                label: "Clear (back to curated)",
+                                                icon: "x",
+                                                danger: true,
+                                                action: () => {
+                                                    setSpeedDialMirrorPath(null);
+                                                    showSuccess("Switched to curated speed dial");
+                                                }
+                                            }] : [])
+                                        ],
+                                        compact: true
+                                    });
+                                }
+                            }
                         ]
                     }
                 ];

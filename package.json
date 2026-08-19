@@ -5,6 +5,9 @@
     "license": "MIT",
     "type": "module",
     "sideEffects": true,
+    "imports": {
+        "#fl-ui/*": "./src/ui/*.ts"
+    },
     "engines": {
         "node": ">=20"
     },

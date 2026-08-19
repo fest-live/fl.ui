@@ -1,8 +1,8 @@
 /*
  * Filename: launcher-state.ts
  * FullPath: modules/projects/fl.ui/src/ui/speed-dial/launcher-state.ts
- * Change date and time: 10.12.00_16.08.2026
- * Reason for changes: Clipboard paste accepts bare domains / uri-list lines for open-link tiles.
+ * Change date and time: 09.05.00_19.08.2026
+ * Reason for changes: Parse Explorer virtual-path / bookmark drops without JSON.parse on `/bookmarks/…`.
  *
  * Speed-dial / launcher persistence for fl.ui only (no core).
  * Storage keys match CWSP-shell `StateStorage` so shells sharing one origin keep one grid.
@@ -11,6 +11,33 @@
 import { JSOX } from "jsox";
 import { makeObjectAssignable, observe, stringRef, safe } from "@fest-lib/object";
 import { decodeDesktopState, loadDesktopRaw, makeUIState, saveUIState } from "@fest-lib/lure";
+import {
+    createOpfsLinkStoreIo,
+    migrateLocalStorageToOpfsIfNeeded,
+    readLinkStore,
+    writeLinkStore,
+    packLinksFromSpeedDial,
+    mergeMetaFile,
+    buildMirrorSpeedDialItems,
+    LS_ITEMS_KEY,
+    LS_META_KEY,
+    LS_MIGRATED_KEY,
+    type LinkStoreIo,
+    type LinkStoreItem,
+    type LinkStoreMetaFile,
+    type MirrorSpeedDialItem
+} from "./link-store.ts";
+/*
+ * WHY (final review #1/#5): import PathRouter via the `fl-ui/explorer/path-router`
+ * package alias instead of the relative `../explorer/path-router.ts`. fl.ui is
+ * hardlinked into several host trees (e.g. `modules/views/home-view/src/ts/`),
+ * where the relative path resolves to a non-existent `../explorer/…` folder.
+ * The `fl-ui/*` alias is declared in both fl.ui's and CRX's tsconfig and maps
+ * to the canonical `modules/projects/fl.ui/src/ui/*` tree, so every host
+ * (CRX boot, Explorer, SpeedDial, hardlinked copies) resolves to ONE module
+ * instance — no dual PathRouter registry.
+ */
+import { resolveFsBackend, subscribeFsBackendRegister } from "#fl-ui/explorer/path-router";
 
 /*
  * WHY: fl.ui must stay standalone — it cannot import `core/routing/core/views`
@@ -403,7 +430,327 @@ const bootSpeedDialItems = (): SpeedDialItem[] => {
 export const speedDialMeta = bootSpeedDialMeta();
 export const speedDialItems = bootSpeedDialItems();
 
+/*
+ * OPFS-first persistence (Task 2).
+ *
+ * WHY: localStorage is the synchronous boot source so the grid renders instantly;
+ * OPFS is the durable source-of-truth. On boot we (1) create OPFS IO, (2) migrate
+ * LS → OPFS once, (3) hydrate the in-memory state from OPFS when present. Persists
+ * write OPFS first (debounced) and mirror LS for one release so a backup exists.
+ *
+ * INVARIANT: public names `speedDialItems` / `speedDialMeta` /
+ * `persistSpeedDialItems` / `persistSpeedDialMeta` are unchanged. OPFS failure is
+ * non-fatal — we warn and keep LS as the persistence carrier.
+ */
+let opfsIo: LinkStoreIo | null = null;
+let opfsReady: Promise<void> | null = null;
+let opfsFlushTimer: ReturnType<typeof setTimeout> | null = null;
+let opfsHydrated = false;
+
+/*
+ * Task 3 — Mirror mode state.
+ *
+ * WHY: `mirrorPath` lives in `meta.json` (LinkStoreMetaFile), not in the
+ * per-id `speedDialMeta` registry. We keep a dedicated observe ref so the
+ * SpeedDial grid can react to mode toggles, and persist it back into OPFS
+ * `meta.json` via `packMetaFileFromState` (and an LS backup key for the
+ * non-OPFS fallback path).
+ *
+ * INVARIANT: `mirrorSpeedDialItems` is a display-only observe array. It is
+ * rebuilt by `refreshSpeedDialMirror()` from a PathRouter listing. Curated
+ * `speedDialItems` remain the editable / draggable source-of-truth; mirror
+ * tiles are appended below them in the grid (see SpeedDial.ts).
+ */
+const MIRROR_PATH_LS_KEY = "cw::workspace::speed-dial::mirror-path";
+/*
+ * WHY: `observe(null)` returns `null` (primitives are not wrapped) — then
+ * `mirrorPathState.value` throws. Use `stringRef("")`; empty = no mirror path.
+ */
+export const mirrorPathState = stringRef("");
+export const mirrorSpeedDialItems = observe<MirrorSpeedDialItem[]>([]);
+
+export const isMirrorMode = (): boolean => Boolean(String(mirrorPathState.value || "").trim());
+
+export function getSpeedDialMirrorPath(): string | null {
+    const v = String(mirrorPathState.value || "").trim();
+    return v ? v : null;
+}
+
+/**
+ * Persist `mirrorPath` into OPFS `meta.json` (canonical) and an LS backup key.
+ * WHY: OPFS is async + durable; LS keeps the value when OPFS is unavailable
+ * (private mode / quota) so the mode survives reloads on hosts without OPFS.
+ */
+export function setSpeedDialMirrorPath(path: string | null): void {
+    const normalized = path ? String(path).trim() : "";
+    if (normalized === String(mirrorPathState.value || "").trim()) return;
+    markUserEditedBeforeHydrate();
+    mirrorPathState.value = normalized;
+    try {
+        if (typeof localStorage !== "undefined") {
+            if (normalized) localStorage.setItem(MIRROR_PATH_LS_KEY, normalized);
+            else localStorage.removeItem(MIRROR_PATH_LS_KEY);
+        }
+    } catch { /* private mode */ }
+    persistSpeedDialMeta();
+    void refreshSpeedDialMirror();
+}
+
+/**
+ * Rebuild `mirrorSpeedDialItems` from the current `mirrorPath` via PathRouter.
+ *
+ * WHY: SpeedDial calls this on mount and whenever the mirror path changes. If
+ * no backend is registered for the path (e.g. tests without OPFS/Chrome), we
+ * surface a soft warning and keep an empty listing so the grid stays usable.
+ *
+ * Task 3 fix: pass curated `speedDialItems` cells to `buildMirrorSpeedDialItems`
+ * so mirror tiles auto-place below the curated grid's max Y instead of
+ * stacking at `[0,0]`. Meta per-id `cell` overrides still win.
+ */
+export async function refreshSpeedDialMirror(): Promise<void> {
+    const path = getSpeedDialMirrorPath();
+    if (!path) {
+        mirrorSpeedDialItems.splice(0, mirrorSpeedDialItems.length);
+        return;
+    }
+    try {
+        const backend = resolveFsBackend(path);
+        if (!backend) {
+            console.warn(`[link-store] no fs backend for mirror path: ${path}`);
+            mirrorSpeedDialItems.splice(0, mirrorSpeedDialItems.length);
+            return;
+        }
+        const listing = await backend.list(path);
+        // WHY: read the current meta so per-id cell/hidden overrides apply.
+        const meta = packMetaFileFromState();
+        // WHY: pass curated cells so mirror tiles auto-place below the curated
+        // grid extent. Each curated item exposes its `cell` as `[x,y]`.
+        const curated = (speedDialItems || []).map((item) => ({
+            cell: Array.isArray(item?.cell) ? (item.cell as unknown as [number, number]) : undefined
+        }));
+        const items = buildMirrorSpeedDialItems(listing as any, meta, path, curated);
+        mirrorSpeedDialItems.splice(0, mirrorSpeedDialItems.length);
+        for (const item of items) mirrorSpeedDialItems.push(item);
+    } catch (e) {
+        console.warn(`[link-store] mirror list failed for ${path}`, e);
+        mirrorSpeedDialItems.splice(0, mirrorSpeedDialItems.length);
+    }
+}
+
+/*
+ * Task 3 fix (nice-to-have) — refresh mirror when a backend registers.
+ *
+ * WHY: `ensureDefaultFsBackends()` runs at path-router module boot, but in
+ * some load orders SpeedDial may mount before the registry is populated, or a
+ * CRX backend may register late. Subscribing here means a newly-registered
+ * backend (for the current mirror path) triggers a re-fetch so mirror tiles
+ * appear without a manual mode toggle. The listener is module-scoped and
+ * never unregistered (lifetime = tab lifetime).
+ */
+if (typeof globalThis !== "undefined") {
+    subscribeFsBackendRegister((root) => {
+        const path = getSpeedDialMirrorPath();
+        if (!path) return;
+        // WHY: only refresh when the registered root covers the mirror path.
+        if (path === root || path.startsWith(root === "/" ? "/" : root)) {
+            void refreshSpeedDialMirror();
+        }
+    });
+}
+/*
+ * WHY: hydrate vs mid-boot edit race. The grid renders synchronously from LS,
+ * then `initLinkStore` runs async (migrate + hydrate). If a user / UI edit
+ * completes, the in-memory state already reflects newer data than OPFS
+ * (which was just migrated from the same LS). Letting hydrate splice OPFS
+ * data back in would clobber that edit. We record the dirty signal only on
+ * user-initiated mutations (add/remove/move/edit helpers), not boot/init
+ * persist paths (`flushLegacyMetaBuffer`, `ensureCoreViewShortcuts`, …).
+ * The scheduled OPFS flush still runs (it awaits `opfsReady`) and writes
+ * the newer state to OPFS when dirty.
+ */
+let userEditedBeforeHydrate = false;
+
+/** WHY: boot/init code may persist before hydrate; only user edits skip the OPFS splice. */
+const markUserEditedBeforeHydrate = (): void => {
+    if (!opfsHydrated) userEditedBeforeHydrate = true;
+};
+
+const getLsLike = (): { getItem(k: string): string | null; setItem(k: string, v: string): void } | null => {
+    try {
+        if (typeof localStorage === "undefined") return null;
+        return localStorage;
+    } catch {
+        return null;
+    }
+};
+
+/**
+ * Pack the current in-memory state into a `LinkStoreMetaFile` for OPFS.
+ * WHY: cells live in `speedDialItems` (state) while href/view/shape live in
+ * `speedDialMeta` (registry); OPFS `meta.json` merges both per id.
+ */
+const packMetaFileFromState = (): LinkStoreMetaFile => {
+    const perId: Record<string, Record<string, unknown>> = {};
+    speedDialMeta?.forEach((meta, id) => {
+        perId[id] = fallbackClone(meta ?? {}) as Record<string, unknown>;
+    });
+    (speedDialItems || []).forEach((item) => {
+        const id = String(item?.id || "");
+        if (!id) return;
+        const cell = item?.cell;
+        const x = Number(Array.isArray(cell) ? cell[0] : (cell as any)?.[0]) || 0;
+        const y = Number(Array.isArray(cell) ? cell[1] : (cell as any)?.[1]) || 0;
+        perId[id] = { ...(perId[id] || {}), cell: [x, y] as [number, number] };
+    });
+    return { version: 1, mirrorPath: getSpeedDialMirrorPath(), items: perId };
+};
+
+const flushLinkStoreToOpfs = async (): Promise<void> => {
+    if (!opfsIo) return;
+    // WHY: wait for init (migration + hydration) so a sync-boot persist can't
+    // overwrite newer OPFS data with stale LS state before hydration reads it.
+    try {
+        await opfsReady;
+    } catch {
+        return;
+    }
+    if (!opfsIo) return;
+    try {
+        const items = packLinksFromSpeedDial(speedDialItems as any);
+        const meta = packMetaFileFromState();
+        await writeLinkStore(opfsIo, items, meta);
+    } catch (e) {
+        console.warn("[link-store] OPFS write failed; localStorage remains primary", e);
+    }
+};
+
+const scheduleOpfsFlush = (): void => {
+    if (!opfsIo) return;
+    if (opfsFlushTimer) clearTimeout(opfsFlushTimer);
+    opfsFlushTimer = setTimeout(() => {
+        opfsFlushTimer = null;
+        void flushLinkStoreToOpfs();
+    }, 150);
+};
+
+/**
+ * Hydrate the in-memory state from OPFS after migration. Only runs when no
+ * user edit has fired yet (module-load race window) and OPFS has data.
+ *
+ * WHY: if `persistSpeedDialItems` / `persistSpeedDialMeta` already ran before
+ * hydrate completed, the in-memory state is newer than the just-migrated OPFS
+ * snapshot. Splicing OPFS back in would clobber the edit, so we mark hydrated
+ * and bail — the pending OPFS flush (awaiting `opfsReady`) will persist the
+ * newer state instead.
+ */
+const hydrateFromOpfs = async (io: LinkStoreIo): Promise<void> => {
+    if (opfsHydrated) return;
+    if (userEditedBeforeHydrate) {
+        // WHY: user/UI already edited the boot state; keep it, skip the splice.
+        // The scheduled flush will write the newer state to OPFS.
+        opfsHydrated = true;
+        return;
+    }
+    try {
+        const got = await readLinkStore(io);
+        if (!got || !got.items.length) {
+            opfsHydrated = true;
+            return;
+        }
+        // WHY: re-check the dirty flag after the async read — an edit may have
+        // landed while we were awaiting OPFS. If so, keep the in-memory state.
+        if (userEditedBeforeHydrate) {
+            opfsHydrated = true;
+            return;
+        }
+        opfsHydrated = true;
+        const nextItems: SpeedDialItem[] = [];
+        const nextMeta = new Map<string, SpeedDialItemMeta>();
+        for (const raw of got.items) {
+            const metaEntry = got.meta.items[raw.id] || {};
+            const cell = Array.isArray((metaEntry as any).cell)
+                ? ([(metaEntry as any).cell[0], (metaEntry as any).cell[1]] as [number, number])
+                : (Array.isArray(raw.cell)
+                    ? ([raw.cell[0], raw.cell[1]] as [number, number])
+                    : ([0, 0] as [number, number]));
+            const item = createStatefulItem({
+                id: raw.id,
+                cell: observe([Number(cell[0]) || 0, Number(cell[1]) || 0]),
+                icon: raw.icon || "sparkle",
+                label: raw.label || "Shortcut",
+                action: raw.action || "open-view"
+            });
+            const meta: SpeedDialItemMeta = {
+                action: raw.action || "open-view",
+                ...(metaEntry as any),
+                ...(raw.href ? { href: raw.href } : {}),
+                ...(raw.path ? { path: raw.path } : {})
+            };
+            nextItems.push(observe(item) as any);
+            nextMeta.set(item.id, meta);
+        }
+        if (!nextItems.length) return;
+        // WHY: never splice-to-empty first — a throw mid-loop used to persist an empty grid.
+        speedDialItems.splice(0, speedDialItems.length, ...nextItems);
+        speedDialMeta.clear();
+        if (got.meta.mirrorPath != null) {
+            mirrorPathState.value = String(got.meta.mirrorPath || "");
+        }
+        for (const [id, meta] of nextMeta) {
+            ensureSpeedDialMeta(id, meta);
+        }
+    } catch (e) {
+        console.warn("[link-store] OPFS hydration failed; using localStorage boot state", e);
+    }
+};
+
+const initLinkStore = (): Promise<void> => {
+    if (opfsReady) return opfsReady;
+    opfsReady = (async () => {
+        const ls = getLsLike();
+        try {
+            opfsIo = await createOpfsLinkStoreIo();
+        } catch (e) {
+            console.warn("[link-store] OPFS unavailable; using localStorage", e);
+            opfsIo = null;
+            return;
+        }
+        if (!opfsIo) return;
+        try {
+            if (ls) {
+                await migrateLocalStorageToOpfsIfNeeded(opfsIo, ls);
+            }
+            await hydrateFromOpfs(opfsIo);
+        } catch (e) {
+            console.warn("[link-store] OPFS init failed; using localStorage boot state", e);
+        }
+    })();
+    return opfsReady;
+};
+
+/**
+ * Hosts may await this to know when OPFS migration/hydration is done. The grid
+ * renders immediately from LS; this resolves after the async OPFS step.
+ */
+export const linkStoreReady = (): Promise<void> => initLinkStore();
+
+/*
+ * WHY: hydrate mirrorPath from the LS backup key synchronously so the grid
+ * renders in mirror mode before OPFS hydration resolves (OPFS path overrides
+ * this value when it lands). Then trigger the initial mirror listing fetch.
+ */
+if (typeof globalThis !== "undefined") {
+    try {
+        if (typeof localStorage !== "undefined") {
+            const lsMirror = localStorage.getItem(MIRROR_PATH_LS_KEY);
+            if (lsMirror && !mirrorPathState.value) mirrorPathState.value = lsMirror;
+        }
+    } catch { /* private mode */ }
+    void initLinkStore().then(() => { void refreshSpeedDialMirror(); });
+}
+
 export const persistSpeedDialItems = () => {
+    scheduleOpfsFlush();
     try {
         saveUIState(STORAGE_KEY);
         return;
@@ -415,6 +762,7 @@ export const persistSpeedDialItems = () => {
 };
 
 export const persistSpeedDialMeta = () => {
+    scheduleOpfsFlush();
     try {
         saveUIState(META_STORAGE_KEY);
         return;
@@ -845,6 +1193,7 @@ export const createEmptySpeedDialItem = (
 };
 
 export const addSpeedDialItem = (item: SpeedDialItem) => {
+    markUserEditedBeforeHydrate();
     speedDialItems?.push?.(observe(item) as any);
     syncMetaActionFromItem(item);
     // INVARIANT: always flush both carriers — meta holds href/view for open-link tiles.
@@ -854,6 +1203,7 @@ export const addSpeedDialItem = (item: SpeedDialItem) => {
 };
 
 export const upsertSpeedDialItem = (item: SpeedDialItem) => {
+    markUserEditedBeforeHydrate();
     const existingIndex = speedDialItems?.findIndex?.((entry) => entry?.id === item?.id) ?? -1;
     if (existingIndex === -1) {
         speedDialItems?.push?.(observe(item) as any);
@@ -867,6 +1217,7 @@ export const upsertSpeedDialItem = (item: SpeedDialItem) => {
 };
 
 export const removeSpeedDialItem = (id: string) => {
+    markUserEditedBeforeHydrate();
     const index = speedDialItems?.findIndex?.((entry) => entry?.id === id) ?? -1;
     if (index === -1) return false;
     speedDialItems.splice(index, 1);
@@ -874,6 +1225,9 @@ export const removeSpeedDialItem = (id: string) => {
     persistSpeedDialItems();
     return true;
 };
+
+/** WHY: cell drag in SpeedDial calls `persistSpeedDialItems` directly — mark the hydrate race. */
+export const markSpeedDialUserEditBeforeHydrate = markUserEditedBeforeHydrate;
 
 export const snapshotSpeedDialItem = (item: SpeedDialItem) => {
     const meta = getSpeedDialMeta(item.id);
@@ -1055,9 +1409,68 @@ if (typeof globalThis !== "undefined" && typeof document !== "undefined") {
     }
 }
 
+const looksLikeJsonObject = (raw: string): boolean => {
+    const t = String(raw || "").trim();
+    return (t.startsWith("{") && t.endsWith("}")) || (t.startsWith("[") && t.endsWith("]"));
+};
+
+/**
+ * Explorer virtual paths (`/bookmarks/…`, `/user/…`, `/assets/…`).
+ * WHY: drag from Explorer used to put these in `text/plain`; they are not JSON.
+ */
+export const isSpeedDialVirtualPath = (raw: string): boolean => {
+    const p = String(raw || "").trim();
+    if (!p.startsWith("/") || p.includes("://") || /\s/.test(p)) return false;
+    return (
+        p === "/" ||
+        p === "/bookmarks" ||
+        p.startsWith("/bookmarks/") ||
+        p === "/user" ||
+        p.startsWith("/user/") ||
+        p === "/assets" ||
+        p.startsWith("/assets/")
+    );
+};
+
+export const parseSpeedDialItemFromVirtualPath = (
+    pathText: string,
+    suggestedCell?: GridCell,
+    extras?: { label?: string; href?: string; kind?: string }
+): SpeedDialItem | null => {
+    const path = String(pathText || "").trim();
+    if (!isSpeedDialVirtualPath(path)) return null;
+    const href = String(extras?.href || "").trim();
+    const isUrl = /^https?:\/\//i.test(href);
+    const isDir = path.endsWith("/") || extras?.kind === "directory";
+    const labelFromPath = path.split("/").filter(Boolean).pop() || path;
+    const item = createStatefulItem({
+        id: generateItemId(),
+        cell: suggestedCell || [0, 0],
+        icon: isUrl ? "link" : isDir ? "folder" : "file",
+        label: String(extras?.label || "").trim() || labelFromPath,
+        action: isUrl ? "open-link" : "open-path"
+    });
+    const meta: SpeedDialItemMeta = {
+        action: isUrl ? "open-link" : "open-path",
+        path,
+        ...(isUrl ? { href } : {}),
+        kind: extras?.kind || (isDir ? "directory" : "file")
+    };
+    ensureSpeedDialMeta(item.id, meta);
+    return item;
+};
+
 export const parseSpeedDialItemFromJSON = (jsonText: string, suggestedCell?: GridCell): SpeedDialItem | null => {
+    const raw = String(jsonText || "").trim();
+    if (!raw) return null;
+    // WHY: Explorer bookmark drags used to send `/bookmarks/…` here. That is
+    // not JSON — parse as a virtual path instead of `JSON.parse` + console.warn.
+    if (isSpeedDialVirtualPath(raw)) {
+        return parseSpeedDialItemFromVirtualPath(raw, suggestedCell);
+    }
+    if (!looksLikeJsonObject(raw)) return null;
     try {
-        const parsed = JSON.parse(jsonText) as any;
+        const parsed = JSON.parse(raw) as any;
         if (!parsed || typeof parsed !== "object") return null;
 
         const state = parsed.state || parsed;
@@ -1069,25 +1482,29 @@ export const parseSpeedDialItemFromJSON = (jsonText: string, suggestedCell?: Gri
             ? [Number(state.cell[0]) || 0, Number(state.cell[1]) || 0] as GridCell
             : (suggestedCell || [0, 0] as GridCell);
 
+        const href = String(desc.href || desc.meta?.href || state.href || "").trim();
+        const path = String(desc.path || desc.meta?.path || state.path || "").trim();
+        const action =
+            desc.action ||
+            state.action ||
+            (href ? "open-link" : path ? "open-path" : "open-view");
+
         const item = createStatefulItem({
             id: state.id || generateItemId(),
             cell: cellValue,
-            icon: state.icon || desc.icon || "sparkle",
+            icon: state.icon || desc.icon || (href ? "link" : path ? "folder" : "sparkle"),
             label: state.label || desc.label || "Shortcut",
-            action: desc.action || state.action || "open-view"
+            action
         });
 
         const meta: SpeedDialItemMeta = {
-            action: desc.action || state.action || "open-view",
+            action,
             ...(desc.meta || desc || {}),
-            ...(state.meta || {})
+            ...(state.meta || {}),
+            ...(href ? { href } : {}),
+            ...(path ? { path } : {})
         };
-
-        if (meta.href) {
-            meta.action = meta.action || "open-link";
-        } else if (meta.view) {
-            meta.action = meta.action || "open-view";
-        }
+        meta.action = action;
 
         ensureSpeedDialMeta(item.id, meta);
         return item;
@@ -1194,8 +1611,11 @@ export const createSpeedDialItemFromClipboard = async (suggestedCell?: GridCell)
             return parseSpeedDialItemFromURL(absolute, suggestedCell);
         }
 
-        const isJSON = (trimmed.startsWith("{") && trimmed.endsWith("}")) || (trimmed.startsWith("[") && trimmed.endsWith("]"));
-        if (isJSON) {
+        if (isSpeedDialVirtualPath(trimmed)) {
+            return parseSpeedDialItemFromVirtualPath(trimmed, suggestedCell);
+        }
+
+        if (looksLikeJsonObject(trimmed)) {
             const parsed = parseSpeedDialItemFromJSON(trimmed, suggestedCell);
             if (parsed) return parsed;
         }

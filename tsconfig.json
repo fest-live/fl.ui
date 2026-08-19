@@ -119,7 +119,8 @@
         "experimentalDecorators": true,
         "noEmit": true,
         "noEmitOnError": true,
-        "noEmitHelpers": true
+        "noEmitHelpers": true,
+        "allowImportingTsExtensions": true
     },
     "compileOnSave": false
 }

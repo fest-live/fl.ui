@@ -346,6 +346,47 @@ const installBuiltins = (): void => {
         }
     });
 
+    /*
+     * Task 3 — open a virtual path (directory or file) from a mirror tile.
+     *
+     * WHY: mirror tiles carry `path` (PathRouter virtual path) and optionally
+     * `href` (Chrome bookmark URL). Directories open the Explorer at that
+     * path; `.md`/`.txt`/image files open the viewer; URL hrefs delegate to
+     * `open-link`. The Explorer view reads `params.path` into `initialPath`
+     * (see environment-shell explorer runtime.ts `loadLastPath`).
+     *
+     * INVARIANT: never `location.assign` — go through the registered view
+     * opener so the shell controls window/tab placement.
+     */
+    iconsPerAction.set("open-path", "folder");
+    labelsPerAction.set("open-path", (d: any) => `Open ${d?.label || d?.path || "path"}`);
+    actionRegistry.set("open-path", async (context: any, entityDesc?: any) => {
+        const metaMap = context?.meta as SpeedDialMetaRegistry | undefined;
+        const itemId = String(entityDesc?.id || context?.id || "").trim();
+        const meta = (itemId && metaMap?.get ? metaMap.get(itemId) : null) || entityDesc?.meta || null;
+        const path = String(entityDesc?.path || meta?.path || context?.path || "").trim();
+        if (!path) {
+            showError("Path is missing");
+            return;
+        }
+        const opener = context?.viewMaker || getSpeedDialViewOpener();
+        const isDirectory = path.endsWith("/") || entityDesc?.kind === "directory" || meta?.kind === "directory";
+        if (isDirectory) {
+            await opener?.("explorer", { path, initialPath: path } as any);
+            return;
+        }
+        if (/\.(md|markdown|txt)$/i.test(path) || (entityDesc?.type && String(entityDesc.type).startsWith("text/"))) {
+            await opener?.("viewer", { src: path, path } as any);
+            return;
+        }
+        if (/\.(png|jpe?g|gif|webp|svg|avif|bmp)$/i.test(path)) {
+            await opener?.("viewer", { src: path, path } as any);
+            return;
+        }
+        // fallback: explorer parent
+        await opener?.("explorer", { path, initialPath: path } as any);
+    });
+
     for (const shortcut of NAVIGATION_SHORTCUTS) {
         const actionId = `open-view-${shortcut.view}`;
         if (!iconsPerAction.has(actionId)) iconsPerAction.set(actionId, shortcut.icon);

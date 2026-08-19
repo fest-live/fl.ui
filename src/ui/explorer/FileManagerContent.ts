@@ -21,6 +21,7 @@ import { createItemCtxMenu } from "./ContextMenu";
 
 //
 import { entryKey, entryKind, iconFor, formatDate, formatSize } from "./utils";
+import { resolveEntryIcon } from "./fs-backend.ts";
 
 //
 initGlobalClipboard();
@@ -159,7 +160,53 @@ export class FileManagerContent extends UIElement {
         this.operativeInstance ??= new FileOperative();
         this.operativeInstance.host = this as any;
         this.addEventListener("entries-updated", () => this.syncRows());
+        // WHY: bookmarks ingress rejects (file bytes dropped/pasted/uploaded
+        // into `/bookmarks/**`) are dispatched on the operative's host. Surface
+        // them as a console warning + a lightweight toast so the user sees the
+        // rejection instead of a silent no-op. The toast is minimal (no toast
+        // framework dependency) and auto-dismisses.
+        this.addEventListener("bookmarks-reject", (ev: Event) => {
+            const detail: any = (ev as CustomEvent)?.detail || {};
+            const reason = String(detail?.reason || "bookmarks reject");
+            const path = String(detail?.path || "");
+            const count = Number(detail?.count || 0);
+            console.warn(`[bookmarks-reject] ${reason}${path ? ` (path=${path})` : ""}${count ? ` count=${count}` : ""}`);
+            this.showBookmarksRejectToast(reason, path, count);
+        });
         this.refreshList();
+    }
+
+    /**
+     * Minimal user-facing notice for bookmarks ingress rejections. Avoids a
+     * toast framework dependency; uses a fixed-position element that
+     * auto-dismisses after a short timeout. No-op when `document` is absent.
+     */
+    private showBookmarksRejectToast(reason: string, path: string, count: number): void {
+        if (typeof document === "undefined" || !document.body) return;
+        try {
+            const toast = document.createElement("div");
+            toast.setAttribute("part", "bookmarks-reject-toast");
+            toast.textContent = `Bookmarks: ${reason}${count ? ` (${count} item${count === 1 ? "" : "s"})` : ""}`;
+            toast.style.cssText = [
+                "position:fixed",
+                "right:16px",
+                "bottom:16px",
+                "max-width:360px",
+                "padding:10px 12px",
+                "border-radius:10px",
+                "background:rgba(20,20,22,0.92)",
+                "color:#f5f5f5",
+                "border:1px solid rgba(255,255,255,0.16)",
+                "font:13px/1.4 system-ui,-apple-system,Segoe UI,Roboto,sans-serif",
+                "z-index:9999",
+                "pointer-events:auto",
+                "box-shadow:0 6px 24px rgba(0,0,0,0.35)"
+            ].join(";");
+            (document.body || document.documentElement).appendChild(toast);
+            setTimeout(() => {
+                try { toast.remove(); } catch { /* ignore */ }
+            }, 3500);
+        } catch { /* ignore */ }
     }
 
     private findRowsContainer(): HTMLElement | null {
@@ -206,6 +253,27 @@ export class FileManagerContent extends UIElement {
         const op: any = operative as any;
         const kind = entryKind(item);
         const isFile = kind === "file";
+        /*
+         * Task 5: bookmark URL rows (`/bookmarks/<id>`) carry an http(s) `href`.
+         * Render a favicon `<img>` instead of a generic file-type `<ui-icon>` so
+         * the bookmark list reads like Chrome's bookmark manager. `onerror`
+         * swaps back to the named icon so a failed favicon load never leaves a
+         * broken image. OPFS / assets rows (no `href`) keep the existing path.
+         */
+        const faviconUrl = resolveEntryIcon(item as any);
+        const fallbackIcon = iconFor(item);
+        const iconSlot = faviconUrl
+            ? H`<img src=${faviconUrl} alt=${fallbackIcon} referrerpolicy="no-referrer" loading="lazy"
+                onerror=${(ev: Event) => {
+                    const img = ev.currentTarget as HTMLImageElement;
+                    if (!img || img.dataset.fallbackApplied === "1") return;
+                    img.dataset.fallbackApplied = "1";
+                    const parent = img.parentElement;
+                    if (!parent) return;
+                    img.remove();
+                    parent.append(H`<ui-icon icon=${fallbackIcon}></ui-icon>` as any);
+                }} />`
+            : H`<ui-icon icon=${fallbackIcon} />`;
         const itemEl = H`<div draggable="${isFile}" class="row c2-surface"
             on:click=${(ev: MouseEvent) => requestAnimationFrame(() => op.onRowClick?.(item, ev))}
             on:dblclick=${(ev: MouseEvent) => requestAnimationFrame(() => op.onRowDblClick?.(item, ev))}
@@ -214,7 +282,7 @@ export class FileManagerContent extends UIElement {
             data-kind=${kind}
             data-entry-key=${entryKey(item)}
         >
-            <div style="pointer-events: none; background-color: transparent;" class="c icon"><ui-icon icon=${iconFor(item)} /></div>
+            <div style="pointer-events: none; background-color: transparent;" class="c icon">${iconSlot}</div>
             <div style="pointer-events: none; background-color: transparent;" class="c name" title=${item?.name || ""}>${item?.name || ""}</div>
             <div style="pointer-events: none; background-color: transparent;" class="c size">${isFile ? formatSize(item?.size) : ""}</div>
             <div style="pointer-events: none; background-color: transparent;" class="c date">${isFile ? formatDate(item?.lastModified ?? 0) : ""}</div>

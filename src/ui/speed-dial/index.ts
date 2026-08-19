@@ -12,3 +12,4 @@ export {
     getSpeedDialActionIcons
 } from "./action-registry";
 export * from "./launcher-state";
+export * from "./link-store";

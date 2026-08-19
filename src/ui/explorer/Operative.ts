@@ -8,6 +8,18 @@
 import { observe, iterated, ref, affected } from "@fest-lib/object";
 import { isUserScopePath } from "@fest-lib/core";
 
+// PathRouter + FsBackend registry (Task 1). The router owns the virtual root
+// listing; backends registered at init keep the existing `/user/` + `/assets/`
+// behavior. `/bookmarks/` stays absent until a later task registers it.
+import {
+    registerFsBackend,
+    resolveFsBackend,
+    listVirtualRootEntriesFromRouter,
+    normalizeVirtualPath,
+    type FsBackend
+} from "./path-router";
+import { buildExplorerDragPayload } from "./fs-backend";
+
 // OPFS helpers
 import {
     openDirectory,
@@ -36,6 +48,22 @@ export interface FileEntryItem {
     lastModified?: number;
     handle?: any;
     file?: File;
+    /**
+     * Canonical absolute path for backends that carry stable ids (e.g. Chrome
+     * bookmarks `/bookmarks/<id>/`). When set, navigation/open must use this
+     * path instead of the name-derived `path + name` form.
+     */
+    path?: string;
+    /**
+     * External URL for URL-like entries (e.g. Chrome bookmark URL nodes).
+     * When set on a `file`-kind entry, opening should launch the URL rather
+     * than require a `file` blob.
+     */
+    href?: string;
+    /**
+     * Stable backend id (e.g. Chrome bookmark id) for mutation routing.
+     */
+    bookmarkId?: string;
 }
 
 //
@@ -105,17 +133,19 @@ const ASSET_ICON_FALLBACK_NAMES = [
     "clock-counter-clockwise",
 ];
 
-const normalizeDirectoryPath = (input?: string): string => {
-    const value = (input || "/").trim() || "/";
-    const withLeading = value.startsWith("/") ? value : `/${value}`;
-    return withLeading.endsWith("/") ? withLeading : `${withLeading}/`;
-};
+const normalizeDirectoryPath = (input?: string): string =>
+    normalizeVirtualPath(input ?? "/", true);
 
 const isAssetsPath = (path?: string): boolean => normalizeDirectoryPath(path).startsWith(ASSETS_ROOT);
 const isVirtualRootPath = (path?: string): boolean => normalizeDirectoryPath(path) === "/";
 const isReadonlyPath = (path?: string): boolean => isAssetsPath(path) || isVirtualRootPath(path);
 const isIconsPath = (path?: string): boolean => normalizeDirectoryPath(path).startsWith("/assets/icons/");
 const isUserPath = (path?: string): boolean => isUserScopePath(normalizeDirectoryPath(path));
+
+const BOOKMARKS_ROOT = "/bookmarks/";
+
+const isBookmarksPath = (path?: string): boolean =>
+    normalizeDirectoryPath(path).startsWith(BOOKMARKS_ROOT);
 
 /**
  * External ingress may target the virtual root, which is redirected to `/user/`.
@@ -124,7 +154,7 @@ const isUserPath = (path?: string): boolean => isUserScopePath(normalizeDirector
  */
 export const canReceiveIncomingPath = (path?: string): boolean => {
     const normalized = normalizeDirectoryPath(path);
-    return isVirtualRootPath(normalized) || isUserPath(normalized);
+    return isVirtualRootPath(normalized) || isUserPath(normalized) || isBookmarksPath(normalized);
 };
 
 const buildVirtualAssetPaths = (path: string): string[] => {
@@ -188,6 +218,7 @@ export class FileOperative {
     #loadWaiters: Array<(value: this) => void> = [];
     #clipboard: { items: string[]; cut?: boolean } | null = null;
     #subscribed: any = null;
+    #bookmarksInvalidationOff: (() => void) | null = null;
     #loaderDebounceTimer: any = null;
     #readonly = ref(false);
 
@@ -205,6 +236,10 @@ export class FileOperative {
     constructor() {
         this.#entries = ref<FileEntryItem[]>([]);
         this.pathRef ??= ref("/");
+
+        // Task 1: bind default `/user/` + `/assets/` FsBackends to this
+        // operative so the PathRouter root listing shows user + assets only.
+        ensureDefaultBackends(this);
 
         //
         affected(this.pathRef, (path) => {
@@ -277,10 +312,16 @@ export class FileOperative {
     }
 
     private listVirtualRootEntries(): FileEntryItem[] {
-        return [
-            observe({ name: "user", kind: "directory" as const }),
-            observe({ name: "assets", kind: "directory" as const }),
-        ];
+        // INVARIANT: virtual root rows come exclusively from the PathRouter
+        // registry so backends registered later (e.g. `/bookmarks/` in CRX)
+        // appear without touching this method again.
+        return listVirtualRootEntriesFromRouter().map((e) =>
+            observe({
+                name: e.name,
+                kind: e.kind,
+                path: e.path || `/${e.name}/`
+            })
+        );
     }
 
     private detachDirectoryObservers() {
@@ -291,6 +332,10 @@ export class FileOperative {
         if (typeof this.#subscribed === "function") {
             this.#subscribed();
             this.#subscribed = null;
+        }
+        if (this.#bookmarksInvalidationOff) {
+            this.#bookmarksInvalidationOff();
+            this.#bookmarksInvalidationOff = null;
         }
         if (this.#dirProxy?.dispose) {
             this.#dirProxy.dispose();
@@ -382,6 +427,22 @@ export class FileOperative {
     }
 
     private async writeUserFile(file: File, destPath: string = this.path): Promise<void> {
+        // INVARIANT: `/bookmarks/**` is never a byte store. This guard is the
+        // last line of defense: even if a future caller bypasses `onPaste` /
+        // `requestUpload` routing and reaches here with a bookmarks path, we
+        // reject loudly instead of silently writing into OPFS.
+        if (isBookmarksPath(destPath)) {
+            this.dispatchEvent(new CustomEvent("bookmarks-reject", {
+                detail: {
+                    reason: "bookmarks backend does not store file bytes",
+                    path: destPath,
+                    count: 1
+                },
+                bubbles: true,
+                composed: true
+            }));
+            return;
+        }
         const dir = await this.getUserDirHandle(destPath, true);
         if (!dir) return;
         const safeName = (file?.name || `file-${Date.now()}`).trim().replace(/\s+/g, "-");
@@ -439,13 +500,75 @@ export class FileOperative {
     /**
      * Resolve the only writable destinations for external file ingress.
      * The virtual root is a navigation scope, so root drops/pastes are stored
-     * in `/user/` and then surfaced by navigating there.
+     * in `/user/` and then surfaced by navigating there. `/bookmarks/` is a
+     * live Chrome Bookmarks mount (CRX only) and accepts URI drops.
      */
     private incomingDestinationPath(): string | null {
         const currentPath = normalizeDirectoryPath(this.path);
         if (canReceiveIncomingPath(currentPath) && isUserPath(currentPath)) return currentPath;
+        if (isBookmarksPath(currentPath)) return currentPath;
         if (isVirtualRootPath(currentPath)) return "/user/";
         return null;
+    }
+
+    /**
+     * Returns the registered bookmarks FsBackend for `path`, or `null` when
+     * the path is not under `/bookmarks/` or the backend was never registered
+     * (non-CRX hosts). WHY: mutation handlers branch on this so OPFS write
+     * paths are never reached for `/bookmarks/**`.
+     */
+    private bookmarksBackendFor(path: string): FsBackend | null {
+        const backend = resolveFsBackend(path);
+        return backend && backend.root === BOOKMARKS_ROOT ? backend : null;
+    }
+
+    /**
+     * Ingest a drop/paste into `/bookmarks/`. URI entries become Chrome
+     * bookmarks via `createUrl`; raw File bytes are rejected with a
+     * user-visible event since `/bookmarks/` is not a byte store.
+     */
+    private async ingestIntoBookmarks(
+        data: any,
+        destination: string
+    ): Promise<void> {
+        const backend = this.bookmarksBackendFor(destination);
+        if (!backend?.createUrl) return;
+
+        const files = await this.extractFilesFromData(data);
+        if (files.length > 0) {
+            // WHY: `/bookmarks/` only stores URL references; file bytes are
+            // rejected with a user-facing event so the shell can toast it.
+            this.dispatchEvent(new CustomEvent("bookmarks-reject", {
+                detail: {
+                    reason: "bookmarks backend does not store file bytes",
+                    path: destination,
+                    count: files.length
+                },
+                bubbles: true,
+                composed: true
+            }));
+            return;
+        }
+
+        const getData = (type: string) => data?.getData?.(type) ?? "";
+        const uriList = String(getData("text/uri-list") || "");
+        const plainText = String(getData("text/plain") || "");
+        const lines = (uriList || plainText)
+            .split(/\r?\n/)
+            .map((line) => line.trim())
+            .filter((line) => line && !line.startsWith("#"));
+
+        for (const line of lines) {
+            // Skip values that are clearly not URLs (e.g. internal `/user/...`
+            // paths pasted from the file grid). Only http(s) URLs become bookmarks.
+            if (!/^https?:\/\//i.test(line)) continue;
+            const title = line;
+            try {
+                await backend.createUrl(destination, title, line);
+            } catch (e) {
+                console.warn(e);
+            }
+        }
     }
 
     /**
@@ -692,16 +815,50 @@ export class FileOperative {
     //
     async itemAction(item: FileEntryItem) {
         const self: any = this;
-        const detail = { path: (self.path || "/") + item?.name, item, originalEvent: null };
+        const itemPath: string = (item as any)?.path || "";
+        // WHY: bookmarks entries carry a stable id-based absolute `path`
+        // (`/bookmarks/<id>/` or `/bookmarks/<id>`). The name-derived form
+        // `(self.path || "/") + item.name` is wrong for them: titles can
+        // contain slashes/spaces and rename would break navigation. Prefer
+        // `item.path` when present; fall back to name-append for OPFS/assets.
+        const detailPath = itemPath || ((self.path || "/") + (item?.name || ""));
+        const detail = { path: detailPath, item, originalEvent: null };
         const event = new CustomEvent("open-item", { detail, bubbles: true, composed: true, cancelable: true });
         this.host?.dispatchEvent(event);
         if (event.defaultPrevented) return;
 
         //
         if (item?.kind === "directory") {
-            const next = (self.path?.endsWith?.("/") ? self.path : self.path + "/") + item?.name + "/";
+            // INVARIANT: directories keep a trailing `/` in `item.path`
+            // (chrome-bookmarks-backend `toEntry` enforces this). Fall back to
+            // the legacy name-append only when the backend did not supply a
+            // canonical path (OPFS / assets).
+            const next = itemPath
+                ? normalizeDirectoryPath(itemPath)
+                : (self.path?.endsWith?.("/") ? self.path : self.path + "/") + (item?.name || "") + "/";
             self.path = next;
         } else {
+            // URL bookmark entries: open the href directly instead of requiring
+            // a `file` blob. `/bookmarks/**` file rows from the bookmarks
+            // backend always carry `href`; OPFS/assets rows fall through to
+            // the existing file/viewer path.
+            const href: string | undefined = (item as any)?.href;
+            if (href && /^https?:\/\//i.test(href)) {
+                const openEvent = new CustomEvent("open-link", {
+                    detail: { href, item, path: detailPath },
+                    bubbles: true,
+                    composed: true,
+                    cancelable: true
+                });
+                this.host?.dispatchEvent(openEvent);
+                if (openEvent.defaultPrevented) return;
+                try {
+                    if (typeof window !== "undefined" && typeof window.open === "function") {
+                        window.open(href, "_blank", "noopener,noreferrer");
+                    }
+                } catch (e) { console.warn(e); }
+                return;
+            }
             const abs = (self.path || "/") + (item?.name || "");
             if (!item?.file && isAssetsPath(abs)) {
                 item.file = await provide(abs).catch(() => null);
@@ -777,6 +934,35 @@ export class FileOperative {
                 return this;
             }
 
+            // PathRouter dispatch: any registered backend that is not the
+            // default `/user/` or `/assets/` (e.g. `/bookmarks/` once
+            // registered) takes over listing. `/bookmarks/` is intentionally
+            // not registered in Task 1, so this branch is a no-op today.
+            const backend = resolveFsBackend(rel);
+            if (backend && backend.root !== "/user/" && backend.root !== "/assets/") {
+                this.applyEntries((await backend.list(rel)).map((e) =>
+                    observe(e) as FileEntryItem
+                ));
+                // WHY: bookmarks (and other live backends) emit invalidation
+                // events when the underlying store changes externally. Reload
+                // the current path so the Explorer stays in sync without a
+                // manual refresh. `subscribeBookmarksInvalidation` is an
+                // optional backend hook; only wire it when present.
+                const subscribe = (backend as any).subscribeBookmarksInvalidation;
+                if (typeof subscribe === "function" && !this.#bookmarksInvalidationOff) {
+                    this.#bookmarksInvalidationOff = subscribe(() => {
+                        // Coalesce: only reload if we are still on a path owned
+                        // by this backend (avoid stomping a navigated-away view).
+                        const current = normalizeDirectoryPath(this.path);
+                        const currentBackend = resolveFsBackend(current);
+                        if (currentBackend?.root === backend.root) {
+                            void this.loadPath(current).catch(() => {});
+                        }
+                    });
+                }
+                return this;
+            }
+
             //
             try {
                 this.#dirProxy = openDirectory(this.#fsRoot, rel, { create: false });
@@ -822,11 +1008,13 @@ export class FileOperative {
     protected onRowDragStart = (item: FileEntryItem, ev: DragEvent) => {
         if (!ev.dataTransfer) return;
         ev.dataTransfer.effectAllowed = "copyMove";
-
-        //
-        const abs = (this.path || "/") + (item?.name || "");
-        ev.dataTransfer.setData("text/plain", abs);
-        ev.dataTransfer.setData("text/uri-list", abs);
+        const payload = buildExplorerDragPayload(item as any, this.path || "/");
+        try { ev.dataTransfer.setData("application/json", payload.json); } catch { /* mime may be blocked */ }
+        ev.dataTransfer.setData("text/plain", payload.plain);
+        ev.dataTransfer.setData("text/uri-list", payload.uriList);
+        if (payload.href) {
+            try { ev.dataTransfer.setData("text/x-moz-url", `${payload.href}\n${item?.name || payload.href}`); } catch { /* ignore */ }
+        }
         if (item?.file) {
             ev.dataTransfer.setData("DownloadURL", item?.file?.type + ":" + item?.file?.name + ":" + URL.createObjectURL(item?.file as any));
             ev.dataTransfer.items.add(item?.file as any);
@@ -837,7 +1025,13 @@ export class FileOperative {
     protected async onMenuAction(item: FileEntryItem | null, actionId: string, ev: MouseEvent) {
         try {
             const itemName = item?.name;
-            if (!actionId) return; const abs = (this.path || "/") + (itemName || ""); switch (actionId) {
+            if (!actionId) return; const abs = (this.path || "/") + (itemName || "");
+            // WHY: bookmarks entries carry an id-based absolute `path` from the
+            // backend (`/bookmarks/<id>` or `/bookmarks/<id>/`). The path-append
+            // `abs` above is name-based and must not be used for bookmarks ops.
+            const bmPath: string = (item as any)?.path || "";
+            const bmBackend = bmPath ? this.bookmarksBackendFor(bmPath) : null;
+            switch (actionId) {
                 case "delete":
                 case "rename":
                 case "movePath":
@@ -850,7 +1044,9 @@ export class FileOperative {
                         break;
                     }
                     if (actionId === "delete") {
-                        if (isUserPath(abs)) {
+                        if (bmBackend?.remove) {
+                            await bmBackend.remove(bmPath, true);
+                        } else if (isUserPath(abs)) {
                             await this.removeUserEntry(abs, true);
                         } else {
                             await remove(this.#fsRoot, abs);
@@ -859,20 +1055,59 @@ export class FileOperative {
                         break;
                     }
                     if (actionId === "rename") {
-                        if (item?.kind === "file") {
-                            const next = prompt("Rename to:", itemName);
-                            if (next && next !== itemName) {
+                        const next = prompt("Rename to:", itemName);
+                        if (next && next !== itemName) {
+                            if (bmBackend?.rename) {
+                                await bmBackend.rename(bmPath, next);
+                            } else if (item?.kind === "file") {
                                 if (isUserPath(abs)) {
                                     await this.renameUserFile(abs ?? "", next ?? "");
                                 } else {
                                     await this.renameFile(abs ?? "", next ?? "");
                                 }
-                                await this.refreshList(this.path);
                             }
+                            await this.refreshList(this.path);
                         }
                         break;
                     }
+                    if (actionId === "movePath") {
+                        // WHY (final review #4): stage the source on the
+                        // internal clipboard with `cut: true` so the next
+                        // paste into a writable folder performs a move:
+                        //   - `/bookmarks/**` → `backend.move` (Chrome API)
+                        //   - `/user/**` → writeUserFile + removeUserEntry
+                        // Use the backend id-path for bookmarks so `move()`
+                        // resolves the right Chrome node; fall back to the
+                        // name-based `abs` for OPFS paths.
+                        const srcPath = bmPath || abs;
+                        this.#clipboard = { items: [srcPath], cut: true };
+                        try {
+                            await waitForClipboardFrame();
+                            await navigator.clipboard?.writeText?.(srcPath);
+                        } catch { }
+                        break;
+                    }
                     break;
+                case "new-folder": {
+                    if (this.readonly || isReadonlyPath(this.path)) {
+                        this.dispatchEvent(new CustomEvent("readonly-blocked", {
+                            detail: { action: actionId, path: this.path },
+                            bubbles: true,
+                            composed: true
+                        }));
+                        break;
+                    }
+                    const name = prompt("Folder name:", "New folder");
+                    if (!name) break;
+                    const destBackend = this.bookmarksBackendFor(this.path);
+                    if (destBackend?.mkdir) {
+                        await destBackend.mkdir(this.path, name);
+                    } else if (isUserPath(this.path)) {
+                        await this.getUserDirHandle(this.path, true);
+                    }
+                    await this.refreshList(this.path);
+                    break;
+                }
                 case "open":
                     await this.itemAction(item as FileEntryItem);
                     break;
@@ -948,6 +1183,21 @@ export class FileOperative {
         // cannot be dropped by a stale flag.
         const destination = this.incomingDestinationPath();
         if (destination) {
+            // WHY: `/bookmarks/` is not a byte store. Upload into a bookmarks
+            // folder must reject with a user-facing `bookmarks-reject` event
+            // (FileManager surfaces a toast) instead of silently writing OPFS.
+            if (isBookmarksPath(destination)) {
+                this.dispatchEvent(new CustomEvent("bookmarks-reject", {
+                    detail: {
+                        reason: "bookmarks backend does not store file bytes",
+                        path: destination,
+                        count: 0
+                    },
+                    bubbles: true,
+                    composed: true
+                }));
+                return;
+            }
             try {
                 const files = await this.pickFilesForUpload();
                 for (const file of files) {
@@ -972,6 +1222,48 @@ export class FileOperative {
     async requestPaste() {
         const destination = this.incomingDestinationPath();
         if (!destination) return;
+        // `/bookmarks/` paste: route URI text to `createUrl`; never write bytes.
+        if (isBookmarksPath(destination)) {
+            // WHY (final review #4): if the internal clipboard holds bookmarks
+            // entries staged with `cut: true` (from `movePath`), perform a real
+            // Chrome `move` into the destination folder instead of re-creating
+            // URLs from clipboard text. `backend.move` is the only way to
+            // preserve Chrome bookmark ids across a move.
+            const internal = this.#clipboard;
+            if (
+                internal?.cut &&
+                internal.items.length > 0 &&
+                internal.items.every((p) => isBookmarksPath(p))
+            ) {
+                const moveBackend = this.bookmarksBackendFor(destination);
+                if (moveBackend?.move) {
+                    try {
+                        for (const src of internal.items) {
+                            try { await moveBackend.move(src, destination); }
+                            catch (e) { console.warn(e); }
+                        }
+                        this.#clipboard = null;
+                        await this.refreshList(this.path);
+                    } catch (e) { console.warn(e); }
+                    return;
+                }
+            }
+            try {
+                let systemText = "";
+                try {
+                    await waitForClipboardFrame();
+                    systemText = await navigator.clipboard?.readText?.();
+                } catch { }
+                if (systemText) {
+                    await this.ingestIntoBookmarks(
+                        { getData: (type: string) => type === "text/plain" ? systemText : "" },
+                        destination
+                    );
+                    await this.refreshList(this.path);
+                }
+            } catch (e) { console.warn(e); }
+            return;
+        }
         try {
             // 1. Try modern Async Clipboard API first (images, files)
             try {
@@ -1040,6 +1332,24 @@ export class FileOperative {
         if (!destination) return;
         ev.preventDefault();
 
+        // `/bookmarks/` is a live Chrome Bookmarks mount, not an OPFS folder.
+        // Route URI paste to `createUrl` and reject raw File bytes before any
+        // OPFS write path is reached. WHY: `ingestIncomingData` calls
+        // `writeUserFile` which would silently drop bytes into OPFS even when
+        // the user pasted into a bookmarks folder.
+        if (isBookmarksPath(destination)) {
+            const payload = (ev as any).clipboardData || (ev as any).dataTransfer;
+            if (payload) {
+                void Promise.try(async () => {
+                    await this.ingestIntoBookmarks(payload, destination);
+                    await this.refreshList(this.path);
+                }).catch(console.warn);
+                return;
+            }
+            this.requestPaste();
+            return;
+        }
+
         // Try to read from event first
         if (ev.clipboardData || (ev as any).dataTransfer) {
             void Promise.try(async () => {
@@ -1065,6 +1375,18 @@ export class FileOperative {
         if (!destination) return;
         ev.preventDefault();
 
+        // `/bookmarks/` is a live Chrome Bookmarks mount, not an OPFS folder.
+        // Route URI drops to `createUrl` and reject raw File bytes before any
+        // OPFS write path is reached.
+        if (isBookmarksPath(destination)) {
+            const payload = (ev as any).clipboardData || (ev as any).dataTransfer;
+            if (payload) {
+                await this.ingestIntoBookmarks(payload, destination);
+                await this.refreshList(this.path);
+            }
+            return;
+        }
+
         //
         if ((ev as any).clipboardData || (ev as any).dataTransfer) {
             const payload = (ev as any).clipboardData || (ev as any).dataTransfer;
@@ -1082,5 +1404,29 @@ export class FileOperative {
         this.host?.dispatchEvent(event);
     }
 }
+
+/**
+ * Task 3 fix: default `/user/` and `/assets/` FsBackends are now registered at
+ * `path-router` module boot via `ensureDefaultFsBackends()` (standalone OPFS
+ * list, no Operative dependency). The virtual root listing
+ * (`listVirtualRootEntriesFromRouter`) still surfaces `user` + `assets`.
+ *
+ * WHY no operative-delegating re-registration: Explorer's `#loadPathNow`
+ * branches for `isUserPath` / `isAssetsPath` call `listUserEntriesDirect` /
+ * `listAssetEntries` directly (not via the backend), so Explorer's own
+ * listing is unaffected. External callers (SpeedDial mirror) get the
+ * standalone OPFS backend, which is the Task 3 fix goal. Re-registering here
+ * would overwrite the standalone backend and re-introduce the Operative
+ * singleton dependency that left SpeedDial home with an empty mirror list.
+ *
+ * `defaultOperative` is kept as a module-level reference only for any future
+ * adapter that wants to delegate to a live operative; it is no longer used
+ * to register backends.
+ */
+let defaultOperative: FileOperative | null = null;
+
+const ensureDefaultBackends = (operative: FileOperative): void => {
+    defaultOperative = operative;
+};
 
 export default FileOperative;

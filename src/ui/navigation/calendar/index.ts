@@ -9,6 +9,9 @@ export type { BranchId, CalendarBranch } from "./branches.ts";
 export { UNASSIGNED_BRANCH_ID } from "./branches.ts";
 
 import { isoWeekNumber } from "./week-number.ts";
+import { resolveAxes } from "./timeline-axes.ts";
+import type { TimelineAxes } from "./timeline-axes.ts";
+import { placeEvent } from "./place-event.ts";
 
 export interface ScheduleInput {
     id?: string;
@@ -835,14 +838,39 @@ export class CalendarScheduler extends HTMLElement {
     }
 
     private renderTimeline(): string {
-        const days =
-            this._view === "day"
-                ? [this._activeDate]
-                : Array.from({ length: 7 }, (_, index) =>
-                    addDays(startOfWeek(this._activeDate), index),
-                );
+        const axes = resolveAxes(this._view);
 
-        const minWidth = this._view === "day" ? 720 : 980;
+        if (!axes) {
+            return "";
+        }
+
+        if (axes.row === "time" && axes.col === "day") {
+            return this.renderTimelineTimeByDay(7);
+        }
+
+        if (axes.row === "branch" && axes.col === "time") {
+            // TODO(task-7): replace with renderTimelineBranchByTime() swimlanes.
+            // Until Task 7 lands, keep the single-day vertical timeline working
+            // by reusing the time×day renderer with one day column.
+            return this.renderTimelineTimeByDay(1);
+        }
+
+        return "";
+    }
+
+    private renderTimelineTimeByDay(dayCount: number): string {
+        const days = Array.from({ length: dayCount }, (_, index) =>
+            addDays(startOfWeek(this._activeDate), index),
+        );
+
+        // Single-day (temporary day-view) path anchors the week start to the
+        // active date so the lone column shows the selected day, not the
+        // Monday of its week.
+        if (dayCount === 1) {
+            days[0] = this._activeDate;
+        }
+
+        const minWidth = dayCount === 1 ? 720 : 980;
 
         const header = `
       <div
@@ -892,7 +920,12 @@ export class CalendarScheduler extends HTMLElement {
 
         return `
       <section class="timeline-scroll">
-        <div class="timeline">
+        <div
+          class="timeline"
+          data-row="time"
+          data-col="day"
+          style="--lane-count: ${days.length}; --day-count: ${days.length}; --timeline-min-width: ${minWidth}px"
+        >
           ${header}
 
           <div
@@ -956,33 +989,32 @@ export class CalendarScheduler extends HTMLElement {
         event: Schedule,
         day: Date,
     ): string {
-        const dayStart = startOfDay(day);
-        const dayEnd = endOfDay(day);
+        // WHY: route week/day-column event geometry through placeEvent so the
+        // axis profile (time×day) owns the minute math. renderTimelineEvent is
+        // only called from the time×day renderer, so week axes is the correct
+        // profile even when the temporary day path reuses this renderer.
+        const axes: TimelineAxes = resolveAxes("week")!;
+        const placement = placeEvent(
+            {
+                id: event.id,
+                start: event.start,
+                end: event.end,
+                allDay: event.allDay,
+                branchId: event.branchId,
+            },
+            day,
+            axes,
+        );
 
         let top = 0;
         let height = 36;
 
-        if (!event.allDay) {
-            const start = Math.max(
-                event.start.getTime(),
-                dayStart.getTime(),
-            );
-
-            const end = Math.min(
-                event.end.getTime(),
-                dayEnd.getTime(),
-            );
-
-            const startMinutes =
-                (start - dayStart.getTime()) / 60_000;
-
-            const endMinutes =
-                (end - dayStart.getTime()) / 60_000;
-
-            top = (startMinutes / 60) * HOUR_HEIGHT;
+        if (placement && !placement.allDay) {
+            top = (placement.startMinute / 60) * HOUR_HEIGHT;
             height = Math.max(
                 28,
-                ((endMinutes - startMinutes) / 60) * HOUR_HEIGHT,
+                ((placement.endMinute - placement.startMinute) / 60) *
+                    HOUR_HEIGHT,
             );
         }
 

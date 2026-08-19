@@ -373,6 +373,14 @@ button {
     min-width: var(--timeline-min-width, 980px);
 }
 
+/* Axis-profile hooks (Task 6). Layout still reuses the .timeline grid above;
+   these selectors anchor future per-profile styling without changing the look. */
+.timeline[data-row="time"][data-col="day"] {
+    // Week path: time rows × day columns. --lane-count mirrors the day count
+    // and is set inline on the same element.
+    min-width: var(--timeline-min-width, 980px);
+}
+
 .timeline-header,
 .timeline-body {
     display: grid;

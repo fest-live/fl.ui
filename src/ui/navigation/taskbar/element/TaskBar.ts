@@ -82,6 +82,8 @@ export type MountTaskBarResult = {
     syncWindowTasks: (windows: EnvWindowTaskDescriptor[]) => void;
     /** Launcher SKU app drawer (Task 4+); undefined on non-launcher builds. */
     appMenu?: MountAppMenuResult;
+    isSwitcherOpen?: () => boolean;
+    closeSwitcher?: () => void;
     dispose: () => void;
 };
 
@@ -792,5 +794,14 @@ export function mountEnvironmentTaskBar(opts: EnvironmentTaskbarOptions): MountT
         windowsHost.replaceChildren();
     };
 
-    return { element: bar, taskList, setFocusedTaskId, syncWindowTasks, appMenu, dispose };
+    return {
+        element: bar,
+        taskList,
+        setFocusedTaskId,
+        syncWindowTasks,
+        appMenu,
+        isSwitcherOpen: () => switcherOpen,
+        closeSwitcher,
+        dispose
+    };
 }

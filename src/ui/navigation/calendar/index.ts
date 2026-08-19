@@ -1,7 +1,8 @@
 // @ts-ignore
 import styles from "./index.scss?inline";
 
-export type CalendarView = "month" | "week" | "day";
+export type { CalendarView } from "./timeline-axes.ts";
+import type { CalendarView } from "./timeline-axes.ts";
 
 export interface ScheduleInput {
     id?: string;

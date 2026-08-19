@@ -567,6 +567,127 @@ button {
     }
 }
 
+/* Day branch × time timeline */
+
+.timeline-scroll-branch {
+    max-height: min(75vh, 720px);
+    overflow: auto;
+    overscroll-behavior: contain;
+}
+
+.timeline[data-row="branch"] {
+    --branch-label-width: 140px;
+    --branch-row-height: 64px;
+    min-width: calc(var(--branch-label-width) + var(--timeline-width));
+}
+
+.timeline[data-row="branch"] .timeline-header,
+.timeline[data-row="branch"] .timeline-body {
+    grid-template-columns: var(--branch-label-width) var(--timeline-width);
+    min-width: calc(var(--branch-label-width) + var(--timeline-width));
+}
+
+.timeline[data-row="branch"] .timeline-header {
+    position: sticky;
+    top: 0;
+    z-index: 4;
+    width: calc(var(--branch-label-width) + var(--timeline-width));
+}
+
+.timeline[data-row="branch"] .timeline-body {
+    height: auto;
+    grid-auto-rows: var(--branch-row-height);
+}
+
+.branch-head,
+.branch-label {
+    position: sticky;
+    left: 0;
+    min-width: 0;
+    overflow: hidden;
+    border-right: 1px solid var(--calendar-border);
+    background: var(--calendar-surface);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.branch-head {
+    z-index: 5;
+    display: flex;
+    align-items: center;
+    padding: 8px 10px;
+    color: var(--calendar-muted);
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.branch-label {
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--calendar-border);
+    color: var(--calendar-text);
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.time-head-grid {
+    display: flex;
+    height: 64px;
+    overflow: hidden;
+    background: var(--calendar-surface);
+}
+
+.time-label {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 8px;
+    border-right: 1px solid var(--calendar-border);
+    color: var(--calendar-muted);
+    font-size: 11px;
+    font-variant-numeric: tabular-nums;
+}
+
+.branch-track {
+    position: relative;
+    grid-column: 2;
+    width: var(--timeline-width);
+    height: var(--branch-row-height);
+    overflow: hidden;
+    border-bottom: 1px solid var(--calendar-border);
+    background-image:
+        repeating-linear-gradient(to right,
+            transparent 0,
+            transparent calc(var(--hour-width) - 1px),
+            var(--calendar-border) var(--hour-width)),
+        linear-gradient(to bottom,
+            transparent calc(100% - 1px),
+            var(--calendar-border) 100%);
+    touch-action: none;
+}
+
+.timeline[data-row="branch"] .slot-hit {
+    inset-inline: auto;
+    top: 0;
+    bottom: 0;
+    height: 100%;
+    border-right: 1px dashed rgb(148 163 184 / 16%);
+    border-bottom: 0;
+}
+
+.timeline[data-row="branch"] .schedule-event {
+    inset-inline: auto;
+}
+
+.timeline[data-row="branch"] .schedule-event.is-all-day {
+    top: 4px !important;
+    height: 56px !important;
+}
+
 @media (max-width: 760px) {
     .calendar-toolbar {
         align-items: stretch;

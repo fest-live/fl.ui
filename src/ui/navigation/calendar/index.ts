@@ -4,6 +4,10 @@ import styles from "./index.scss?inline";
 export type { CalendarView } from "./timeline-axes.ts";
 import type { CalendarView } from "./timeline-axes.ts";
 
+import {
+    resolveBranches,
+    UNASSIGNED_BRANCH_ID,
+} from "./branches.ts";
 import type { BranchId, CalendarBranch } from "./branches.ts";
 export type { BranchId, CalendarBranch } from "./branches.ts";
 export { UNASSIGNED_BRANCH_ID } from "./branches.ts";
@@ -35,6 +39,8 @@ export interface Schedule {
 
 const DAY_MS = 86_400_000;
 const HOUR_HEIGHT = 56;
+const HOUR_WIDTH = 72;
+const MINUTES_PER_DAY = 24 * 60;
 
 function pad(value: number): string {
     return String(value).padStart(2, "0");
@@ -227,13 +233,29 @@ export class CalendarScheduler extends HTMLElement {
 
     private dragState:
         | {
+            kind: "create";
             day: string;
             startMinute: number;
             currentMinute: number;
+            branchId?: string;
+            currentBranchId?: string;
+        }
+        | {
+            kind: "move";
+            day: string;
+            eventId: string;
+            startMinute: number;
+            currentMinute: number;
+            duration: number;
+            branchId?: string;
+            currentBranchId?: string;
+            pointerStartX: number;
+            moved: boolean;
         }
         | undefined;
 
     private ignoreNextSlotClick = false;
+    private ignoreNextEventClick = false;
 
     private readonly onRootClick = (event: Event): void => {
         const target = event.target;
@@ -297,6 +319,11 @@ export class CalendarScheduler extends HTMLElement {
         }
 
         if (action === "event") {
+            if (this.ignoreNextEventClick) {
+                this.ignoreNextEventClick = false;
+                return;
+            }
+
             const eventId = actionElement?.dataset.eventId;
 
             if (eventId) {
@@ -319,6 +346,7 @@ export class CalendarScheduler extends HTMLElement {
                     slot.dataset.date!,
                     Number(slot.dataset.minute),
                     Number(slot.dataset.minute) + this._slotMinutes,
+                    slot.dataset.branchId,
                 );
             }
 
@@ -358,6 +386,71 @@ export class CalendarScheduler extends HTMLElement {
             return;
         }
 
+        // WHY: day events are draggable in the branch×time profile. The
+        // original slot start is kept so horizontal movement changes time by
+        // delta, while the track under the pointer supplies the new branch.
+        const eventElement = target.closest<HTMLElement>(".schedule-event");
+
+        if (this._view === "day" && eventElement) {
+            const eventId = eventElement.dataset.eventId;
+            const current = eventId
+                ? this._events.find((item) => item.id === eventId)
+                : undefined;
+            const track =
+                eventElement.closest<HTMLElement>(".branch-track");
+
+            if (!current || current.allDay || !track || !eventId) {
+                return;
+            }
+
+            const placement = placeEvent(
+                {
+                    id: current.id,
+                    start: current.start,
+                    end: current.end,
+                    allDay: current.allDay,
+                    branchId: current.branchId,
+                },
+                this._activeDate,
+                resolveAxes("day")!,
+            );
+
+            if (!placement) {
+                return;
+            }
+
+            event.preventDefault();
+
+            this.dragState = {
+                kind: "move",
+                day: dateKey(this._activeDate),
+                eventId,
+                startMinute: placement.startMinute,
+                currentMinute: placement.startMinute,
+                duration: Math.min(
+                    MINUTES_PER_DAY,
+                    Math.max(
+                        1,
+                        Math.round(
+                            (current.end.getTime() -
+                                current.start.getTime()) /
+                                60_000,
+                        ),
+                    ),
+                ),
+                branchId: track.dataset.branchId,
+                currentBranchId: track.dataset.branchId,
+                pointerStartX: event.clientX,
+                moved: false,
+            };
+
+            window.addEventListener("pointermove", this.onPointerMove);
+            window.addEventListener("pointerup", this.onPointerUp, {
+                once: true,
+            });
+            return;
+        }
+
         const slot = target.closest<HTMLElement>(".slot-hit");
 
         if (!slot) {
@@ -367,9 +460,12 @@ export class CalendarScheduler extends HTMLElement {
         event.preventDefault();
 
         this.dragState = {
+            kind: "create",
             day: slot.dataset.date!,
             startMinute: Number(slot.dataset.minute),
             currentMinute: Number(slot.dataset.minute),
+            branchId: slot.dataset.branchId,
+            currentBranchId: slot.dataset.branchId,
         };
 
         window.addEventListener("pointermove", this.onPointerMove);
@@ -377,7 +473,59 @@ export class CalendarScheduler extends HTMLElement {
     };
 
     private readonly onPointerMove = (event: PointerEvent): void => {
-        if (!this.dragState) {
+        const state = this.dragState;
+
+        if (!state) {
+            return;
+        }
+
+        if (state.kind === "move") {
+            const track = this.branchTrackAtPoint(
+                event.clientX,
+                event.clientY,
+            );
+
+            if (!track) {
+                return;
+            }
+
+            const deltaMinutes = Math.round(
+                ((event.clientX - state.pointerStartX) * 60) /
+                    HOUR_WIDTH /
+                    this._slotMinutes,
+            ) * this._slotMinutes;
+            const maxStart = Math.max(
+                0,
+                MINUTES_PER_DAY - state.duration,
+            );
+
+            state.currentMinute = Math.min(
+                maxStart,
+                Math.max(0, state.startMinute + deltaMinutes),
+            );
+            state.currentBranchId = track.dataset.branchId;
+            state.moved =
+                state.moved ||
+                deltaMinutes !== 0 ||
+                state.currentBranchId !== state.branchId;
+            return;
+        }
+
+        if (this._view === "day") {
+            const track = this.branchTrackAtPoint(
+                event.clientX,
+                event.clientY,
+            );
+
+            if (!track) {
+                return;
+            }
+
+            state.currentMinute = this.minuteAtPoint(
+                track,
+                event.clientX,
+            );
+            state.currentBranchId = track.dataset.branchId;
             return;
         }
 
@@ -392,30 +540,125 @@ export class CalendarScheduler extends HTMLElement {
 
         const slot = element.closest<HTMLElement>(".slot-hit");
 
-        if (!slot || slot.dataset.date !== this.dragState.day) {
+        if (!slot || slot.dataset.date !== state.day) {
             return;
         }
 
-        this.dragState.currentMinute = Number(slot.dataset.minute);
+        state.currentMinute = Number(slot.dataset.minute);
     };
 
+    private branchTrackAtPoint(
+        clientX: number,
+        clientY: number,
+    ): HTMLElement | undefined {
+        const tracks = this.root.querySelectorAll<HTMLElement>(
+            ".branch-track",
+        );
+
+        return Array.from(tracks).find((track) => {
+            const rect = track.getBoundingClientRect();
+            return (
+                clientX >= rect.left &&
+                clientX <= rect.right &&
+                clientY >= rect.top &&
+                clientY <= rect.bottom
+            );
+        });
+    }
+
+    private minuteAtPoint(track: HTMLElement, clientX: number): number {
+        const rect = track.getBoundingClientRect();
+        const rawMinute = ((clientX - rect.left) / HOUR_WIDTH) * 60;
+        const snapped =
+            Math.floor(rawMinute / this._slotMinutes) * this._slotMinutes;
+
+        return Math.min(
+            MINUTES_PER_DAY - this._slotMinutes,
+            Math.max(0, snapped),
+        );
+    }
+
     private readonly onPointerUp = (): void => {
-        if (!this.dragState) {
+        const state = this.dragState;
+
+        if (!state) {
             return;
         }
 
-        const { day, startMinute, currentMinute } = this.dragState;
-
-        const start = Math.min(startMinute, currentMinute);
-        const end =
-            Math.max(startMinute, currentMinute) + this._slotMinutes;
-
         this.dragState = undefined;
-        this.ignoreNextSlotClick = true;
-
         window.removeEventListener("pointermove", this.onPointerMove);
 
-        this.createSchedule(day, start, end);
+        if (state.kind === "move") {
+            if (!state.moved) {
+                return;
+            }
+
+            const current = this._events.find(
+                (item) => item.id === state.eventId,
+            );
+
+            if (!current) {
+                return;
+            }
+
+            const day = fromDateKey(state.day);
+            const start = new Date(day.getTime());
+            start.setMinutes(state.currentMinute);
+
+            const end = new Date(day.getTime());
+            end.setMinutes(
+                Math.min(
+                    state.currentMinute + state.duration,
+                    MINUTES_PER_DAY,
+                ),
+            );
+
+            const updated: Schedule = {
+                ...current,
+                start,
+                end,
+            };
+
+            if (
+                state.currentBranchId &&
+                state.currentBranchId !== UNASSIGNED_BRANCH_ID
+            ) {
+                updated.branchId = state.currentBranchId;
+            } else {
+                delete updated.branchId;
+            }
+
+            this._events = this._events.map((item) =>
+                item.id === state.eventId ? updated : item,
+            );
+            this.ignoreNextEventClick = true;
+            this.render();
+
+            this.emit("schedule-change", {
+                action: "update",
+                event: updated,
+                events: this.events,
+            });
+
+            window.setTimeout(() => {
+                this.ignoreNextEventClick = false;
+            }, 150);
+            return;
+        }
+
+        const start = Math.min(state.startMinute, state.currentMinute);
+        const end =
+            Math.max(state.startMinute, state.currentMinute) +
+            this._slotMinutes;
+
+        this.ignoreNextSlotClick = true;
+
+        this.createSchedule(
+            state.day,
+            start,
+            end,
+            state.currentBranchId,
+        );
 
         window.setTimeout(() => {
             this.ignoreNextSlotClick = false;
@@ -849,13 +1092,184 @@ export class CalendarScheduler extends HTMLElement {
         }
 
         if (axes.row === "branch" && axes.col === "time") {
-            // TODO(task-7): replace with renderTimelineBranchByTime() swimlanes.
-            // Until Task 7 lands, keep the single-day vertical timeline working
-            // by reusing the time×day renderer with one day column.
-            return this.renderTimelineTimeByDay(1);
+            return this.renderTimelineBranchByTime();
         }
 
         return "";
+    }
+
+    private renderTimelineBranchByTime(): string {
+        const day = this._activeDate;
+        const axes: TimelineAxes = resolveAxes("day")!;
+        const events = this.eventsForDay(day);
+        const branches = resolveBranches(
+            this._branches,
+            events.map(({ branchId, start }) => ({ branchId, start })),
+        );
+        const slotsCount = MINUTES_PER_DAY / this._slotMinutes;
+        const timelineWidth = 24 * HOUR_WIDTH;
+        const timeLabels = Array.from({ length: 24 }, (_, hour) => {
+            return `
+        <span class="time-label" style="width: ${HOUR_WIDTH}px">
+          ${pad(hour)}:00
+        </span>
+      `;
+        }).join("");
+
+        const rows = branches
+            .map((branch) =>
+                this.renderBranchTrack(
+                    branch,
+                    day,
+                    events,
+                    axes,
+                    slotsCount,
+                ),
+            )
+            .join("");
+
+        return `
+      <section class="timeline-scroll timeline-scroll-branch">
+        <div
+          class="timeline"
+          data-row="branch"
+          data-col="time"
+          style="
+            --lane-count: ${branches.length};
+            --slot-count: ${slotsCount};
+            --hour-width: ${HOUR_WIDTH}px;
+            --timeline-width: ${timelineWidth}px;
+          "
+        >
+          <div class="timeline-header">
+            <div class="branch-head">Ветка</div>
+            <div
+              class="time-head-grid"
+              style="width: ${timelineWidth}px"
+            >
+              ${timeLabels}
+            </div>
+          </div>
+
+          <div class="timeline-body">
+            ${rows}
+          </div>
+        </div>
+      </section>
+    `;
+    }
+
+    private renderBranchTrack(
+        branch: CalendarBranch,
+        day: Date,
+        events: Schedule[],
+        axes: TimelineAxes,
+        slotsCount: number,
+    ): string {
+        const branchId = branch.id;
+        const slotWidth = (this._slotMinutes / 60) * HOUR_WIDTH;
+        const slots = Array.from({ length: slotsCount }, (_, index) => {
+            const minute = index * this._slotMinutes;
+
+            return `
+        <button
+          class="slot-hit"
+          data-action="slot"
+          data-date="${dateKey(day)}"
+          data-minute="${minute}"
+          data-branch-id="${escapeHtml(branchId)}"
+          style="
+            left: ${(minute / 60) * HOUR_WIDTH}px;
+            width: ${slotWidth}px;
+          "
+          aria-label="${escapeHtml(
+                `${branch.label}, ${formatDay(day, this.locale)}, ${pad(
+                    Math.floor(minute / 60),
+                )}:${pad(minute % 60)}`,
+            )}"
+        ></button>
+      `;
+        }).join("");
+
+        const branchEvents = events
+            .map((event) => {
+                const placement = placeEvent(
+                    {
+                        id: event.id,
+                        start: event.start,
+                        end: event.end,
+                        allDay: event.allDay,
+                        branchId: event.branchId,
+                    },
+                    day,
+                    axes,
+                );
+
+                return placement?.laneKey === branchId
+                    ? this.renderBranchEvent(event, placement)
+                    : "";
+            })
+            .join("");
+
+        return `
+      <div
+        class="branch-label"
+        data-branch-id="${escapeHtml(branchId)}"
+        title="${escapeHtml(branch.label)}"
+      >
+        ${escapeHtml(branch.label)}
+      </div>
+      <div
+        class="branch-track"
+        data-branch-id="${escapeHtml(branchId)}"
+        data-date="${dateKey(day)}"
+      >
+        ${slots}
+        ${branchEvents}
+      </div>
+    `;
+    }
+
+    private renderBranchEvent(
+        event: Schedule,
+        placement: NonNullable<ReturnType<typeof placeEvent>>,
+    ): string {
+        const left = (placement.startMinute / 60) * HOUR_WIDTH;
+        const width = Math.max(
+            4,
+            ((placement.endMinute - placement.startMinute) / 60) *
+                HOUR_WIDTH,
+        );
+        const top = placement.allDay ? 4 : 8;
+        const height = placement.allDay ? 56 : 48;
+
+        return `
+      <button
+        class="schedule-event ${event.allDay ? "is-all-day" : ""}"
+        data-action="event"
+        data-event-id="${escapeHtml(event.id)}"
+        style="
+          left: ${left}px;
+          width: ${width}px;
+          top: ${top}px;
+          height: ${height}px;
+          --event-color: ${safeColor(event.color)};
+        "
+        title="${escapeHtml(event.title)}"
+      >
+        <strong>${escapeHtml(event.title)}</strong>
+        ${!event.allDay
+                ? `
+              <small>
+                ${formatTime(event.start, this.locale)}
+                —
+                ${formatTime(event.end, this.locale)}
+              </small>
+            `
+                : `<small>Весь день</small>`
+            }
+      </button>
+    `;
     }
 
     private renderTimelineTimeByDay(dayCount: number): string {
@@ -1057,7 +1471,9 @@ export class CalendarScheduler extends HTMLElement {
     }
 
     private bindTimeline(): void {
-        const tracks = this.root.querySelectorAll(".day-track");
+        const tracks = this.root.querySelectorAll(
+            ".day-track, .branch-track",
+        );
 
         tracks.forEach((track) => {
             track.addEventListener("pointerdown", this.onPointerDown);
@@ -1068,6 +1484,7 @@ export class CalendarScheduler extends HTMLElement {
         dayKeyValue: string,
         startMinute: number,
         endMinute: number,
+        branchId?: string,
     ): void {
         const title = window.prompt("Название расписания:");
 
@@ -1083,11 +1500,17 @@ export class CalendarScheduler extends HTMLElement {
         const end = new Date(day.getTime());
         end.setMinutes(Math.min(endMinute, 24 * 60));
 
+        const normalizedBranchId = branchId?.trim();
         const schedule = normalizeSchedule({
             title: title.trim(),
             start,
             end,
             color: "#2563eb",
+            branchId:
+                normalizedBranchId &&
+                    normalizedBranchId !== UNASSIGNED_BRANCH_ID
+                    ? normalizedBranchId
+                    : undefined,
         });
 
         this._events = [...this._events, schedule];
@@ -1144,6 +1567,26 @@ export class CalendarScheduler extends HTMLElement {
             ...current,
             title: title.trim(),
         };
+
+        const branchId = window.prompt(
+            "Ветка (id):",
+            current.branchId ?? "",
+        );
+
+        if (branchId === null) {
+            return;
+        }
+
+        const normalizedBranchId = branchId.trim();
+
+        if (
+            normalizedBranchId &&
+            normalizedBranchId !== UNASSIGNED_BRANCH_ID
+        ) {
+            updated.branchId = normalizedBranchId;
+        } else {
+            delete updated.branchId;
+        }
 
         this._events = this._events.map((event) =>
             event.id === id ? updated : event,

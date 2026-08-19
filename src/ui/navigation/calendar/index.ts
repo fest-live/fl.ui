@@ -936,8 +936,10 @@ export class CalendarScheduler extends HTMLElement {
 
       <footer class="calendar-hint">
         ${this._view === "month"
-                ? "Нажмите на строку недели или на отдельный день"
-                : "Нажмите или протяните мышью по времени для создания расписания"
+                ? "Нажмите номер недели или день"
+                : this._view === "day"
+                    ? "Нажмите или протяните мышью по времени в ветке для создания расписания"
+                    : "Нажмите или протяните мышью по времени для создания расписания"
             }
       </footer>
     `;
@@ -1241,7 +1243,7 @@ export class CalendarScheduler extends HTMLElement {
                 HOUR_WIDTH,
         );
         const top = placement.allDay ? 4 : 8;
-        const height = placement.allDay ? 56 : 48;
+        const height = placement.allDay ? 24 : 48;
 
         return `
       <button

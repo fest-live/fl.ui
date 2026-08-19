@@ -102,7 +102,8 @@ function createDragGhost(iconPlate: HTMLElement, label: string): HTMLElement {
     ghost.setAttribute("aria-hidden", "true");
 
     const ghostIcon = iconPlate.cloneNode(true) as HTMLElement;
-    ghostIcon.className = "env-shell-app-menu__drag-ghost-icon";
+    ghostIcon.className = "env-shell-app-menu__drag-ghost-icon ui-ws-item-icon shaped";
+    ghostIcon.setAttribute("data-shape", "squircle");
 
     const ghostLabel = document.createElement("span");
     ghostLabel.className = "env-shell-app-menu__drag-ghost-label";
@@ -268,7 +269,8 @@ function renderAppTile(
     tile.title = `${app.label} — hold and drag to desktop`;
 
     const iconPlate = document.createElement("span");
-    iconPlate.className = "env-shell-app-menu__tile-icon";
+    iconPlate.className = "env-shell-app-menu__tile-icon ui-ws-item-icon shaped";
+    iconPlate.setAttribute("data-shape", "squircle");
 
     const label = document.createElement("span");
     label.className = "env-shell-app-menu__tile-label";

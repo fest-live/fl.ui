@@ -380,12 +380,12 @@
     }
     
     .env-shell-chrome:not([data-desktop]) .env-shell-taskbar ui-task[data-env-home] {
-        min-inline-size: 2.75rem;
-        min-block-size: 2.75rem;
+        min-inline-size: 2.5rem;
+        min-block-size: 2.5rem;
         padding: 0;
         border-radius: 999px;
-        background: transparent;
-        box-shadow: none;
+        background: color-mix(in oklab, var(--color-surface-container, #111827) 78%, transparent);
+        box-shadow: 0 6px 20px -8px color-mix(in oklab, #000 45%, transparent);
         touch-action: manipulation;
         -webkit-user-select: none;
         user-select: none;
@@ -397,14 +397,18 @@
     }
     
     .env-shell-chrome:not([data-desktop]) .env-shell-taskbar ui-task[data-env-home]::part(icon) {
-        inline-size: 1.5rem;
-        block-size: 1.5rem;
+        inline-size: 1.7rem;
+        block-size: 1.7rem;
+        min-inline-size: 1.7rem;
+        min-block-size: 1.7rem;
     }
     
     /* Prefer Phosphor glyph; letter fallback is last resort (was wrongly showing "U"). */
     .env-shell-chrome:not([data-desktop]) .env-shell-taskbar ui-task[data-env-home]::part(glyph) {
-        inline-size: 1.5rem;
-        block-size: 1.5rem;
+        inline-size: 100%;
+        block-size: 100%;
+        --icon-padding: 0.1rem;
+        --icon-size: 100%;
         opacity: 1;
     }
     

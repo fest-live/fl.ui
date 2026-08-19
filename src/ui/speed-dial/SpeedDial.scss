@@ -318,8 +318,6 @@
                     max-block-size: none;
                     min-inline-size: 0;
                     min-block-size: 0;
-                    --icon-size: 100%;
-                    --icon-padding: 0.45rem;
                     color: var(--on-surface-variant, var(--on-surface-color, currentColor));
                     aspect-ratio: 1 / 1;
                     line-height: 0;
@@ -327,8 +325,14 @@
                     pointer-events: none;
                     filter: drop-shadow(0 1px 2px #0002);
 
+                    &:not([data-launcher-icon]) {
+                        --icon-padding: 0.55rem;
+                        --icon-size: 1.72rem;
+                    }
+
                     &[data-launcher-icon] {
                         --icon-padding: 0px;
+                        --icon-size: 100%;
                         color: inherit;
                     }
                 }

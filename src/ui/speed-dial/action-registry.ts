@@ -125,6 +125,7 @@ export function applyLauncherIconToUiIcon(host: HTMLElement, objectUrl: string):
     if (!url) return;
     host.setAttribute("icon-padding", "0");
     host.style.setProperty("--icon-padding", "0px");
+    host.style.setProperty("--icon-size", "100%");
     host.toggleAttribute("data-launcher-icon", true);
 
     const apply = (): boolean => {
@@ -151,6 +152,7 @@ export function createLauncherUiIconElement(): HTMLElement {
     host.setAttribute("icon-source", "resource");
     host.setAttribute("icon-padding", "0");
     host.style.setProperty("--icon-padding", "0px");
+    host.style.setProperty("--icon-size", "100%");
     host.setAttribute("aria-hidden", "true");
     return host;
 }

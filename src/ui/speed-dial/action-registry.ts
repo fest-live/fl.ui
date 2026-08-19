@@ -33,6 +33,78 @@ export type LauncherBridgeSpeedDialApi = {
 
 let registeredLauncherBridge: LauncherBridgeSpeedDialApi | null = null;
 
+/** In-memory cache: Android package → blob: object URL (web-native image). */
+const launcherIconObjectUrlCache = new Map<string, string>();
+const launcherIconInflight = new Map<string, Promise<string>>();
+
+async function dataUrlToObjectUrl(dataUrl: string): Promise<string> {
+    const res = await fetch(dataUrl);
+    const blob = await res.blob();
+    const type = blob.type && blob.type.startsWith("image/") ? blob.type : "image/png";
+    const normalized =
+        blob.type === type ? blob : new Blob([await blob.arrayBuffer()], { type });
+    return URL.createObjectURL(normalized);
+}
+
+/** Cached blob URL for an Android launcher icon, if already fetched this session. */
+export function getCachedLauncherIconObjectUrl(cacheKey: string): string {
+    return launcherIconObjectUrlCache.get(String(cacheKey || "").trim()) || "";
+}
+
+export function getLauncherAppTileCacheKey(item: { id: string; action?: string }): string {
+    const meta = getSpeedDialMeta(item.id);
+    const action = String(meta?.action || item.action || "").trim();
+    if (action !== "launch-app" && meta?.entityType !== "android-app") return "";
+    return String(meta?.iconCacheKey || meta?.packageName || "").trim();
+}
+
+export function isLauncherAppSpeedDialItem(item: { id: string; action?: string }): boolean {
+    return getLauncherAppTileCacheKey(item).length > 0;
+}
+
+/** Fetch native icon once, convert data: URL → blob: object URL for WebView. */
+export async function ensureLauncherIconObjectUrl(cacheKey: string, size = 96): Promise<string> {
+    const key = String(cacheKey || "").trim();
+    if (!key) return "";
+    const cached = launcherIconObjectUrlCache.get(key);
+    if (cached) return cached;
+
+    let inflight = launcherIconInflight.get(key);
+    if (!inflight) {
+        inflight = (async () => {
+            const bridge = await resolveLauncherBridgeForSpeedDial();
+            if (!bridge?.launcherIcon) return "";
+            let dataUrl = "";
+            try {
+                dataUrl = await bridge.launcherIcon(key, size);
+            } catch {
+                return "";
+            }
+            if (!dataUrl) return "";
+            try {
+                const objectUrl = await dataUrlToObjectUrl(dataUrl);
+                launcherIconObjectUrlCache.set(key, objectUrl);
+                return objectUrl;
+            } catch {
+                return "";
+            }
+        })();
+        launcherIconInflight.set(key, inflight);
+    }
+    try {
+        return await inflight;
+    } finally {
+        launcherIconInflight.delete(key);
+    }
+}
+
+export function applyLauncherIconToImg(host: HTMLImageElement, objectUrl: string): void {
+    const url = String(objectUrl || "").trim();
+    if (!url) return;
+    if (host.src !== url) host.src = url;
+    host.toggleAttribute("data-launcher-icon-ready", true);
+}
+
 /** Host injects launcher IPC when dynamic `com/routing/native/launcher-bridge` is unavailable. */
 export function setLauncherBridgeForSpeedDial(api: LauncherBridgeSpeedDialApi | null): void {
     registeredLauncherBridge = api;
@@ -47,7 +119,43 @@ async function resolveLauncherBridgeForSpeedDial(): Promise<LauncherBridgeSpeedD
     }
 }
 
-/** Apply fetched Android icon URL to a tile `<img>`. */
+/** Apply fetched Android icon to a launcher `ui-icon` via `--icon-image`. */
+export function applyLauncherIconToUiIcon(host: HTMLElement, objectUrl: string): void {
+    const url = String(objectUrl || "").trim();
+    if (!url) return;
+    host.setAttribute("icon-padding", "0");
+    host.style.setProperty("--icon-padding", "0px");
+    host.toggleAttribute("data-launcher-icon", true);
+
+    const apply = (): boolean => {
+        const icon = host as HTMLElement & { setResourceIcon?: (u: string) => unknown };
+        if (typeof icon.setResourceIcon !== "function") return false;
+        icon.setResourceIcon(url);
+        host.toggleAttribute("data-launcher-icon-ready", true);
+        return true;
+    };
+
+    if (apply()) return;
+
+    void customElements.whenDefined("ui-icon").then(() => {
+        if (!host.isConnected) return;
+        apply();
+    });
+}
+
+/** Create a launcher `ui-icon` host (`data-launcher-icon`). */
+export function createLauncherUiIconElement(): HTMLElement {
+    const host = document.createElement("ui-icon");
+    host.className = "ui-ws-item-icon-native";
+    host.dataset.launcherIcon = "1";
+    host.setAttribute("icon-source", "resource");
+    host.setAttribute("icon-padding", "0");
+    host.style.setProperty("--icon-padding", "0px");
+    host.setAttribute("aria-hidden", "true");
+    return host;
+}
+
+/** @deprecated Prefer {@link createLauncherUiIconElement} + {@link applyLauncherIconToUiIcon}. */
 export function applyLauncherIconImgUrl(host: HTMLImageElement, dataUrl: string): void {
     const url = String(dataUrl || "").trim();
     if (!url) return;
@@ -91,34 +199,23 @@ export async function hydrateLauncherAppTileIcon(
     el: HTMLElement,
     item: { id: string; action?: string }
 ): Promise<void> {
-    const meta = getSpeedDialMeta(item.id);
-    const action = String(meta?.action || item.action || "").trim();
-    if (action !== "launch-app" && meta?.entityType !== "android-app") return;
-
-    const cacheKey = String(meta?.iconCacheKey || meta?.packageName || "").trim();
+    const cacheKey = getLauncherAppTileCacheKey(item);
     if (!cacheKey) return;
 
-    const bridge = await resolveLauncherBridgeForSpeedDial();
-    if (!bridge?.launcherIcon) return;
-
-    let dataUrl = "";
-    try {
-        dataUrl = await bridge.launcherIcon(cacheKey, 64);
-    } catch {
-        return;
-    }
-    if (!dataUrl || !el.isConnected) return;
+    const objectUrl = await ensureLauncherIconObjectUrl(cacheKey, 96);
+    if (!objectUrl || !el.isConnected) return;
 
     el.querySelector(".ui-ws-item-icon-mask[data-launcher-icon]")?.remove();
+    el.querySelector("img[data-launcher-icon]")?.remove();
 
-    let img = el.querySelector<HTMLImageElement>("img[data-launcher-icon]");
-    if (!img) {
-        img = createLauncherIconImgElement();
-        const uiIcon = el.querySelector("ui-icon");
-        if (uiIcon) uiIcon.replaceWith(img);
-        else el.prepend(img);
+    let icon = el.querySelector<HTMLElement>("ui-icon[data-launcher-icon]");
+    if (!icon) {
+        icon = createLauncherUiIconElement();
+        const other = el.querySelector("ui-icon:not([data-launcher-icon])");
+        if (other) other.replaceWith(icon);
+        else el.prepend(icon);
     }
-    applyLauncherIconImgUrl(img, dataUrl);
+    applyLauncherIconToUiIcon(icon, objectUrl);
 }
 
 /*

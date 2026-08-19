@@ -63,7 +63,7 @@ import {
 import { isInFocus, MOCElement } from "@fest-lib/dom";
 import { openShortcutEditor } from "./ShortcutEditor";
 import { setSpeedDialViewOpener, getSpeedDialViewOpener } from "./view-opener";
-import { getSpeedDialActionRegistry, getSpeedDialActionLabels, getSpeedDialActionIcons, hydrateLauncherAppTileIcon } from "./action-registry";
+import { getSpeedDialActionRegistry, getSpeedDialActionLabels, getSpeedDialActionIcons, hydrateLauncherAppTileIcon, getCachedLauncherIconObjectUrl, isLauncherAppSpeedDialItem, getLauncherAppTileCacheKey, applyLauncherIconToUiIcon } from "./action-registry";
 import { isLauncherSku } from "../navigation/app-menu/AppMenu";
 // WHY (final review #1/#5): use the `fl-ui/explorer/path-router` alias so this
 // file resolves the canonical PathRouter module from any hardlinked copy
@@ -1088,8 +1088,16 @@ export function SpeedDial(makeView: any) {
 
     //
     const renderIconItem = (item: SpeedDialItem)=>{
+        const launchApp = isLauncherAppSpeedDialItem(item);
+        const cacheKey = launchApp ? getLauncherAppTileCacheKey(item) : "";
+        const cachedLauncherIcon = cacheKey ? getCachedLauncherIconObjectUrl(cacheKey) : "";
+        const iconNode = launchApp
+            ? H`<ui-icon class="ui-ws-item-icon-native" data-launcher-icon icon-source="resource" icon-padding="0" aria-hidden="true" ref=${(iconEl: HTMLElement) => {
+                if (cachedLauncherIcon) applyLauncherIconToUiIcon(iconEl, cachedLauncherIcon);
+            }}></ui-icon>`
+            : H`<ui-icon icon=${item.icon}></ui-icon>`;
         const element = H`<div data-shape=${tileShapeForItem(item)} data-id=${item.id} class="ui-ws-item ui-ws-item-icon shaped" data-speed-dial-item data-layer="icons" ref=${(el) => attachItemNode(item, el as HTMLElement, true, makeView)}>
-            <ui-icon icon=${item.icon}></ui-icon>
+            ${iconNode}
         </div>`;
         const shadow = createShapedTileShadow(element);
         const SE = shadow.getShadowElement();

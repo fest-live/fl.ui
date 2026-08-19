@@ -19,7 +19,12 @@ import {
     type LauncherAppPinPayload
 } from "fl-ui/speed-dial/launcher-state";
 import { showSuccess } from "fl-ui/speed-dial/toast";
-import { applyLauncherIconImgUrl, createLauncherIconImgElement } from "fl-ui/speed-dial/action-registry";
+import {
+    applyLauncherIconToUiIcon,
+    createLauncherUiIconElement,
+    ensureLauncherIconObjectUrl,
+    getCachedLauncherIconObjectUrl,
+} from "fl-ui/speed-dial/action-registry";
 
 // @ts-ignore — Vite inline SCSS → adopted stylesheet
 import styles from "./AppMenu.scss?inline";
@@ -271,17 +276,25 @@ function renderAppTile(
 
     tile.append(iconPlate, label);
 
-    void bridge
-        .launcherIcon(app.iconCacheKey || app.packageName, 64)
-        .then((dataUrl) => {
+    const cacheKey = app.iconCacheKey || app.packageName;
+    const cached = getCachedLauncherIconObjectUrl(cacheKey);
+    if (cached) {
+        const icon = createLauncherUiIconElement();
+        applyLauncherIconToUiIcon(icon, cached);
+        iconPlate.append(icon);
+    }
+
+    void ensureLauncherIconObjectUrl(cacheKey, 96)
+        .then((objectUrl) => {
             if (gen !== refreshGen()) return;
-            if (!dataUrl) return;
-            let img = iconPlate.querySelector<HTMLImageElement>("img[data-launcher-icon]");
-            if (!img) {
-                img = createLauncherIconImgElement();
-                iconPlate.append(img);
+            if (!objectUrl) return;
+            let icon = iconPlate.querySelector<HTMLElement>("ui-icon[data-launcher-icon]");
+            if (!icon) {
+                icon = createLauncherUiIconElement();
+                iconPlate.textContent = "";
+                iconPlate.append(icon);
             }
-            applyLauncherIconImgUrl(img, dataUrl);
+            applyLauncherIconToUiIcon(icon, objectUrl);
         })
         .catch(() => {
             /* ignore */

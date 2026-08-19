@@ -144,13 +144,18 @@
             corner-shape: squircle;
         }
 
-        .ui-ws-item-icon-img,
-        img[data-launcher-icon] {
-            inline-size: var(--launcher-icon-size, 1.85rem);
-            block-size: var(--launcher-icon-size, 1.85rem);
+        img[data-launcher-icon],
+        .ui-ws-item-icon-img {
+            inline-size: 100%;
+            block-size: 100%;
             object-fit: contain;
             object-position: center;
-            pointer-events: none;
+        }
+
+        ui-icon[data-launcher-icon] {
+            inline-size: 100%;
+            block-size: 100%;
+            --icon-padding: 0px;
         }
     }
 
@@ -182,13 +187,18 @@
             corner-shape: squircle;
         }
 
-        .ui-ws-item-icon-img,
-        img[data-launcher-icon] {
-            inline-size: var(--launcher-icon-size, 1.85rem);
-            block-size: var(--launcher-icon-size, 1.85rem);
+        img[data-launcher-icon],
+        .ui-ws-item-icon-img {
+            inline-size: 100%;
+            block-size: 100%;
             object-fit: contain;
             object-position: center;
-            pointer-events: none;
+        }
+
+        ui-icon[data-launcher-icon] {
+            inline-size: 100%;
+            block-size: 100%;
+            --icon-padding: 0px;
         }
     }
 

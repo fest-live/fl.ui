@@ -25,9 +25,35 @@ import {
     ensureLauncherIconObjectUrl,
     getCachedLauncherIconObjectUrl,
 } from "fl-ui/speed-dial/action-registry";
+import { openUnifiedContextMenu } from "fl-ui/explorer/ContextMenu";
+import {
+    applyBookmarkIconToPlate,
+    createChromeBookmarksMenuApi,
+    hasBookmarksMenuApi,
+    isBookmarkPinnedToStart,
+    placeBookmarkOnDesktop,
+    pinBookmarkToStart,
+    pushRecentBookmark,
+    readPinnedBookmarks,
+    readRecentBookmarks,
+    resolveBookmarkDesktopIconUrl,
+    resolveBookmarksMenuApi,
+    setBookmarksMenuApi,
+    unpinBookmarkFromStart,
+    type BookmarkMenuEntry,
+    type BookmarksMenuApi,
+} from "./bookmarks-menu";
 
 // @ts-ignore — Vite inline SCSS → adopted stylesheet
 import styles from "./AppMenu.scss?inline";
+
+export {
+    setBookmarksMenuApi,
+    createChromeBookmarksMenuApi,
+    hasBookmarksMenuApi,
+    type BookmarkMenuEntry,
+    type BookmarksMenuApi,
+};
 
 const styled = preloadStyle(styles);
 let documentStylesApplied = false;
@@ -63,6 +89,19 @@ export function isLauncherSku(): boolean {
     );
 }
 
+/** App Menu mounts for Android launcher SKU or CRX bookmarks Start. */
+export function isAppMenuEnabled(): boolean {
+    return isLauncherSku() || hasBookmarksMenuApi();
+}
+
+export type AppMenuMode = "launcher" | "bookmarks";
+
+export function resolveAppMenuMode(): AppMenuMode | null {
+    if (isLauncherSku()) return "launcher";
+    if (hasBookmarksMenuApi()) return "bookmarks";
+    return null;
+}
+
 async function resolveLauncherBridge(): Promise<LauncherBridgeApi | null> {
     if (registeredLauncherBridge) return registeredLauncherBridge;
     try {
@@ -94,6 +133,7 @@ function resolveAppMenuHost(): HTMLElement {
 
 type TileDragHooks = {
     onDragStart?: () => void;
+    onStartPinsChanged?: () => void;
 };
 
 function createDragGhost(iconPlate: HTMLElement, label: string): HTMLElement {
@@ -266,7 +306,7 @@ function renderAppTile(
     tile.type = "button";
     tile.className = "env-shell-app-menu__tile";
     tile.setAttribute("data-package", app.packageName);
-    tile.title = `${app.label} — hold and drag to desktop`;
+    tile.title = `${app.label} — right-click: desktop; hold and drag`;
 
     const iconPlate = document.createElement("span");
     iconPlate.className = "env-shell-app-menu__tile-icon ui-ws-item-icon shaped";
@@ -304,11 +344,276 @@ function renderAppTile(
 
     bindLauncherAppTileDrag(tile, app, iconPlate, hooks);
 
+    tile.addEventListener("contextmenu", (ev) => {
+        ev.preventDefault();
+        ev.stopPropagation();
+        openUnifiedContextMenu({
+            x: ev.clientX,
+            y: ev.clientY,
+            compact: true,
+            items: [
+                {
+                    id: "place-desktop",
+                    label: "Place on desktop",
+                    icon: "desktop",
+                    action: () => {
+                        const pinned = pinLauncherAppEntry(app);
+                        if (pinned) {
+                            showSuccess(`Placed “${app.label}” on desktop`);
+                            hooks.onDragStart?.();
+                        }
+                    }
+                },
+                {
+                    id: "launch",
+                    label: "Open",
+                    icon: "arrow-square-out",
+                    action: async () => {
+                        try {
+                            await bridge.launcherLaunch(app.packageName, app.componentName);
+                        } catch {
+                            /* ignore */
+                        }
+                    }
+                }
+            ]
+        });
+    });
+
     tile.addEventListener("click", async (ev) => {
         ev.preventDefault();
         ev.stopPropagation();
         try {
             await bridge.launcherLaunch(app.packageName, app.componentName);
+        } catch {
+            /* ignore */
+        }
+    });
+
+    return tile;
+}
+
+function bindBookmarkTileDrag(
+    tile: HTMLElement,
+    entry: BookmarkMenuEntry,
+    iconPlate: HTMLElement,
+    iconUrl: { current: string },
+    hooks: TileDragHooks
+): void {
+    if (entry.folder || !String(entry.url || "").trim()) return;
+
+    let pressTimer: ReturnType<typeof setTimeout> | undefined;
+    let dragging = false;
+    let startX = 0;
+    let startY = 0;
+    let pointerId = -1;
+    let ghost: HTMLElement | null = null;
+
+    const clearPress = (): void => {
+        if (pressTimer != null) {
+            clearTimeout(pressTimer);
+            pressTimer = undefined;
+        }
+    };
+
+    const endDrag = (clientX: number, clientY: number): void => {
+        clearPress();
+        if (!dragging) return;
+        dragging = false;
+        tile.classList.remove("env-shell-app-menu__tile--dragging");
+        document.documentElement.toggleAttribute("data-app-menu-dragging", false);
+        ghost?.remove();
+        ghost = null;
+        try {
+            tile.releasePointerCapture?.(pointerId);
+        } catch {
+            /* ignore */
+        }
+        if (isClientPointOverSpeedDial(clientX, clientY)) {
+            const cell = resolveSpeedDialCellFromClientPoint(clientX, clientY) ?? undefined;
+            const paint =
+                String(iconUrl.current || "").trim() ||
+                resolveBookmarkDesktopIconUrl(entry, resolveBookmarksMenuApi());
+            const pinned = placeBookmarkOnDesktop(entry, cell, resolveBookmarksMenuApi(), paint);
+            if (pinned) {
+                showSuccess(`Placed “${entry.title}” on desktop`);
+                hooks.onDragStart?.();
+            }
+        }
+    };
+
+    tile.addEventListener("pointerdown", (ev) => {
+        if (ev.button != null && ev.button !== 0) return;
+        startX = ev.clientX;
+        startY = ev.clientY;
+        pointerId = ev.pointerId;
+        clearPress();
+        pressTimer = setTimeout(() => {
+            pressTimer = undefined;
+            dragging = true;
+            tile.classList.add("env-shell-app-menu__tile--dragging");
+            document.documentElement.toggleAttribute("data-app-menu-dragging", true);
+            ghost = createDragGhost(iconPlate, entry.title);
+            document.body.appendChild(ghost);
+            ghost.style.transform = `translate(${ev.clientX}px, ${ev.clientY}px) translate(-50%, -50%)`;
+            try {
+                tile.setPointerCapture?.(pointerId);
+            } catch {
+                /* ignore */
+            }
+        }, LONG_PRESS_MS);
+    });
+
+    tile.addEventListener("pointermove", (ev) => {
+        if (!dragging) {
+            if (pressTimer == null) return;
+            const dx = ev.clientX - startX;
+            const dy = ev.clientY - startY;
+            if (dx * dx + dy * dy > PRE_DRAG_MOVE_PX * PRE_DRAG_MOVE_PX) clearPress();
+            return;
+        }
+        if (ghost) ghost.style.transform = `translate(${ev.clientX}px, ${ev.clientY}px) translate(-50%, -50%)`;
+    });
+
+    tile.addEventListener("pointerup", (ev) => endDrag(ev.clientX, ev.clientY));
+    tile.addEventListener("pointercancel", (ev) => endDrag(ev.clientX, ev.clientY));
+}
+
+function bindBookmarkTileContextMenu(
+    tile: HTMLElement,
+    entry: BookmarkMenuEntry,
+    api: BookmarksMenuApi,
+    iconUrl: { current: string },
+    hooks: TileDragHooks & { onStartPinsChanged?: () => void }
+): void {
+    tile.addEventListener("contextmenu", (ev) => {
+        ev.preventDefault();
+        ev.stopPropagation();
+        if (entry.folder) {
+            openUnifiedContextMenu({
+                x: ev.clientX,
+                y: ev.clientY,
+                compact: true,
+                items: [
+                    {
+                        id: "open-folder",
+                        label: "Open folder",
+                        icon: "folder-open",
+                        action: () => {
+                            tile.click();
+                        }
+                    }
+                ]
+            });
+            return;
+        }
+
+        const pinned = isBookmarkPinnedToStart(entry.id);
+        openUnifiedContextMenu({
+            x: ev.clientX,
+            y: ev.clientY,
+            compact: true,
+            items: [
+                {
+                    id: "place-desktop",
+                    label: "Place on desktop",
+                    icon: "desktop",
+                    action: () => {
+                        const paint =
+                            String(iconUrl.current || "").trim() ||
+                            resolveBookmarkDesktopIconUrl(entry, api);
+                        const item = placeBookmarkOnDesktop(entry, undefined, api, paint);
+                        if (item) {
+                            showSuccess(`Placed “${entry.title}” on desktop`);
+                            hooks.onDragStart?.();
+                        }
+                    }
+                },
+                pinned
+                    ? {
+                          id: "unpin-start",
+                          label: "Unpin from Start",
+                          icon: "push-pin-slash",
+                          action: () => {
+                              if (unpinBookmarkFromStart(entry.id)) {
+                                  showSuccess(`Unpinned “${entry.title}”`);
+                                  hooks.onStartPinsChanged?.();
+                              }
+                          }
+                      }
+                    : {
+                          id: "pin-start",
+                          label: "Pin to Start",
+                          icon: "push-pin",
+                          action: () => {
+                              if (pinBookmarkToStart(entry)) {
+                                  showSuccess(`Pinned “${entry.title}” to Start`);
+                                  hooks.onStartPinsChanged?.();
+                              }
+                          }
+                      },
+                {
+                    id: "open",
+                    label: "Open",
+                    icon: "arrow-square-out",
+                    action: async () => {
+                        pushRecentBookmark(entry);
+                        try {
+                            await api.open(entry);
+                        } catch {
+                            /* ignore */
+                        }
+                    }
+                }
+            ]
+        });
+    });
+}
+
+function renderBookmarkTile(
+    entry: BookmarkMenuEntry,
+    api: BookmarksMenuApi,
+    hooks: TileDragHooks & { onStartPinsChanged?: () => void },
+    onFolder: (id: string, title: string) => void
+): HTMLElement {
+    const tile = document.createElement("button");
+    tile.type = "button";
+    tile.className = "env-shell-app-menu__tile";
+    tile.setAttribute("data-bookmark-id", entry.id);
+    if (entry.folder) tile.setAttribute("data-folder", "");
+    tile.title = entry.folder
+        ? `${entry.title} — open folder`
+        : `${entry.title} — right-click: desktop / pin; hold to drag`;
+
+    const iconPlate = document.createElement("span");
+    iconPlate.className = "env-shell-app-menu__tile-icon";
+    iconPlate.setAttribute("data-shape", "squircle");
+
+    const label = document.createElement("span");
+    label.className = "env-shell-app-menu__tile-label";
+    label.textContent = entry.title;
+
+    tile.append(iconPlate, label);
+
+    const iconUrl = { current: "" };
+    void applyBookmarkIconToPlate(iconPlate, entry, api).then((url) => {
+        iconUrl.current = url;
+    });
+
+    bindBookmarkTileDrag(tile, entry, iconPlate, iconUrl, hooks);
+    bindBookmarkTileContextMenu(tile, entry, api, iconUrl, hooks);
+
+    tile.addEventListener("click", async (ev) => {
+        ev.preventDefault();
+        ev.stopPropagation();
+        if (document.documentElement.hasAttribute("data-app-menu-dragging")) return;
+        if (entry.folder) {
+            onFolder(entry.id, entry.title);
+            return;
+        }
+        pushRecentBookmark(entry);
+        try {
+            await api.open(entry);
         } catch {
             /* ignore */
         }
@@ -328,20 +633,24 @@ export type MountAppMenuResult = {
 };
 
 /**
- * Mount `.env-shell-app-menu` beside the shell chrome. Hidden unless launcher SKU and opened.
+ * Mount `.env-shell-app-menu` beside the shell chrome.
+ * Launcher SKU → Android apps grid; CRX bookmarks API → Win7-style Start (recent | folders).
  */
 export function mountEnvironmentAppMenu(): MountAppMenuResult {
     ensureDocumentStyles();
 
+    const mode = resolveAppMenuMode();
     const root = document.createElement("div");
     root.className = "env-shell-app-menu";
     root.hidden = true;
     root.setAttribute("role", "dialog");
     root.setAttribute("aria-modal", "false");
-    root.setAttribute("aria-label", "Apps");
+    root.setAttribute("aria-label", mode === "bookmarks" ? "Bookmarks" : "Apps");
+    if (mode) root.setAttribute("data-menu-mode", mode);
 
     const panel = document.createElement("div");
     panel.className = "env-shell-app-menu__panel";
+    if (mode === "bookmarks") panel.setAttribute("data-layout", "start-split");
 
     const banner = document.createElement("div");
     banner.className = "env-shell-app-menu__banner";
@@ -361,16 +670,53 @@ export function mountEnvironmentAppMenu(): MountAppMenuResult {
     const search = document.createElement("input");
     search.type = "search";
     search.className = "env-shell-app-menu__search";
-    search.placeholder = "Search apps";
+    search.placeholder = mode === "bookmarks" ? "Search bookmarks" : "Search apps";
     search.autocomplete = "off";
-    search.setAttribute("aria-label", "Search apps");
+    search.setAttribute("aria-label", mode === "bookmarks" ? "Search bookmarks" : "Search apps");
+
+    const startBody = document.createElement("div");
+    startBody.className = "env-shell-app-menu__start-body";
+    startBody.hidden = mode !== "bookmarks";
+
+    const leftCol = document.createElement("div");
+    leftCol.className = "env-shell-app-menu__start-left";
+    leftCol.setAttribute("aria-label", "Pinned and recent bookmarks");
+
+    const pinnedHeading = document.createElement("div");
+    pinnedHeading.className = "env-shell-app-menu__start-heading";
+    pinnedHeading.textContent = "Pinned";
+
+    const pinnedList = document.createElement("div");
+    pinnedList.className = "env-shell-app-menu__start-recent env-shell-app-menu__start-pinned";
+
+    const recentHeading = document.createElement("div");
+    recentHeading.className = "env-shell-app-menu__start-heading";
+    recentHeading.textContent = "Recent";
+
+    const recentList = document.createElement("div");
+    recentList.className = "env-shell-app-menu__start-recent";
+
+    leftCol.append(pinnedHeading, pinnedList, recentHeading, recentList);
+
+    const rightCol = document.createElement("div");
+    rightCol.className = "env-shell-app-menu__start-right";
+
+    const crumb = document.createElement("div");
+    crumb.className = "env-shell-app-menu__crumb";
 
     const gridHost = document.createElement("div");
     gridHost.className = "env-shell-app-menu__grid";
     gridHost.setAttribute("data-part", "grid");
-    gridHost.setAttribute("aria-label", "Installed apps");
+    gridHost.setAttribute("aria-label", mode === "bookmarks" ? "Bookmarks" : "Installed apps");
 
-    panel.append(banner, search, gridHost);
+    rightCol.append(crumb, gridHost);
+    startBody.append(leftCol, rightCol);
+
+    if (mode === "bookmarks") {
+        panel.append(banner, search, startBody);
+    } else {
+        panel.append(banner, search, gridHost);
+    }
     root.appendChild(panel);
 
     const host = resolveAppMenuHost();
@@ -380,9 +726,10 @@ export function mountEnvironmentAppMenu(): MountAppMenuResult {
     let refreshGen = 0;
     let searchQuery = "";
     let searchTimer: ReturnType<typeof setTimeout> | undefined;
+    let folderStack: Array<{ id: string; title: string }> = [];
 
     const syncVisibility = (): void => {
-        if (!isLauncherSku()) {
+        if (!isAppMenuEnabled()) {
             root.hidden = true;
             root.toggleAttribute("data-open", false);
             return;
@@ -399,7 +746,7 @@ export function mountEnvironmentAppMenu(): MountAppMenuResult {
     };
 
     const openMenu = (): void => {
-        if (!isLauncherSku()) return;
+        if (!isAppMenuEnabled()) return;
         open = true;
         syncVisibility();
         void refresh();
@@ -414,10 +761,41 @@ export function mountEnvironmentAppMenu(): MountAppMenuResult {
     const tileDragHooks: TileDragHooks = {
         onDragStart: () => {
             close();
+        },
+        onStartPinsChanged: () => {
+            void refresh();
         }
     };
 
-    const populateGrid = async (bridge: LauncherBridgeApi, gen: number): Promise<void> => {
+    const paintCrumb = (): void => {
+        crumb.replaceChildren();
+        if (mode !== "bookmarks") return;
+        const rootBtn = document.createElement("button");
+        rootBtn.type = "button";
+        rootBtn.className = "env-shell-app-menu__crumb-item";
+        rootBtn.textContent = "Bookmarks";
+        rootBtn.addEventListener("click", () => {
+            folderStack = [];
+            void refresh();
+        });
+        crumb.appendChild(rootBtn);
+        folderStack.forEach((seg, idx) => {
+            const sep = document.createElement("span");
+            sep.className = "env-shell-app-menu__crumb-sep";
+            sep.textContent = "›";
+            const btn = document.createElement("button");
+            btn.type = "button";
+            btn.className = "env-shell-app-menu__crumb-item";
+            btn.textContent = seg.title;
+            btn.addEventListener("click", () => {
+                folderStack = folderStack.slice(0, idx + 1);
+                void refresh();
+            });
+            crumb.append(sep, btn);
+        });
+    };
+
+    const populateLauncherGrid = async (bridge: LauncherBridgeApi, gen: number): Promise<void> => {
         let apps: LauncherAppEntry[] = [];
         try {
             apps = await bridge.launcherList(searchQuery || undefined);
@@ -442,16 +820,104 @@ export function mountEnvironmentAppMenu(): MountAppMenuResult {
         gridHost.appendChild(frag);
     };
 
+    const enterFolder = (id: string, title: string): void => {
+        folderStack.push({ id, title });
+        searchQuery = "";
+        search.value = "";
+        void refresh();
+    };
+
+    const populateBookmarks = async (api: BookmarksMenuApi, gen: number): Promise<void> => {
+        paintCrumb();
+
+        const fillLeftSection = (
+            host: HTMLElement,
+            entries: BookmarkMenuEntry[],
+            emptyLabel: string
+        ): void => {
+            host.replaceChildren();
+            if (entries.length === 0) {
+                const empty = document.createElement("p");
+                empty.className = "env-shell-app-menu__empty env-shell-app-menu__empty--compact";
+                empty.textContent = emptyLabel;
+                host.appendChild(empty);
+                return;
+            }
+            for (const entry of entries) {
+                host.appendChild(renderBookmarkTile(entry, api, tileDragHooks, enterFolder));
+            }
+        };
+
+        fillLeftSection(pinnedList, readPinnedBookmarks(), "No pinned bookmarks");
+        fillLeftSection(recentList, readRecentBookmarks(), "No recent bookmarks");
+
+        let entries: BookmarkMenuEntry[] = [];
+        try {
+            if (searchQuery) {
+                entries = await api.search(searchQuery);
+            } else {
+                const folderId = folderStack.length ? folderStack[folderStack.length - 1]!.id : undefined;
+                entries = await api.listChildren(folderId);
+            }
+        } catch {
+            entries = [];
+        }
+        if (gen !== refreshGen) return;
+
+        gridHost.replaceChildren();
+        if (entries.length === 0) {
+            const empty = document.createElement("p");
+            empty.className = "env-shell-app-menu__empty";
+            empty.textContent = searchQuery ? "No matching bookmarks" : "This folder is empty";
+            gridHost.appendChild(empty);
+            return;
+        }
+
+        const frag = document.createDocumentFragment();
+        const folders = entries.filter((e) => e.folder);
+        const links = entries.filter((e) => !e.folder);
+        for (const entry of [...folders, ...links]) {
+            frag.appendChild(renderBookmarkTile(entry, api, tileDragHooks, enterFolder));
+        }
+        gridHost.appendChild(frag);
+    };
+
     const refresh = async (): Promise<void> => {
         const gen = ++refreshGen;
         banner.hidden = true;
         search.hidden = false;
-        gridHost.hidden = false;
 
-        if (!isLauncherSku()) {
+        const activeMode = resolveAppMenuMode();
+        if (!activeMode) {
             syncVisibility();
             return;
         }
+        root.setAttribute("data-menu-mode", activeMode);
+
+        if (activeMode === "bookmarks") {
+            panel.setAttribute("data-layout", "start-split");
+            startBody.hidden = false;
+            if (!panel.contains(startBody)) {
+                panel.append(banner, search, startBody);
+                if (gridHost.parentElement !== rightCol) rightCol.append(crumb, gridHost);
+            }
+            const api = resolveBookmarksMenuApi();
+            if (!api) {
+                banner.hidden = false;
+                bannerText.textContent = "Bookmarks API unavailable in this context";
+                bannerAction.hidden = true;
+                search.hidden = true;
+                startBody.hidden = true;
+                return;
+            }
+            bannerAction.hidden = true;
+            await populateBookmarks(api, gen);
+            return;
+        }
+
+        panel.removeAttribute("data-layout");
+        startBody.hidden = true;
+        if (gridHost.parentElement !== panel) panel.append(gridHost);
 
         const bridge = await resolveLauncherBridge();
         if (gen !== refreshGen) return;
@@ -483,7 +949,7 @@ export function mountEnvironmentAppMenu(): MountAppMenuResult {
 
         search.hidden = false;
         gridHost.hidden = false;
-        await populateGrid(bridge, gen);
+        await populateLauncherGrid(bridge, gen);
     };
 
     search.addEventListener("input", () => {
@@ -517,6 +983,7 @@ export function mountEnvironmentAppMenu(): MountAppMenuResult {
         for (const n of path) {
             if (n === root || n === panel) return;
             if (n instanceof Element && root.contains(n)) return;
+            if (n instanceof Element && n.closest?.(".cw-context-menu-layer")) return;
         }
         close();
     };

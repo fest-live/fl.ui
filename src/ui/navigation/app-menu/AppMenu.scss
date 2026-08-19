@@ -35,6 +35,185 @@
         animation: env-app-menu-in 140ms cubic-bezier(0.22, 0.8, 0.3, 1);
     }
 
+    /* Win7-style Start: recent | folders/grid */
+    .env-shell-app-menu__panel[data-layout="start-split"] {
+        inline-size: min(560px, calc(100vw - 1rem));
+        max-block-size: min(580px, calc(100dvb - var(--env-shell-chrome-stack-reserve, 3rem) - 1rem));
+        grid-template-rows: auto auto minmax(0, 1fr);
+    }
+
+    .env-shell-app-menu__start-body {
+        display: grid;
+        grid-template-columns: minmax(9.5rem, 0.42fr) minmax(0, 1fr);
+        gap: 0.65rem;
+        min-block-size: 12rem;
+        max-block-size: 100%;
+        overflow: hidden;
+    }
+
+    .env-shell-app-menu__start-left {
+        display: flex;
+        flex-direction: column;
+        gap: 0.4rem;
+        min-block-size: 0;
+        min-inline-size: 0;
+        overflow: auto;
+        padding: 0.45rem;
+        border-radius: 12px;
+        background: color-mix(in oklab, var(--color-on-surface, #fff) 5%, transparent);
+        border: 1px solid color-mix(in oklab, var(--color-outline-variant, #888) 35%, transparent);
+    }
+
+    .env-shell-app-menu__start-right {
+        display: grid;
+        grid-template-rows: auto minmax(0, 1fr);
+        gap: 0.4rem;
+        min-block-size: 0;
+        min-inline-size: 0;
+        overflow: hidden;
+    }
+
+    .env-shell-app-menu__start-heading {
+        font: 600 0.72rem/1.2 ui-sans-serif, system-ui, sans-serif;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        opacity: 0.72;
+        padding-inline: 0.25rem;
+        flex: 0 0 auto;
+    }
+
+    .env-shell-app-menu__start-recent {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 0.2rem;
+        align-content: start;
+        flex: 0 0 auto;
+
+        .env-shell-app-menu__tile {
+            grid-template-columns: auto minmax(0, 1fr);
+            justify-items: start;
+            align-items: center;
+            gap: 0.45rem;
+            padding: 0.35rem 0.4rem;
+            text-align: start;
+        }
+
+        .env-shell-app-menu__tile-icon {
+            inline-size: 2.25rem;
+            block-size: 2.25rem;
+            min-inline-size: 2.25rem;
+            min-block-size: 2.25rem;
+
+            ui-icon:not([data-launcher-icon]) {
+                inline-size: 1.5rem !important;
+                block-size: 1.5rem !important;
+                --icon-size: 1.5rem;
+                --icon-padding: 0px;
+            }
+        }
+
+        .env-shell-app-menu__tile-label {
+            -webkit-line-clamp: 1;
+            text-align: start;
+            font-size: 0.78rem;
+        }
+    }
+
+    .env-shell-app-menu__start-right {
+        .env-shell-app-menu__grid {
+            display: flex;
+            flex-direction: column;
+            flex-wrap: nowrap;
+            gap: 0.2rem;
+            overflow: auto;
+            min-block-size: 0;
+            align-content: start;
+            grid-template-columns: none;
+        }
+
+        .env-shell-app-menu__tile {
+            display: grid;
+            grid-template-columns: auto minmax(0, 1fr);
+            justify-items: start;
+            align-items: center;
+            gap: 0.65rem;
+            padding: 0.4rem 0.55rem;
+            text-align: start;
+            border-radius: 10px;
+            inline-size: 100%;
+            box-sizing: border-box;
+        }
+
+        .env-shell-app-menu__tile-icon {
+            inline-size: 2.5rem;
+            block-size: 2.5rem;
+            min-inline-size: 2.5rem;
+            min-block-size: 2.5rem;
+
+            ui-icon:not([data-launcher-icon]) {
+                inline-size: 1.75rem !important;
+                block-size: 1.75rem !important;
+                --icon-size: 1.75rem;
+                --icon-padding: 0px;
+            }
+        }
+
+        .env-shell-app-menu__tile-label {
+            -webkit-line-clamp: 1;
+            text-align: start;
+            font: 500 0.9rem/1.25 ui-sans-serif, system-ui, sans-serif;
+            justify-self: stretch;
+        }
+    }
+
+    .env-shell-app-menu__crumb {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.2rem;
+        min-block-size: 1.4rem;
+    }
+
+    .env-shell-app-menu__crumb-item {
+        appearance: none;
+        border: 0;
+        background: transparent;
+        color: inherit;
+        font: 600 0.78rem/1.2 ui-sans-serif, system-ui, sans-serif;
+        padding: 0.15rem 0.35rem;
+        border-radius: 6px;
+        cursor: pointer;
+    }
+
+    .env-shell-app-menu__crumb-item:hover {
+        background: color-mix(in oklab, var(--color-on-surface, #fff) 10%, transparent);
+    }
+
+    .env-shell-app-menu__crumb-sep {
+        opacity: 0.45;
+        font-size: 0.85rem;
+    }
+
+    .env-shell-app-menu__empty--compact {
+        margin: 0.35rem 0;
+        font-size: 0.75rem;
+        text-align: start;
+        padding-inline: 0.25rem;
+    }
+
+    @media (max-width: 520px) {
+        .env-shell-app-menu__start-body {
+            grid-template-columns: 1fr;
+            grid-template-rows: minmax(0, 8rem) minmax(0, 1fr);
+        }
+
+        .env-shell-app-menu__start-recent {
+            display: flex;
+            flex-direction: column;
+            overflow: auto;
+        }
+    }
+
     .env-shell-app-menu__banner {
         display: grid;
         gap: 0.65rem;
@@ -192,8 +371,10 @@
         display: grid;
         place-content: center;
         place-items: center;
-        inline-size: 3rem;
-        block-size: 3rem;
+        inline-size: 2.5rem;
+        block-size: 2.5rem;
+        min-inline-size: 2.5rem;
+        min-block-size: 2.5rem;
         padding: 0;
         aspect-ratio: 1 / 1;
         border-radius: 22%;
@@ -204,33 +385,56 @@
         -webkit-backdrop-filter: blur(16px) saturate(1.2);
         box-sizing: border-box;
         overflow: hidden;
-        contain: layout style;
+        color: var(--color-on-surface, light-dark(#1a1c1f, #e8eaed));
+        --icon-color: currentColor;
 
         @supports (corner-shape: squircle) {
             corner-shape: squircle;
         }
 
         img[data-launcher-icon],
-        .ui-ws-item-icon-img {
-            position: absolute;
-            inset: 0;
-            inline-size: 100%;
-            block-size: 100%;
-            object-fit: cover;
+        .ui-ws-item-icon-img,
+        .env-shell-app-menu__tile-favicon {
+            position: relative;
+            z-index: 1;
+            display: block;
+            inline-size: 1.75rem;
+            block-size: 1.75rem;
+            max-inline-size: 90%;
+            max-block-size: 90%;
+            object-fit: contain;
             object-position: center;
             pointer-events: none;
+            border-radius: 4px;
+        }
+
+        /* Phosphor glyphs — rem box; % --icon-size collapses in this plate. */
+        ui-icon {
+            position: relative;
             z-index: 1;
+            display: inline-grid !important;
+            inline-size: 1.75rem !important;
+            block-size: 1.75rem !important;
+            min-inline-size: 1.75rem !important;
+            min-block-size: 1.75rem !important;
+            max-inline-size: 1.75rem !important;
+            max-block-size: 1.75rem !important;
+            --icon-size: 1.75rem;
+            --icon-padding: 0px;
+            --icon-color: currentColor;
+            color: inherit;
+            pointer-events: none;
         }
 
         ui-icon[data-launcher-icon] {
             position: absolute;
             inset: 0;
-            inline-size: 100%;
-            block-size: 100%;
-            min-inline-size: 0;
-            min-block-size: 0;
-            max-inline-size: none;
-            max-block-size: none;
+            inline-size: 100% !important;
+            block-size: 100% !important;
+            min-inline-size: 0 !important;
+            min-block-size: 0 !important;
+            max-inline-size: none !important;
+            max-block-size: none !important;
             --icon-size: 100%;
             --icon-padding: 0px;
             pointer-events: none;

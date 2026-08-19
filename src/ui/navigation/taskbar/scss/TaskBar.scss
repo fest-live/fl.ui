@@ -278,6 +278,20 @@
         inline-size: 1.35rem;
         block-size: 1.35rem;
     }
+
+    .env-shell-chrome[data-desktop] .env-shell-taskbar ui-task[data-env-home]::part(icon) {
+        inline-size: 1.75rem;
+        block-size: 1.75rem;
+        min-inline-size: 1.75rem;
+        min-block-size: 1.75rem;
+    }
+
+    .env-shell-chrome[data-desktop] .env-shell-taskbar ui-task[data-env-home]::part(glyph) {
+        inline-size: 100%;
+        block-size: 100%;
+        --icon-size: 100%;
+        --icon-padding: 0.05rem;
+    }
     
     .env-shell-chrome[data-desktop] .env-shell-taskbar ui-task::part(letter) {
         font-size: 0.8rem;

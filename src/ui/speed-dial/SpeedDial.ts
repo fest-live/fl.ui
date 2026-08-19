@@ -27,6 +27,7 @@ import {
     WALLPAPER_IDB_MARKER
 } from "@fest-lib/image";
 import { openUnifiedContextMenu, type ContextMenuEntry } from "fl-ui/explorer/ContextMenu";
+import { resolveSpeedDialBookmarkIconUrl } from "../navigation/app-menu/bookmarks-menu";
 import {
     speedDialMeta,
     speedDialItems,
@@ -1091,11 +1092,31 @@ export function SpeedDial(makeView: any) {
         const launchApp = isLauncherAppSpeedDialItem(item);
         const cacheKey = launchApp ? getLauncherAppTileCacheKey(item) : "";
         const cachedLauncherIcon = cacheKey ? getCachedLauncherIconObjectUrl(cacheKey) : "";
+        const meta = getSpeedDialMeta(item.id) || {};
+        const metaRec = {
+            iconUrl: getRefValue((meta as { iconUrl?: unknown }).iconUrl, ""),
+            href: getRefValue((meta as { href?: unknown }).href, ""),
+            entityType: getRefValue((meta as { entityType?: unknown }).entityType, ""),
+            bookmarkId: getRefValue((meta as { bookmarkId?: unknown }).bookmarkId, "")
+        };
+        const bookmarkIconUrl = resolveSpeedDialBookmarkIconUrl(metaRec);
+        const fallbackIcon = String(getRefValue(item.icon, "link") || "link");
         const iconNode = launchApp
             ? H`<ui-icon class="ui-ws-item-icon-native" data-launcher-icon icon-source="resource" icon-padding="0" aria-hidden="true" ref=${(iconEl: HTMLElement) => {
                 if (cachedLauncherIcon) applyLauncherIconToUiIcon(iconEl, cachedLauncherIcon);
             }}></ui-icon>`
-            : H`<ui-icon icon=${item.icon}></ui-icon>`;
+            : bookmarkIconUrl
+              ? H`<img class="ui-ws-item-icon-native ui-ws-item-icon-img" data-launcher-icon data-bookmark-favicon src=${bookmarkIconUrl} alt="" referrerpolicy="no-referrer" loading="lazy" decoding="async" draggable=${false}
+                    onerror=${(ev: Event) => {
+                        const img = ev.currentTarget as HTMLImageElement;
+                        if (!img || img.dataset.fallbackApplied === "1") return;
+                        img.dataset.fallbackApplied = "1";
+                        const parent = img.parentElement;
+                        if (!parent) return;
+                        img.remove();
+                        parent.append(H`<ui-icon icon=${fallbackIcon}></ui-icon>` as any);
+                    }} />`
+              : H`<ui-icon icon=${fallbackIcon}></ui-icon>`;
         const element = H`<div data-shape=${tileShapeForItem(item)} data-id=${item.id} class="ui-ws-item ui-ws-item-icon shaped" data-speed-dial-item data-layer="icons" ref=${(el) => attachItemNode(item, el as HTMLElement, true, makeView)}>
             ${iconNode}
         </div>`;

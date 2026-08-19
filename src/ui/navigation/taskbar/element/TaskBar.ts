@@ -26,7 +26,7 @@ import { buildShellDeviceTray, formatChromeClock, type ShellDeviceStatus } from 
 import { toggleCalendarFlyout } from "../../calendar/CalendarFlyout";
 import { toggleQuickSettingsFlyout } from "../../settings/QuickSettings";
 import {
-    isLauncherSku,
+    isAppMenuEnabled,
     mountEnvironmentAppMenu,
     type MountAppMenuResult
 } from "../../app-menu/AppMenu";
@@ -274,8 +274,8 @@ export function mountEnvironmentTaskBar(opts: EnvironmentTaskbarOptions): MountT
 
     bar.append(pinsHost, windowsHost, trayHost, switcher);
 
-    const launcherSku = isLauncherSku();
-    const appMenu = launcherSku ? mountEnvironmentAppMenu() : undefined;
+    const appMenuEnabled = isAppMenuEnabled();
+    const appMenu = appMenuEnabled ? mountEnvironmentAppMenu() : undefined;
 
     const windowTaskEls = new Map<string, HTMLElement>();
     let lastWindows: EnvWindowTaskDescriptor[] = [];
@@ -527,7 +527,7 @@ export function mountEnvironmentTaskBar(opts: EnvironmentTaskbarOptions): MountT
             longPressFired = false;
             return;
         }
-        if (launcherSku && appMenu) {
+        if (appMenuEnabled && appMenu) {
             ev.preventDefault();
             ev.stopPropagation();
             handleLauncherHomeTap();

@@ -504,6 +504,11 @@
     ui-icon {
         inline-size: var(--ui-win-icon-size);
         block-size: var(--ui-win-icon-size);
+        min-inline-size: var(--ui-win-icon-size);
+        min-block-size: var(--ui-win-icon-size);
+        flex-shrink: 0;
+        --icon-size: var(--ui-win-icon-size);
+        --icon-padding: 0;
         pointer-events: none;
     }
 }

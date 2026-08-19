@@ -4,6 +4,10 @@ import styles from "./index.scss?inline";
 export type { CalendarView } from "./timeline-axes.ts";
 import type { CalendarView } from "./timeline-axes.ts";
 
+import type { BranchId, CalendarBranch } from "./branches.ts";
+export type { BranchId, CalendarBranch } from "./branches.ts";
+export { UNASSIGNED_BRANCH_ID } from "./branches.ts";
+
 export interface ScheduleInput {
     id?: string;
     title: string;
@@ -11,6 +15,7 @@ export interface ScheduleInput {
     end: Date | string;
     color?: string;
     allDay?: boolean;
+    branchId?: BranchId;
 }
 
 export interface Schedule {
@@ -20,6 +25,7 @@ export interface Schedule {
     end: Date;
     color: string;
     allDay: boolean;
+    branchId?: BranchId;
 }
 
 const DAY_MS = 86_400_000;
@@ -183,7 +189,7 @@ function normalizeSchedule(input: ScheduleInput): Schedule {
         end = new Date(start.getTime() + 30 * 60_000);
     }
 
-    return {
+    const schedule: Schedule = {
         id: input.id ?? createId(),
         title: input.title,
         start,
@@ -191,6 +197,15 @@ function normalizeSchedule(input: ScheduleInput): Schedule {
         color: safeColor(input.color),
         allDay: Boolean(input.allDay),
     };
+
+    // WHY: only carry branchId forward when it is a non-empty string.
+    // We never auto-write the literal "unassigned" here — absence is the
+    // canonical signal for the unassigned lane (see branches.ts).
+    if (typeof input.branchId === "string" && input.branchId.length > 0) {
+        schedule.branchId = input.branchId;
+    }
+
+    return schedule;
 }
 
 export class CalendarScheduler extends HTMLElement {
@@ -203,6 +218,7 @@ export class CalendarScheduler extends HTMLElement {
     private _activeDate: Date = startOfDay(new Date());
     private _slotMinutes = 30;
     private _events: Schedule[] = [];
+    private _branches: CalendarBranch[] = [];
 
     private dragState:
         | {
@@ -522,6 +538,33 @@ export class CalendarScheduler extends HTMLElement {
 
     set events(value: ScheduleInput[]) {
         this._events = value.map(normalizeSchedule);
+        this.render();
+    }
+
+    get branches(): CalendarBranch[] {
+        return this._branches.map((branch) => ({ ...branch }));
+    }
+
+    set branches(value: CalendarBranch[]) {
+        this.setBranches(value);
+    }
+
+    setBranches(list: CalendarBranch[]): void {
+        this._branches = Array.isArray(list)
+            ? list
+                .filter(
+                    (branch) =>
+                        branch != null &&
+                        typeof branch.id === "string" &&
+                        branch.id.length > 0,
+                )
+                .map((branch) => ({
+                    id: branch.id,
+                    label: branch.label || branch.id,
+                    color: branch.color,
+                    pinned: true,
+                }))
+            : [];
         this.render();
     }
 

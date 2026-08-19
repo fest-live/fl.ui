@@ -63,7 +63,8 @@ import {
 import { isInFocus, MOCElement } from "@fest-lib/dom";
 import { openShortcutEditor } from "./ShortcutEditor";
 import { setSpeedDialViewOpener, getSpeedDialViewOpener } from "./view-opener";
-import { getSpeedDialActionRegistry, getSpeedDialActionLabels, getSpeedDialActionIcons } from "./action-registry";
+import { getSpeedDialActionRegistry, getSpeedDialActionLabels, getSpeedDialActionIcons, hydrateLauncherAppTileIcon } from "./action-registry";
+import { isLauncherSku } from "../navigation/app-menu/AppMenu";
 // WHY (final review #1/#5): use the `fl-ui/explorer/path-router` alias so this
 // file resolves the canonical PathRouter module from any hardlinked copy
 // (e.g. `modules/views/home-view/src/ts/SpeedDial.ts`), avoiding a broken
@@ -275,13 +276,22 @@ const resolveItemAction = (item: SpeedDialItem, override?: string) => {
     return entry?.action || item?.action || "open-view";
 };
 
-const ACTION_OPTIONS = [
+const BASE_ACTION_OPTIONS = [
     { value: "open-view", label: "Open view" },
     { value: "open-link", label: "Open link" },
     { value: "open-path", label: "Open path" },
     { value: "copy-link", label: "Copy link" },
     { value: "copy-state-desc", label: "Copy state + desc" }
 ];
+
+/** Launcher SKU exposes Android app launch tiles via dynamic launcher-bridge import. */
+const getActionOptions = () => {
+    const options = [...BASE_ACTION_OPTIONS];
+    if (isLauncherSku()) {
+        options.push({ value: "launch-app", label: "Launch app" });
+    }
+    return options;
+};
 const DEFAULT_WALLPAPER_SRC = "/assets/wallpaper.jpg";
 const WALLPAPER_EXTENSIONS = new Set(["png", "jpg", "jpeg", "webp", "gif", "bmp", "svg", "avif"]);
 
@@ -298,6 +308,7 @@ const buildDescriptor = (item: SpeedDialItem) => {
         DIR: "/",
         href: meta?.href,
         view: meta?.view,
+        packageName: meta?.packageName,
         action: resolveItemAction(item)
     };
 };
@@ -353,6 +364,9 @@ const attachItemNode = (item: SpeedDialItem, el?: HTMLElement | null, interactiv
     el.dataset.speedDialItem = "true";
     if (interactive) {
         el.addEventListener("dragstart", (ev)=>ev.preventDefault());
+        if (resolveItemAction(item) === "launch-app") {
+            void hydrateLauncherAppTileIcon(el, item);
+        }
         if (!el.dataset.dragGuardBound) {
             el.dataset.dragGuardBound = "1";
             el.addEventListener("m-dragsettled", () => {
@@ -1167,7 +1181,7 @@ const openItemEditor = (item?: SpeedDialItem, opts?: {
             shape: draft.shape,
             openLinkTarget: draft.openLinkTarget || getDefaultOpenLinkTarget()
         },
-        actionOptions: ACTION_OPTIONS,
+        actionOptions: getActionOptions(),
         viewOptions: [...NAVIGATION_SHORTCUTS].map((shortcut: { view: string; label: string; icon: string }) => ({
             value: String(shortcut.view || ""),
             label: String(shortcut.label || shortcut.view || "")

@@ -10,7 +10,7 @@
 
 import { JSOX } from "jsox";
 import { makeObjectAssignable, observe, stringRef, safe } from "@fest-lib/object";
-import { relocateItemsToLayout } from "./layout.ts";
+import { relocateItemsToLayout, normalizeOrient, pointToLogicalCell } from "./layout.ts";
 import { decodeDesktopState, loadDesktopRaw, makeUIState, saveUIState } from "@fest-lib/lure";
 import {
     createOpfsLinkStoreIo,
@@ -70,6 +70,13 @@ export interface SpeedDialItemMeta {
      * - `new-tab` — new browser tab (http/https/www and app deep links)
      */
     openLinkTarget?: OpenLinkTarget | string;
+    /** Android package id for `launch-app` tiles (launcher SKU). */
+    packageName?: string;
+    /** Android activity component for `launch-app` tiles. */
+    componentName?: string;
+    /** Launcher icon cache key (matches AppMenu / launcher-bridge). */
+    iconCacheKey?: string;
+    /** e.g. `android-app` for launcher shortcuts. */
     entityType?: string;
     tags?: string[];
     [key: string]: any;
@@ -785,10 +792,17 @@ export const ensureSpeedDialMeta = (id: string, defaults: SpeedDialItemMeta = {}
         meta = createMetaState(defaults);
         speedDialMeta?.set?.(id, meta);
         persistSpeedDialMeta();
+        return meta;
     }
-    if (defaults?.action && meta.action !== defaults.action) {
-        meta.action = defaults.action;
+    let changed = false;
+    for (const [key, value] of Object.entries(defaults)) {
+        if (value == null || value === "") continue;
+        if ((meta as Record<string, unknown>)[key] !== value) {
+            (meta as Record<string, unknown>)[key] = value;
+            changed = true;
+        }
     }
+    if (changed) persistSpeedDialMeta();
     return meta;
 };
 
@@ -1210,6 +1224,94 @@ export const addSpeedDialItem = (item: SpeedDialItem) => {
     return item;
 };
 
+export type LauncherAppPinPayload = {
+    packageName: string;
+    label: string;
+    componentName: string;
+    iconCacheKey: string;
+};
+
+/** JSON drag envelope for AppMenu → SpeedDial (launcher design spec). */
+export function buildLauncherAppDragEnvelope(app: LauncherAppPinPayload): string {
+    return JSON.stringify({
+        state: { icon: "device-mobile", label: app.label },
+        desc: {
+            action: "launch-app",
+            meta: {
+                packageName: app.packageName,
+                componentName: app.componentName,
+                entityType: "android-app",
+                iconCacheKey: app.iconCacheKey || app.packageName
+            }
+        }
+    });
+}
+
+/** First unoccupied logical cell on the current grid. */
+export function findNextFreeSpeedDialCell(): GridCell {
+    const columns = Math.max(1, Math.min(16, Number(gridLayoutState?.columns) || 4));
+    const rows = Math.max(1, Math.min(16, Number(gridLayoutState?.rows) || 8));
+    const occupied = new Set(
+        (speedDialItems || []).map(
+            (item) => `${Number(item?.cell?.[0]) || 0}:${Number(item?.cell?.[1]) || 0}`
+        )
+    );
+    for (let y = 0; y < rows; y += 1) {
+        for (let x = 0; x < columns; x += 1) {
+            const key = `${x}:${y}`;
+            if (!occupied.has(key)) return [x, y];
+        }
+    }
+    return [0, 0];
+}
+
+const querySpeedDialGridElement = (): HTMLElement | null =>
+    document.querySelector<HTMLElement>('#home .speed-dial-grid[data-grid-layer="icons"]') ||
+    document.querySelector<HTMLElement>("#home .speed-dial-grid:last-of-type") ||
+    document.querySelector<HTMLElement>("#home .speed-dial-grid");
+
+const readSpeedDialGridLayout = (): [number, number] => [
+    Math.max(1, Math.min(16, Number(gridLayoutState?.columns) || 4)),
+    Math.max(1, Math.min(16, Number(gridLayoutState?.rows) || 8))
+];
+
+/** Map viewport coordinates to a logical SpeedDial cell (null when grid is absent). */
+export function resolveSpeedDialCellFromClientPoint(clientX: number, clientY: number): GridCell | null {
+    const grid = querySpeedDialGridElement();
+    if (!grid) return null;
+    const rect = grid.getBoundingClientRect();
+    const styles = getComputedStyle(grid);
+    const paddingLeft = Number.parseFloat(styles.paddingLeft) || 0;
+    const paddingRight = Number.parseFloat(styles.paddingRight) || 0;
+    const paddingTop = Number.parseFloat(styles.paddingTop) || 0;
+    const paddingBottom = Number.parseFloat(styles.paddingBottom) || 0;
+    const size: [number, number] = [
+        Math.max(1, rect.width - paddingLeft - paddingRight),
+        Math.max(1, rect.height - paddingTop - paddingBottom)
+    ];
+    const point: [number, number] = [
+        clientX - rect.left - paddingLeft,
+        clientY - rect.top - paddingTop
+    ];
+    const root = grid.closest<HTMLElement>(".speed-dial-root") || document.getElementById("home");
+    const orientRaw = root?.getAttribute?.("data-orient") ?? root?.dataset?.orient ?? "0";
+    return pointToLogicalCell(point, size, readSpeedDialGridLayout(), normalizeOrient(orientRaw));
+}
+
+export function isClientPointOverSpeedDial(clientX: number, clientY: number): boolean {
+    const hit = document.elementFromPoint(clientX, clientY);
+    return !!hit?.closest?.("#home, .speed-dial-root");
+}
+
+/** Create a persisted `launch-app` tile from an AppMenu entry. */
+export function pinLauncherAppEntry(app: LauncherAppPinPayload, cell?: GridCell): SpeedDialItem | null {
+    const targetCell = cell ?? findNextFreeSpeedDialCell();
+    const item = parseSpeedDialItemFromJSON(buildLauncherAppDragEnvelope(app), targetCell);
+    if (!item) return null;
+    addSpeedDialItem(item);
+    return item;
+}
+
 export const upsertSpeedDialItem = (item: SpeedDialItem) => {
     markUserEditedBeforeHydrate();
     const existingIndex = speedDialItems?.findIndex?.((entry) => entry?.id === item?.id) ?? -1;
@@ -1578,7 +1680,10 @@ export const parseSpeedDialItemFromJSON = (jsonText: string, suggestedCell?: Gri
         const item = createStatefulItem({
             id: state.id || generateItemId(),
             cell: cellValue,
-            icon: state.icon || desc.icon || (href ? "link" : path ? "folder" : "sparkle"),
+            icon:
+                state.icon ||
+                desc.icon ||
+                (action === "launch-app" ? "device-mobile" : href ? "link" : path ? "folder" : "sparkle"),
             label: state.label || desc.label || "Shortcut",
             action
         });

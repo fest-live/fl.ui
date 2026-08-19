@@ -76,7 +76,7 @@
         .fm-grid-rows {
             display: grid;
             grid-template-columns: subgrid;
-            grid-auto-rows: 2.625rem;
+            grid-auto-rows: var(--explorer-row-height, 2.625rem);
             grid-column: 1 / -1;
             align-content: start;
 
@@ -94,7 +94,7 @@
             z-index: 1;
 
             content-visibility: visible;
-            contain-intrinsic-size: 1px 2.625rem;
+            contain-intrinsic-size: 1px var(--explorer-row-height, 2.625rem);
             contain: none;
 
             //
@@ -110,7 +110,7 @@
             color: var(--color-on-surface);
 
             display: grid;
-            grid-template-rows: minmax(0, 2.625rem) !important;
+            grid-template-rows: minmax(0, var(--explorer-row-height, 2.625rem)) !important;
             grid-column: 1 / -1;
             order: var(--order, 1) !important;
             min-block-size: 0;
@@ -126,7 +126,7 @@
             cursor: pointer;
             pointer-events: auto;
             touch-action: manipulation;
-            block-size: 2.625rem;
+            block-size: var(--explorer-row-height, 2.625rem);
             user-drag: none;
             -webkit-user-drag: none;
 

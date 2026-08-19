@@ -60,6 +60,19 @@ export function isShellStandaloneDisplay(): boolean {
     return false;
 }
 
+/** Capacitor Android/iOS shell — OS owns the status bar; suppress in-app overlay chrome. */
+export function isNativeCapacitorHost(): boolean {
+    if (typeof document !== "undefined" && document.documentElement.dataset.cwspNativeShell === "capacitor") {
+        return true;
+    }
+    try {
+        const c = (globalThis as { Capacitor?: { isNativePlatform?: () => boolean } }).Capacitor;
+        return typeof c?.isNativePlatform === "function" && Boolean(c.isNativePlatform());
+    } catch {
+        return false;
+    }
+}
+
 /**
  * Transparent top status overlay when:
  * - mobile browser (not standalone), or
@@ -72,6 +85,7 @@ export function shouldShowStatusOverlay(opts: {
     standalone?: boolean;
     displayMode?: ShellDisplayMode;
 }): boolean {
+    if (isNativeCapacitorHost()) return false;
     const standalone = opts.standalone ?? isShellStandaloneDisplay();
     if (standalone) return false;
     const mode = opts.displayMode ?? matchShellDisplayMode();

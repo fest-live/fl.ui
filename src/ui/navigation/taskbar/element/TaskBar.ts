@@ -25,6 +25,11 @@ import {
 import { buildShellDeviceTray, formatChromeClock, type ShellDeviceStatus } from "../../statusbar/statusbar";
 import { toggleCalendarFlyout } from "../../calendar/CalendarFlyout";
 import { toggleQuickSettingsFlyout } from "../../settings/QuickSettings";
+import {
+    isLauncherSku,
+    mountEnvironmentAppMenu,
+    type MountAppMenuResult
+} from "../../app-menu/AppMenu";
 
 /* Taskbar wrapper */
 import UIElement from "fl-ui/base/UIElement";
@@ -75,6 +80,8 @@ export type MountTaskBarResult = {
     setFocusedTaskId: (id: string) => void;
     /** Replace dynamic window tasks (Home / Markdown pins stay). */
     syncWindowTasks: (windows: EnvWindowTaskDescriptor[]) => void;
+    /** Launcher SKU app drawer (Task 4+); undefined on non-launcher builds. */
+    appMenu?: MountAppMenuResult;
     dispose: () => void;
 };
 
@@ -94,6 +101,36 @@ function isMobileChrome(): boolean {
     if (chrome instanceof HTMLElement && chrome.hasAttribute("data-desktop")) return false;
     if (chrome instanceof HTMLElement && chrome.dataset.chromeLayout === "mobile") return true;
     return typeof matchMedia === "function" && matchMedia("(max-width: 640px)").matches;
+}
+
+/** True when a managed sub-app window (explorer, settings, …) is visible on the desktop. */
+function hasVisibleManagedWindows(
+    windows: EnvWindowTaskDescriptor[],
+    focusedTaskId: refType<string>
+): boolean {
+    if (
+        windows.some((w) => {
+            const id = String(w.id || "").trim().toLowerCase();
+            if (!id || id === "home") return false;
+            return w.visible !== false && !w.minimized;
+        })
+    ) {
+        return true;
+    }
+    const focused = String(focusedTaskId.value || "home").trim().toLowerCase();
+    if (focused && focused !== "home" && focused !== "viewer") return true;
+
+    const workspace = document.querySelector(".env-shell-workspace");
+    if (!workspace) return false;
+    for (const node of workspace.querySelectorAll("ui-window")) {
+        if (!(node instanceof HTMLElement)) continue;
+        if (node.hidden || node.hasAttribute("data-minimized")) continue;
+        const style = getComputedStyle(node);
+        if (style.display === "none" || style.visibility === "hidden") continue;
+        if (Number.parseFloat(style.opacity || "1") <= 0) continue;
+        return true;
+    }
+    return false;
 }
 
 function formatTrayClock(now = new Date()): { time: string; date: string } {
@@ -236,6 +273,9 @@ export function mountEnvironmentTaskBar(opts: EnvironmentTaskbarOptions): MountT
     switcher.appendChild(switcherList);
 
     bar.append(pinsHost, windowsHost, trayHost, switcher);
+
+    const launcherSku = isLauncherSku();
+    const appMenu = launcherSku ? mountEnvironmentAppMenu() : undefined;
 
     const windowTaskEls = new Map<string, HTMLElement>();
     let lastWindows: EnvWindowTaskDescriptor[] = [];
@@ -446,9 +486,38 @@ export function mountEnvironmentTaskBar(opts: EnvironmentTaskbarOptions): MountT
         }
     };
 
+    const syncAppMenuChrome = (): void => {
+        bar.toggleAttribute("data-app-menu-open", Boolean(appMenu?.isOpen()));
+    };
+
     const goHome = (): void => {
         closeSwitcher();
+        appMenu?.close();
+        syncAppMenuChrome();
         getBy(taskList, HOME_TASK)!.focus = true;
+        opts.onHome();
+    };
+
+    const toggleAppMenuFromStart = (): void => {
+        closeSwitcher();
+        appMenu?.toggle();
+        syncAppMenuChrome();
+        getBy(taskList, HOME_TASK)!.focus = true;
+        opts.focusedTaskId.value = "home";
+        paintActive();
+    };
+
+    const handleLauncherHomeTap = (): void => {
+        if (hasVisibleManagedWindows(lastWindows, opts.focusedTaskId)) {
+            goHome();
+            return;
+        }
+        if (appMenu?.isOpen()) {
+            appMenu.close();
+            syncAppMenuChrome();
+            return;
+        }
+        toggleAppMenuFromStart();
     };
 
     tHome.addEventListener("click", (ev) => {
@@ -456,6 +525,12 @@ export function mountEnvironmentTaskBar(opts: EnvironmentTaskbarOptions): MountT
             ev.preventDefault();
             ev.stopPropagation();
             longPressFired = false;
+            return;
+        }
+        if (launcherSku && appMenu) {
+            ev.preventDefault();
+            ev.stopPropagation();
+            handleLauncherHomeTap();
             return;
         }
         goHome();
@@ -689,9 +764,20 @@ export function mountEnvironmentTaskBar(opts: EnvironmentTaskbarOptions): MountT
     mq?.addEventListener?.("change", onMq);
     cleanupFns.push(() => mq?.removeEventListener?.("change", onMq));
 
+    if (appMenu) {
+        const onAppMenuSurface = (): void => syncAppMenuChrome();
+        bar.addEventListener("env-app-menu-open", onAppMenuSurface);
+        bar.addEventListener("env-app-menu-close", onAppMenuSurface);
+        cleanupFns.push(() => {
+            bar.removeEventListener("env-app-menu-open", onAppMenuSurface);
+            bar.removeEventListener("env-app-menu-close", onAppMenuSurface);
+        });
+    }
+
     const dispose = (): void => {
         clearLongPress();
         closeSwitcher();
+        appMenu?.dispose();
         barUnder?.destroy();
         barUnder = null;
         for (const fn of cleanupFns) {
@@ -706,5 +792,5 @@ export function mountEnvironmentTaskBar(opts: EnvironmentTaskbarOptions): MountT
         windowsHost.replaceChildren();
     };
 
-    return { element: bar, taskList, setFocusedTaskId, syncWindowTasks, dispose };
+    return { element: bar, taskList, setFocusedTaskId, syncWindowTasks, appMenu, dispose };
 }

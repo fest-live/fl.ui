@@ -9,6 +9,7 @@ export * from "./navigation/appearance/Mobile";
 export * from "./navigation/flyout/ChromeFlyout";
 export * from "./navigation/calendar/CalendarFlyout";
 export * from "./navigation/settings/QuickSettings";
+export * from "./navigation/app-menu/AppMenu";
 
 //
 export * from "./containers/window/Windows2";

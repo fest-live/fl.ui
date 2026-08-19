@@ -20,6 +20,16 @@ void Windows2;
 
 const DESK_INSET = 8;
 
+function isNativeCapacitorShell(): boolean {
+    try {
+        if (document.documentElement.dataset.cwspNativeShell === "capacitor") return true;
+        const c = (globalThis as { Capacitor?: { isNativePlatform?: () => boolean } }).Capacitor;
+        return typeof c?.isNativePlatform === "function" && Boolean(c.isNativePlatform());
+    } catch {
+        return false;
+    }
+}
+
 /** When mounted under `.env-shell-root`, add this boost so windows stack above the home layer. */
 function readEnvWindowZBoost(host: HTMLElement | null | undefined): number {
     const shell = host?.closest?.(".env-shell-root") ?? host?.closest?.("env-shell-container");
@@ -177,7 +187,10 @@ export function mountUiWindow(
             (shellEl instanceof HTMLElement && shellEl.hasAttribute("data-standalone")) ||
             document.documentElement.hasAttribute("data-env-standalone");
         const statusGap = statusOverlay && !isNative && !isMin && (isMobMax || isDeskMax);
-        const noTitlebar = standalone && mqMobile && !isNative && !isMin;
+        const nativeCapacitor = isNativeCapacitorShell();
+        const noTitlebar =
+            (standalone && mqMobile && !isNative && !isMin) ||
+            (nativeCapacitor && mqMobile && !isNative && !isMin);
 
         win.toggleAttribute("native-mode", isNative && !isMin);
         win.toggleAttribute("minimized", isMin);

@@ -18,11 +18,108 @@ import {
     resolveItemOpenLinkTarget,
     resolveSpeedDialItemHref,
     snapshotSpeedDialItem,
+    getSpeedDialMeta,
     type SpeedDialItem,
     type SpeedDialMetaRegistry
 } from "./launcher-state";
 import { showSuccess, showError } from "./toast";
 import { getSpeedDialViewOpener } from "./view-opener";
+
+/** Minimal launcher IPC surface — host registers at boot (Capacitor entry). */
+export type LauncherBridgeSpeedDialApi = {
+    launcherLaunch: (pkg: string, component?: string) => Promise<boolean>;
+    launcherIcon?: (cacheKey: string, size?: number) => Promise<string>;
+};
+
+let registeredLauncherBridge: LauncherBridgeSpeedDialApi | null = null;
+
+/** Host injects launcher IPC when dynamic `com/routing/native/launcher-bridge` is unavailable. */
+export function setLauncherBridgeForSpeedDial(api: LauncherBridgeSpeedDialApi | null): void {
+    registeredLauncherBridge = api;
+}
+
+async function resolveLauncherBridgeForSpeedDial(): Promise<LauncherBridgeSpeedDialApi | null> {
+    if (registeredLauncherBridge) return registeredLauncherBridge;
+    try {
+        return (await import("com/routing/native/launcher-bridge")) as LauncherBridgeSpeedDialApi;
+    } catch {
+        return null;
+    }
+}
+
+/** Apply fetched Android icon URL to a tile `<img>`. */
+export function applyLauncherIconImgUrl(host: HTMLImageElement, dataUrl: string): void {
+    const url = String(dataUrl || "").trim();
+    if (!url) return;
+    host.src = url;
+    host.toggleAttribute("data-launcher-icon-ready", true);
+}
+
+/** @deprecated WebView often ignores `mask-image: var(--url)` — prefer {@link applyLauncherIconImgUrl}. */
+export function applyLauncherIconMaskUrl(host: HTMLElement, dataUrl: string): void {
+    const url = String(dataUrl || "").trim();
+    if (!url) return;
+    const safe = url.replace(/"/g, '\\"');
+    const maskValue = `url("${safe}")`;
+    host.style.setProperty("-webkit-mask-image", maskValue);
+    host.style.setProperty("mask-image", maskValue);
+    host.toggleAttribute("data-launcher-icon-ready", true);
+}
+
+/** Create a launcher app icon `<img>` host (`data-launcher-icon`). */
+export function createLauncherIconImgElement(): HTMLImageElement {
+    const host = document.createElement("img");
+    host.className = "ui-ws-item-icon-img";
+    host.dataset.launcherIcon = "1";
+    host.alt = "";
+    host.decoding = "async";
+    host.draggable = false;
+    return host;
+}
+
+/** Create a launcher app icon mask host (`data-launcher-icon`). */
+export function createLauncherIconMaskElement(): HTMLElement {
+    const host = document.createElement("span");
+    host.className = "ui-ws-item-icon-mask";
+    host.dataset.launcherIcon = "1";
+    host.setAttribute("aria-hidden", "true");
+    return host;
+}
+
+/** Load Android app icon into a SpeedDial tile (`launch-app` meta). */
+export async function hydrateLauncherAppTileIcon(
+    el: HTMLElement,
+    item: { id: string; action?: string }
+): Promise<void> {
+    const meta = getSpeedDialMeta(item.id);
+    const action = String(meta?.action || item.action || "").trim();
+    if (action !== "launch-app" && meta?.entityType !== "android-app") return;
+
+    const cacheKey = String(meta?.iconCacheKey || meta?.packageName || "").trim();
+    if (!cacheKey) return;
+
+    const bridge = await resolveLauncherBridgeForSpeedDial();
+    if (!bridge?.launcherIcon) return;
+
+    let dataUrl = "";
+    try {
+        dataUrl = await bridge.launcherIcon(cacheKey, 64);
+    } catch {
+        return;
+    }
+    if (!dataUrl || !el.isConnected) return;
+
+    el.querySelector(".ui-ws-item-icon-mask[data-launcher-icon]")?.remove();
+
+    let img = el.querySelector<HTMLImageElement>("img[data-launcher-icon]");
+    if (!img) {
+        img = createLauncherIconImgElement();
+        const uiIcon = el.querySelector("ui-icon");
+        if (uiIcon) uiIcon.replaceWith(img);
+        else el.prepend(img);
+    }
+    applyLauncherIconImgUrl(img, dataUrl);
+}
 
 /*
  * Markdown-view family alias normalization (inlined from
@@ -358,6 +455,33 @@ const installBuiltins = (): void => {
      * INVARIANT: never `location.assign` — go through the registered view
      * opener so the shell controls window/tab placement.
      */
+    iconsPerAction.set("launch-app", "device-mobile");
+    labelsPerAction.set("launch-app", (d: any) => `Launch ${d?.label || d?.packageName || "app"}`);
+    actionRegistry.set("launch-app", async (context: any, entityDesc?: any) => {
+        const item =
+            context?.items?.find?.((i: SpeedDialItem) => i?.id === context?.id) ||
+            (entityDesc?.id ? entityDesc : null);
+        const metaMap = context?.meta as SpeedDialMetaRegistry | undefined;
+        const itemId = String(entityDesc?.id || context?.id || item?.id || "").trim();
+        const meta =
+            (itemId && metaMap?.get ? metaMap.get(itemId) : null) ||
+            entityDesc?.meta ||
+            null;
+        const pkg = String(meta?.packageName || entityDesc?.packageName || "").trim();
+        if (!pkg) {
+            showError("App missing");
+            return;
+        }
+        const bridge = await resolveLauncherBridgeForSpeedDial();
+        if (!bridge?.launcherLaunch) {
+            showError("Unable to launch app");
+            return;
+        }
+        const component = String(meta?.componentName || entityDesc?.componentName || "").trim() || undefined;
+        const ok = await bridge.launcherLaunch(pkg, component);
+        if (!ok) showError("Unable to launch app");
+    });
+
     iconsPerAction.set("open-path", "folder");
     labelsPerAction.set("open-path", (d: any) => `Open ${d?.label || d?.path || "path"}`);
     actionRegistry.set("open-path", async (context: any, entityDesc?: any) => {

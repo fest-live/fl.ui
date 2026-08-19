@@ -1,0 +1,244 @@
+@layer ui-app-menu {
+    .env-shell-app-menu {
+        position: fixed;
+        z-index: calc(var(--env-z-shell-chrome, 2147483000) + 2);
+        inset-inline: 0;
+        inset-block-end: var(--env-shell-chrome-stack-reserve, 3rem);
+        display: grid;
+        align-items: end;
+        justify-items: start;
+        padding: 0.5rem;
+        padding-inline-start: max(0.5rem, env(safe-area-inset-left, 0px));
+        pointer-events: none;
+        box-sizing: border-box;
+    }
+
+    .env-shell-app-menu[hidden] {
+        display: none !important;
+    }
+
+    .env-shell-app-menu__panel {
+        pointer-events: auto;
+        display: grid;
+        gap: 0.75rem;
+        inline-size: min(420px, calc(100vw - 1rem));
+        max-block-size: min(520px, calc(100dvb - var(--env-shell-chrome-stack-reserve, 3rem) - 1rem));
+        padding: 0.85rem;
+        border-radius: 14px;
+        border: 1px solid color-mix(in oklab, var(--color-outline-variant, #888) 70%, transparent);
+        background: var(--color-surface, light-dark(#f4f4f5, #1c1c1e));
+        color: var(--color-on-surface, inherit);
+        box-shadow:
+            0 20px 48px -20px rgba(0, 0, 0, 0.45),
+            0 2px 8px -2px rgba(0, 0, 0, 0.25);
+        overflow: auto;
+        animation: env-app-menu-in 140ms cubic-bezier(0.22, 0.8, 0.3, 1);
+    }
+
+    .env-shell-app-menu__banner {
+        display: grid;
+        gap: 0.65rem;
+        padding: 0.65rem 0.75rem;
+        border-radius: 10px;
+        background: color-mix(in oklab, var(--color-primary, #60cdff) 14%, transparent);
+        border: 1px solid color-mix(in oklab, var(--color-primary, #60cdff) 35%, transparent);
+    }
+
+    .env-shell-app-menu__banner[hidden] {
+        display: none !important;
+    }
+
+    .env-shell-app-menu__banner-text {
+        margin: 0;
+        font: 500 0.9rem/1.35 ui-sans-serif, system-ui, sans-serif;
+    }
+
+    .env-shell-app-menu__banner-action {
+        justify-self: start;
+    }
+
+    .env-shell-app-menu__search {
+        inline-size: 100%;
+        padding: 0.55rem 0.65rem;
+        border-radius: 10px;
+        border: 1px solid color-mix(in oklab, var(--color-outline-variant, #888) 55%, transparent);
+        background: color-mix(in oklab, var(--color-surface, #fff) 92%, transparent);
+        color: inherit;
+        font: 400 0.9rem/1.2 ui-sans-serif, system-ui, sans-serif;
+        box-sizing: border-box;
+    }
+
+    .env-shell-app-menu__search[hidden] {
+        display: none !important;
+    }
+
+    .env-shell-app-menu__grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(4.5rem, 1fr));
+        gap: 0.5rem;
+        min-block-size: 2rem;
+    }
+
+    .env-shell-app-menu__grid[hidden] {
+        display: none !important;
+    }
+
+    .env-shell-app-menu__tile {
+        display: grid;
+        gap: 0.35rem;
+        justify-items: center;
+        align-content: start;
+        padding: 0.45rem 0.25rem;
+        border: 0;
+        border-radius: 12px;
+        background: transparent;
+        color: inherit;
+        cursor: pointer;
+        text-align: center;
+    }
+
+    .env-shell-app-menu__tile:hover,
+    .env-shell-app-menu__tile:focus-visible {
+        background: color-mix(in oklab, var(--color-primary, #60cdff) 12%, transparent);
+        outline: none;
+    }
+
+    .env-shell-app-menu__tile--dragging {
+        opacity: 0.45;
+    }
+
+    html[data-app-menu-dragging] .env-shell-app-menu {
+        pointer-events: none;
+    }
+
+    html[data-app-menu-dragging] .env-shell-app-menu__panel {
+        opacity: 0.35;
+    }
+
+    .env-shell-app-menu__drag-ghost {
+        position: fixed;
+        z-index: calc(var(--env-z-shell-chrome, 2147483000) + 8);
+        inset: 0 auto auto 0;
+        display: grid;
+        gap: 0.35rem;
+        justify-items: center;
+        inline-size: 4.5rem;
+        pointer-events: none;
+        will-change: transform;
+    }
+
+    .env-shell-app-menu__drag-ghost-icon {
+        display: grid;
+        place-items: center;
+        inline-size: 3rem;
+        block-size: 3rem;
+        padding: 0.55rem;
+        border-radius: 22%;
+        background: color-mix(in oklab, var(--color-surface-container, #111827) 80%, transparent);
+        box-shadow: 0 8px 24px -8px rgba(0, 0, 0, 0.55);
+        backdrop-filter: blur(16px) saturate(1.2);
+        -webkit-backdrop-filter: blur(16px) saturate(1.2);
+        box-sizing: border-box;
+
+        @supports (corner-shape: squircle) {
+            corner-shape: squircle;
+        }
+
+        .ui-ws-item-icon-img,
+        img[data-launcher-icon] {
+            inline-size: var(--launcher-icon-size, 1.85rem);
+            block-size: var(--launcher-icon-size, 1.85rem);
+            object-fit: contain;
+            object-position: center;
+            pointer-events: none;
+        }
+    }
+
+    .env-shell-app-menu__drag-ghost-label {
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
+        overflow: hidden;
+        font: 600 0.68rem/1.15 ui-sans-serif, system-ui, sans-serif;
+        text-align: center;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+    }
+
+    .env-shell-app-menu__tile-icon {
+        display: grid;
+        place-items: center;
+        inline-size: 3rem;
+        block-size: 3rem;
+        padding: 0.55rem;
+        border-radius: 22%;
+        background: color-mix(in oklab, var(--color-surface-container, #111827) 80%, transparent);
+        box-shadow: 0 6px 24px -8px color-mix(in oklab, #000 38%, transparent);
+        backdrop-filter: blur(16px) saturate(1.2);
+        -webkit-backdrop-filter: blur(16px) saturate(1.2);
+        box-sizing: border-box;
+        overflow: hidden;
+
+        @supports (corner-shape: squircle) {
+            corner-shape: squircle;
+        }
+
+        .ui-ws-item-icon-img,
+        img[data-launcher-icon] {
+            inline-size: var(--launcher-icon-size, 1.85rem);
+            block-size: var(--launcher-icon-size, 1.85rem);
+            object-fit: contain;
+            object-position: center;
+            pointer-events: none;
+        }
+    }
+
+    .env-shell-app-menu__tile-label {
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
+        overflow: hidden;
+        font: 500 0.68rem/1.15 ui-sans-serif, system-ui, sans-serif;
+        word-break: break-word;
+    }
+
+    .env-shell-app-menu__empty {
+        grid-column: 1 / -1;
+        margin: 0.5rem 0;
+        text-align: center;
+        opacity: 0.75;
+        font: 400 0.85rem/1.3 ui-sans-serif, system-ui, sans-serif;
+    }
+
+    @keyframes env-app-menu-in {
+        from {
+            opacity: 0;
+            transform: translateY(8px) scale(0.98);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+    }
+
+    .env-shell-app-menu__pin-menu {
+        position: fixed;
+        z-index: calc(var(--env-z-shell-chrome, 2147483000) + 4);
+        display: grid;
+        gap: 0.25rem;
+        min-inline-size: 10rem;
+        padding: 0.35rem;
+        border-radius: 10px;
+        border: 1px solid color-mix(in oklab, var(--color-outline-variant, #888) 70%, transparent);
+        background: var(--color-surface, light-dark(#f4f4f5, #1c1c1e));
+        color: var(--color-on-surface, inherit);
+        box-shadow:
+            0 12px 32px -12px rgba(0, 0, 0, 0.45),
+            0 2px 8px -2px rgba(0, 0, 0, 0.25);
+    }
+
+    .env-shell-app-menu__pin-action {
+        justify-content: start;
+        inline-size: 100%;
+        text-align: start;
+    }
+}

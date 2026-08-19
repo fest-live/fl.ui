@@ -55,8 +55,8 @@
     ));
     --ui-win-border: color-mix(in oklab, var(--ui-win-fg) 12%, transparent);
     --ui-win-titlebar-bg: var(--color-surface-container, light-dark(
-        --u2-color-mod(var(--ui-win-seed), 20),
-        --u2-color-mod(var(--ui-win-seed), 980)
+        --u2-color-mod(var(--ui-win-seed), 40),
+        --u2-color-mod(var(--ui-win-seed), 960)
     ));
     --ui-win-content-bg: var(--color-surface-container-lowest, light-dark(
         --u2-color-mod(var(--ui-win-seed), 40),

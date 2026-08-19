@@ -7,6 +7,7 @@
 
 @use "../design/_wavy-runtime.scss" as *;
 @use "../design/_shapes.scss" as *;
+@use "./launcher-icon-mask";
 
 /*
  * WHY: Do not @use ../../styles/... — Vite resolveSymlinks=false-ish / preserveSymlinks
@@ -203,6 +204,8 @@
             &.ui-ws-item-icon {
                 display: grid;
                 transition: background-color 200ms ease, box-shadow 200ms ease;
+                --icon-size: 2.2rem;
+                --launcher-icon-mask-scale: 1.12;
                 /*grid-column: 1 / -1;
                 grid-row: 1 / -1;*/
                 aspect-ratio: 1 / 1;
@@ -281,7 +284,9 @@
                     }
                 }
 
-                &.ui-ws-item-icon-image {
+                &.ui-ws-item-icon-image,
+                img[data-launcher-icon],
+                .ui-ws-item-icon-img {
                     position: absolute;
                     inset: 0.45rem;
                     inline-size: calc(100% - 0.9rem);
@@ -291,6 +296,17 @@
                     pointer-events: none;
                     z-index: 3;
                     filter: drop-shadow(0 1px 3px #0003);
+                }
+
+                /* Mask path (optional) — ink from `_launcher-icon-mask.scss`. */
+                .ui-ws-item-icon-mask[data-launcher-icon] {
+                    position: absolute;
+                    inset: 0;
+                    margin: auto;
+                    pointer-events: none;
+                    z-index: 3;
+                    --launcher-icon-size: var(--icon-size, 2.2rem);
+                    --launcher-icon-mask-scale: 1.12;
                 }
 
                 ui-icon {

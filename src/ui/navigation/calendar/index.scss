@@ -364,9 +364,9 @@ button {
 /* Week / Day timeline */
 
 .timeline-scroll {
-    overflow-x: auto;
-    overflow-y: hidden;
-    overscroll-behavior-inline: contain;
+    max-height: min(75vh, 720px);
+    overflow: auto;
+    overscroll-behavior: contain;
 }
 
 .timeline {
@@ -379,6 +379,33 @@ button {
     // Week path: time rows × day columns. --lane-count mirrors the day count
     // and is set inline on the same element.
     min-width: var(--timeline-min-width, 980px);
+
+    // Sticky day headers (top) so the weekday row stays visible while
+    // scrolling the tall time grid vertically.
+    .timeline-header {
+        position: sticky;
+        top: 0;
+        z-index: 4;
+    }
+
+    // Sticky time axis (left) so hour labels stay visible while scrolling
+    // the wide day grid horizontally.
+    .time-axis {
+        position: sticky;
+        left: 0;
+        z-index: 3;
+    }
+
+    // Sticky corner (both axes): the empty .time-head cell sits at the
+    // intersection of the sticky header and the sticky time axis, so it
+    // must pin in both directions and own an opaque background.
+    .time-head {
+        position: sticky;
+        top: 0;
+        left: 0;
+        z-index: 5;
+        background: var(--calendar-surface);
+    }
 }
 
 .timeline-header,

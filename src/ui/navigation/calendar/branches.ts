@@ -85,11 +85,16 @@ export function resolveBranches(
   const rows = [...normalizedBase, ...dynamicBranches];
 
   if (hasUnassignedEvents || rows.length === 0) {
-    rows.push({
-      id: UNASSIGNED_BRANCH_ID,
-      label: UNASSIGNED_LABEL,
-      pinned: false,
-    });
+    const hasUnassignedRow = rows.some(
+      (row) => row.id === UNASSIGNED_BRANCH_ID,
+    );
+    if (!hasUnassignedRow) {
+      rows.push({
+        id: UNASSIGNED_BRANCH_ID,
+        label: UNASSIGNED_LABEL,
+        pinned: false,
+      });
+    }
   }
 
   return rows;

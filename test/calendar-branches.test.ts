@@ -49,3 +49,12 @@ test("base id not duplicated when event uses it", () => {
   );
   assert.deepEqual(rows.map((r) => r.id), ["work"]);
 });
+
+test("base unassigned not duplicated when event lacks branchId", () => {
+  const rows = resolveBranches(
+    [{ id: UNASSIGNED_BRANCH_ID, label: "Общее", pinned: true }],
+    [{ start: t("2026-08-19T10:00:00"), branchId: undefined }],
+  );
+  assert.deepEqual(rows.map((r) => r.id), [UNASSIGNED_BRANCH_ID]);
+  assert.equal(rows.length, 1);
+});

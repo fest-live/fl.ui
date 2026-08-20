@@ -364,6 +364,8 @@
             --icon-size: 100%;
             --icon-padding: 0px;
             pointer-events: none;
+            transform: scale(1.28);
+            transform-origin: center;
         }
     }
 
@@ -490,6 +492,8 @@
             --icon-padding: 0px;
             pointer-events: none;
             z-index: 1;
+            transform: scale(1.28);
+            transform-origin: center;
         }
     }
 

@@ -66,13 +66,14 @@
         pointer-events: auto;
         min-inline-size: 0px;
         min-block-size: 0px;
-        max-inline-size: 100%;
-        max-block-size: 100%;
-        inline-size: 100%;
-        block-size: 100%;
+        max-inline-size: max(100%, 100lvi);
+        max-block-size: max(100%, 100lvb);
+        inline-size: max(100%, 100lvi);
+        block-size: max(100%, 100lvb);
         box-sizing: border-box;
         inset: 0;
-        position: absolute;
+        inset-block-end: auto;
+        position: fixed;
         background-color: transparent;
         overflow: hidden;
         border-radius: 0px;
@@ -114,10 +115,20 @@
         padding: var(--speed-dial-padding, 1rem);
         border-radius: 0px;
 
+        @media (orientation: portrait) {
+            padding-block: 2.5rem;
+            padding-inline: 1.5rem;
+        }
+
+        @media (orientation: landscape) {
+            padding-inline: 2.5rem;
+            padding-block: 1.5rem;
+        }
+
         // Stack order: labels on top so overflowing text below icon tiles is visible.
         // Labels layer is pointer-events: none so it never blocks interaction.
         &[data-grid-layer="icons"] {
-            z-index: 1;
+            z-index: 2;
             background: transparent !important;
             pointer-events: none;
             isolation: isolate;
@@ -129,7 +140,7 @@
         }
 
         &[data-grid-layer="labels"] {
-            z-index: 2;
+            z-index: 1;
             background: transparent !important;
             pointer-events: none !important;
             isolation: isolate;
@@ -143,8 +154,8 @@
             --drag-y: 0px;
             --tile-size: 4rem;
 
-            grid-column: var(--cell-column, auto);
-            grid-row: var(--cell-row, auto);
+            grid-column: clamp(1, var(--cell-column, auto), var(--grid-columns, var(--cs-layout-c, 4)));
+            grid-row: clamp(1, var(--cell-row, auto), var(--grid-rows, var(--cs-layout-r, 8)));
 
             position: relative;
             display: grid;

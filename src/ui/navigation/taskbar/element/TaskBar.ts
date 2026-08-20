@@ -82,6 +82,8 @@ export type MountTaskBarResult = {
     syncWindowTasks: (windows: EnvWindowTaskDescriptor[]) => void;
     /** Launcher SKU app drawer (Task 4+); undefined on non-launcher builds. */
     appMenu?: MountAppMenuResult;
+    /** Open app menu with taskbar chrome sync (swipe-up from Speed Dial). */
+    openAppMenu?: () => void;
     isSwitcherOpen?: () => boolean;
     closeSwitcher?: () => void;
     dispose: () => void;
@@ -509,6 +511,17 @@ export function mountEnvironmentTaskBar(opts: EnvironmentTaskbarOptions): MountT
         paintActive();
     };
 
+    /** Open only — used by empty-desktop swipe-up on Capacitor. */
+    const openAppMenuFromDesktop = (): void => {
+        if (!appMenu || appMenu.isOpen()) return;
+        closeSwitcher();
+        appMenu.open();
+        syncAppMenuChrome();
+        getBy(taskList, HOME_TASK)!.focus = true;
+        opts.focusedTaskId.value = "home";
+        paintActive();
+    };
+
     const handleLauncherHomeTap = (): void => {
         if (hasVisibleManagedWindows(lastWindows, opts.focusedTaskId)) {
             goHome();
@@ -800,6 +813,7 @@ export function mountEnvironmentTaskBar(opts: EnvironmentTaskbarOptions): MountT
         setFocusedTaskId,
         syncWindowTasks,
         appMenu,
+        openAppMenu: appMenu ? openAppMenuFromDesktop : undefined,
         isSwitcherOpen: () => switcherOpen,
         closeSwitcher,
         dispose

@@ -234,7 +234,8 @@ export const openShortcutEditor = (options: ShortcutEditorOptions): void => {
                 <div class="modal-field" data-field="open-link-target">
                     <label for="sd-edit-open-target">Open link in</label>
                     <select id="sd-edit-open-target" name="openLinkTarget">
-                        <option value="inline">Open Inline (env window, same tab)</option>
+                        <option value="inline">Open Inline (iframe window, same tab)</option>
+                        <option value="external-app">Open in app (Android chooser)</option>
                         <option value="native-window">Native window (new browser window)</option>
                         <option value="new-tab">Open in new tab</option>
                     </select>
@@ -320,7 +321,13 @@ export const openShortcutEditor = (options: ShortcutEditorOptions): void => {
                 ? "native-window"
                 : olt === "new-tab" || olt === "tab" || olt === "browser" || olt === "browser-tab"
                   ? "new-tab"
-                  : "inline";
+                  : olt === "external-app" ||
+                      olt === "app" ||
+                      olt === "chooser" ||
+                      olt === "open-with" ||
+                      olt === "open-in-app"
+                    ? "external-app"
+                    : "inline";
     }
     if (hrefInput) {
         fillTextControl(hrefInput, hrefValue);
@@ -440,6 +447,15 @@ export const openShortcutEditor = (options: ShortcutEditorOptions): void => {
                 const v = String(openLinkTargetSelect?.value || "inline").toLowerCase();
                 if (v === "native-window" || v === "native" || v === "window") return "native-window";
                 if (v === "new-tab" || v === "tab" || v === "browser") return "new-tab";
+                if (
+                    v === "external-app" ||
+                    v === "app" ||
+                    v === "chooser" ||
+                    v === "open-with" ||
+                    v === "open-in-app"
+                ) {
+                    return "external-app";
+                }
                 return "inline";
             })()
         });

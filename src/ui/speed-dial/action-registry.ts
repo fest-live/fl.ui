@@ -37,6 +37,12 @@ import {
 /** Minimal launcher IPC surface — host registers at boot (Capacitor entry). */
 export type LauncherBridgeSpeedDialApi = {
     launcherLaunch: (pkg: string, component?: string) => Promise<boolean>;
+    launcherStartShortcut?: (pkg: string, shortcutId: string) => Promise<boolean>;
+    launcherShortcutIcon?: (pkg: string, shortcutId: string, size?: number) => Promise<string>;
+    launcherOpenUri?: (
+        uri: string,
+        options?: { packageName?: string; chooser?: boolean; title?: string; mimeType?: string }
+    ) => Promise<boolean>;
     launcherIcon?: (
         cacheKey: string,
         size?: number,
@@ -90,6 +96,14 @@ export function getCachedLauncherIconObjectUrl(
 ): string {
     const pkg = String(cacheKey || "").trim();
     if (!pkg) return "";
+    if (pkg.startsWith("shortcut:")) {
+        const rest = pkg.slice("shortcut:".length);
+        const slash = rest.indexOf("/");
+        if (slash > 0) {
+            return getCachedShortcutIconObjectUrl(rest.slice(0, slash), rest.slice(slash + 1), size);
+        }
+        return "";
+    }
     return (
         launcherIconObjectUrlCache.get(
             androidIconCacheKey(pkg, variant, pack, drawable, size)
@@ -100,12 +114,83 @@ export function getCachedLauncherIconObjectUrl(
 export function getLauncherAppTileCacheKey(item: { id: string; action?: string }): string {
     const meta = getSpeedDialMeta(item.id);
     const action = String(meta?.action || item.action || "").trim();
-    if (action !== "launch-app" && meta?.entityType !== "android-app") return "";
+    /*
+     * WHY: launch-shortcut must never use the publisher app package as icon cache key —
+     * that paints Material Files instead of the document shortcut icon.
+     */
+    if (action === "launch-shortcut" || meta?.entityType === "android-shortcut") {
+        const pkg = String(meta?.packageName || "").trim();
+        const sid = String((meta as { shortcutId?: string } | null)?.shortcutId || "").trim();
+        if (pkg && sid) return `shortcut:${pkg}/${sid}`;
+        return "";
+    }
+    if (action !== "launch-app" && meta?.entityType !== "android-app") {
+        return "";
+    }
     return String(meta?.iconCacheKey || meta?.packageName || "").trim();
 }
 
 export function isLauncherAppSpeedDialItem(item: { id: string; action?: string }): boolean {
+    const meta = getSpeedDialMeta(item.id);
+    const action = String(meta?.action || item.action || "").trim();
+    if (action === "launch-shortcut" || meta?.entityType === "android-shortcut") return true;
     return getLauncherAppTileCacheKey(item).length > 0;
+}
+
+const shortcutIconObjectUrlCache = new Map<string, string>();
+const shortcutIconInflight = new Map<string, Promise<string>>();
+
+/** Fetch pinned-shortcut icon (document thumbnail / type icon), not the app icon. */
+export async function ensureShortcutIconObjectUrl(
+    pkg: string,
+    shortcutId: string,
+    size = 96
+): Promise<string> {
+    const packageName = String(pkg || "").trim();
+    const id = String(shortcutId || "").trim();
+    if (!packageName || !id) return "";
+    const sz = Math.max(16, Math.min(512, Math.round(Number(size) || 96)));
+    const key = `shortcut:${packageName}/${id}@${sz}`;
+    const cached = shortcutIconObjectUrlCache.get(key);
+    if (cached) return cached;
+
+    let inflight = shortcutIconInflight.get(key);
+    if (!inflight) {
+        inflight = (async () => {
+            const bridge = await resolveLauncherBridgeForSpeedDial();
+            if (!bridge?.launcherShortcutIcon) return "";
+            let dataUrl = "";
+            try {
+                dataUrl = String(await bridge.launcherShortcutIcon(packageName, id, sz) || "").trim();
+            } catch {
+                return "";
+            }
+            if (!dataUrl) return "";
+            try {
+                const objectUrl = await dataUrlToObjectUrl(dataUrl);
+                shortcutIconObjectUrlCache.set(key, objectUrl);
+                return objectUrl;
+            } catch {
+                return dataUrl;
+            }
+        })().finally(() => {
+            shortcutIconInflight.delete(key);
+        });
+        shortcutIconInflight.set(key, inflight);
+    }
+    return inflight;
+}
+
+export function getCachedShortcutIconObjectUrl(
+    pkg: string,
+    shortcutId: string,
+    size = 96
+): string {
+    const packageName = String(pkg || "").trim();
+    const id = String(shortcutId || "").trim();
+    if (!packageName || !id) return "";
+    const sz = Math.max(16, Math.min(512, Math.round(Number(size) || 96)));
+    return shortcutIconObjectUrlCache.get(`shortcut:${packageName}/${id}@${sz}`) || "";
 }
 
 /** Fetch native icon once, convert data: URL → blob: object URL for WebView. */
@@ -118,6 +203,14 @@ export async function ensureLauncherIconObjectUrl(
 ): Promise<string> {
     const pkg = String(cacheKey || "").trim();
     if (!pkg) return "";
+    if (pkg.startsWith("shortcut:")) {
+        const rest = pkg.slice("shortcut:".length);
+        const slash = rest.indexOf("/");
+        if (slash > 0) {
+            return ensureShortcutIconObjectUrl(rest.slice(0, slash), rest.slice(slash + 1), size);
+        }
+        return "";
+    }
     const v = normalizeAndroidIconVariant(variant);
     const packPkg = String(pack || "").trim();
     const draw = String(drawable || "").trim();
@@ -468,6 +561,74 @@ const iconsPerAction = new Map<string, string>();
 let builtinsInstalled = false;
 
 /**
+ * Prefer content/file/http data over `intent:` that embeds the publisher package.
+ * Also unwrap `intent:content://…#Intent;…` / `intent://…#Intent;scheme=https;…`.
+ */
+const preferDataUriOverIntent = (
+    href: string,
+    meta?: { href?: string; intentUri?: string } | null
+): string => {
+    const candidates = [
+        String(href || "").trim(),
+        String(meta?.href || "").trim(),
+        String((meta as { intentUri?: string } | null | undefined)?.intentUri || "").trim()
+    ].filter(Boolean);
+    for (const c of candidates) {
+        if (/^(content:|file:|https?:)/i.test(c)) return c;
+    }
+    const intentish = candidates.find((c) => /^intent:/i.test(c)) || "";
+    if (!intentish) return String(href || "").trim();
+
+    const direct =
+        intentish.match(/^intent:(content:[^#]+)/i) ||
+        intentish.match(/^intent:(file:[^#]+)/i) ||
+        intentish.match(/^intent:(https?:[^#]+)/i);
+    if (direct?.[1]) return direct[1];
+
+    const dataParam = intentish.match(/;data=((?:content|file|https?):[^;]+)/i);
+    if (dataParam?.[1]) {
+        try {
+            return decodeURIComponent(dataParam[1]);
+        } catch {
+            return dataParam[1];
+        }
+    }
+
+    /* intent://host/path#Intent;scheme=content|https;… */
+    const schemeMatch = intentish.match(/;scheme=([a-zA-Z][a-zA-Z0-9+.-]*)/i);
+    const pathMatch = intentish.match(/^intent:([^#]*)#/i);
+    if (schemeMatch?.[1] && pathMatch) {
+        const sch = schemeMatch[1].toLowerCase();
+        if (sch === "http" || sch === "https" || sch === "content" || sch === "file") {
+            let rest = String(pathMatch[1] || "");
+            if (rest.startsWith("//")) return `${sch}:${rest}`;
+            if (rest.startsWith("/")) return `${sch}:/${rest}`; /* rare */
+            if (rest) return `${sch}://${rest}`;
+        }
+    }
+    return String(href || "").trim();
+};
+
+const guessMimeFromHrefOrLabel = (href: string, label: string): string => {
+    const name = `${label} ${href}`.toLowerCase();
+    if (/\.txt(\b|$|[?#])/i.test(name) || /\.log(\b|$|[?#])/i.test(name) || /\.csv(\b|$|[?#])/i.test(name)) {
+        return "text/plain";
+    }
+    if (/\.md(\b|$|[?#])/i.test(name) || /\.markdown(\b|$|[?#])/i.test(name)) return "text/markdown";
+    if (/\.pdf(\b|$|[?#])/i.test(name)) return "application/pdf";
+    if (/\.png(\b|$|[?#])/i.test(name)) return "image/png";
+    if (/\.jpe?g(\b|$|[?#])/i.test(name)) return "image/jpeg";
+    if (/\.gif(\b|$|[?#])/i.test(name)) return "image/gif";
+    if (/\.webp(\b|$|[?#])/i.test(name)) return "image/webp";
+    if (/\.mp4(\b|$|[?#])/i.test(name)) return "video/mp4";
+    if (/\.mp3(\b|$|[?#])/i.test(name)) return "audio/mpeg";
+    if (/\.html?(\b|$|[?#])/i.test(name)) return "text/html";
+    if (/\.json(\b|$|[?#])/i.test(name)) return "application/json";
+    if (/\.zip(\b|$|[?#])/i.test(name)) return "application/zip";
+    return "";
+};
+
+/**
  * Turn bare view tokens (`settings`, `#workcenter`, `/viewer`) into absolute
  * mono-app URLs (`https://host/settings?shell=environment&native=1&view=settings`).
  * External http(s)/mailto links pass through unchanged.
@@ -475,7 +636,13 @@ let builtinsInstalled = false;
 export const normalizeSpeedDialOpenHref = (raw: string): string => {
     const input = String(raw || "").trim();
     if (!input) return "";
-    if (/^(mailto:|blob:|data:)/i.test(input)) return input;
+    if (/^(mailto:|blob:|data:|content:|file:|intent:|package:|android-app:)/i.test(input)) {
+        return input;
+    }
+    /* Other absolute schemes (custom providers) — do not rewrite to mono views. */
+    if (/^[a-z][a-z0-9+.-]*:/i.test(input) && !/^https?:/i.test(input)) {
+        return input;
+    }
 
     const asView = (candidate: string): string => {
         const view = resolveOpenViewTarget(candidate);
@@ -617,7 +784,7 @@ const installBuiltins = (): void => {
         const meta = item && metaMap?.get ? metaMap.get(item.id) : null;
         /*
          * - native-window → PWA app window when installed (mono `?native=1`); else detached
-         * - inline → openView in current environment shell (same tab)
+         * - inline → floating env window (app view) or iframe browser for http(s)
          * - new-tab → ordinary browser tab (`target=_blank`) for http(s)/www or app URL
          */
         const raw = meta?.href || (item as any)?.href || context?.href || resolveSpeedDialItemHref(item);
@@ -632,8 +799,17 @@ const installBuiltins = (): void => {
                 : resolveItemOpenLinkTarget(meta);
         const opener = context?.viewMaker ?? getSpeedDialViewOpener();
 
-        /* Inline: always in-session env window — never a second browser window/tab. */
+        /* Inline: http(s) → iframe browser first (never markdown viewer). */
         if (linkTarget === "inline") {
+            if (externalHref && typeof opener === "function") {
+                try {
+                    /* Flat params — HomeView spreads into ViewOptions.params. */
+                    opener("browser", { url: externalHref, href: externalHref });
+                    return;
+                } catch (e) {
+                    console.warn("[speed-dial] inline browser open failed", e);
+                }
+            }
             if (view && typeof opener === "function") {
                 try {
                     opener(view, {});
@@ -642,16 +818,52 @@ const installBuiltins = (): void => {
                     console.warn("[speed-dial] inline openView failed; falling back to URL", e);
                 }
             }
-            if (externalHref && typeof opener === "function") {
-                try {
-                    /* Prefer in-shell viewer for arbitrary http(s) when available. */
-                    opener("viewer", { params: { url: externalHref, href: externalHref } } as any);
-                    return;
-                } catch (e) {
-                    console.warn("[speed-dial] inline viewer open failed", e);
-                }
+            if (externalHref && openInNewBrowserTab(externalHref)) {
+                showError("Inline embed unavailable — opened in a new tab");
+                return;
             }
             showError(externalHref ? "Unable to open link inline" : "Link is missing");
+            return;
+        }
+
+        const openViaNativeUri = async (
+            href: string,
+            opts: { chooser: boolean }
+        ): Promise<boolean> => {
+            const bridge = await resolveLauncherBridgeForSpeedDial();
+            if (!bridge?.launcherOpenUri) return false;
+            const mimeType = String(
+                (meta as { mimeType?: string } | null)?.mimeType ||
+                    guessMimeFromHrefOrLabel(href, String(meta?.description || item?.label || ""))
+            ).trim();
+            try {
+                return await bridge.launcherOpenUri(href, {
+                    chooser: opts.chooser,
+                    title: opts.chooser ? "Open with" : undefined,
+                    ...(mimeType ? { mimeType } : {})
+                });
+            } catch {
+                return false;
+            }
+        };
+
+        /* Android/Cap: system chooser (Chrome, YouTube, …). Web → new tab. */
+        if (linkTarget === "external-app") {
+            const href = externalHref
+                ? externalHref
+                : view
+                  ? buildSpeedDialViewPathHref(view, true, { native: false })
+                  : normalizeSpeedDialOpenHref(String(raw || ""));
+            if (!href) {
+                showError("Link is missing");
+                return;
+            }
+            /* Prefer plain content/file/http over intent: that embeds publisher package. */
+            const openHref = preferDataUriOverIntent(href, meta);
+            if (await openViaNativeUri(openHref, { chooser: true })) return;
+            if (!openInNewBrowserTab(href)) {
+                showError("Unable to open in app");
+            }
             return;
         }
 
@@ -666,13 +878,15 @@ const installBuiltins = (): void => {
                 showError("Link is missing");
                 return;
             }
+            /* Cap WebView: prefer ACTION_VIEW (default handler) over window.open. */
+            if (externalHref && (await openViaNativeUri(href, { chooser: false }))) return;
             if (!openInNewBrowserTab(href)) {
                 showError("Unable to open new tab");
             }
             return;
         }
 
-        /* Native / detached window: mono boot for app views; sized window for http(s). */
+        /* Native / detached window: mono boot for app views; Cap http(s) → chooser. */
         const href = externalHref
             ? externalHref
             : view
@@ -682,6 +896,7 @@ const installBuiltins = (): void => {
             showError("Link is missing");
             return;
         }
+        if (externalHref && (await openViaNativeUri(href, { chooser: true }))) return;
         if (!openInDetachedBrowserWindow(href)) {
             showError("Unable to open native window (popup blocked?)");
         }
@@ -751,7 +966,18 @@ const installBuiltins = (): void => {
             (itemId && metaMap?.get ? metaMap.get(itemId) : null) ||
             entityDesc?.meta ||
             null;
+        /* WHY: old pins wrongly stored Material Files as launch-app — upgrade if shortcutId present. */
+        const shortcutId = String(
+            (meta as { shortcutId?: string } | null)?.shortcutId || entityDesc?.shortcutId || ""
+        ).trim();
         const pkg = String(meta?.packageName || entityDesc?.packageName || "").trim();
+        if (shortcutId && pkg) {
+            const bridge = await resolveLauncherBridgeForSpeedDial();
+            if (bridge?.launcherStartShortcut) {
+                const ok = await bridge.launcherStartShortcut(pkg, shortcutId);
+                if (ok) return;
+            }
+        }
         if (!pkg) {
             showError("App missing");
             return;
@@ -764,6 +990,38 @@ const installBuiltins = (): void => {
         const component = String(meta?.componentName || entityDesc?.componentName || "").trim() || undefined;
         const ok = await bridge.launcherLaunch(pkg, component);
         if (!ok) showError("Unable to launch app");
+    });
+
+    iconsPerAction.set("launch-shortcut", "folder");
+    labelsPerAction.set(
+        "launch-shortcut",
+        (d: any) => `Open ${d?.label || d?.shortcutId || "shortcut"}`
+    );
+    actionRegistry.set("launch-shortcut", async (context: any, entityDesc?: any) => {
+        const item =
+            context?.items?.find?.((i: SpeedDialItem) => i?.id === context?.id) ||
+            (entityDesc?.id ? entityDesc : null);
+        const metaMap = context?.meta as SpeedDialMetaRegistry | undefined;
+        const itemId = String(entityDesc?.id || context?.id || item?.id || "").trim();
+        const meta =
+            (itemId && metaMap?.get ? metaMap.get(itemId) : null) ||
+            entityDesc?.meta ||
+            null;
+        const pkg = String(meta?.packageName || entityDesc?.packageName || "").trim();
+        const shortcutId = String(
+            (meta as { shortcutId?: string } | null)?.shortcutId || entityDesc?.shortcutId || ""
+        ).trim();
+        if (!pkg || !shortcutId) {
+            showError("Shortcut missing");
+            return;
+        }
+        const bridge = await resolveLauncherBridgeForSpeedDial();
+        if (!bridge?.launcherStartShortcut) {
+            showError("Unable to open shortcut");
+            return;
+        }
+        const ok = await bridge.launcherStartShortcut(pkg, shortcutId);
+        if (!ok) showError("Unable to open shortcut");
     });
 
     iconsPerAction.set("open-path", "folder");

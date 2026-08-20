@@ -227,6 +227,89 @@ const syncGridLayout = (root: HTMLElement): void => {
     scheduleLabelPlacementSync(root);
 };
 
+/** Capacitor / coarse pointer: swipe up on empty Speed Dial → App Menu. */
+const SWIPE_APP_MENU_MIN_DY = 72;
+const SWIPE_APP_MENU_MAX_DX_RATIO = 0.75;
+
+const isNativeCapacitorOrCoarse = (): boolean => {
+    try {
+        const c = (globalThis as { Capacitor?: { isNativePlatform?: () => boolean } }).Capacitor;
+        if (typeof c?.isNativePlatform === "function" && c.isNativePlatform()) return true;
+    } catch {
+        /* ignore */
+    }
+    return typeof matchMedia === "function" && matchMedia("(pointer: coarse)").matches;
+};
+
+const tryOpenLauncherAppMenu = (): void => {
+    const api = (globalThis as { __CWSP_LAUNCHER_HOME__?: { openAppMenu?: () => void } })
+        .__CWSP_LAUNCHER_HOME__;
+    if (typeof api?.openAppMenu === "function") {
+        api.openAppMenu();
+        return;
+    }
+    const hooks = (
+        globalThis as { __CWSP_LAUNCHER_HOME_HOOKS_V1__?: { openAppMenu?: () => void } }
+    ).__CWSP_LAUNCHER_HOME_HOOKS_V1__;
+    hooks?.openAppMenu?.();
+};
+
+const isEmptySpeedDialSurface = (root: HTMLElement, target: EventTarget | null): boolean => {
+    if (!(target instanceof Element)) return target === root;
+    if (!root.contains(target)) return false;
+    return !target.closest(
+        "[data-speed-dial-item], .ui-ws-item, dialog, .cw-context-menu-layer, .env-shell-app-menu, .speed-dial-editor"
+    );
+};
+
+const bindEmptySpaceSwipeOpenAppMenu = (root: HTMLElement): void => {
+    if (root.dataset.swipeAppMenuBound === "1") return;
+    if (!isLauncherSku() || !isNativeCapacitorOrCoarse()) return;
+    root.dataset.swipeAppMenuBound = "1";
+
+    let tracking = false;
+    let pointerId = -1;
+    let startX = 0;
+    let startY = 0;
+
+    root.addEventListener(
+        "pointerdown",
+        (ev: PointerEvent) => {
+            if (ev.pointerType === "mouse") return;
+            if (!isEmptySpeedDialSurface(root, ev.target)) return;
+            if (document.querySelector(".env-shell-app-menu[data-open]")) return;
+            tracking = true;
+            pointerId = ev.pointerId;
+            startX = ev.clientX;
+            startY = ev.clientY;
+        },
+        { passive: true }
+    );
+
+    const endTrack = (ev: PointerEvent): void => {
+        if (!tracking || ev.pointerId !== pointerId) return;
+        tracking = false;
+        pointerId = -1;
+        const dx = ev.clientX - startX;
+        const dy = ev.clientY - startY;
+        if (dy > -SWIPE_APP_MENU_MIN_DY) return;
+        if (Math.abs(dx) > Math.abs(dy) * SWIPE_APP_MENU_MAX_DX_RATIO) return;
+        tryOpenLauncherAppMenu();
+    };
+
+    root.addEventListener("pointerup", endTrack, { passive: true });
+    root.addEventListener(
+        "pointercancel",
+        (ev: PointerEvent) => {
+            if (ev.pointerId === pointerId) {
+                tracking = false;
+                pointerId = -1;
+            }
+        },
+        { passive: true }
+    );
+};
+
 const bindRootOrientation = (root: HTMLElement): void => {
     if (root.dataset.orientObserverBound === "true") {
         syncGridLayout(root);
@@ -253,6 +336,7 @@ const bindRootOrientation = (root: HTMLElement): void => {
             { capture: true }
         );
     }
+    bindEmptySpaceSwipeOpenAppMenu(root);
     const observer = new MutationObserver((records) => {
         if (records.some((record) => record.attributeName === "orient")) {
             syncGridLayout(root);
@@ -552,9 +636,14 @@ const bindCell = (el: HTMLElement, args: any): void => {
 let lastItemOpenKey = "";
 let lastItemOpenAt = 0;
 
-const runItemAction = (item: SpeedDialItem, actionId?: string, extras: { event?: Event; initiator?: HTMLElement } = {}, makeView?: any) => {
+const runItemAction = (
+    item: SpeedDialItem,
+    actionId?: string,
+    extras: { event?: Event; initiator?: HTMLElement; openLinkTarget?: string } = {},
+    makeView?: any
+) => {
     const resolvedAction = resolveItemAction(item, actionId);
-    const openKey = `${item?.id || ""}::${resolvedAction}`;
+    const openKey = `${item?.id || ""}::${resolvedAction}::${extras?.openLinkTarget || ""}`;
     const now = typeof performance !== "undefined" ? performance.now() : Date.now();
     // WHY: `ref=` can re-run attachItemNode and stack duplicate click listeners → double open.
     if (openKey && openKey === lastItemOpenKey && now - lastItemOpenAt < 400) {
@@ -570,7 +659,8 @@ const runItemAction = (item: SpeedDialItem, actionId?: string, extras: { event?:
         items: speedDialItems,
         meta: speedDialMeta,
         action: resolvedAction,
-        viewMaker: makeView
+        viewMaker: makeView,
+        ...(extras?.openLinkTarget ? { openLinkTarget: extras.openLinkTarget } : {})
     };
     try {
         action(context as any, item, extras?.initiator);
@@ -590,7 +680,7 @@ const attachItemNode = (item: SpeedDialItem, el?: HTMLElement | null, interactiv
     if (interactive) {
         el.addEventListener("dragstart", (ev)=>ev.preventDefault());
         bindSpeedDialTileIconChrome(el, item);
-        if (resolveItemAction(item) === "launch-app") {
+        if (resolveItemAction(item) === "launch-app" || resolveItemAction(item) === "launch-shortcut") {
             const meta = getSpeedDialMeta(item.id);
             const display = String(
                 getRefValue((meta as { iconDisplay?: unknown } | null)?.iconDisplay, "") ||
@@ -1596,7 +1686,13 @@ const openItemEditor = (item?: SpeedDialItem, opts?: {
                         ? "native-window"
                         : v === "new-tab" || v === "tab" || v === "browser" || v === "browser-tab"
                           ? "new-tab"
-                          : "inline";
+                          : v === "external-app" ||
+                              v === "app" ||
+                              v === "chooser" ||
+                              v === "open-with" ||
+                              v === "open-in-app"
+                            ? "external-app"
+                            : "inline";
             }
             if (isNew) {
                 addSpeedDialItem(workingItem);
@@ -1677,6 +1773,22 @@ export function createCtxMenu(makeView?: any) {
                             toLeaf(createMenuEntryForAction(resolveItemAction(item) || "open-view", item, "Run action", getSpeedDialViewOpener() || makeView)),
                             ...(getSpeedDialMeta(item.id)?.href ? [
                                 toLeaf(createMenuEntryForAction("open-link", item, "Open link", getSpeedDialViewOpener() || makeView)),
+                                {
+                                    id: "open-in-app",
+                                    label: "Open in app…",
+                                    icon: "arrow-square-out",
+                                    action: () =>
+                                        runItemAction(
+                                            item,
+                                            "open-link",
+                                            {
+                                                event,
+                                                initiator: targetEl as HTMLElement,
+                                                openLinkTarget: "external-app"
+                                            },
+                                            getSpeedDialViewOpener() || makeView
+                                        )
+                                },
                                 toLeaf(createMenuEntryForAction("copy-link", item, "Copy link", getSpeedDialViewOpener() || makeView))
                             ] : []),
                             toLeaf(createMenuEntryForAction("copy-state-desc", item, "Copy shortcut JSON", getSpeedDialViewOpener() || makeView))
@@ -1779,7 +1891,14 @@ export function createCtxMenu(makeView?: any) {
                                         showSuccess("Shortcut created from clipboard");
                                     } catch (e) {
                                         console.warn(e);
-                                        showError("Failed to paste shortcut");
+                                        const msg = String((e as Error)?.message || e || "");
+                                        if (/empty/i.test(msg)) {
+                                            showError("Clipboard is empty");
+                                        } else if (/unavailable|denied|failed|permission/i.test(msg)) {
+                                            showError("Could not read clipboard on this device");
+                                        } else {
+                                            showError("Failed to paste shortcut");
+                                        }
                                     }
                                 }
                             }

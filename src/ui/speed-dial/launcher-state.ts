@@ -98,11 +98,12 @@ export interface SpeedDialItemMeta {
 /**
  * How Open link / Open opens a destination.
  * - `native-window` — new **PWA app window** when installed (`?native=1`); else detached window
- * - `inline` — same tab, floating `ui-window` in the current environment shell
+ * - `inline` — same tab, floating `ui-window` (app views or iframe for http(s))
  * - `new-tab` — ordinary browser **tab** (`target=_blank`) for http(s)/www or app URL
+ * - `external-app` — Android/Cap: ACTION_VIEW chooser (Chrome, YouTube, …); web: same as new-tab
  * COMPAT: persisted `in-shell` → `inline`. Literal `new-tab` is the browser-tab mode again.
  */
-export type OpenLinkTarget = "native-window" | "inline" | "new-tab";
+export type OpenLinkTarget = "native-window" | "inline" | "new-tab" | "external-app";
 
 const OPEN_LINK_TARGET_KEY = "rs-open-link-target";
 
@@ -122,6 +123,16 @@ export const normalizeOpenLinkTarget = (raw: unknown): OpenLinkTarget => {
         v === "external-tab"
     ) {
         return "new-tab";
+    }
+    if (
+        v === "external-app" ||
+        v === "app" ||
+        v === "chooser" ||
+        v === "open-with" ||
+        v === "open-in-app" ||
+        v === "intent"
+    ) {
+        return "external-app";
     }
     if (v === "native-window" || v === "native" || v === "window" || v === "app-window") {
         return "native-window";
@@ -162,10 +173,32 @@ export const normalizeExternalWebHref = (raw: unknown): string => {
 export const getDefaultOpenLinkTarget = (): OpenLinkTarget => {
     try {
         const stored = localStorage.getItem(OPEN_LINK_TARGET_KEY);
-        if (stored == null || !String(stored).trim()) return "inline";
+        if (stored == null || !String(stored).trim()) {
+            /* Cap/Android: system chooser is the useful default for http(s) tiles. */
+            return prefersExternalAppOpenLink() ? "external-app" : "inline";
+        }
         return normalizeOpenLinkTarget(stored);
     } catch {
-        return "inline";
+        return prefersExternalAppOpenLink() ? "external-app" : "inline";
+    }
+};
+
+/** Capacitor / coarse launcher — Open in app (chooser) beats inline iframe. */
+const prefersExternalAppOpenLink = (): boolean => {
+    try {
+        const c = (globalThis as { Capacitor?: { isNativePlatform?: () => boolean } }).Capacitor;
+        if (typeof c?.isNativePlatform === "function" && c.isNativePlatform()) return true;
+    } catch {
+        /* ignore */
+    }
+    try {
+        const launcher =
+            document.documentElement.dataset.cwspShellRole === "launcher" ||
+            (globalThis as { __RS_SHELL_ROLE__?: string }).__RS_SHELL_ROLE__ === "launcher";
+        if (!launcher) return false;
+        return typeof matchMedia === "function" && matchMedia("(pointer: coarse)").matches;
+    } catch {
+        return false;
     }
 };
 
@@ -181,8 +214,7 @@ export const resolveItemOpenLinkTarget = (meta?: SpeedDialItemMeta | null): Open
     if (meta?.openLinkTarget != null && String(meta.openLinkTarget).trim()) {
         return normalizeOpenLinkTarget(meta.openLinkTarget);
     }
-    /* WHY: http(s)/www tiles default to a browser tab, not mono native app chrome. */
-    if (isExternalWebHref(meta?.href)) return "new-tab";
+    /* WHY: Settings `Open links in` applies to http(s) too (inline → iframe window). */
     return getDefaultOpenLinkTarget();
 };
 
@@ -462,11 +494,38 @@ export const speedDialItems = bootSpeedDialItems();
  * INVARIANT: public names `speedDialItems` / `speedDialMeta` /
  * `persistSpeedDialItems` / `persistSpeedDialMeta` are unchanged. OPFS failure is
  * non-fatal — we warn and keep LS as the persistence carrier.
+ *
+ * WHY (Cap pin flash): Vite can load this file via `./launcher-state` and
+ * `fl-ui/speed-dial/launcher-state` as two module graphs. Items/meta already use
+ * globalThis singletons; hydrate dirty/ready MUST too — otherwise pin marks dirty
+ * on copy B while hydrate on copy A splices the shared array and the tile vanishes.
  */
-let opfsIo: LinkStoreIo | null = null;
-let opfsReady: Promise<void> | null = null;
-let opfsFlushTimer: ReturnType<typeof setTimeout> | null = null;
-let opfsHydrated = false;
+const LINK_STORE_BOOT = "__CWSP_LINK_STORE_BOOT_V1__";
+
+type LinkStoreBootSlot = {
+    opfsIo: LinkStoreIo | null;
+    opfsReady: Promise<void> | null;
+    opfsFlushTimer: ReturnType<typeof setTimeout> | null;
+    opfsHydrated: boolean;
+    userEditedBeforeHydrate: boolean;
+    /** WHY: bumped on every user edit so hydrate can abort even if dirty was already true. */
+    editGen: number;
+};
+
+const linkStoreBoot = (): LinkStoreBootSlot => {
+    const g = globalThis as Record<string, LinkStoreBootSlot | undefined>;
+    if (!g[LINK_STORE_BOOT]) {
+        g[LINK_STORE_BOOT] = {
+            opfsIo: null,
+            opfsReady: null,
+            opfsFlushTimer: null,
+            opfsHydrated: false,
+            userEditedBeforeHydrate: false,
+            editGen: 0
+        };
+    }
+    return g[LINK_STORE_BOOT]!;
+};
 
 /*
  * Task 3 — Mirror mode state.
@@ -589,11 +648,15 @@ if (typeof globalThis !== "undefined") {
  * The scheduled OPFS flush still runs (it awaits `opfsReady`) and writes
  * the newer state to OPFS when dirty.
  */
-let userEditedBeforeHydrate = false;
-
-/** WHY: boot/init code may persist before hydrate; only user edits skip the OPFS splice. */
+/**
+ * WHY: always stamp dirty — even after hydrate flipped true mid-hydrate.
+ * Pin/Share can land between the dirty re-check and the `splice`. Dirty is on
+ * globalThis so dual Vite module graphs share the same signal.
+ */
 const markUserEditedBeforeHydrate = (): void => {
-    if (!opfsHydrated) userEditedBeforeHydrate = true;
+    const boot = linkStoreBoot();
+    boot.userEditedBeforeHydrate = true;
+    boot.editGen = (boot.editGen || 0) + 1;
 };
 
 const getLsLike = (): { getItem(k: string): string | null; setItem(k: string, v: string): void } | null => {
@@ -627,29 +690,45 @@ const packMetaFileFromState = (): LinkStoreMetaFile => {
 };
 
 const flushLinkStoreToOpfs = async (): Promise<void> => {
-    if (!opfsIo) return;
+    const boot = linkStoreBoot();
+    if (!boot.opfsIo) return;
     // WHY: wait for init (migration + hydration) so a sync-boot persist can't
     // overwrite newer OPFS data with stale LS state before hydration reads it.
     try {
-        await opfsReady;
+        await boot.opfsReady;
     } catch {
         return;
     }
-    if (!opfsIo) return;
+    if (!boot.opfsIo) return;
     try {
         const items = packLinksFromSpeedDial(speedDialItems as any);
+        /* WHY: href/path live in speedDialMeta registry, not on the item object. */
+        for (const item of items) {
+            const meta = speedDialMeta?.get?.(item.id);
+            if (!meta) continue;
+            if (!item.href && meta.href) item.href = String(meta.href);
+            if (!item.path && (meta as { path?: string }).path) {
+                item.path = String((meta as { path?: string }).path);
+            }
+            if (!item.action && meta.action) item.action = String(meta.action);
+        }
         const meta = packMetaFileFromState();
-        await writeLinkStore(opfsIo, items, meta);
+        await writeLinkStore(boot.opfsIo, items, meta);
     } catch (e) {
         console.warn("[link-store] OPFS write failed; localStorage remains primary", e);
     }
 };
 
 const scheduleOpfsFlush = (): void => {
-    if (!opfsIo) return;
-    if (opfsFlushTimer) clearTimeout(opfsFlushTimer);
-    opfsFlushTimer = setTimeout(() => {
-        opfsFlushTimer = null;
+    const boot = linkStoreBoot();
+    /*
+     * WHY: Cap Share / CONFIRM_PIN often lands before `createOpfsLinkStoreIo` finishes.
+     * Do not require `opfsIo` here — `flushLinkStoreToOpfs` awaits `opfsReady` then writes.
+     * Skipping the schedule left pin only in LS while a later hydrate/reload used stale OPFS.
+     */
+    if (boot.opfsFlushTimer) clearTimeout(boot.opfsFlushTimer);
+    boot.opfsFlushTimer = setTimeout(() => {
+        boot.opfsFlushTimer = null;
         void flushLinkStoreToOpfs();
     }, 150);
 };
@@ -665,26 +744,26 @@ const scheduleOpfsFlush = (): void => {
  * newer state instead.
  */
 const hydrateFromOpfs = async (io: LinkStoreIo): Promise<void> => {
-    if (opfsHydrated) return;
-    if (userEditedBeforeHydrate) {
+    const boot = linkStoreBoot();
+    if (boot.opfsHydrated) return;
+    if (boot.userEditedBeforeHydrate) {
         // WHY: user/UI already edited the boot state; keep it, skip the splice.
         // The scheduled flush will write the newer state to OPFS.
-        opfsHydrated = true;
+        boot.opfsHydrated = true;
         return;
     }
+    const editGenAtStart = boot.editGen || 0;
     try {
         const got = await readLinkStore(io);
         if (!got || !got.items.length) {
-            opfsHydrated = true;
+            boot.opfsHydrated = true;
             return;
         }
-        // WHY: re-check the dirty flag after the async read — an edit may have
-        // landed while we were awaiting OPFS. If so, keep the in-memory state.
-        if (userEditedBeforeHydrate) {
-            opfsHydrated = true;
+        // WHY: re-check dirty + editGen after the async read — Cap pin can land mid-await.
+        if (boot.userEditedBeforeHydrate || boot.editGen !== editGenAtStart) {
+            boot.opfsHydrated = true;
             return;
         }
-        opfsHydrated = true;
         const nextItems: SpeedDialItem[] = [];
         const nextMeta = new Map<string, SpeedDialItemMeta>();
         for (const raw of got.items) {
@@ -710,7 +789,20 @@ const hydrateFromOpfs = async (io: LinkStoreIo): Promise<void> => {
             nextItems.push(observe(item) as any);
             nextMeta.set(item.id, meta);
         }
-        if (!nextItems.length) return;
+        if (!nextItems.length) {
+            boot.opfsHydrated = true;
+            return;
+        }
+        /*
+         * WHY: Share / CONFIRM_PIN_SHORTCUT often lands while we build `nextItems`.
+         * Re-check immediately before splice — otherwise the new tile flashes then
+         * vanishes and the pending OPFS flush persists the wipe.
+         */
+        if (boot.userEditedBeforeHydrate || boot.editGen !== editGenAtStart) {
+            boot.opfsHydrated = true;
+            return;
+        }
+        boot.opfsHydrated = true;
         // WHY: never splice-to-empty first — a throw mid-loop used to persist an empty grid.
         speedDialItems.splice(0, speedDialItems.length, ...nextItems);
         speedDialMeta.clear();
@@ -722,31 +814,43 @@ const hydrateFromOpfs = async (io: LinkStoreIo): Promise<void> => {
         }
     } catch (e) {
         console.warn("[link-store] OPFS hydration failed; using localStorage boot state", e);
+        linkStoreBoot().opfsHydrated = true;
     }
 };
 
 const initLinkStore = (): Promise<void> => {
-    if (opfsReady) return opfsReady;
-    opfsReady = (async () => {
+    const boot = linkStoreBoot();
+    if (boot.opfsReady) return boot.opfsReady;
+    boot.opfsReady = (async () => {
         const ls = getLsLike();
         try {
-            opfsIo = await createOpfsLinkStoreIo();
+            boot.opfsIo = await createOpfsLinkStoreIo();
         } catch (e) {
             console.warn("[link-store] OPFS unavailable; using localStorage", e);
-            opfsIo = null;
+            boot.opfsIo = null;
+            boot.opfsHydrated = true;
             return;
         }
-        if (!opfsIo) return;
+        if (!boot.opfsIo) return;
         try {
             if (ls) {
-                await migrateLocalStorageToOpfsIfNeeded(opfsIo, ls);
+                await migrateLocalStorageToOpfsIfNeeded(boot.opfsIo, ls);
             }
-            await hydrateFromOpfs(opfsIo);
+            await hydrateFromOpfs(boot.opfsIo);
+            /*
+             * WHY: pin during boot marks dirty and schedules flush, but the timer
+             * used to no-op when `opfsIo` was still null. After hydrate aborts for
+             * dirty, force a durable write so Cap shortcuts survive reload.
+             */
+            if (boot.userEditedBeforeHydrate) {
+                await flushLinkStoreToOpfs();
+            }
         } catch (e) {
             console.warn("[link-store] OPFS init failed; using localStorage boot state", e);
+            boot.opfsHydrated = true;
         }
     })();
-    return opfsReady;
+    return boot.opfsReady;
 };
 
 /**
@@ -754,6 +858,13 @@ const initLinkStore = (): Promise<void> => {
  * renders immediately from LS; this resolves after the async OPFS step.
  */
 export const linkStoreReady = (): Promise<void> => initLinkStore();
+
+/** Force durable OPFS write (Cap pin / Share) — do not wait for the 150ms debounce. */
+export const flushSpeedDialLinkStore = (): Promise<void> => flushLinkStoreToOpfs();
+
+/** True when `id` is still in the shared Speed Dial array (post-hydrate race check). */
+export const hasSpeedDialItemId = (id: string): boolean =>
+    Boolean(id && speedDialItems?.some?.((item) => String(item?.id) === id));
 
 /*
  * WHY: hydrate mirrorPath from the LS backup key synchronously so the grid
@@ -1886,6 +1997,14 @@ export const parseSpeedDialItemFromURL = (urlText: string, suggestedCell?: GridC
         const domain = hostname.replace(/^www\./, "");
         const pathname = url.pathname || "";
         const label = domain || url.host || "Link";
+        let favicon = "";
+        try {
+            if (hostname) {
+                favicon = `https://www.google.com/s2/favicons?domain=${encodeURIComponent(hostname)}&sz=256`;
+            }
+        } catch {
+            favicon = "";
+        }
 
         const item = createStatefulItem({
             id: generateItemId(),
@@ -1898,7 +2017,12 @@ export const parseSpeedDialItemFromURL = (urlText: string, suggestedCell?: GridC
         const meta: SpeedDialItemMeta = {
             action: "open-link",
             href: url.href,
-            description: `${label}${pathname ? ` - ${pathname}` : ""}`
+            description: `${label}${pathname ? ` - ${pathname}` : ""}`,
+            /* Cap/mobile: pasted/shared http(s) → system Open with, not inline iframe. */
+            openLinkTarget: prefersExternalAppOpenLink()
+                ? "external-app"
+                : getDefaultOpenLinkTarget(),
+            ...(favicon ? { iconUrl: favicon } : {})
         };
 
         ensureSpeedDialMeta(item.id, meta);
@@ -1909,8 +2033,216 @@ export const parseSpeedDialItemFromURL = (urlText: string, suggestedCell?: GridC
     }
 };
 
+/** Pin an http(s) / content / file / app shortcut from Android Share / pin-shortcut. */
+export function pinSpeedDialLinkFromIntent(
+    raw: {
+        url?: string;
+        href?: string;
+        label?: string;
+        text?: string;
+        source?: string;
+        action?: string;
+        packageName?: string;
+        componentName?: string;
+        intentUri?: string;
+        mimeType?: string;
+        shortcutId?: string;
+        iconUrl?: string;
+        iconDisplay?: string;
+    },
+    cell?: GridCell
+): SpeedDialItem | null {
+    const targetCell = cell ?? findNextFreeSpeedDialCell();
+    const label = String(raw?.label || "").trim();
+    const pkg = String(raw?.packageName || "").trim();
+    const component = String(raw?.componentName || "").trim();
+    const intentUri = String(raw?.intentUri || "").trim();
+    const href = String(raw?.url || raw?.href || intentUri || "").trim();
+    const actionHint = String(raw?.action || "").trim().toLowerCase();
+    const shortcutId = String(raw?.shortcutId || "").trim();
+    const mimeType = String(raw?.mimeType || "").trim() || guessMimeFromLabelOrHref(label, href);
+    const iconUrl = String((raw as { iconUrl?: string })?.iconUrl || "").trim();
+    const iconDisplay = String((raw as { iconDisplay?: string })?.iconDisplay || "").trim() || (iconUrl ? "colored" : "");
+
+    /*
+     * WHY: Material Files pin often has package+shortcutId and no content:// (Intent redacted).
+     * Must use launch-shortcut — never treat as launch-app (that just opens Files).
+     */
+    if (
+        actionHint === "launch-shortcut" ||
+        (shortcutId && pkg && !href && actionHint !== "launch-app")
+    ) {
+        if (!pkg || !shortcutId) return null;
+        const item = createStatefulItem({
+            id: generateItemId(),
+            cell: targetCell,
+            icon: "folder",
+            label: label || shortcutId,
+            action: "launch-shortcut"
+        });
+        ensureSpeedDialMeta(item.id, {
+            action: "launch-shortcut",
+            packageName: pkg,
+            shortcutId,
+            entityType: "android-shortcut",
+            /* WHY: never iconCacheKey=pkg — that duplicates the Files app icon. */
+            description: label || shortcutId,
+            ...(mimeType ? { mimeType } : {}),
+            ...(iconUrl ? { iconUrl, iconDisplay: iconDisplay || "colored" } : {})
+        });
+        addSpeedDialItem(item);
+        return item;
+    }
+
+    /* App launch tile (no URI). */
+    if (actionHint === "launch-app" || (pkg && !href && !shortcutId)) {
+        if (!pkg) return null;
+        const item = createStatefulItem({
+            id: generateItemId(),
+            cell: targetCell,
+            icon: "device-mobile",
+            label: label || pkg,
+            action: "launch-app"
+        });
+        ensureSpeedDialMeta(item.id, {
+            action: "launch-app",
+            packageName: pkg,
+            componentName: component || undefined,
+            entityType: "android-app",
+            iconCacheKey: pkg,
+            description: label || pkg
+        });
+        addSpeedDialItem(item);
+        return item;
+    }
+
+    if (!href) return null;
+
+    /* Virtual Explorer paths. */
+    if (isSpeedDialVirtualPath(href)) {
+        const item = parseSpeedDialItemFromVirtualPath(href, targetCell, {
+            label: label || undefined
+        });
+        if (!item) return null;
+        addSpeedDialItem(item);
+        return item;
+    }
+
+    /* http(s) / www */
+    if (/^https?:\/\//i.test(href) || /^www\./i.test(href)) {
+        const item = parseSpeedDialItemFromURL(href, targetCell);
+        if (!item) return null;
+        if (label) {
+            try {
+                item.label.value = label;
+            } catch {
+                /* ignore */
+            }
+            const meta = ensureSpeedDialMeta(item.id);
+            if (meta) (meta as { description?: string }).description = label;
+        }
+        addSpeedDialItem(item);
+        return item;
+    }
+
+    /* content://, file://, intent:, and other schemes → open via system VIEW. */
+    /*
+     * WHY: prefer the data URI (content/file/http) over `intent:` serialization.
+     * `Intent.toUri` keeps the publishing app's package/component (Material Files),
+     * so opening the intent URI launches Files instead of the document handler.
+     */
+    const dataHref = href;
+    const openHref =
+        /^(content:|file:|https?:)/i.test(dataHref)
+            ? dataHref
+            : (intentUri || dataHref);
+    const item = createStatefulItem({
+        id: generateItemId(),
+        cell: targetCell,
+        icon: /^content:|^file:/i.test(href) ? "folder" : "link",
+        label: label || href.replace(/^[a-z][a-z0-9+.-]*:/i, "").split("/").filter(Boolean).pop() || "Shortcut",
+        action: "open-link"
+    });
+    ensureSpeedDialMeta(item.id, {
+        action: "open-link",
+        href: openHref,
+        description: label || href,
+        openLinkTarget: "external-app",
+        /* WHY: publisher package must not force ACTION_VIEW — only launch-app tiles need it. */
+        ...(intentUri && intentUri !== openHref ? { intentUri } : {}),
+        ...(mimeType ? { mimeType } : {}),
+        ...(shortcutId ? { shortcutId } : {}),
+        ...(pkg ? { publisherPackage: pkg } : {}),
+        ...(iconUrl ? { iconUrl, iconDisplay: iconDisplay || "colored" } : {})
+    });
+    addSpeedDialItem(item);
+    return item;
+}
+
+const guessMimeFromLabelOrHref = (label: string, href: string): string => {
+    const name = `${label} ${href}`.toLowerCase();
+    if (/\.txt(\b|$)/i.test(name) || /\.log(\b|$)/i.test(name) || /\.csv(\b|$)/i.test(name)) {
+        return "text/plain";
+    }
+    if (/\.md(\b|$)/i.test(name) || /\.markdown(\b|$)/i.test(name)) return "text/markdown";
+    if (/\.pdf(\b|$)/i.test(name)) return "application/pdf";
+    if (/\.png(\b|$)/i.test(name)) return "image/png";
+    if (/\.jpe?g(\b|$)/i.test(name)) return "image/jpeg";
+    if (/\.gif(\b|$)/i.test(name)) return "image/gif";
+    if (/\.webp(\b|$)/i.test(name)) return "image/webp";
+    if (/\.mp4(\b|$)/i.test(name)) return "video/mp4";
+    if (/\.mp3(\b|$)/i.test(name)) return "audio/mpeg";
+    if (/\.html?(\b|$)/i.test(name)) return "text/html";
+    if (/\.json(\b|$)/i.test(name)) return "application/json";
+    if (/\.zip(\b|$)/i.test(name)) return "application/zip";
+    return "";
+};
+
+const CLIPBOARD_READ_HOOK = "__CWSP_READ_CLIPBOARD_TEXT__";
+const CAP_CLIPBOARD_PKGS = ["@capacitor/clipboard", "@supernotes/capacitor-clipboard"] as const;
+
+const isCapacitorNativeHost = (): boolean => {
+    try {
+        const c = (globalThis as { Capacitor?: { isNativePlatform?: () => boolean } }).Capacitor;
+        return typeof c?.isNativePlatform === "function" && Boolean(c.isNativePlatform());
+    } catch {
+        return false;
+    }
+};
+
+/** Cap WebView: navigator.clipboard is unreliable; prefer host hook / @capacitor/clipboard. */
+const readClipboardTextNative = async (): Promise<string> => {
+    const hook = (globalThis as Record<string, unknown>)[CLIPBOARD_READ_HOOK];
+    if (typeof hook === "function") {
+        try {
+            const value = await (hook as () => Promise<unknown>)();
+            if (typeof value === "string" && value.trim()) return value;
+        } catch {
+            /* fall through */
+        }
+    }
+    if (!isCapacitorNativeHost()) return "";
+    for (const pkg of CAP_CLIPBOARD_PKGS) {
+        try {
+            const mod = (await import(/* @vite-ignore */ pkg)) as {
+                Clipboard?: { read: () => Promise<{ value?: string }> };
+            };
+            if (!mod?.Clipboard?.read) continue;
+            const res = await mod.Clipboard.read();
+            const value = res?.value;
+            if (typeof value === "string" && value.trim()) return value;
+        } catch {
+            /* package missing in this shell */
+        }
+    }
+    return "";
+};
+
 const readClipboardTextBrowser = async (): Promise<{ ok: boolean; data?: string; error?: string }> => {
     try {
+        const native = await readClipboardTextNative();
+        if (native.trim()) return { ok: true, data: native };
+
         if (!navigator.clipboard?.readText) {
             return { ok: false, error: "clipboard.readText unavailable" };
         }
@@ -1922,17 +2254,24 @@ const readClipboardTextBrowser = async (): Promise<{ ok: boolean; data?: string;
 };
 
 export const createSpeedDialItemFromClipboard = async (suggestedCell?: GridCell): Promise<SpeedDialItem | null> => {
+    const clipboardResult = await readClipboardTextBrowser();
+    if (!clipboardResult.ok) {
+        console.warn("Failed to read clipboard text:", clipboardResult.error);
+        throw new Error(clipboardResult.error || "clipboard read failed");
+    }
+
+    const clipboardText = String(clipboardResult.data ?? "");
+    if (!clipboardText.trim()) {
+        throw new Error("clipboard empty");
+    }
+
     try {
-        const clipboardResult = await readClipboardTextBrowser();
-        if (!clipboardResult.ok || !clipboardResult.data) {
-            console.warn("Failed to read clipboard text:", clipboardResult.error);
-            return null;
+        // WHY: mobile browsers often put "Title\nhttps://…" or HTML <a href> — not a bare URL line.
+        const absolute = extractHttpUrlFromClipboardText(clipboardText);
+        if (absolute) {
+            return parseSpeedDialItemFromURL(absolute, suggestedCell);
         }
 
-        const clipboardText = String(clipboardResult.data);
-        if (!clipboardText.trim()) return null;
-
-        // WHY: take first non-comment line — same hygiene as drop uri-list parsing.
         const firstLine =
             clipboardText
                 .split(/\r?\n/)
@@ -1941,26 +2280,6 @@ export const createSpeedDialItemFromClipboard = async (suggestedCell?: GridCell)
         let trimmed = firstLine;
         if (trimmed.startsWith("<") && trimmed.endsWith(">")) {
             trimmed = trimmed.slice(1, -1).trim();
-        }
-
-        let absolute: string | null = null;
-        try {
-            const parsed = new URL(trimmed);
-            if (/^https?:$/i.test(parsed.protocol)) absolute = parsed.href;
-        } catch {
-            const bare =
-                /^(?:www\.)?(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z]{2,}(?:[/:?#][^\s]*)?$/i.test(trimmed);
-            if (bare && !/\s/.test(trimmed)) {
-                try {
-                    absolute = new URL(`https://${trimmed.replace(/^\/+/, "")}`).href;
-                } catch {
-                    absolute = null;
-                }
-            }
-        }
-
-        if (absolute) {
-            return parseSpeedDialItemFromURL(absolute, suggestedCell);
         }
 
         if (isSpeedDialVirtualPath(trimmed)) {
@@ -1977,4 +2296,41 @@ export const createSpeedDialItemFromClipboard = async (suggestedCell?: GridCell)
         console.warn("Failed to create speed dial item from clipboard:", e);
         return null;
     }
+};
+
+/** Mobile Chrome/Samsung often paste title+URL, HTML, or URI-list — find first usable http(s). */
+const extractHttpUrlFromClipboardText = (raw: string): string | null => {
+    const text = String(raw || "");
+    if (!text.trim()) return null;
+
+    const hrefMatch = text.match(/href\s*=\s*["'](https?:\/\/[^"']+)["']/i);
+    if (hrefMatch?.[1]) {
+        const n = normalizeExternalWebHref(hrefMatch[1]);
+        if (n) return n;
+    }
+
+    for (const line of text.split(/\r?\n/)) {
+        let trimmed = line.trim();
+        if (!trimmed || trimmed.startsWith("#")) continue;
+        if (trimmed.startsWith("<") && trimmed.endsWith(">")) {
+            trimmed = trimmed.slice(1, -1).trim();
+        }
+        const asUrl = normalizeExternalWebHref(trimmed);
+        if (asUrl) return asUrl;
+        try {
+            const parsed = new URL(trimmed);
+            if (/^https?:$/i.test(parsed.protocol)) return parsed.href;
+        } catch {
+            /* continue */
+        }
+    }
+
+    const embedded = text.match(/https?:\/\/[^\s<>"')\]]+/i);
+    if (embedded?.[0]) {
+        const cleaned = embedded[0].replace(/[.,;:]+$/u, "");
+        const n = normalizeExternalWebHref(cleaned);
+        if (n) return n;
+    }
+
+    return null;
 };

@@ -993,6 +993,41 @@ export function mountEnvironmentAppMenu(): MountAppMenuResult {
     root.setAttribute("aria-label", mode === "bookmarks" ? "Bookmarks" : "Apps");
     if (mode) root.setAttribute("data-menu-mode", mode);
 
+    const syncAppMenuColorScheme = (): void => {
+        try {
+            const html = document.documentElement;
+            const pinned = (html.getAttribute("data-theme") || "").toLowerCase();
+            const inline = (html.style.colorScheme || "").trim().toLowerCase();
+            const scheme =
+                pinned === "light" || pinned === "dark"
+                    ? pinned
+                    : inline === "light" || inline === "dark"
+                      ? inline
+                      : "";
+            if (scheme === "light" || scheme === "dark") {
+                root.dataset.theme = scheme;
+                root.style.colorScheme = scheme;
+                return;
+            }
+            delete root.dataset.theme;
+            root.style.colorScheme = "inherit";
+        } catch {
+            /* ignore */
+        }
+    };
+    syncAppMenuColorScheme();
+    const onThemeChange = (): void => syncAppMenuColorScheme();
+    document.addEventListener("u2-theme-change", onThemeChange);
+    const themeAttrObserver = new MutationObserver(onThemeChange);
+    try {
+        themeAttrObserver.observe(document.documentElement, {
+            attributes: true,
+            attributeFilter: ["data-theme", "data-scheme", "style"]
+        });
+    } catch {
+        /* ignore */
+    }
+
     const panel = document.createElement("div");
     panel.className = "env-shell-app-menu__panel";
     if (mode === "bookmarks") panel.setAttribute("data-layout", "start-split");
@@ -1092,6 +1127,7 @@ export function mountEnvironmentAppMenu(): MountAppMenuResult {
 
     const openMenu = (): void => {
         if (!isAppMenuEnabled()) return;
+        syncAppMenuColorScheme();
         open = true;
         syncVisibility();
         void refresh();
@@ -1342,6 +1378,12 @@ export function mountEnvironmentAppMenu(): MountAppMenuResult {
         if (searchTimer) clearTimeout(searchTimer);
         document.documentElement.toggleAttribute("data-app-menu-dragging", false);
         document.removeEventListener("pointerdown", onDocPointer, { capture: true } as EventListenerOptions);
+        document.removeEventListener("u2-theme-change", onThemeChange);
+        try {
+            themeAttrObserver.disconnect();
+        } catch {
+            /* ignore */
+        }
         root.remove();
     };
 

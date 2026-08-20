@@ -284,8 +284,8 @@
                     }
                 }
 
-                img[data-launcher-icon]:not([data-bookmark-favicon]),
-                .ui-ws-item-icon-img:not([data-bookmark-favicon]) {
+                /* Android adaptive bitmaps only — never S2 / chrome favicons. */
+                img[data-launcher-icon]:not([data-bookmark-favicon]) {
                     position: absolute;
                     inset: 0;
                     inline-size: 100%;
@@ -300,19 +300,26 @@
                     filter: drop-shadow(0 1px 3px #0003);
                 }
 
-                /* Bookmark favicons — full-bleed like Android launcher tiles (not inset Phosphor plate). */
-                img[data-bookmark-favicon] {
+                /*
+                 * Bookmark / S2 / chrome favicons — fill the plate shape (clipped by overflow),
+                 * but no Android adaptive scale(1.28) which over-zooms framed marks.
+                 */
+                img[data-bookmark-favicon],
+                .ui-ws-item-icon-img[data-bookmark-favicon],
+                .ui-ws-item-icon-img:not([data-launcher-icon]) {
                     position: absolute;
                     inset: 0;
-                    inline-size: 100%;
-                    block-size: 100%;
-                    object-fit: cover;
+                    inline-size: stretch;
+                    block-size: stretch;
+                    object-fit: contain;
                     object-position: center;
                     image-rendering: auto;
-                    border-radius: inherit;
+                    border-radius: 0;
                     pointer-events: none;
                     z-index: 3;
-                    filter: drop-shadow(0 1px 3px #0003);
+                    transform: none;
+                    aspect-ratio: 1 / 1;
+                    filter: drop-shadow(0 1px 2px #0002);
                 }
 
                 /* Mask path (optional) — ink from `_launcher-icon-mask.scss`. */
@@ -828,6 +835,40 @@
         box-shadow: 0 0 0 2px color-mix(in oklab, var(--sd-editor-accent) 28%, transparent);
     }
 
+    .speed-dial-editor__form .sd-icon-resource-row {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        align-items: center;
+        gap: 0.45rem;
+        min-inline-size: 0;
+    }
+
+    .speed-dial-editor__form .sd-icon-resource-row > input {
+        inline-size: 100%;
+        min-inline-size: 0;
+    }
+
+    .speed-dial-editor__form .sd-icon-resource-pick {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        inline-size: 2.4rem;
+        block-size: 2.4rem;
+        min-inline-size: 2.4rem;
+        padding: 0;
+        flex: 0 0 auto;
+    }
+
+    .speed-dial-editor__form .sd-icon-resource-pick ui-icon {
+        --icon-size: 1.25rem;
+        --icon-padding: 0;
+        inline-size: var(--icon-size);
+        block-size: var(--icon-size);
+        min-inline-size: var(--icon-size);
+        min-block-size: var(--icon-size);
+        pointer-events: none;
+    }
+
     .speed-dial-editor__form .modal-actions {
         display: grid;
         grid-template-columns: 1fr auto auto;
@@ -1115,4 +1156,148 @@
     white-space: nowrap !important;
     min-inline-size: 0 !important;
     max-inline-size: none !important;
+}
+
+/* WHY: Cap WebView dropped layered grid — button sat under the resource input. */
+.speed-dial-editor__form .sd-icon-resource-row {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) 2.5rem !important;
+    align-items: stretch !important;
+    gap: 0.45rem !important;
+    min-inline-size: 0 !important;
+    inline-size: 100% !important;
+}
+
+.speed-dial-editor__form .sd-icon-resource-row > input {
+    inline-size: 100% !important;
+    min-inline-size: 0 !important;
+    max-inline-size: none !important;
+}
+
+.speed-dial-editor__form .sd-icon-resource-pick {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    inline-size: 2.5rem !important;
+    block-size: auto !important;
+    min-inline-size: 2.5rem !important;
+    max-inline-size: 2.5rem !important;
+    min-block-size: 2.5rem !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    flex: 0 0 auto !important;
+}
+
+.speed-dial-editor__form .sd-icon-resource-pick ui-icon {
+    --icon-size: 1.25rem !important;
+    --icon-padding: 0 !important;
+    inline-size: 1.25rem !important;
+    block-size: 1.25rem !important;
+    pointer-events: none !important;
+}
+
+/* Icon resource picker — fixed 3-col cards, no jagged auto-fill. */
+.sd-icon-picker.speed-dial-editor {
+    padding: 0.5rem !important;
+}
+
+.sd-icon-picker__form {
+    max-inline-size: min(100%, 26rem) !important;
+    max-block-size: min(88vh, 36rem) !important;
+}
+
+.sd-icon-picker__body {
+    display: grid !important;
+    gap: 0.85rem !important;
+    overflow: auto !important;
+    min-block-size: 0 !important;
+}
+
+.sd-icon-picker__section {
+    display: grid !important;
+    gap: 0.35rem !important;
+    min-inline-size: 0 !important;
+}
+
+.sd-icon-picker__section[hidden] {
+    display: none !important;
+}
+
+.sd-icon-picker__section-title {
+    font-size: 0.75rem;
+    font-weight: 600;
+    opacity: 0.75;
+}
+
+.sd-icon-picker__search {
+    inline-size: 100% !important;
+    min-inline-size: 0 !important;
+    box-sizing: border-box !important;
+}
+
+.sd-icon-picker__grid {
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 0.4rem !important;
+    max-block-size: 15rem;
+    overflow: auto;
+    align-content: start;
+    min-inline-size: 0 !important;
+}
+
+.sd-icon-picker__card {
+    /* WHY: Cap/global button chrome is row — force icon above label. */
+    display: flex !important;
+    flex-direction: column !important;
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 0.28rem !important;
+    margin: 0 !important;
+    padding: 0.45rem 0.25rem 0.35rem !important;
+    min-inline-size: 0 !important;
+    max-inline-size: none !important;
+    inline-size: auto !important;
+    block-size: auto !important;
+    min-block-size: 4.75rem !important;
+    border: 1px solid var(--sd-editor-border, color-mix(in oklab, currentColor 16%, transparent)) !important;
+    border-radius: 10px !important;
+    background: color-mix(in oklab, var(--sd-editor-field-bg, currentColor) 40%, transparent) !important;
+    color: inherit !important;
+    cursor: pointer !important;
+    overflow: hidden !important;
+    appearance: none !important;
+    -webkit-appearance: none !important;
+    text-align: center !important;
+}
+
+.sd-icon-picker__card img {
+    display: block !important;
+    flex: 0 0 auto !important;
+    inline-size: 2.1rem !important;
+    block-size: 2.1rem !important;
+    max-inline-size: 2.1rem !important;
+    max-block-size: 2.1rem !important;
+    object-fit: contain !important;
+    order: 0 !important;
+}
+
+.sd-icon-picker__card-label {
+    display: block !important;
+    flex: 0 0 auto !important;
+    order: 1 !important;
+    font-size: 0.6rem !important;
+    line-height: 1.15 !important;
+    text-align: center !important;
+    inline-size: 100% !important;
+    max-inline-size: 100% !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+    padding-inline: 0.15rem !important;
+}
+
+.sd-icon-picker__card:disabled {
+    opacity: 0.45 !important;
+    cursor: not-allowed !important;
 }

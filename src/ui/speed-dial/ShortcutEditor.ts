@@ -11,6 +11,7 @@ import {
     normalizeIconDisplay,
     type IconDisplayMode
 } from "./tile-icon";
+import { attachIconResourcePickButton } from "./icon-resource-picker";
 
 /** WHY: Match context-menu pin — Settings may not have applied data-theme yet. */
 function resolveEditorTheme(): "light" | "dark" {
@@ -82,10 +83,12 @@ export type ShortcutEditorDraft = {
     shape: string;
     /** glyph | masked | masked-inverse | colored */
     iconDisplay: IconDisplayMode | string;
-    /** Resource for non-glyph modes (URL / data: / blob:) */
+    /** Resource for non-glyph modes (URL / data: / android-icon:) */
     iconUrl: string;
     /** Open link: native immersive vs inline env window (same tab). */
     openLinkTarget: string;
+    /** Android package for launch-app tiles — seeds icon picker variants. */
+    packageName?: string;
 };
 
 type ShortcutEditorOptions = {
@@ -188,7 +191,12 @@ export const openShortcutEditor = (options: ShortcutEditorOptions): void => {
                 </div>
                 <div class="modal-field" data-field="icon-url">
                     <label for="sd-edit-icon-url">Icon resource</label>
-                    <input id="sd-edit-icon-url" name="iconUrl" type="text" inputmode="url" autocomplete="off" placeholder="URL, data:, or blob:…" />
+                    <div class="sd-icon-resource-row">
+                        <input id="sd-edit-icon-url" name="iconUrl" type="text" inputmode="url" autocomplete="off" placeholder="URL, data:, or android-icon:…" />
+                        <button type="button" class="btn secondary sd-icon-resource-pick" data-action="pick-icon" title="Pick alternative icon" aria-label="Pick alternative icon">
+                            <ui-icon icon="squares-four" icon-style="duotone" aria-hidden="true"></ui-icon>
+                        </button>
+                    </div>
                 </div>
                 <div class="modal-field">
                     <label for="sd-edit-shape">Shape</label>
@@ -257,6 +265,22 @@ export const openShortcutEditor = (options: ShortcutEditorOptions): void => {
     const openLinkTargetField = form?.querySelector('[data-field="open-link-target"]') as HTMLElement | null;
     const iconGlyphField = form?.querySelector('[data-field="icon-glyph"]') as HTMLElement | null;
     const iconUrlField = form?.querySelector('[data-field="icon-url"]') as HTMLElement | null;
+
+    const packageNameOf = (): string => String(initial.packageName || "").trim();
+    const pageUrlOf = (): string => {
+        const fromHref = String(hrefInput?.value || "").trim();
+        if (/^https?:\/\//i.test(fromHref)) return fromHref;
+        const fromInitial = String(initial.href || "").trim();
+        return /^https?:\/\//i.test(fromInitial) ? fromInitial : "";
+    };
+
+    if (iconUrlField && iconUrlInput) {
+        attachIconResourcePickButton(iconUrlField, iconUrlInput, {
+            packageName: packageNameOf,
+            pageUrl: pageUrlOf,
+            theme
+        });
+    }
 
     const labelValue = asDraftText(initial.label, "New shortcut");
     const iconValue = asDraftText(initial.icon, "sparkle");

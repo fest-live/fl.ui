@@ -12,6 +12,7 @@ import {
     normalizeTileShape,
     type IconDisplayMode
 } from "fl-ui/speed-dial/tile-icon";
+import { attachIconResourcePickButton } from "fl-ui/speed-dial/icon-resource-picker";
 
 export type AppMenuTileChrome = {
     shape?: string;
@@ -93,11 +94,17 @@ export function clearAppMenuTileChrome(key: string): void {
 export function openAppMenuTileChromeEditor(opts: {
     title: string;
     key: string;
+    /** Android package — seeds Material You / adaptive icon variants. */
+    packageName?: string;
+    /** Bookmark / page URL — seeds CRX favicon variants. */
+    pageUrl?: string;
     initial?: AppMenuTileChrome;
     defaults?: AppMenuTileChrome;
     onSave: (chrome: AppMenuTileChrome) => void;
 }): void {
     const initial = { ...(opts.defaults || {}), ...(opts.initial || {}), ...getAppMenuTileChrome(opts.key) };
+    const storedUrl = String(initial.iconUrl || "").trim();
+    const safeUrl = storedUrl.startsWith("blob:") ? "" : storedUrl;
     const modal = document.createElement("dialog");
     modal.className = "speed-dial-editor env-shell-app-menu__chrome-editor";
     modal.innerHTML = `
@@ -141,9 +148,15 @@ export function openAppMenuTileChromeEditor(opts: {
                 </div>
                 <div class="modal-field" data-field="url">
                     <label for="am-chrome-url">Icon resource</label>
-                    <input id="am-chrome-url" name="iconUrl" type="text" value="${String(
-                        initial.iconUrl || ""
-                    ).replace(/"/g, "&quot;")}" placeholder="URL / data: / blob:…" />
+                    <div class="sd-icon-resource-row">
+                        <input id="am-chrome-url" name="iconUrl" type="text" value="${safeUrl.replace(
+                            /"/g,
+                            "&quot;"
+                        )}" placeholder="URL / data: / android-icon:…" />
+                        <button type="button" class="btn secondary sd-icon-resource-pick" data-action="pick-icon" title="Pick alternative icon" aria-label="Pick alternative icon">
+                            <ui-icon icon="squares-four" icon-style="duotone" aria-hidden="true"></ui-icon>
+                        </button>
+                    </div>
                 </div>
             </div>
             <div class="modal-actions" role="group" aria-label="Icon design actions">
@@ -168,6 +181,17 @@ export function openAppMenuTileChromeEditor(opts: {
     const urlInput = modal.querySelector('input[name="iconUrl"]') as HTMLInputElement | null;
     const glyphField = modal.querySelector('[data-field="glyph"]') as HTMLElement | null;
     const urlField = modal.querySelector('[data-field="url"]') as HTMLElement | null;
+
+    const pkg =
+        String(opts.packageName || "").trim() ||
+        (opts.key.startsWith("app:") ? opts.key.slice(4) : "");
+    const pageUrl = String(opts.pageUrl || "").trim();
+    if (urlField && urlInput) {
+        attachIconResourcePickButton(urlField, urlInput, {
+            packageName: pkg,
+            pageUrl
+        });
+    }
 
     const sync = (): void => {
         const d = normalizeIconDisplay(displaySelect?.value) || "colored";
@@ -208,11 +232,12 @@ export function openAppMenuTileChromeEditor(opts: {
 
     form?.addEventListener("submit", (ev) => {
         ev.preventDefault();
+        const rawUrl = String(urlInput?.value || "").trim();
         const chrome: AppMenuTileChrome = {
             shape: normalizeTileShape(shapeSelect?.value, "circle"),
             iconDisplay: normalizeIconDisplay(displaySelect?.value) || "colored",
             icon: String(iconInput?.value || "").trim(),
-            iconUrl: String(urlInput?.value || "").trim()
+            iconUrl: rawUrl.startsWith("blob:") ? "" : rawUrl
         };
         setAppMenuTileChrome(opts.key, chrome);
         opts.onSave(chrome);

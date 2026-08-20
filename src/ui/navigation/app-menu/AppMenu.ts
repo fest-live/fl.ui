@@ -22,7 +22,10 @@ import { showSuccess } from "fl-ui/speed-dial/toast";
 import {
     applyLauncherIconToUiIcon,
     ensureLauncherIconObjectUrl,
+    getCachedIconResourceObjectUrl,
     getCachedLauncherIconObjectUrl,
+    isAndroidIconRef,
+    resolveIconResourceUrl
 } from "fl-ui/speed-dial/action-registry";
 import { openUnifiedContextMenu } from "fl-ui/explorer/ContextMenu";
 import {
@@ -43,6 +46,7 @@ import {
     applyBookmarkIconToPlate,
     createChromeBookmarksMenuApi,
     hasBookmarksMenuApi,
+    isBookmarkFaviconResourceUrl,
     isBookmarkPinnedToStart,
     placeBookmarkOnDesktop,
     pinBookmarkToStart,
@@ -81,7 +85,10 @@ export type LauncherBridgeApi = {
     launcherRequestDefault: () => Promise<boolean>;
     launcherList: (query?: string) => Promise<LauncherAppEntry[]>;
     launcherLaunch: (pkg: string, component?: string) => Promise<boolean>;
-    launcherIcon: (cacheKey: string, size?: number) => Promise<string>;
+    launcherIcon: (cacheKey: string, size?: number, variant?: string) => Promise<string>;
+    launcherIconVariants?: (
+        cacheKey: string
+    ) => Promise<Array<{ id: string; label: string; available: boolean }>>;
 };
 
 let registeredLauncherBridge: LauncherBridgeApi | null = null;
@@ -185,15 +192,21 @@ function paintAppMenuIconPlate(
     iconPlate.setAttribute("data-shape", shape);
     iconPlate.classList.add("ui-ws-item-icon", "shaped");
 
-    const resource =
+    const resourceRaw =
         String(opts.chrome.iconUrl || "").trim() || String(opts.resourceUrl || "").trim();
+    const cachedAndroid = isAndroidIconRef(resourceRaw)
+        ? getCachedIconResourceObjectUrl(resourceRaw)
+        : "";
+    const resource = String(
+        cachedAndroid || (isAndroidIconRef(resourceRaw) ? "" : resourceRaw) || ""
+    ).trim();
     const display =
         normalizeIconDisplay(opts.chrome.iconDisplay) ||
         inferIconDisplay({
             iconDisplay: opts.chrome.iconDisplay,
-            iconUrl: resource,
+            iconUrl: resource || resourceRaw,
             isLauncherApp: Boolean(opts.launcher),
-            isBookmarkFavicon: Boolean(resource) && !opts.launcher
+            isBookmarkFavicon: Boolean(resource || resourceRaw) && !opts.launcher
         });
     iconPlate.setAttribute("data-icon-display", display);
     iconPlate.replaceChildren();
@@ -210,7 +223,7 @@ function paintAppMenuIconPlate(
     }
 
     // Capacitor-friendly colored path — light-DOM <img>, no fetch/CORS.
-    if (display === "colored" && resource) {
+    if (display === "colored") {
         const img = document.createElement("img");
         img.className = opts.launcher
             ? "ui-ws-item-icon-img"
@@ -219,9 +232,22 @@ function paintAppMenuIconPlate(
         img.decoding = "async";
         img.draggable = false;
         img.referrerPolicy = "no-referrer";
-        if (opts.launcher) img.toggleAttribute("data-launcher-icon", true);
-        img.src = resource;
+        const favicon =
+            !opts.launcher &&
+            (isBookmarkFaviconResourceUrl(resource) || isBookmarkFaviconResourceUrl(resourceRaw));
+        if (favicon) {
+            img.toggleAttribute("data-bookmark-favicon", true);
+        } else if (opts.launcher) {
+            img.toggleAttribute("data-launcher-icon", true);
+        }
+        if (resource) img.src = resource;
         iconPlate.append(img);
+        if (isAndroidIconRef(resourceRaw)) {
+            void resolveIconResourceUrl(resourceRaw, 96).then((url) => {
+                if (!url || !img.isConnected) return;
+                img.src = url;
+            });
+        }
         return;
     }
 
@@ -239,6 +265,16 @@ function paintAppMenuIconPlate(
             resource,
             display as "colored" | "masked" | "masked-inverse"
         );
+    }
+    if (isAndroidIconRef(resourceRaw)) {
+        void resolveIconResourceUrl(resourceRaw, 96).then((url) => {
+            if (!url || !host.isConnected) return;
+            applyLauncherIconToUiIcon(
+                host,
+                url,
+                display as "colored" | "masked" | "masked-inverse"
+            );
+        });
     }
 }
 
@@ -522,6 +558,7 @@ function renderAppTile(
                         openAppMenuTileChromeEditor({
                             title: app.label,
                             key: chromeKey,
+                            packageName: app.packageName,
                             defaults: { shape: APP_MENU_DEFAULT_SHAPE, iconDisplay: "colored" },
                             onSave: (chrome) => {
                                 const url =
@@ -531,7 +568,7 @@ function renderAppTile(
                                 paintAppMenuIconPlate(iconPlate, {
                                     chrome: { ...getAppMenuTileChrome(chromeKey), ...chrome },
                                     fallbackGlyph: "device-mobile",
-                                    resourceUrl: url,
+                                    resourceUrl: isAndroidIconRef(url) ? "" : url,
                                     launcher: true
                                 });
                             }
@@ -754,6 +791,7 @@ function bindBookmarkTileContextMenu(
                         openAppMenuTileChromeEditor({
                             title: entry.title,
                             key,
+                            pageUrl: String(entry.url || "").trim(),
                             defaults: { shape: APP_MENU_DEFAULT_SHAPE, iconDisplay: "colored" },
                             onSave: (chrome) => {
                                 const plate = tile.querySelector(
@@ -770,6 +808,7 @@ function bindBookmarkTileContextMenu(
                                     fallbackGlyph: entry.folder ? "folder" : "link",
                                     resourceUrl: resource
                                 });
+                                if (resource) iconUrl.current = resource;
                             }
                         });
                     }

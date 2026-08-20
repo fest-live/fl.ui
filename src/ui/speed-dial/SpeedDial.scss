@@ -287,13 +287,16 @@
                 img[data-launcher-icon]:not([data-bookmark-favicon]),
                 .ui-ws-item-icon-img:not([data-bookmark-favicon]) {
                     position: absolute;
-                    inset: 0.45rem;
-                    inline-size: calc(100% - 0.9rem);
-                    block-size: calc(100% - 0.9rem);
-                    object-fit: contain;
+                    inset: 0;
+                    inline-size: 100%;
+                    block-size: 100%;
+                    object-fit: cover;
                     object-position: center;
                     pointer-events: none;
                     z-index: 3;
+                    /* WHY: Android adaptive bitmaps pad ~18% — match ui-icon colored scale. */
+                    transform: scale(1.28);
+                    transform-origin: center;
                     filter: drop-shadow(0 1px 3px #0003);
                 }
 
@@ -826,23 +829,35 @@
     }
 
     .speed-dial-editor__form .modal-actions {
-        display: flex;
+        display: grid;
+        grid-template-columns: 1fr auto auto;
         align-items: center;
-        justify-content: space-between;
-        gap: 0.5rem;
-        padding: 0.75rem 1rem;
+        justify-items: stretch;
+        gap: 0.45rem;
+        padding: 0.65rem 0.85rem;
         border-block-start: 1px solid var(--sd-editor-border);
-        /*background: color-mix(in oklab, var(--sd-editor-field-bg) 55%, transparent);*/
         color: var(--sd-editor-ink);
         background: transparent;
         border: none 0px transparent;
         outline: none 0px transparent;
+        min-inline-size: 0;
     }
 
-    .speed-dial-editor__form :is(.modal-actions-left, .modal-actions-right) {
-        display: inline-flex;
-        gap: 0.5rem;
-        align-items: center;
+    .speed-dial-editor__form .modal-actions .modal-actions-spacer {
+        display: block;
+        min-inline-size: 0;
+    }
+
+    .speed-dial-editor__form .modal-actions .btn {
+        justify-self: start;
+        white-space: nowrap;
+        min-inline-size: 0;
+        padding: 0.4rem 0.7rem;
+    }
+
+    .speed-dial-editor__form .modal-actions .btn.secondary,
+    .speed-dial-editor__form .modal-actions .btn.save {
+        justify-self: end;
     }
 
     .speed-dial-editor__form .btn {
@@ -1084,4 +1099,20 @@
 
 .speed-dial-editor__form .modal-field > label {
     pointer-events: none !important;
+}
+
+/* WHY: Cap kept stacking footer groups — flat 3-col grid beats flex wrappers. */
+.speed-dial-editor__form .modal-actions {
+    display: grid !important;
+    grid-template-columns: 1fr auto auto !important;
+    align-items: center !important;
+    gap: 0.45rem !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+}
+
+.speed-dial-editor__form .modal-actions .btn {
+    white-space: nowrap !important;
+    min-inline-size: 0 !important;
+    max-inline-size: none !important;
 }

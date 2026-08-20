@@ -21,11 +21,24 @@ import {
 import { showSuccess } from "fl-ui/speed-dial/toast";
 import {
     applyLauncherIconToUiIcon,
-    createLauncherUiIconElement,
     ensureLauncherIconObjectUrl,
     getCachedLauncherIconObjectUrl,
 } from "fl-ui/speed-dial/action-registry";
 import { openUnifiedContextMenu } from "fl-ui/explorer/ContextMenu";
+import {
+    createTileUiIconElement,
+    inferIconDisplay,
+    normalizeIconDisplay,
+    normalizeTileShape,
+    type IconDisplayMode
+} from "fl-ui/speed-dial/tile-icon";
+import {
+    appMenuChromeKeyForBookmark,
+    appMenuChromeKeyForPackage,
+    getAppMenuTileChrome,
+    openAppMenuTileChromeEditor,
+    type AppMenuTileChrome
+} from "./tile-chrome";
 import {
     applyBookmarkIconToPlate,
     createChromeBookmarksMenuApi,
@@ -132,7 +145,8 @@ function resolveAppMenuHost(): HTMLElement {
 }
 
 type TileDragHooks = {
-    onDragStart?: () => void;
+    /** After a successful pin/place — close menu / refresh. Do NOT use for gesture begin. */
+    onPinned?: () => void;
     onStartPinsChanged?: () => void;
 };
 
@@ -143,7 +157,10 @@ function createDragGhost(iconPlate: HTMLElement, label: string): HTMLElement {
 
     const ghostIcon = iconPlate.cloneNode(true) as HTMLElement;
     ghostIcon.className = "env-shell-app-menu__drag-ghost-icon ui-ws-item-icon shaped";
-    ghostIcon.setAttribute("data-shape", "squircle");
+    ghostIcon.setAttribute(
+        "data-shape",
+        normalizeTileShape(iconPlate.getAttribute("data-shape"), "circle")
+    );
 
     const ghostLabel = document.createElement("span");
     ghostLabel.className = "env-shell-app-menu__drag-ghost-label";
@@ -153,6 +170,78 @@ function createDragGhost(iconPlate: HTMLElement, label: string): HTMLElement {
     return ghost;
 }
 
+const APP_MENU_DEFAULT_SHAPE = "circle";
+
+function paintAppMenuIconPlate(
+    iconPlate: HTMLElement,
+    opts: {
+        chrome: AppMenuTileChrome;
+        fallbackGlyph?: string;
+        resourceUrl?: string;
+        launcher?: boolean;
+    }
+): void {
+    const shape = normalizeTileShape(opts.chrome.shape, APP_MENU_DEFAULT_SHAPE);
+    iconPlate.setAttribute("data-shape", shape);
+    iconPlate.classList.add("ui-ws-item-icon", "shaped");
+
+    const resource =
+        String(opts.chrome.iconUrl || "").trim() || String(opts.resourceUrl || "").trim();
+    const display =
+        normalizeIconDisplay(opts.chrome.iconDisplay) ||
+        inferIconDisplay({
+            iconDisplay: opts.chrome.iconDisplay,
+            iconUrl: resource,
+            isLauncherApp: Boolean(opts.launcher),
+            isBookmarkFavicon: Boolean(resource) && !opts.launcher
+        });
+    iconPlate.setAttribute("data-icon-display", display);
+    iconPlate.replaceChildren();
+
+    if (display === "glyph") {
+        const glyph =
+            String(opts.chrome.icon || opts.fallbackGlyph || "device-mobile").trim() || "device-mobile";
+        const icon = document.createElement("ui-icon");
+        icon.setAttribute("icon", glyph);
+        icon.setAttribute("icon-style", "duotone");
+        icon.setAttribute("aria-hidden", "true");
+        iconPlate.append(icon);
+        return;
+    }
+
+    // Capacitor-friendly colored path — light-DOM <img>, no fetch/CORS.
+    if (display === "colored" && resource) {
+        const img = document.createElement("img");
+        img.className = opts.launcher
+            ? "ui-ws-item-icon-img"
+            : "ui-ws-item-icon-img env-shell-app-menu__tile-favicon";
+        img.alt = "";
+        img.decoding = "async";
+        img.draggable = false;
+        img.referrerPolicy = "no-referrer";
+        if (opts.launcher) img.toggleAttribute("data-launcher-icon", true);
+        img.src = resource;
+        iconPlate.append(img);
+        return;
+    }
+
+    const host = createTileUiIconElement({
+        display: display as IconDisplayMode,
+        glyph: String(opts.chrome.icon || opts.fallbackGlyph || "device-mobile"),
+        resourceUrl: resource || undefined,
+        launcher: opts.launcher,
+        className: "ui-ws-item-icon-native"
+    });
+    iconPlate.append(host);
+    if (opts.launcher && resource && display !== "glyph") {
+        applyLauncherIconToUiIcon(
+            host,
+            resource,
+            display as "colored" | "masked" | "masked-inverse"
+        );
+    }
+}
+
 function bindLauncherAppTileDrag(
     tile: HTMLElement,
     app: LauncherAppEntry,
@@ -160,27 +249,38 @@ function bindLauncherAppTileDrag(
     hooks: TileDragHooks
 ): void {
     const envelope = (): string => buildLauncherAppDragEnvelope(app);
+    // Capacitor / coarse pointer: HTML5 DnD closes or fights touch scroll; use long-press ghost.
+    const coarse =
+        typeof window !== "undefined" &&
+        (window.matchMedia?.("(pointer: coarse)")?.matches || "ontouchstart" in window);
+    tile.draggable = !coarse;
 
-    tile.draggable = true;
-    tile.addEventListener("dragstart", (ev) => {
-        const json = envelope();
-        ev.dataTransfer?.setData("text/plain", json);
-        ev.dataTransfer?.setData("application/json", json);
-        if (ev.dataTransfer) {
-            ev.dataTransfer.effectAllowed = "copy";
-            try {
-                ev.dataTransfer.setDragImage(iconPlate, 24, 24);
-            } catch {
-                /* ignore */
+    if (!coarse) {
+        tile.addEventListener("dragstart", (ev) => {
+            const json = envelope();
+            ev.dataTransfer?.setData("text/plain", json);
+            ev.dataTransfer?.setData("application/json", json);
+            if (ev.dataTransfer) {
+                ev.dataTransfer.effectAllowed = "copy";
+                try {
+                    ev.dataTransfer.setDragImage(iconPlate, 24, 24);
+                } catch {
+                    /* ignore */
+                }
             }
-        }
-        hooks.onDragStart?.();
-    });
+            // Fade panel — do not unmount (would cancel the drag).
+            document.documentElement.toggleAttribute("data-app-menu-dragging", true);
+        });
+        tile.addEventListener("dragend", () => {
+            document.documentElement.toggleAttribute("data-app-menu-dragging", false);
+        });
+    }
 
     let pressTimer: ReturnType<typeof setTimeout> | undefined;
     let pointerId: number | null = null;
     let startX = 0;
     let startY = 0;
+    let dragArmed = false;
     let dragging = false;
     let suppressClick = false;
     let ghost: HTMLElement | null = null;
@@ -189,6 +289,42 @@ function bindLauncherAppTileDrag(
         if (pressTimer) {
             clearTimeout(pressTimer);
             pressTimer = undefined;
+        }
+    };
+
+    const cancelPointerDrag = (): void => {
+        clearPressTimer();
+        dragArmed = false;
+        if (!dragging) return;
+        dragging = false;
+        tile.classList.remove("env-shell-app-menu__tile--dragging");
+        document.documentElement.toggleAttribute("data-app-menu-dragging", false);
+        ghost?.remove();
+        ghost = null;
+        if (pointerId != null) {
+            try {
+                tile.releasePointerCapture(pointerId);
+            } catch {
+                /* ignore */
+            }
+            pointerId = null;
+        }
+    };
+
+    const beginPointerDrag = (clientX: number, clientY: number, id: number): void => {
+        if (dragging) return;
+        dragArmed = false;
+        dragging = true;
+        suppressClick = true;
+        tile.classList.add("env-shell-app-menu__tile--dragging");
+        document.documentElement.toggleAttribute("data-app-menu-dragging", true);
+        ghost = createDragGhost(iconPlate, app.label);
+        document.body.appendChild(ghost);
+        ghost.style.transform = `translate(${clientX}px, ${clientY}px) translate(-50%, -50%)`;
+        try {
+            tile.setPointerCapture(id);
+        } catch {
+            /* ignore */
         }
     };
 
@@ -203,13 +339,14 @@ function bindLauncherAppTileDrag(
         const pinned = pinLauncherAppEntry(app, cell ?? undefined);
         if (pinned) {
             showSuccess(`Pinned ${app.label} to desktop`);
-            hooks.onDragStart?.();
+            hooks.onPinned?.();
         }
     };
 
     const endPointerDrag = (ev: PointerEvent): void => {
         if (!dragging) return;
         dragging = false;
+        dragArmed = false;
         tile.classList.remove("env-shell-app-menu__tile--dragging");
         document.documentElement.toggleAttribute("data-app-menu-dragging", false);
         ghost?.remove();
@@ -235,42 +372,48 @@ function bindLauncherAppTileDrag(
             startY = ev.clientY;
             suppressClick = false;
             dragging = false;
+            dragArmed = false;
 
             pressTimer = setTimeout(() => {
                 pressTimer = undefined;
-                dragging = true;
+                // Arm only — start drag after a subsequent move so contextmenu can win.
+                dragArmed = true;
                 suppressClick = true;
-                tile.classList.add("env-shell-app-menu__tile--dragging");
-                document.documentElement.toggleAttribute("data-app-menu-dragging", true);
-                ghost = createDragGhost(iconPlate, app.label);
-                document.body.appendChild(ghost);
-                moveGhost(ev.clientX, ev.clientY);
-                try {
-                    tile.setPointerCapture(ev.pointerId);
-                } catch {
-                    /* ignore */
-                }
-                hooks.onDragStart?.();
             }, LONG_PRESS_MS);
         },
         { passive: true }
     );
 
-    tile.addEventListener("pointermove", (ev) => {
-        if (pressTimer && !dragging) {
-            const dx = ev.clientX - startX;
-            const dy = ev.clientY - startY;
-            if (Math.hypot(dx, dy) > PRE_DRAG_MOVE_PX) {
-                clearPressTimer();
+    tile.addEventListener(
+        "pointermove",
+        (ev) => {
+            if (pressTimer && !dragging && !dragArmed) {
+                const dx = ev.clientX - startX;
+                const dy = ev.clientY - startY;
+                if (Math.hypot(dx, dy) > PRE_DRAG_MOVE_PX) {
+                    clearPressTimer();
+                }
+                return;
             }
-        }
-        if (dragging) {
-            moveGhost(ev.clientX, ev.clientY);
-        }
-    });
+            if (dragArmed && !dragging) {
+                const dx = ev.clientX - startX;
+                const dy = ev.clientY - startY;
+                if (Math.hypot(dx, dy) > PRE_DRAG_MOVE_PX) {
+                    beginPointerDrag(ev.clientX, ev.clientY, ev.pointerId);
+                }
+                return;
+            }
+            if (dragging) {
+                moveGhost(ev.clientX, ev.clientY);
+                ev.preventDefault();
+            }
+        },
+        { passive: false }
+    );
 
     tile.addEventListener("pointerup", (ev) => {
         clearPressTimer();
+        dragArmed = false;
         if (dragging) {
             endPointerDrag(ev);
             return;
@@ -279,8 +422,17 @@ function bindLauncherAppTileDrag(
 
     tile.addEventListener("pointercancel", (ev) => {
         clearPressTimer();
+        dragArmed = false;
         if (dragging) endPointerDrag(ev);
     });
+
+    tile.addEventListener(
+        "contextmenu",
+        () => {
+            cancelPointerDrag();
+        },
+        true
+    );
 
     tile.addEventListener(
         "click",
@@ -308,9 +460,9 @@ function renderAppTile(
     tile.setAttribute("data-package", app.packageName);
     tile.title = `${app.label} — right-click: desktop; hold and drag`;
 
+    const chromeKey = appMenuChromeKeyForPackage(app.packageName);
     const iconPlate = document.createElement("span");
     iconPlate.className = "env-shell-app-menu__tile-icon ui-ws-item-icon shaped";
-    iconPlate.setAttribute("data-shape", "squircle");
 
     const label = document.createElement("span");
     label.className = "env-shell-app-menu__tile-label";
@@ -319,24 +471,22 @@ function renderAppTile(
     tile.append(iconPlate, label);
 
     const cacheKey = app.iconCacheKey || app.packageName;
+    const paint = (resourceUrl = ""): void => {
+        paintAppMenuIconPlate(iconPlate, {
+            chrome: getAppMenuTileChrome(chromeKey),
+            fallbackGlyph: "device-mobile",
+            resourceUrl,
+            launcher: true
+        });
+    };
     const cached = getCachedLauncherIconObjectUrl(cacheKey);
-    if (cached) {
-        const icon = createLauncherUiIconElement();
-        applyLauncherIconToUiIcon(icon, cached);
-        iconPlate.append(icon);
-    }
+    paint(cached);
 
     void ensureLauncherIconObjectUrl(cacheKey, 96)
         .then((objectUrl) => {
             if (gen !== refreshGen()) return;
             if (!objectUrl) return;
-            let icon = iconPlate.querySelector<HTMLElement>("ui-icon[data-launcher-icon]");
-            if (!icon) {
-                icon = createLauncherUiIconElement();
-                iconPlate.textContent = "";
-                iconPlate.append(icon);
-            }
-            applyLauncherIconToUiIcon(icon, objectUrl);
+            paint(objectUrl);
         })
         .catch(() => {
             /* ignore */
@@ -360,8 +510,32 @@ function renderAppTile(
                         const pinned = pinLauncherAppEntry(app);
                         if (pinned) {
                             showSuccess(`Placed “${app.label}” on desktop`);
-                            hooks.onDragStart?.();
+                            hooks.onPinned?.();
                         }
+                    }
+                },
+                {
+                    id: "icon-design",
+                    label: "Icon design…",
+                    icon: "palette",
+                    action: () => {
+                        openAppMenuTileChromeEditor({
+                            title: app.label,
+                            key: chromeKey,
+                            defaults: { shape: APP_MENU_DEFAULT_SHAPE, iconDisplay: "colored" },
+                            onSave: (chrome) => {
+                                const url =
+                                    getCachedLauncherIconObjectUrl(cacheKey) ||
+                                    String(chrome.iconUrl || "").trim() ||
+                                    String(getAppMenuTileChrome(chromeKey).iconUrl || "");
+                                paintAppMenuIconPlate(iconPlate, {
+                                    chrome: { ...getAppMenuTileChrome(chromeKey), ...chrome },
+                                    fallbackGlyph: "device-mobile",
+                                    resourceUrl: url,
+                                    launcher: true
+                                });
+                            }
+                        });
                     }
                 },
                 {
@@ -403,6 +577,7 @@ function bindBookmarkTileDrag(
     if (entry.folder || !String(entry.url || "").trim()) return;
 
     let pressTimer: ReturnType<typeof setTimeout> | undefined;
+    let dragArmed = false;
     let dragging = false;
     let startX = 0;
     let startY = 0;
@@ -416,8 +591,41 @@ function bindBookmarkTileDrag(
         }
     };
 
+    const cancelDrag = (): void => {
+        clearPress();
+        dragArmed = false;
+        if (!dragging) return;
+        dragging = false;
+        tile.classList.remove("env-shell-app-menu__tile--dragging");
+        document.documentElement.toggleAttribute("data-app-menu-dragging", false);
+        ghost?.remove();
+        ghost = null;
+        try {
+            tile.releasePointerCapture?.(pointerId);
+        } catch {
+            /* ignore */
+        }
+    };
+
+    const beginDrag = (clientX: number, clientY: number): void => {
+        if (dragging) return;
+        dragArmed = false;
+        dragging = true;
+        tile.classList.add("env-shell-app-menu__tile--dragging");
+        document.documentElement.toggleAttribute("data-app-menu-dragging", true);
+        ghost = createDragGhost(iconPlate, entry.title);
+        document.body.appendChild(ghost);
+        ghost.style.transform = `translate(${clientX}px, ${clientY}px) translate(-50%, -50%)`;
+        try {
+            tile.setPointerCapture?.(pointerId);
+        } catch {
+            /* ignore */
+        }
+    };
+
     const endDrag = (clientX: number, clientY: number): void => {
         clearPress();
+        dragArmed = false;
         if (!dragging) return;
         dragging = false;
         tile.classList.remove("env-shell-app-menu__tile--dragging");
@@ -437,7 +645,7 @@ function bindBookmarkTileDrag(
             const pinned = placeBookmarkOnDesktop(entry, cell, resolveBookmarksMenuApi(), paint);
             if (pinned) {
                 showSuccess(`Placed “${entry.title}” on desktop`);
-                hooks.onDragStart?.();
+                hooks.onPinned?.();
             }
         }
     };
@@ -447,36 +655,44 @@ function bindBookmarkTileDrag(
         startX = ev.clientX;
         startY = ev.clientY;
         pointerId = ev.pointerId;
+        dragging = false;
+        dragArmed = false;
         clearPress();
         pressTimer = setTimeout(() => {
             pressTimer = undefined;
-            dragging = true;
-            tile.classList.add("env-shell-app-menu__tile--dragging");
-            document.documentElement.toggleAttribute("data-app-menu-dragging", true);
-            ghost = createDragGhost(iconPlate, entry.title);
-            document.body.appendChild(ghost);
-            ghost.style.transform = `translate(${ev.clientX}px, ${ev.clientY}px) translate(-50%, -50%)`;
-            try {
-                tile.setPointerCapture?.(pointerId);
-            } catch {
-                /* ignore */
-            }
+            dragArmed = true;
         }, LONG_PRESS_MS);
     });
 
-    tile.addEventListener("pointermove", (ev) => {
-        if (!dragging) {
-            if (pressTimer == null) return;
-            const dx = ev.clientX - startX;
-            const dy = ev.clientY - startY;
-            if (dx * dx + dy * dy > PRE_DRAG_MOVE_PX * PRE_DRAG_MOVE_PX) clearPress();
-            return;
-        }
-        if (ghost) ghost.style.transform = `translate(${ev.clientX}px, ${ev.clientY}px) translate(-50%, -50%)`;
-    });
+    tile.addEventListener(
+        "pointermove",
+        (ev) => {
+            if (!dragging && !dragArmed) {
+                if (pressTimer == null) return;
+                const dx = ev.clientX - startX;
+                const dy = ev.clientY - startY;
+                if (dx * dx + dy * dy > PRE_DRAG_MOVE_PX * PRE_DRAG_MOVE_PX) clearPress();
+                return;
+            }
+            if (dragArmed && !dragging) {
+                const dx = ev.clientX - startX;
+                const dy = ev.clientY - startY;
+                if (dx * dx + dy * dy > PRE_DRAG_MOVE_PX * PRE_DRAG_MOVE_PX) {
+                    beginDrag(ev.clientX, ev.clientY);
+                }
+                return;
+            }
+            if (ghost) {
+                ghost.style.transform = `translate(${ev.clientX}px, ${ev.clientY}px) translate(-50%, -50%)`;
+                ev.preventDefault();
+            }
+        },
+        { passive: false }
+    );
 
     tile.addEventListener("pointerup", (ev) => endDrag(ev.clientX, ev.clientY));
     tile.addEventListener("pointercancel", (ev) => endDrag(ev.clientX, ev.clientY));
+    tile.addEventListener("contextmenu", () => cancelDrag(), true);
 }
 
 function bindBookmarkTileContextMenu(
@@ -525,8 +741,37 @@ function bindBookmarkTileContextMenu(
                         const item = placeBookmarkOnDesktop(entry, undefined, api, paint);
                         if (item) {
                             showSuccess(`Placed “${entry.title}” on desktop`);
-                            hooks.onDragStart?.();
+                            hooks.onPinned?.();
                         }
+                    }
+                },
+                {
+                    id: "icon-design",
+                    label: "Icon design…",
+                    icon: "palette",
+                    action: () => {
+                        const key = appMenuChromeKeyForBookmark(entry.id);
+                        openAppMenuTileChromeEditor({
+                            title: entry.title,
+                            key,
+                            defaults: { shape: APP_MENU_DEFAULT_SHAPE, iconDisplay: "colored" },
+                            onSave: (chrome) => {
+                                const plate = tile.querySelector(
+                                    ".env-shell-app-menu__tile-icon"
+                                ) as HTMLElement | null;
+                                if (!plate) return;
+                                const merged = { ...getAppMenuTileChrome(key), ...chrome };
+                                const resource =
+                                    String(merged.iconUrl || "").trim() ||
+                                    String(iconUrl.current || "").trim() ||
+                                    resolveBookmarkDesktopIconUrl(entry, api);
+                                paintAppMenuIconPlate(plate, {
+                                    chrome: merged,
+                                    fallbackGlyph: entry.folder ? "folder" : "link",
+                                    resourceUrl: resource
+                                });
+                            }
+                        });
                     }
                 },
                 pinned
@@ -585,9 +830,10 @@ function renderBookmarkTile(
         ? `${entry.title} — open folder`
         : `${entry.title} — right-click: desktop / pin; hold to drag`;
 
+    const chromeKey = appMenuChromeKeyForBookmark(entry.id);
     const iconPlate = document.createElement("span");
-    iconPlate.className = "env-shell-app-menu__tile-icon";
-    iconPlate.setAttribute("data-shape", "squircle");
+    iconPlate.className = "env-shell-app-menu__tile-icon ui-ws-item-icon shaped";
+    iconPlate.setAttribute("data-shape", APP_MENU_DEFAULT_SHAPE);
 
     const label = document.createElement("span");
     label.className = "env-shell-app-menu__tile-label";
@@ -596,8 +842,27 @@ function renderBookmarkTile(
     tile.append(iconPlate, label);
 
     const iconUrl = { current: "" };
+    const applyChromePaint = (url: string): void => {
+        const chrome = getAppMenuTileChrome(chromeKey);
+        if (
+            chrome.shape ||
+            chrome.iconDisplay ||
+            chrome.icon ||
+            chrome.iconUrl
+        ) {
+            paintAppMenuIconPlate(iconPlate, {
+                chrome,
+                fallbackGlyph: entry.folder ? "folder" : "link",
+                resourceUrl: String(chrome.iconUrl || url || "").trim()
+            });
+            return;
+        }
+        iconPlate.setAttribute("data-shape", APP_MENU_DEFAULT_SHAPE);
+    };
+
     void applyBookmarkIconToPlate(iconPlate, entry, api).then((url) => {
         iconUrl.current = url;
+        applyChromePaint(url);
     });
 
     bindBookmarkTileDrag(tile, entry, iconPlate, iconUrl, hooks);
@@ -759,7 +1024,7 @@ export function mountEnvironmentAppMenu(): MountAppMenuResult {
     };
 
     const tileDragHooks: TileDragHooks = {
-        onDragStart: () => {
+        onPinned: () => {
             close();
         },
         onStartPinsChanged: () => {
@@ -984,6 +1249,8 @@ export function mountEnvironmentAppMenu(): MountAppMenuResult {
             if (n === root || n === panel) return;
             if (n instanceof Element && root.contains(n)) return;
             if (n instanceof Element && n.closest?.(".cw-context-menu-layer")) return;
+            if (n instanceof Element && n.closest?.(".env-shell-app-menu__chrome-editor")) return;
+            if (n instanceof Element && n.closest?.("dialog.speed-dial-editor")) return;
         }
         close();
     };

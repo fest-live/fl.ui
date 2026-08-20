@@ -64,6 +64,14 @@ export interface SpeedDialItemMeta {
     description?: string;
     shape?: string;
     /**
+     * Icon presentation:
+     * - `glyph` — Phosphor name in `item.icon`
+     * - `masked` / `masked-inverse` / `colored` — resource in `iconUrl` (URL / data / blob)
+     */
+    iconDisplay?: string;
+    /** Resource for masked / masked-inverse / colored (URL, data:, blob:). */
+    iconUrl?: string;
+    /**
      * Open destination:
      * - `native-window` — new browser window / mono native immersive
      * - `inline` — in-session floating window (same browser tab)

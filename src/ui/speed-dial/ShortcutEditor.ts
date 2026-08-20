@@ -5,6 +5,12 @@
  * Reason for changes: Default Open link in → inline; dialog top-layer + div fields (not wrapper label).
  */
 import { registerModal } from "@fest-lib/lure";
+import {
+    ICON_DISPLAY_OPTIONS,
+    TILE_SHAPE_OPTIONS,
+    normalizeIconDisplay,
+    type IconDisplayMode
+} from "./tile-icon";
 
 /** WHY: Match context-menu pin — Settings may not have applied data-theme yet. */
 function resolveEditorTheme(): "light" | "dark" {
@@ -72,8 +78,12 @@ export type ShortcutEditorDraft = {
     view: string;
     href: string;
     description: string;
-    /** Tile shape: square, circle, or squircle */
+    /** Tile shape: square, circle, squircle, wavy */
     shape: string;
+    /** glyph | masked | masked-inverse | colored */
+    iconDisplay: IconDisplayMode | string;
+    /** Resource for non-glyph modes (URL / data: / blob:) */
+    iconUrl: string;
     /** Open link: native immersive vs inline env window (same tab). */
     openLinkTarget: string;
 };
@@ -165,16 +175,27 @@ export const openShortcutEditor = (options: ShortcutEditorOptions): void => {
                     <input id="sd-edit-label" name="label" type="text" minlength="1" required />
                 </div>
                 <div class="modal-field">
-                    <label for="sd-edit-icon">Icon</label>
+                    <label for="sd-edit-icon-display">Icon display</label>
+                    <select id="sd-edit-icon-display" name="iconDisplay">
+                        ${ICON_DISPLAY_OPTIONS.map(
+                            (o) => `<option value="${o.value}">${o.label}</option>`
+                        ).join("")}
+                    </select>
+                </div>
+                <div class="modal-field" data-field="icon-glyph">
+                    <label for="sd-edit-icon">Icon (Phosphor name)</label>
                     <input id="sd-edit-icon" name="icon" type="text" placeholder="phosphor icon name" />
+                </div>
+                <div class="modal-field" data-field="icon-url">
+                    <label for="sd-edit-icon-url">Icon resource</label>
+                    <input id="sd-edit-icon-url" name="iconUrl" type="text" inputmode="url" autocomplete="off" placeholder="URL, data:, or blob:…" />
                 </div>
                 <div class="modal-field">
                     <label for="sd-edit-shape">Shape</label>
                     <select id="sd-edit-shape" name="shape">
-                        <option value="squircle">Squircle</option>
-                        <option value="circle">Circle</option>
-                        <option value="square">Rounded square</option>
-                        <option value="wavy">Wavy</option>
+                        ${TILE_SHAPE_OPTIONS.map(
+                            (o) => `<option value="${o.value}">${o.label}</option>`
+                        ).join("")}
                     </select>
                 </div>
                 <div class="modal-field">
@@ -202,22 +223,29 @@ export const openShortcutEditor = (options: ShortcutEditorOptions): void => {
                     <textarea id="sd-edit-description" name="description" rows="2" placeholder="Optional description"></textarea>
                 </div>
             </div>
-            <footer class="modal-actions">
-                <div class="modal-actions-left">
-                    ${mode === "edit" ? '<button type="button" data-action="delete" class="btn danger">Delete</button>' : ""}
-                </div>
-                <div class="modal-actions-right">
-                    <button type="button" data-action="cancel" class="btn secondary">Cancel</button>
-                    <button type="submit" class="btn save">Save</button>
-                </div>
-            </footer>
+            <div class="modal-actions" role="group" aria-label="Shortcut actions">
+                ${mode === "edit" ? '<button type="button" data-action="delete" class="btn danger">Delete</button>' : '<span class="modal-actions-spacer" aria-hidden="true"></span>'}
+                <button type="button" data-action="cancel" class="btn secondary">Cancel</button>
+                <button type="submit" class="btn save">Save</button>
+            </div>
         </form>
     `;
 
     const form = modal.querySelector("form") as HTMLFormElement | null;
+    /* WHY: Cap WebView kept stacking left/right wrappers despite CSS nowrap — pin row via grid + inline style. */
+    const actions = form?.querySelector(".modal-actions") as HTMLElement | null;
+    if (actions) {
+        actions.style.setProperty("display", "grid", "important");
+        actions.style.setProperty("grid-template-columns", "1fr auto auto", "important");
+        actions.style.setProperty("align-items", "center", "important");
+        actions.style.setProperty("gap", "0.45rem", "important");
+        actions.style.setProperty("flex-wrap", "nowrap", "important");
+    }
     const fields = form?.querySelector(".modal-fields") as HTMLElement | null;
     const labelInput = form?.querySelector('input[name="label"]') as HTMLInputElement | null;
     const iconInput = form?.querySelector('input[name="icon"]') as HTMLInputElement | null;
+    const iconDisplaySelect = form?.querySelector('select[name="iconDisplay"]') as HTMLSelectElement | null;
+    const iconUrlInput = form?.querySelector('input[name="iconUrl"]') as HTMLInputElement | null;
     const shapeSelect = form?.querySelector('select[name="shape"]') as HTMLSelectElement | null;
     const actionSelect = form?.querySelector('select[name="action"]') as HTMLSelectElement | null;
     const viewSelect = form?.querySelector('select[name="view"]') as HTMLSelectElement | null;
@@ -227,18 +255,24 @@ export const openShortcutEditor = (options: ShortcutEditorOptions): void => {
     const viewField = form?.querySelector('[data-field="view"]') as HTMLElement | null;
     const hrefField = form?.querySelector('[data-field="href"]') as HTMLElement | null;
     const openLinkTargetField = form?.querySelector('[data-field="open-link-target"]') as HTMLElement | null;
+    const iconGlyphField = form?.querySelector('[data-field="icon-glyph"]') as HTMLElement | null;
+    const iconUrlField = form?.querySelector('[data-field="icon-url"]') as HTMLElement | null;
 
     const labelValue = asDraftText(initial.label, "New shortcut");
     const iconValue = asDraftText(initial.icon, "sparkle");
+    const iconUrlValue = asDraftText(initial.iconUrl, "");
     const hrefValue = asDraftText(initial.href, "");
     const descriptionValue = asDraftText(initial.description, "");
     const actionValue = asDraftText(initial.action, "open-view");
     const viewValue = asDraftText(initial.view, "");
     const shapeVal = asDraftText(initial.shape, "squircle").toLowerCase();
+    const iconDisplayVal = normalizeIconDisplay(initial.iconDisplay) || "glyph";
     const olt = asDraftText(initial.openLinkTarget, "inline").toLowerCase();
 
     fillTextControl(labelInput, labelValue);
     fillTextControl(iconInput, iconValue);
+    fillTextControl(iconUrlInput, iconUrlValue);
+    if (iconDisplaySelect) iconDisplaySelect.value = iconDisplayVal;
     if (shapeSelect) shapeSelect.value = ["circle", "square", "squircle", "wavy"].includes(shapeVal) ? shapeVal : "squircle";
     if (openLinkTargetSelect) {
         openLinkTargetSelect.value =
@@ -267,6 +301,16 @@ export const openShortcutEditor = (options: ShortcutEditorOptions): void => {
         /* Show target mode for Open link (and when Open view also exposes Link). */
         if (openLinkTargetField) {
             openLinkTargetField.hidden = !(action === "open-link" || isHrefAction(action));
+        }
+        const display = normalizeIconDisplay(iconDisplaySelect?.value) || "glyph";
+        /* WHY: Capacitor WebView sometimes keeps [hidden] stuck with .hidden=false — use attributes. */
+        if (iconGlyphField) {
+            if (display === "glyph") iconGlyphField.removeAttribute("hidden");
+            else iconGlyphField.setAttribute("hidden", "");
+        }
+        if (iconUrlField) {
+            if (display === "glyph") iconUrlField.setAttribute("hidden", "");
+            else iconUrlField.removeAttribute("hidden");
         }
         /* Prefill Open-link from view when switching to link action with empty href. */
         if (action === "open-link" && hrefInput && !String(hrefInput.value || "").trim()) {
@@ -302,6 +346,7 @@ export const openShortcutEditor = (options: ShortcutEditorOptions): void => {
     };
 
     actionSelect?.addEventListener("change", syncFieldVisibility);
+    iconDisplaySelect?.addEventListener("change", syncFieldVisibility);
     syncFieldVisibility();
 
     modal.addEventListener("cancel", (event) => {
@@ -348,6 +393,8 @@ export const openShortcutEditor = (options: ShortcutEditorOptions): void => {
             href: String(hrefInput?.value || "").trim(),
             description: String(descriptionInput?.value || "").trim(),
             shape: String(shapeSelect?.value || "squircle").toLowerCase(),
+            iconDisplay: normalizeIconDisplay(iconDisplaySelect?.value) || "glyph",
+            iconUrl: String(iconUrlInput?.value || "").trim(),
             openLinkTarget: (() => {
                 const v = String(openLinkTargetSelect?.value || "inline").toLowerCase();
                 if (v === "native-window" || v === "native" || v === "window") return "native-window";

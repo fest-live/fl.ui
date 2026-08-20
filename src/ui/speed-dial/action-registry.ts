@@ -119,8 +119,12 @@ async function resolveLauncherBridgeForSpeedDial(): Promise<LauncherBridgeSpeedD
     }
 }
 
-/** Apply fetched Android icon to a launcher `ui-icon` via `--icon-image`. */
-export function applyLauncherIconToUiIcon(host: HTMLElement, objectUrl: string): void {
+/** Apply fetched Android icon to a launcher `ui-icon` via resource + presentation mode. */
+export function applyLauncherIconToUiIcon(
+    host: HTMLElement,
+    objectUrl: string,
+    mode: "colored" | "masked" | "masked-inverse" | "auto" = "colored"
+): void {
     const url = String(objectUrl || "").trim();
     if (!url) return;
     host.setAttribute("icon-padding", "0");
@@ -129,9 +133,15 @@ export function applyLauncherIconToUiIcon(host: HTMLElement, objectUrl: string):
     host.toggleAttribute("data-launcher-icon", true);
 
     const apply = (): boolean => {
-        const icon = host as HTMLElement & { setResourceIcon?: (u: string) => unknown };
+        const icon = host as HTMLElement & {
+            setResourceIcon?: (u: string, m?: string) => unknown;
+            setBitmapPresentationMode?: (m: string, locked?: boolean) => unknown;
+        };
         if (typeof icon.setResourceIcon !== "function") return false;
-        icon.setResourceIcon(url);
+        icon.setResourceIcon(url, mode === "auto" ? "auto" : mode);
+        if (mode !== "auto" && typeof icon.setBitmapPresentationMode === "function") {
+            icon.setBitmapPresentationMode(mode, true);
+        }
         host.toggleAttribute("data-launcher-icon-ready", true);
         return true;
     };
@@ -184,6 +194,7 @@ export function createLauncherIconImgElement(): HTMLImageElement {
     host.alt = "";
     host.decoding = "async";
     host.draggable = false;
+    host.referrerPolicy = "no-referrer";
     return host;
 }
 
@@ -199,25 +210,79 @@ export function createLauncherIconMaskElement(): HTMLElement {
 /** Load Android app icon into a SpeedDial tile (`launch-app` meta). */
 export async function hydrateLauncherAppTileIcon(
     el: HTMLElement,
-    item: { id: string; action?: string }
+    item: { id: string; action?: string; iconDisplay?: string; iconUrl?: string }
 ): Promise<void> {
     const cacheKey = getLauncherAppTileCacheKey(item);
     if (!cacheKey) return;
 
+    const readDisplay = (): string =>
+        String(item.iconDisplay || el.getAttribute("data-icon-display") || "")
+            .trim()
+            .toLowerCase();
+
+    const isGlyph = (d: string): boolean =>
+        d === "glyph" || d === "phosphor" || d === "name";
+
+    if (isGlyph(readDisplay())) return;
+
+    // blob: is session-ephemeral — ignore so we re-fetch the launcher bitmap.
+    const explicitUrl = (() => {
+        const u = String(item.iconUrl || "").trim();
+        if (!u || u.startsWith("blob:")) return "";
+        return u;
+    })();
+
+    const paintColored = (url: string): void => {
+        el.querySelectorAll("ui-icon").forEach((n) => n.remove());
+        let img = el.querySelector<HTMLImageElement>(
+            "img.ui-ws-item-icon-img, img[data-launcher-icon]"
+        );
+        if (!img) {
+            img = createLauncherIconImgElement();
+            el.prepend(img);
+        }
+        applyLauncherIconToImg(img, url);
+    };
+
+    if (explicitUrl) {
+        const display = readDisplay();
+        if (display === "masked" || display === "masked-inverse") {
+            let icon = el.querySelector<HTMLElement>("ui-icon[data-launcher-icon]");
+            if (!icon) {
+                icon = createLauncherUiIconElement();
+                el.querySelectorAll("img.ui-ws-item-icon-img, img[data-launcher-icon]").forEach((n) =>
+                    n.remove()
+                );
+                el.prepend(icon);
+            }
+            applyLauncherIconToUiIcon(icon, explicitUrl, display);
+            return;
+        }
+        paintColored(explicitUrl);
+        return;
+    }
+
     const objectUrl = await ensureLauncherIconObjectUrl(cacheKey, 96);
     if (!objectUrl || !el.isConnected) return;
 
-    el.querySelector(".ui-ws-item-icon-mask[data-launcher-icon]")?.remove();
-    el.querySelector("img[data-launcher-icon]")?.remove();
+    const display = readDisplay();
+    if (isGlyph(display)) return;
+    if (String(item.iconUrl || "").trim() && !String(item.iconUrl).startsWith("blob:")) return;
 
-    let icon = el.querySelector<HTMLElement>("ui-icon[data-launcher-icon]");
-    if (!icon) {
-        icon = createLauncherUiIconElement();
-        const other = el.querySelector("ui-icon:not([data-launcher-icon])");
-        if (other) other.replaceWith(icon);
-        else el.prepend(icon);
+    if (display === "masked" || display === "masked-inverse") {
+        el.querySelectorAll("img.ui-ws-item-icon-img, img[data-launcher-icon]").forEach((n) =>
+            n.remove()
+        );
+        let icon = el.querySelector<HTMLElement>("ui-icon[data-launcher-icon]");
+        if (!icon) {
+            icon = createLauncherUiIconElement();
+            el.prepend(icon);
+        }
+        applyLauncherIconToUiIcon(icon, objectUrl, display);
+        return;
     }
-    applyLauncherIconToUiIcon(icon, objectUrl);
+
+    paintColored(objectUrl);
 }
 
 /*

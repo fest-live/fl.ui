@@ -8,6 +8,7 @@
     display: inline-flex;
     align-items: center;
     gap: $gap;
+    flex-wrap: nowrap;
 }
 
 @mixin tonal-surface($role: surface, $opacity: var(--surface-opacity-subtle), $radius: var(--radius-md), $border: null, $shadow: 0, $clip: false) {

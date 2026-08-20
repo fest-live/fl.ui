@@ -84,11 +84,15 @@
 
 
     .qs-tile-icon {
-        --icon-size: 1.35rem;
+        /* WHY: Phosphor default --icon-padding: 0.45rem shrinks glyphs to dots in a 1.35rem slot. */
+        --icon-size: 1.5rem;
+        --icon-padding: 0;
         --icon-color: currentColor;
         flex: 0 0 auto;
         inline-size: var(--icon-size);
         block-size: var(--icon-size);
+        min-inline-size: var(--icon-size);
+        min-block-size: var(--icon-size);
         line-height: 0;
         color: contrast-color(var(--qs-surface));
         color: color-mix(in oklch, contrast-color(var(--qs-surface)) 40%, var(--color-primary, var(--qs-primary)));
@@ -182,11 +186,14 @@
     }
 
     .qs-slider-icon {
-        --icon-size: 1.15rem;
-        --icon-color: currentColor
+        --icon-size: 1.35rem;
+        --icon-padding: 0;
+        --icon-color: currentColor;
         flex: 0 0 auto;
         inline-size: var(--icon-size);
         block-size: var(--icon-size);
+        min-inline-size: var(--icon-size);
+        min-block-size: var(--icon-size);
         line-height: 0;
         color: contrast-color(var(--qs-surface));
     }
@@ -301,11 +308,14 @@
     }
 
     .qs-footer-icon {
-        --icon-size: 0.95rem;
+        --icon-size: 1.15rem;
+        --icon-padding: 0;
         --icon-color: currentColor;
         flex: 0 0 auto;
         inline-size: var(--icon-size);
         block-size: var(--icon-size);
+        min-inline-size: var(--icon-size);
+        min-block-size: var(--icon-size);
         line-height: 0;
     }
 }

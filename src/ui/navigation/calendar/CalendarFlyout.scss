@@ -81,11 +81,14 @@
         -webkit-tap-highlight-color: transparent;
 
         ui-icon {
-            --icon-size: 1.05rem;
-            /* WHY: mask fill must track button ink (dark/light); not a fixed @property slate. */
+            /* WHY: Phosphor default --icon-padding shrinks nav carets to dots. */
+            --icon-size: 1.25rem;
+            --icon-padding: 0;
             --icon-color: currentColor;
             inline-size: var(--icon-size);
             block-size: var(--icon-size);
+            min-inline-size: var(--icon-size);
+            min-block-size: var(--icon-size);
             color: currentColor;
             pointer-events: none;
         }

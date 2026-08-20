@@ -128,11 +128,17 @@
     }
 
     .env-status-bar__chip ui-icon {
-        font-size: 1.15rem;
-        display: block;
-        color: var(--env-status-fg, inherit);
-        /* WHY: concrete ink — `currentColor` raced white before status contrast settled. */
+        /* WHY: Phosphor default padding shrinks status glyphs; size the slot explicitly. */
+        --icon-size: 1.15rem;
+        --icon-padding: 0;
         --icon-color: var(--env-status-fg, #f5f5f7);
+        display: block;
+        inline-size: var(--icon-size);
+        block-size: var(--icon-size);
+        min-inline-size: var(--icon-size);
+        min-block-size: var(--icon-size);
+        font-size: var(--icon-size);
+        color: var(--env-status-fg, inherit);
     }
 
     .env-status-bar__pct {
@@ -180,6 +186,7 @@
 
     .env-shell-chrome[data-status-overlay] .env-ui-statusbar__clock {
         display: block;
+        font-size: 0.875rem;
         color: var(--env-status-fg, #f5f5f7);
     }
 
@@ -189,8 +196,19 @@
     }
 
     .env-shell-chrome[data-status-overlay] .env-status-bar__chip ui-icon {
+        --icon-size: 1.25rem;
+        --icon-padding: 0;
         --icon-color: var(--env-status-fg, #f5f5f7);
+        inline-size: var(--icon-size);
+        block-size: var(--icon-size);
+        min-inline-size: var(--icon-size);
+        min-block-size: var(--icon-size);
+        font-size: var(--icon-size);
         color: var(--env-status-fg, #f5f5f7);
+    }
+
+    .env-shell-chrome[data-status-overlay] .env-status-bar__pct {
+        font-size: 0.8125rem;
     }
 
     .env-shell-chrome[data-status-overlay] .env-device-tray--footer {

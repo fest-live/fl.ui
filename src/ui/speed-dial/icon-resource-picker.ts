@@ -26,8 +26,11 @@ export type IconResourcePick = {
     iconUrl: string;
     packageName?: string;
     variant?: AndroidIconVariant;
+    /** Icon-pack package when pick came from a themed pack. */
+    pack?: string;
+    drawable?: string;
     label?: string;
-    source?: "android" | "bookmark" | "favicon";
+    source?: "android" | "bookmark" | "favicon" | "icon-pack";
 };
 
 type PickerOpts = {
@@ -191,6 +194,193 @@ async function loadVariantCards(
     }
 }
 
+async function loadIconPackCards(
+    bridge: LauncherBridgeSpeedDialApi,
+    targetPkg: string,
+    host: HTMLElement,
+    onPick: (pick: IconResourcePick) => void,
+    close: () => void
+): Promise<void> {
+    host.replaceChildren();
+    if (!bridge.launcherIconPacks) {
+        host.textContent = "Icon packs unavailable.";
+        return;
+    }
+    let packs: Array<{ packageName: string; label: string; iconCacheKey?: string }> = [];
+    try {
+        packs = await bridge.launcherIconPacks();
+    } catch {
+        host.textContent = "Failed to list icon packs.";
+        return;
+    }
+    if (!packs.length) {
+        host.textContent = "No icon packs installed.";
+        return;
+    }
+
+    const frag = document.createDocumentFragment();
+    for (const pack of packs.slice(0, 64)) {
+        const packPkg = String(pack.packageName || "").trim();
+        if (!packPkg) continue;
+        const label = String(pack.label || packPkg);
+        const wrap = document.createElement("div");
+        wrap.className = "sd-icon-picker__pack-wrap";
+        wrap.style.setProperty("display", "flex", "important");
+        wrap.style.setProperty("flex-direction", "column", "important");
+        wrap.style.setProperty("gap", "0.2rem", "important");
+        wrap.style.setProperty("min-inline-size", "0", "important");
+
+        const { btn, img } = makeCard(label, `${label} — themed for this app`);
+        void ensureLauncherIconObjectUrl(targetPkg, 96, "default", packPkg).then((url) => {
+            if (url) {
+                img.src = url;
+                return;
+            }
+            btn.disabled = true;
+            btn.title = `${label} (no cover for this app)`;
+            void ensureLauncherIconObjectUrl(packPkg, 72, "default").then((packIcon) => {
+                if (packIcon) img.src = packIcon;
+            });
+        });
+        btn.addEventListener("click", () => {
+            if (btn.disabled) return;
+            onPick({
+                iconUrl: formatAndroidIconRef(targetPkg, "default", packPkg),
+                packageName: targetPkg,
+                variant: "default",
+                pack: packPkg,
+                label,
+                source: "icon-pack"
+            });
+            close();
+        });
+
+        const browse = document.createElement("button");
+        browse.type = "button";
+        browse.className = "sd-icon-picker__pack-browse";
+        browse.textContent = "Browse…";
+        browse.title = `Browse icons in ${label}`;
+        browse.style.cssText =
+            "font:inherit;font-size:0.68rem;padding:0.15rem 0.35rem;border-radius:6px;border:1px solid color-mix(in oklab,currentColor 22%,transparent);background:transparent;color:inherit;cursor:pointer;";
+        browse.addEventListener("click", (ev) => {
+            ev.preventDefault();
+            ev.stopPropagation();
+            void loadPackDrawableBrowse(bridge, targetPkg, packPkg, label, host, onPick, close, () => {
+                void loadIconPackCards(bridge, targetPkg, host, onPick, close);
+            });
+        });
+
+        wrap.append(btn, browse);
+        frag.append(wrap);
+    }
+    host.append(frag);
+}
+
+async function loadPackDrawableBrowse(
+    bridge: LauncherBridgeSpeedDialApi,
+    targetPkg: string,
+    packPkg: string,
+    packLabel: string,
+    host: HTMLElement,
+    onPick: (pick: IconResourcePick) => void,
+    close: () => void,
+    onBack: () => void
+): Promise<void> {
+    host.replaceChildren();
+    const toolbar = document.createElement("div");
+    toolbar.style.cssText =
+        "display:flex;flex-wrap:wrap;gap:0.35rem;align-items:center;margin-block-end:0.35rem;grid-column:1/-1;";
+    const back = document.createElement("button");
+    back.type = "button";
+    back.textContent = "← Packs";
+    back.style.cssText =
+        "font:inherit;font-size:0.75rem;padding:0.2rem 0.45rem;border-radius:6px;border:1px solid color-mix(in oklab,currentColor 22%,transparent);background:transparent;color:inherit;cursor:pointer;";
+    back.addEventListener("click", () => onBack());
+    const title = document.createElement("span");
+    title.textContent = packLabel;
+    title.style.cssText = "font-size:0.78rem;opacity:0.85;flex:1;min-inline-size:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;";
+    const search = document.createElement("input");
+    search.type = "search";
+    search.placeholder = "Filter drawables…";
+    search.autocomplete = "off";
+    search.className = "sd-icon-picker__search";
+    search.style.setProperty("flex", "1 1 8rem", "important");
+    toolbar.append(back, title, search);
+
+    const grid = document.createElement("div");
+    grid.className = "sd-icon-picker__grid";
+    grid.style.setProperty("display", "grid", "important");
+    grid.style.setProperty("grid-template-columns", "repeat(3, minmax(0, 1fr))", "important");
+    grid.style.setProperty("gap", "0.4rem", "important");
+    grid.style.setProperty("grid-column", "1 / -1", "important");
+
+    host.style.setProperty("display", "flex", "important");
+    host.style.setProperty("flex-direction", "column", "important");
+    host.append(toolbar, grid);
+
+    let timer = 0;
+    const refresh = (): void => {
+        void (async () => {
+            grid.replaceChildren();
+            if (!bridge.launcherIconPackIcons) {
+                grid.textContent = "Pack browse unavailable.";
+                return;
+            }
+            let icons: Array<{ drawable: string; label: string }> = [];
+            try {
+                icons = await bridge.launcherIconPackIcons(packPkg, String(search.value || ""), 96);
+            } catch {
+                grid.textContent = "Failed to list pack icons.";
+                return;
+            }
+            if (!icons.length) {
+                grid.textContent = "No matching icons.";
+                return;
+            }
+            const frag = document.createDocumentFragment();
+            const resolvePkg = targetPkg || packPkg;
+            for (const icon of icons) {
+                const drawable = String(icon.drawable || "").trim();
+                if (!drawable) continue;
+                const { btn, img } = makeCard(
+                    String(icon.label || drawable),
+                    `${packLabel}: ${drawable}`
+                );
+                frag.append(btn);
+                void ensureLauncherIconObjectUrl(
+                    resolvePkg,
+                    72,
+                    "default",
+                    packPkg,
+                    drawable
+                ).then((url) => {
+                    if (url) img.src = url;
+                    else btn.disabled = true;
+                });
+                btn.addEventListener("click", () => {
+                    if (btn.disabled) return;
+                    onPick({
+                        iconUrl: formatAndroidIconRef(resolvePkg, "default", packPkg, drawable),
+                        packageName: resolvePkg,
+                        variant: "default",
+                        pack: packPkg,
+                        drawable,
+                        label: String(icon.label || drawable),
+                        source: "icon-pack"
+                    });
+                    close();
+                });
+            }
+            grid.append(frag);
+        })();
+    };
+    search.addEventListener("input", () => {
+        window.clearTimeout(timer);
+        timer = window.setTimeout(refresh, 160);
+    });
+    refresh();
+}
+
 async function loadAppBrowse(
     bridge: LauncherBridgeSpeedDialApi,
     query: string,
@@ -323,7 +513,7 @@ async function loadBookmarkBrowse(
 
 /**
  * Modal picker:
- * - Capacitor: Material You / adaptive + installed apps (`android-icon:`)
+ * - Capacitor: Material You / adaptive + icon packs + installed apps (`android-icon:`)
  * - CRX: favicon variants for a page URL + browse Chrome bookmarks
  */
 export async function openIconResourcePicker(opts: PickerOpts): Promise<void> {
@@ -343,6 +533,7 @@ export async function openIconResourcePicker(opts: PickerOpts): Promise<void> {
     const theme = resolveTheme(opts.theme);
     const pkgSeed = String(opts.packageName || "").trim();
     const showAndroidVariants = hasAndroid && Boolean(pkgSeed);
+    const showIconPacks = hasAndroid && Boolean(pkgSeed) && Boolean(bridge?.launcherIconPacks);
     const showAndroidBrowse = hasAndroid && Boolean(bridge?.launcherList);
     const showFaviconVariants = Boolean(pageSeed);
     const showBookmarkBrowse = Boolean(bookmarksApi);
@@ -351,7 +542,7 @@ export async function openIconResourcePicker(opts: PickerOpts): Promise<void> {
     dialog.className = "speed-dial-editor sd-icon-picker";
     dialog.dataset.theme = theme;
     const description = hasAndroid
-        ? "Material You / adaptive layers, installed apps, or a favicon."
+        ? "Material You / adaptive, icon packs, installed apps, or a favicon."
         : "Favicon for this link, or pick from Chrome bookmarks.";
     dialog.innerHTML = `
         <form class="speed-dial-editor__form sd-icon-picker__form" data-theme="${theme}" method="dialog">
@@ -363,6 +554,10 @@ export async function openIconResourcePicker(opts: PickerOpts): Promise<void> {
                 <section class="sd-icon-picker__section" data-section="variants" ${showAndroidVariants ? "" : "hidden"}>
                     <div class="sd-icon-picker__section-title">For this package</div>
                     <div class="sd-icon-picker__grid" data-variants></div>
+                </section>
+                <section class="sd-icon-picker__section" data-section="packs" ${showIconPacks ? "" : "hidden"}>
+                    <div class="sd-icon-picker__section-title">Icon packs</div>
+                    <div class="sd-icon-picker__grid" data-packs></div>
                 </section>
                 <section class="sd-icon-picker__section" data-section="favicon" ${showFaviconVariants ? "" : "hidden"}>
                     <div class="sd-icon-picker__section-title">For this link</div>
@@ -388,6 +583,7 @@ export async function openIconResourcePicker(opts: PickerOpts): Promise<void> {
 
     const form = dialog.querySelector("form") as HTMLFormElement;
     const variantsHost = dialog.querySelector<HTMLElement>("[data-variants]");
+    const packsHost = dialog.querySelector<HTMLElement>("[data-packs]");
     const faviconHost = dialog.querySelector<HTMLElement>("[data-favicon]");
     const browseHost = dialog.querySelector<HTMLElement>("[data-browse]");
     const bookmarksHost = dialog.querySelector<HTMLElement>("[data-bookmarks]");
@@ -429,6 +625,9 @@ export async function openIconResourcePicker(opts: PickerOpts): Promise<void> {
 
     if (showAndroidVariants && bridge && variantsHost) {
         void loadVariantCards(bridge, pkgSeed, variantsHost, onPick, close);
+    }
+    if (showIconPacks && bridge && packsHost && pkgSeed) {
+        void loadIconPackCards(bridge, pkgSeed, packsHost, onPick, close);
     }
     if (showFaviconVariants && faviconHost) {
         loadFaviconVariantCards(pageSeed, bookmarksApi, faviconHost, onPick, close);

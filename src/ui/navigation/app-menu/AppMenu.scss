@@ -440,9 +440,13 @@
             pointer-events: none;
             /* Plate clips to circle/squircle — don't square the bitmap itself. */
             border-radius: 0;
-            /* Android adaptive icon padding */
-            transform: scale(1.28);
+            transform: scale(var(--sd-item-icon-scale, var(--sd-launcher-icon-scale, 1.28)));
             transform-origin: center;
+        }
+
+        img[data-launcher-icon][data-icon-pack],
+        .ui-ws-item-icon-img[data-launcher-icon][data-icon-pack] {
+            transform: scale(var(--sd-item-icon-scale, var(--sd-launcher-icon-scale, 1.28)));
         }
 
         /* Bookmark / non-launcher favicons — inset glyph-sized mark inside the plate. */

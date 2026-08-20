@@ -16,6 +16,9 @@ import {
     isClientPointOverSpeedDial,
     pinLauncherAppEntry,
     resolveSpeedDialCellFromClientPoint,
+    applyItemIconScaleToElement,
+    applyIconScaleToPaintedNodes,
+    tileIconFetchSize,
     type LauncherAppPinPayload
 } from "fl-ui/speed-dial/launcher-state";
 import { showSuccess } from "fl-ui/speed-dial/toast";
@@ -85,10 +88,24 @@ export type LauncherBridgeApi = {
     launcherRequestDefault: () => Promise<boolean>;
     launcherList: (query?: string) => Promise<LauncherAppEntry[]>;
     launcherLaunch: (pkg: string, component?: string) => Promise<boolean>;
-    launcherIcon: (cacheKey: string, size?: number, variant?: string) => Promise<string>;
+    launcherIcon: (
+        cacheKey: string,
+        size?: number,
+        variant?: string,
+        pack?: string,
+        drawable?: string
+    ) => Promise<string>;
     launcherIconVariants?: (
         cacheKey: string
     ) => Promise<Array<{ id: string; label: string; available: boolean }>>;
+    launcherIconPacks?: () => Promise<
+        Array<{ packageName: string; label: string; iconCacheKey?: string }>
+    >;
+    launcherIconPackIcons?: (
+        pack: string,
+        query?: string,
+        limit?: number
+    ) => Promise<Array<{ drawable: string; label: string }>>;
 };
 
 let registeredLauncherBridge: LauncherBridgeApi | null = null;
@@ -194,8 +211,9 @@ function paintAppMenuIconPlate(
 
     const resourceRaw =
         String(opts.chrome.iconUrl || "").trim() || String(opts.resourceUrl || "").trim();
+    const fetchSize = tileIconFetchSize(opts.chrome.iconScale);
     const cachedAndroid = isAndroidIconRef(resourceRaw)
-        ? getCachedIconResourceObjectUrl(resourceRaw)
+        ? getCachedIconResourceObjectUrl(resourceRaw, fetchSize)
         : "";
     const resource = String(
         cachedAndroid || (isAndroidIconRef(resourceRaw) ? "" : resourceRaw) || ""
@@ -209,6 +227,7 @@ function paintAppMenuIconPlate(
             isBookmarkFavicon: Boolean(resource || resourceRaw) && !opts.launcher
         });
     iconPlate.setAttribute("data-icon-display", display);
+    applyItemIconScaleToElement(iconPlate, opts.chrome.iconScale);
     iconPlate.replaceChildren();
 
     if (display === "glyph") {
@@ -219,6 +238,7 @@ function paintAppMenuIconPlate(
         icon.setAttribute("icon-style", "duotone");
         icon.setAttribute("aria-hidden", "true");
         iconPlate.append(icon);
+        applyIconScaleToPaintedNodes(iconPlate);
         return;
     }
 
@@ -242,10 +262,12 @@ function paintAppMenuIconPlate(
         }
         if (resource) img.src = resource;
         iconPlate.append(img);
+        applyIconScaleToPaintedNodes(iconPlate);
         if (isAndroidIconRef(resourceRaw)) {
-            void resolveIconResourceUrl(resourceRaw, 96).then((url) => {
+            void resolveIconResourceUrl(resourceRaw, fetchSize).then((url) => {
                 if (!url || !img.isConnected) return;
                 img.src = url;
+                applyIconScaleToPaintedNodes(iconPlate);
             });
         }
         return;
@@ -259,21 +281,24 @@ function paintAppMenuIconPlate(
         className: "ui-ws-item-icon-native"
     });
     iconPlate.append(host);
+    applyIconScaleToPaintedNodes(iconPlate);
     if (opts.launcher && resource && display !== "glyph") {
         applyLauncherIconToUiIcon(
             host,
             resource,
             display as "colored" | "masked" | "masked-inverse"
         );
+        applyIconScaleToPaintedNodes(iconPlate);
     }
     if (isAndroidIconRef(resourceRaw)) {
-        void resolveIconResourceUrl(resourceRaw, 96).then((url) => {
+        void resolveIconResourceUrl(resourceRaw, fetchSize).then((url) => {
             if (!url || !host.isConnected) return;
             applyLauncherIconToUiIcon(
                 host,
                 url,
                 display as "colored" | "masked" | "masked-inverse"
             );
+            applyIconScaleToPaintedNodes(iconPlate);
         });
     }
 }
@@ -515,10 +540,11 @@ function renderAppTile(
             launcher: true
         });
     };
-    const cached = getCachedLauncherIconObjectUrl(cacheKey);
+    const fetchSize = tileIconFetchSize(getAppMenuTileChrome(chromeKey).iconScale);
+    const cached = getCachedLauncherIconObjectUrl(cacheKey, fetchSize);
     paint(cached);
 
-    void ensureLauncherIconObjectUrl(cacheKey, 96)
+    void ensureLauncherIconObjectUrl(cacheKey, fetchSize)
         .then((objectUrl) => {
             if (gen !== refreshGen()) return;
             if (!objectUrl) return;
@@ -561,16 +587,31 @@ function renderAppTile(
                             packageName: app.packageName,
                             defaults: { shape: APP_MENU_DEFAULT_SHAPE, iconDisplay: "colored" },
                             onSave: (chrome) => {
-                                const url =
-                                    getCachedLauncherIconObjectUrl(cacheKey) ||
-                                    String(chrome.iconUrl || "").trim() ||
-                                    String(getAppMenuTileChrome(chromeKey).iconUrl || "");
-                                paintAppMenuIconPlate(iconPlate, {
-                                    chrome: { ...getAppMenuTileChrome(chromeKey), ...chrome },
-                                    fallbackGlyph: "device-mobile",
-                                    resourceUrl: isAndroidIconRef(url) ? "" : url,
-                                    launcher: true
-                                });
+                                const merged = { ...getAppMenuTileChrome(chromeKey), ...chrome };
+                                const size = tileIconFetchSize(merged.iconScale);
+                                const paintChrome = (resourceUrl = ""): void => {
+                                    paintAppMenuIconPlate(iconPlate, {
+                                        chrome: merged,
+                                        fallbackGlyph: "device-mobile",
+                                        resourceUrl,
+                                        launcher: true
+                                    });
+                                };
+                                const cached =
+                                    getCachedLauncherIconObjectUrl(cacheKey, size) ||
+                                    (isAndroidIconRef(String(merged.iconUrl || ""))
+                                        ? ""
+                                        : String(merged.iconUrl || "").trim());
+                                paintChrome(cached);
+                                if (isAndroidIconRef(String(merged.iconUrl || ""))) {
+                                    void resolveIconResourceUrl(merged.iconUrl, size).then((url) => {
+                                        if (url) paintChrome(url);
+                                    });
+                                } else {
+                                    void ensureLauncherIconObjectUrl(cacheKey, size).then((url) => {
+                                        if (url) paintChrome(url);
+                                    });
+                                }
                             }
                         });
                     }

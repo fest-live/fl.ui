@@ -1,8 +1,8 @@
 /*
  * Filename: android-icon-ref.ts
  * FullPath: modules/projects/fl.ui/src/ui/speed-dial/android-icon-ref.ts
- * Change date and time: 17.15.00_20.08.2026
- * Reason for changes: Durable android-icon: refs for Material You / adaptive variants.
+ * Change date and time: 18.40.00_20.08.2026
+ * Reason for changes: android-icon: refs — variants, ?pack=, ?drawable= (icon-pack browse).
  */
 
 export type AndroidIconVariant = "default" | "monochrome" | "foreground";
@@ -10,6 +10,10 @@ export type AndroidIconVariant = "default" | "monochrome" | "foreground";
 export type ParsedAndroidIconRef = {
     packageName: string;
     variant: AndroidIconVariant;
+    /** Icon-pack package (Lena Adaptive, …) when set. */
+    pack?: string;
+    /** Explicit drawable name inside the pack (browse pick). */
+    drawable?: string;
 };
 
 const VARIANT_ALIASES: Record<string, AndroidIconVariant> = {
@@ -33,7 +37,7 @@ export function normalizeAndroidIconVariant(raw: unknown): AndroidIconVariant {
     return VARIANT_ALIASES[key] || "default";
 }
 
-/** Durable resource: `android-icon:com.pkg` or `android-icon:com.pkg?v=monochrome`. */
+/** Durable resource: `android-icon:com.pkg`, `?v=`, `?pack=`, `?drawable=`. */
 export function isAndroidIconRef(raw: unknown): boolean {
     const u = String(raw || "").trim().toLowerCase();
     return u.startsWith("android-icon:");
@@ -41,12 +45,21 @@ export function isAndroidIconRef(raw: unknown): boolean {
 
 export function formatAndroidIconRef(
     packageName: string,
-    variant: AndroidIconVariant | string = "default"
+    variant: AndroidIconVariant | string = "default",
+    pack: string = "",
+    drawable: string = ""
 ): string {
     const pkg = String(packageName || "").trim();
     if (!pkg) return "";
     const v = normalizeAndroidIconVariant(variant);
-    return v === "default" ? `android-icon:${pkg}` : `android-icon:${pkg}?v=${v}`;
+    const packPkg = String(pack || "").trim();
+    const draw = String(drawable || "").trim();
+    const params = new URLSearchParams();
+    if (v !== "default") params.set("v", v);
+    if (packPkg) params.set("pack", packPkg);
+    if (draw) params.set("drawable", draw);
+    const q = params.toString();
+    return q ? `android-icon:${pkg}?${q}` : `android-icon:${pkg}`;
 }
 
 export function parseAndroidIconRef(raw: unknown): ParsedAndroidIconRef | null {
@@ -54,28 +67,47 @@ export function parseAndroidIconRef(raw: unknown): ParsedAndroidIconRef | null {
     if (!isAndroidIconRef(input)) return null;
     const body = input.slice("android-icon:".length).replace(/^\/\//, "");
     if (!body) return null;
-    try {
-        const url = new URL(body.includes("://") ? body : `android-icon://${body}`);
-        const pkg = String(url.hostname || url.pathname.replace(/^\//, "") || "").trim();
+
+    const finish = (pkg: string, params: URLSearchParams): ParsedAndroidIconRef | null => {
         if (!pkg) return null;
-        const v = normalizeAndroidIconVariant(url.searchParams.get("v") || "default");
-        return { packageName: pkg, variant: v };
-    } catch {
-        const [pkgPart, query = ""] = body.split("?");
-        const pkg = String(pkgPart || "").trim();
-        if (!pkg) return null;
-        const params = new URLSearchParams(query);
-        return {
+        const parsed: ParsedAndroidIconRef = {
             packageName: pkg,
             variant: normalizeAndroidIconVariant(params.get("v") || "default")
         };
+        const pack = String(params.get("pack") || "").trim();
+        const drawable = String(params.get("drawable") || "").trim();
+        if (pack) parsed.pack = pack;
+        if (drawable) parsed.drawable = drawable;
+        return parsed;
+    };
+
+    try {
+        const url = new URL(body.includes("://") ? body : `android-icon://${body}`);
+        const pkg = String(url.hostname || url.pathname.replace(/^\//, "") || "").trim();
+        return finish(pkg, url.searchParams);
+    } catch {
+        const [pkgPart, query = ""] = body.split("?");
+        return finish(String(pkgPart || "").trim(), new URLSearchParams(query));
     }
 }
 
-/** Cache key so default / mono / fg don't collide in the object-URL map. */
-export function androidIconCacheKey(packageName: string, variant: AndroidIconVariant | string = "default"): string {
+/** Cache key so default / mono / fg / pack / drawable / pixel size don't collide. */
+export function androidIconCacheKey(
+    packageName: string,
+    variant: AndroidIconVariant | string = "default",
+    pack: string = "",
+    drawable: string = "",
+    sizePx: number = 0
+): string {
     const pkg = String(packageName || "").trim();
     if (!pkg) return "";
     const v = normalizeAndroidIconVariant(variant);
-    return v === "default" ? pkg : `${pkg}#${v}`;
+    const packPkg = String(pack || "").trim();
+    const draw = String(drawable || "").trim();
+    let key = v === "default" ? pkg : `${pkg}#${v}`;
+    if (packPkg) key = `${key}#pack:${packPkg}`;
+    if (draw) key = `${key}#d:${draw}`;
+    const sz = Math.round(Number(sizePx) || 0);
+    if (sz > 0) key = `${key}#s${sz}`;
+    return key;
 }

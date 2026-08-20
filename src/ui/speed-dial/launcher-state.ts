@@ -72,6 +72,11 @@ export interface SpeedDialItemMeta {
     /** Resource for masked / masked-inverse / colored (URL, data:, blob:). */
     iconUrl?: string;
     /**
+     * Per-tile launcher/pack bitmap zoom inside the plate.
+     * `auto` / omit → Workspace default; else `fit` | `fill` | `zoom` | `max`.
+     */
+    iconScale?: string;
+    /**
      * Open destination:
      * - `native-window` — new browser window / mono native immersive
      * - `inline` — in-session floating window (same browser tab)
@@ -1389,6 +1394,112 @@ export interface GridLayoutSettings {
     shape: GridShape;
     /** Default click action for newly created tiles (`open-link` / `open-view`). */
     defaultAction?: string;
+    /**
+     * Launcher / pack bitmap scale inside the plate.
+     * `compact` 0.78 · `fit` 1.0 · `fill` 1.28 (adaptive default) · `zoom` 1.5 · `max` 1.75
+     */
+    iconScale?: IconBitmapScale;
+}
+
+export type IconBitmapScale = "compact" | "fit" | "fill" | "zoom" | "max";
+
+/** Per-tile: `auto` inherits Workspace default. */
+export type ItemIconBitmapScale = IconBitmapScale | "auto";
+
+const ICON_SCALE_VALUES: Record<IconBitmapScale, string> = {
+    compact: "0.78",
+    fit: "1",
+    fill: "1.28",
+    zoom: "1.5",
+    max: "1.75"
+};
+
+export const ICON_BITMAP_SCALE_OPTIONS: Array<{ value: ItemIconBitmapScale; label: string }> = [
+    { value: "auto", label: "Auto (workspace default)" },
+    { value: "compact", label: "Compact (0.78)" },
+    { value: "fit", label: "Fit (1.0 — no zoom)" },
+    { value: "fill", label: "Fill (1.28 — adaptive)" },
+    { value: "zoom", label: "Zoom (1.5)" },
+    { value: "max", label: "Max (1.75)" }
+];
+
+export function normalizeIconBitmapScale(raw: unknown, fallback: IconBitmapScale = "fill"): IconBitmapScale {
+    const v = String(raw || "").trim().toLowerCase();
+    if (v === "compact" || v === "small" || v === "0.78") return "compact";
+    if (v === "fit" || v === "1" || v === "contain") return "fit";
+    if (v === "fill" || v === "adaptive" || v === "1.28") return "fill";
+    if (v === "zoom" || v === "1.5") return "zoom";
+    if (v === "max" || v === "large" || v === "1.75") return "max";
+    return fallback;
+}
+
+/** Empty / auto → inherit workspace; otherwise a concrete scale. */
+export function normalizeItemIconBitmapScale(raw: unknown): ItemIconBitmapScale {
+    const v = String(raw || "").trim().toLowerCase();
+    if (!v || v === "auto" || v === "default" || v === "inherit") return "auto";
+    return normalizeIconBitmapScale(v, "fill");
+}
+
+export function iconBitmapScaleCss(raw: unknown): string {
+    return ICON_SCALE_VALUES[normalizeIconBitmapScale(raw)];
+}
+
+export function packIconBitmapScaleCss(raw: unknown): string {
+    /* Same curve as launcher — milder pack curve made Fit/Fill look identical. */
+    return iconBitmapScaleCss(raw);
+}
+
+/** Resolve item (`auto`) → concrete workspace/id scale factor string. */
+export function resolveIconScaleFactor(rawItemScale?: unknown): string {
+    const item = normalizeItemIconBitmapScale(rawItemScale);
+    const id = item === "auto" ? normalizeIconBitmapScale(gridLayoutState?.iconScale, "fill") : item;
+    return ICON_SCALE_VALUES[id];
+}
+
+/**
+ * Set scale CSS vars on the plate AND inline `transform` on painted icon nodes.
+ * WHY: Cap WebView often ignores `transform: scale(var(--x))` — inline scale is reliable.
+ */
+export function applyItemIconScaleToElement(el: HTMLElement | null | undefined, raw: unknown): void {
+    if (!el) return;
+    const item = normalizeItemIconBitmapScale(raw);
+    const factor = resolveIconScaleFactor(raw);
+    el.dataset.iconScale = item === "auto" ? "auto" : item;
+    el.style.setProperty("--sd-item-icon-scale", factor);
+    el.style.setProperty("--sd-item-pack-icon-scale", factor);
+}
+
+/** Inline transform on current icon children (call again after replacing img/ui-icon). */
+export function applyIconScaleToPaintedNodes(
+    el: HTMLElement | null | undefined,
+    factor?: string
+): void {
+    if (!el) return;
+    const n = String(factor || el.style.getPropertyValue("--sd-item-icon-scale") || "").trim() || "1.28";
+    const t = `scale(${n})`;
+    el.querySelectorAll<HTMLElement>(
+        "img.ui-ws-item-icon-img, img[data-launcher-icon], img[data-bookmark-favicon], ui-icon, .ui-ws-item-icon-mask"
+    ).forEach((node) => {
+        /* WHY: Cap/WebView often drops CSS `scale(var(--x))` — pin inline with !important. */
+        node.style.setProperty("transform", t, "important");
+        node.style.setProperty("transform-origin", "center center", "important");
+    });
+}
+
+/**
+ * Native decode size so CSS zoom (scale × DPR) does not upscale a tiny bitmap.
+ * WHY: tiles used to always fetch 96px then scale(1.5–1.75) → pixelation on retina.
+ */
+export function tileIconFetchSize(rawItemScale?: unknown, layoutCssPx = 96): number {
+    const factor = Number(resolveIconScaleFactor(rawItemScale)) || 1.28;
+    let dpr = 1;
+    try {
+        dpr = Math.min(3, Math.max(1, Number(globalThis.devicePixelRatio) || 1));
+    } catch {
+        dpr = 1;
+    }
+    const base = Math.max(64, Math.round(Number(layoutCssPx) || 96));
+    return Math.max(128, Math.min(512, Math.round(base * factor * dpr)));
 }
 
 const GRID_LAYOUT_KEY = "cw::workspace::grid-layout";
@@ -1404,12 +1515,14 @@ export const gridLayoutState = makeUIState(GRID_LAYOUT_KEY, () => observe({
     columns: 4,
     rows: 8,
     shape: "squircle" as GridShape,
-    defaultAction: "open-link"
+    defaultAction: "open-link",
+    iconScale: "fill" as IconBitmapScale
 }), (raw) => observe(raw || {
     columns: 4,
     rows: 8,
     shape: "squircle" as GridShape,
-    defaultAction: "open-link"
+    defaultAction: "open-link",
+    iconScale: "fill" as IconBitmapScale
 }), (state) => ({ ...state })) as unknown as GridLayoutSettings;
 
 export const persistGridLayout = () => (gridLayoutState as any)?.$save?.();
@@ -1438,6 +1551,25 @@ export function getDefaultSpeedDialAction(): string {
 export function setDefaultSpeedDialAction(action: string): void {
     gridLayoutState.defaultAction = normalizeDefaultAction(action, "open-link");
     persistGridLayout();
+}
+
+export function getIconBitmapScale(): IconBitmapScale {
+    return normalizeIconBitmapScale(gridLayoutState?.iconScale, "fill");
+}
+
+export function setIconBitmapScale(scale: IconBitmapScale | string): void {
+    gridLayoutState.iconScale = normalizeIconBitmapScale(scale, "fill");
+    persistGridLayout();
+    applyIconBitmapScaleCss(gridLayoutState.iconScale);
+}
+
+export function applyIconBitmapScaleCss(scale?: unknown): void {
+    if (typeof document === "undefined") return;
+    const id = normalizeIconBitmapScale(scale ?? gridLayoutState?.iconScale, "fill");
+    const factor = iconBitmapScaleCss(id);
+    document.documentElement.dataset.iconScale = id;
+    document.documentElement.style.setProperty("--sd-launcher-icon-scale", factor);
+    document.documentElement.style.setProperty("--sd-pack-icon-scale", factor);
 }
 
 const hasStoredValue = (key: string): boolean => {
@@ -1538,6 +1670,10 @@ export const applyGridSettings = (settings?: {
         gridConfig?.defaultAction ?? gridLayoutState.defaultAction,
         "open-link"
     );
+    const iconScale = normalizeIconBitmapScale(
+        (gridConfig as { iconScale?: unknown } | undefined)?.iconScale ?? gridLayoutState.iconScale,
+        "fill"
+    );
 
     // WHY: shrink before writing layout state so the first visual pass already
     // has in-bounds cells. Clamping in logicalToVisualCell would stack overflow
@@ -1551,6 +1687,7 @@ export const applyGridSettings = (settings?: {
         gridLayoutState.rows = rows;
         gridLayoutState.shape = shape;
         gridLayoutState.defaultAction = defaultAction;
+        gridLayoutState.iconScale = iconScale;
         persistGridLayout();
     }
 
@@ -1568,6 +1705,21 @@ export const applyGridSettings = (settings?: {
     document.documentElement.dataset.gridColumns = String(columns);
     document.documentElement.dataset.gridRows = String(rows);
     document.documentElement.dataset.gridShape = shape;
+    applyIconBitmapScaleCss(iconScale);
+    /* Re-apply per-tile scales (auto → new workspace factor) + re-fetch hi-res bitmaps. */
+    try {
+        document
+            .querySelectorAll<HTMLElement>(".speed-dial-grid [data-speed-dial-item][data-layer='icons']")
+            .forEach((tile) => {
+                const id = tile.getAttribute("data-id") || "";
+                const meta = id ? getSpeedDialMeta(id) : null;
+                applyItemIconScaleToElement(tile, meta?.iconScale);
+                applyIconScaleToPaintedNodes(tile);
+                tile.dispatchEvent(new CustomEvent("cwsp:icon-bitmap-refresh"));
+            });
+    } catch {
+        /* ignore */
+    }
 };
 
 type WorkspaceGridEventDetail = Partial<GridLayoutSettings> & {
@@ -1587,6 +1739,7 @@ if (typeof window !== "undefined") {
                 rows: gridLayoutState.rows,
                 shape: gridLayoutState.shape,
                 defaultAction: getDefaultSpeedDialAction(),
+                iconScale: getIconBitmapScale(),
                 defaultOpenLinkTarget: getDefaultOpenLinkTarget()
             });
             return;

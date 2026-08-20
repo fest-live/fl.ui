@@ -11,6 +11,7 @@ import {
     normalizeIconDisplay,
     type IconDisplayMode
 } from "./tile-icon";
+import { ICON_BITMAP_SCALE_OPTIONS, normalizeItemIconBitmapScale } from "./launcher-state";
 import { attachIconResourcePickButton } from "./icon-resource-picker";
 
 /** WHY: Match context-menu pin — Settings may not have applied data-theme yet. */
@@ -85,6 +86,10 @@ export type ShortcutEditorDraft = {
     iconDisplay: IconDisplayMode | string;
     /** Resource for non-glyph modes (URL / data: / android-icon:) */
     iconUrl: string;
+    /**
+     * Per-tile bitmap zoom: `auto` | `fit` | `fill` | `zoom` | `max`.
+     */
+    iconScale?: string;
     /** Open link: native immersive vs inline env window (same tab). */
     openLinkTarget: string;
     /** Android package for launch-app tiles — seeds icon picker variants. */
@@ -207,6 +212,14 @@ export const openShortcutEditor = (options: ShortcutEditorOptions): void => {
                     </select>
                 </div>
                 <div class="modal-field">
+                    <label for="sd-edit-icon-scale">Icon scale (inside plate)</label>
+                    <select id="sd-edit-icon-scale" name="iconScale">
+                        ${ICON_BITMAP_SCALE_OPTIONS.map(
+                            (o) => `<option value="${o.value}">${o.label}</option>`
+                        ).join("")}
+                    </select>
+                </div>
+                <div class="modal-field">
                     <label for="sd-edit-action">Action</label>
                     <select id="sd-edit-action" name="action"></select>
                 </div>
@@ -255,6 +268,7 @@ export const openShortcutEditor = (options: ShortcutEditorOptions): void => {
     const iconDisplaySelect = form?.querySelector('select[name="iconDisplay"]') as HTMLSelectElement | null;
     const iconUrlInput = form?.querySelector('input[name="iconUrl"]') as HTMLInputElement | null;
     const shapeSelect = form?.querySelector('select[name="shape"]') as HTMLSelectElement | null;
+    const iconScaleSelect = form?.querySelector('select[name="iconScale"]') as HTMLSelectElement | null;
     const actionSelect = form?.querySelector('select[name="action"]') as HTMLSelectElement | null;
     const viewSelect = form?.querySelector('select[name="view"]') as HTMLSelectElement | null;
     const hrefInput = form?.querySelector('input[name="href"]') as HTMLInputElement | null;
@@ -291,6 +305,7 @@ export const openShortcutEditor = (options: ShortcutEditorOptions): void => {
     const viewValue = asDraftText(initial.view, "");
     const shapeVal = asDraftText(initial.shape, "squircle").toLowerCase();
     const iconDisplayVal = normalizeIconDisplay(initial.iconDisplay) || "glyph";
+    const iconScaleVal = normalizeItemIconBitmapScale(initial.iconScale);
     const olt = asDraftText(initial.openLinkTarget, "inline").toLowerCase();
 
     fillTextControl(labelInput, labelValue);
@@ -298,6 +313,7 @@ export const openShortcutEditor = (options: ShortcutEditorOptions): void => {
     fillTextControl(iconUrlInput, iconUrlValue);
     if (iconDisplaySelect) iconDisplaySelect.value = iconDisplayVal;
     if (shapeSelect) shapeSelect.value = ["circle", "square", "squircle", "wavy"].includes(shapeVal) ? shapeVal : "squircle";
+    if (iconScaleSelect) iconScaleSelect.value = iconScaleVal;
     if (openLinkTargetSelect) {
         openLinkTargetSelect.value =
             olt === "native-window" || olt === "native" || olt === "window"
@@ -419,6 +435,7 @@ export const openShortcutEditor = (options: ShortcutEditorOptions): void => {
             shape: String(shapeSelect?.value || "squircle").toLowerCase(),
             iconDisplay: normalizeIconDisplay(iconDisplaySelect?.value) || "glyph",
             iconUrl: String(iconUrlInput?.value || "").trim(),
+            iconScale: normalizeItemIconBitmapScale(iconScaleSelect?.value),
             openLinkTarget: (() => {
                 const v = String(openLinkTargetSelect?.value || "inline").toLowerCase();
                 if (v === "native-window" || v === "native" || v === "window") return "native-window";

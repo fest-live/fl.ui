@@ -12,6 +12,10 @@ import {
     normalizeTileShape,
     type IconDisplayMode
 } from "fl-ui/speed-dial/tile-icon";
+import {
+    ICON_BITMAP_SCALE_OPTIONS,
+    normalizeItemIconBitmapScale
+} from "fl-ui/speed-dial/launcher-state";
 import { attachIconResourcePickButton } from "fl-ui/speed-dial/icon-resource-picker";
 
 export type AppMenuTileChrome = {
@@ -21,6 +25,8 @@ export type AppMenuTileChrome = {
     icon?: string;
     /** Resource override (masked / masked-inverse / colored). */
     iconUrl?: string;
+    /** Per-tile bitmap zoom inside the plate (`auto` | fit/fill/zoom/max). */
+    iconScale?: string;
 };
 
 const STORAGE_KEY = "cwsp-app-menu-tile-chrome-v1";
@@ -76,6 +82,9 @@ export function setAppMenuTileChrome(key: string, patch: AppMenuTileChrome): App
     if (next.shape) next.shape = normalizeTileShape(next.shape, "circle");
     if (next.iconDisplay) {
         next.iconDisplay = normalizeIconDisplay(next.iconDisplay) || "colored";
+    }
+    if (next.iconScale != null) {
+        next.iconScale = normalizeItemIconBitmapScale(next.iconScale);
     }
     all[k] = next;
     writeAll(all);
@@ -140,6 +149,19 @@ export function openAppMenuTileChromeEditor(opts: {
                         ).join("")}
                     </select>
                 </div>
+                <div class="modal-field">
+                    <label for="am-chrome-icon-scale">Icon scale (inside plate)</label>
+                    <select id="am-chrome-icon-scale" name="iconScale">
+                        ${ICON_BITMAP_SCALE_OPTIONS.map(
+                            (o) =>
+                                `<option value="${o.value}"${
+                                    normalizeItemIconBitmapScale(initial.iconScale) === o.value
+                                        ? " selected"
+                                        : ""
+                                }>${o.label}</option>`
+                        ).join("")}
+                    </select>
+                </div>
                 <div class="modal-field" data-field="glyph">
                     <label for="am-chrome-icon">Icon (Phosphor)</label>
                     <input id="am-chrome-icon" name="icon" type="text" value="${String(
@@ -177,6 +199,7 @@ export function openAppMenuTileChromeEditor(opts: {
     }
     const shapeSelect = modal.querySelector('select[name="shape"]') as HTMLSelectElement | null;
     const displaySelect = modal.querySelector('select[name="iconDisplay"]') as HTMLSelectElement | null;
+    const iconScaleSelect = modal.querySelector('select[name="iconScale"]') as HTMLSelectElement | null;
     const iconInput = modal.querySelector('input[name="icon"]') as HTMLInputElement | null;
     const urlInput = modal.querySelector('input[name="iconUrl"]') as HTMLInputElement | null;
     const glyphField = modal.querySelector('[data-field="glyph"]') as HTMLElement | null;
@@ -236,6 +259,7 @@ export function openAppMenuTileChromeEditor(opts: {
         const chrome: AppMenuTileChrome = {
             shape: normalizeTileShape(shapeSelect?.value, "circle"),
             iconDisplay: normalizeIconDisplay(displaySelect?.value) || "colored",
+            iconScale: normalizeItemIconBitmapScale(iconScaleSelect?.value),
             icon: String(iconInput?.value || "").trim(),
             iconUrl: rawUrl.startsWith("blob:") ? "" : rawUrl
         };

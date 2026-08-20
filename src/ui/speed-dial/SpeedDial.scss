@@ -284,7 +284,15 @@
                     }
                 }
 
-                /* Android adaptive bitmaps only — never S2 / chrome favicons. */
+                /* Bitmap / glyph zoom — Cap needs inline transform; CSS var is backup. */
+                img[data-launcher-icon]:not([data-bookmark-favicon]),
+                img[data-bookmark-favicon],
+                .ui-ws-item-icon-img,
+                ui-icon {
+                    transform: scale(var(--sd-item-icon-scale, var(--sd-launcher-icon-scale, 1.28)));
+                    transform-origin: center center;
+                }
+
                 img[data-launcher-icon]:not([data-bookmark-favicon]) {
                     position: absolute;
                     inset: 0;
@@ -294,15 +302,11 @@
                     object-position: center;
                     pointer-events: none;
                     z-index: 3;
-                    /* WHY: Android adaptive bitmaps pad ~18% — match ui-icon colored scale. */
-                    transform: scale(1.28);
-                    transform-origin: center;
                     filter: drop-shadow(0 1px 3px #0003);
                 }
 
                 /*
-                 * Bookmark / S2 / chrome favicons — fill the plate shape (clipped by overflow),
-                 * but no Android adaptive scale(1.28) which over-zooms framed marks.
+                 * Bookmark / S2 / chrome favicons — fill the plate shape (clipped by overflow).
                  */
                 img[data-bookmark-favicon],
                 .ui-ws-item-icon-img[data-bookmark-favicon],
@@ -317,7 +321,6 @@
                     border-radius: 0;
                     pointer-events: none;
                     z-index: 3;
-                    transform: none;
                     aspect-ratio: 1 / 1;
                     filter: drop-shadow(0 1px 2px #0002);
                 }
@@ -330,7 +333,7 @@
                     pointer-events: none;
                     z-index: 3;
                     --launcher-icon-size: var(--icon-size, 2.2rem);
-                    --launcher-icon-mask-scale: 1.28;
+                    --launcher-icon-mask-scale: var(--sd-item-icon-scale, var(--sd-launcher-icon-scale, 1.28));
                 }
 
                 ui-icon {

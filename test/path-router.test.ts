@@ -45,6 +45,9 @@ test("resolveFsBackend picks longest matching root", () => {
 });
 
 test("listVirtualRootEntriesFromRouter only includes registered roots", () => {
+  unregisterFsBackend("/mounts/");
+  unregisterFsBackend("/sdcard/");
+  unregisterFsBackend("/saf/");
   registerFsBackend(makeBackend("/user/"));
   registerFsBackend(makeBackend("/assets/", false));
   const names = listVirtualRootEntriesFromRouter().map((e) => e.name).sort();
@@ -52,6 +55,7 @@ test("listVirtualRootEntriesFromRouter only includes registered roots", () => {
   assert.equal(resolveFsBackend("/bookmarks/"), null);
   unregisterFsBackend("/user/");
   unregisterFsBackend("/assets/");
+  ensureDefaultFsBackends();
 });
 
 test("ensureDefaultFsBackends registers /user/ and /assets/ at module boot", async () => {

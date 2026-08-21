@@ -262,8 +262,13 @@ export class FileManagerContent extends UIElement {
          */
         const faviconUrl = resolveEntryIcon(item as any);
         const fallbackIcon = iconFor(item);
+        // WHY: ui-icon :host used `max-inline-size: 100%` — a collapsed grid track
+        // paints a sliver. Pin box + padding on the node so CRX/shell cannot shrink it.
+        const iconHostStyle =
+            "--ui-icon-size:var(--ui-explorer-icon-size,1.5rem);--ui-icon-padding:0px;inline-size:var(--ui-explorer-icon-size,1.5rem);block-size:var(--ui-explorer-icon-size,1.5rem);min-inline-size:var(--ui-explorer-icon-size,1.5rem);min-block-size:var(--ui-explorer-icon-size,1.5rem);max-inline-size:var(--ui-explorer-icon-size,1.5rem);max-block-size:var(--ui-explorer-icon-size,1.5rem);flex-shrink:0";
         const iconSlot = faviconUrl
             ? H`<img src=${faviconUrl} alt=${fallbackIcon} referrerpolicy="no-referrer" loading="lazy"
+                style=${iconHostStyle}
                 onerror=${(ev: Event) => {
                     const img = ev.currentTarget as HTMLImageElement;
                     if (!img || img.dataset.fallbackApplied === "1") return;
@@ -271,9 +276,9 @@ export class FileManagerContent extends UIElement {
                     const parent = img.parentElement;
                     if (!parent) return;
                     img.remove();
-                    parent.append(H`<ui-icon icon=${fallbackIcon}></ui-icon>` as any);
+                    parent.append(H`<ui-icon icon=${fallbackIcon} size="1.5rem" style=${iconHostStyle}></ui-icon>` as any);
                 }} />`
-            : H`<ui-icon icon=${fallbackIcon} />`;
+            : H`<ui-icon icon=${fallbackIcon} size="1.5rem" style=${iconHostStyle} />`;
         const itemEl = H`<div draggable="${isFile}" class="row c2-surface"
             on:click=${(ev: MouseEvent) => requestAnimationFrame(() => op.onRowClick?.(item, ev))}
             on:dblclick=${(ev: MouseEvent) => requestAnimationFrame(() => op.onRowDblClick?.(item, ev))}
@@ -282,7 +287,7 @@ export class FileManagerContent extends UIElement {
             data-kind=${kind}
             data-entry-key=${entryKey(item)}
         >
-            <div style="pointer-events: none; background-color: transparent;" class="c icon">${iconSlot}</div>
+            <div style="pointer-events:none;background-color:transparent;inline-size:1.5rem;block-size:1.5rem;min-inline-size:1.5rem;min-block-size:1.5rem;max-inline-size:1.5rem;max-block-size:1.5rem;flex-shrink:0;overflow:visible" class="c icon">${iconSlot}</div>
             <div style="pointer-events: none; background-color: transparent;" class="c name" title=${item?.name || ""}>${item?.name || ""}</div>
             <div style="pointer-events: none; background-color: transparent;" class="c size">${isFile ? formatSize(item?.size) : ""}</div>
             <div style="pointer-events: none; background-color: transparent;" class="c date">${isFile ? formatDate(item?.lastModified ?? 0) : ""}</div>

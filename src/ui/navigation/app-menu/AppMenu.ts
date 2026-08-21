@@ -971,6 +971,8 @@ export type MountAppMenuResult = {
     element: HTMLElement;
     toggle: () => void;
     open: () => void;
+    /** Full-page Apps surface (same drawer, page chrome). */
+    openPage: () => void;
     close: () => void;
     isOpen: () => boolean;
     refresh: () => Promise<void>;
@@ -1121,9 +1123,15 @@ export function mountEnvironmentAppMenu(): MountAppMenuResult {
     const close = (): void => {
         if (!open) return;
         open = false;
+        root.toggleAttribute("data-page", false);
         syncVisibility();
         root.dispatchEvent(new CustomEvent("env-app-menu-close", { bubbles: true }));
     };
+
+    root.addEventListener("env-app-menu-request-close", (ev) => {
+        ev.stopPropagation();
+        close();
+    });
 
     const openMenu = (): void => {
         if (!isAppMenuEnabled()) return;
@@ -1132,6 +1140,11 @@ export function mountEnvironmentAppMenu(): MountAppMenuResult {
         syncVisibility();
         void refresh();
         root.dispatchEvent(new CustomEvent("env-app-menu-open", { bubbles: true }));
+    };
+
+    const openPage = (): void => {
+        root.toggleAttribute("data-page", true);
+        openMenu();
     };
 
     const toggle = (): void => {
@@ -1391,6 +1404,7 @@ export function mountEnvironmentAppMenu(): MountAppMenuResult {
         element: root,
         toggle,
         open: openMenu,
+        openPage,
         close,
         isOpen: () => open,
         refresh,

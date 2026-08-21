@@ -2,12 +2,15 @@
  * Filename: speed-dial-layout.test.ts
  * FullPath: modules/projects/fl.ui/test/speed-dial-layout.test.ts
  * Change date and time: 20.45.00_28.07.2026
- * Reason for changes: Define the canonical logical-to-visual orient contract before implementation.
+ * Reason for changes: Cover widget span occupancy and odd-orient span swap.
  */
 import test from "node:test";
 import assert from "node:assert/strict";
 import {
+    cellsForSpan,
+    findNearestFreeRect,
     logicalToVisualCell,
+    logicalToVisualSpan,
     normalizeOrient,
     pointToLogicalCell,
     relocateItemsToLayout,
@@ -75,4 +78,17 @@ test("relocate keeps in-bounds tiles and spreads overflow instead of stacking", 
     assert.ok(overflow.every(([x, y]) => x >= 0 && x < 2 && y >= 0 && y < 2));
     const keys = items.map(({ cell }) => `${cell[0]}:${cell[1]}`);
     assert.equal(new Set(keys).size, keys.length);
+});
+
+test("visual span swaps on odd orientations", () => {
+    assert.deepEqual(logicalToVisualSpan([2, 1], 0), [2, 1]);
+    assert.deepEqual(logicalToVisualSpan([2, 1], 1), [1, 2]);
+    assert.deepEqual(logicalToVisualSpan([2, 1], 2), [2, 1]);
+    assert.deepEqual(logicalToVisualSpan([2, 1], 3), [1, 2]);
+});
+
+test("findNearestFreeRect skips occupied span cells", () => {
+    const occupied = new Set(["0:0", "1:0"]);
+    assert.deepEqual(cellsForSpan([0, 0], [2, 1]), [[0, 0], [1, 0]]);
+    assert.deepEqual(findNearestFreeRect([0, 0], [2, 1], occupied, [4, 2]), [0, 1]);
 });

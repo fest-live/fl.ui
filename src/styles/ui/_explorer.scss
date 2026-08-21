@@ -31,9 +31,13 @@
 
             background-color: var(--color-surface);
             color: var(--color-on-surface);
+            --ui-icon-size: var(--ui-explorer-icon-size, 1.5rem);
+            --ui-icon-padding: 0px;
+            --icon-color: var(--color-on-surface);
         }
 
         .fm-root {
+            position: relative;
             gap: 0;
             display: grid;
             grid-template-columns: [content-col] minmax(0px, 1fr);
@@ -98,8 +102,14 @@
                 background: transparent;
 
                 ui-icon {
-                    inline-size: 1.25rem;
-                    block-size: 1.25rem;
+                    --ui-icon-size: var(--ui-explorer-icon-size, 1.5rem);
+                    --ui-icon-padding: 0px;
+                    inline-size: var(--ui-icon-size) !important;
+                    block-size: var(--ui-icon-size) !important;
+                    min-inline-size: var(--ui-icon-size) !important;
+                    min-block-size: var(--ui-icon-size) !important;
+                    max-inline-size: var(--ui-icon-size) !important;
+                    max-block-size: var(--ui-icon-size) !important;
                     flex-shrink: 0;
                 }
             }

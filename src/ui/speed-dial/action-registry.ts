@@ -69,6 +69,30 @@ export type LauncherBridgeSpeedDialApi = {
             iconCacheKey?: string;
         }>
     >;
+    widgetList?: (query?: string) => Promise<
+        Array<{
+            provider: string;
+            packageName: string;
+            label: string;
+            spanCols: number;
+            spanRows: number;
+            preview?: string;
+        }>
+    >;
+    widgetBind?: (provider: string) => Promise<{
+        provider: string;
+        packageName: string;
+        label: string;
+        spanCols: number;
+        spanRows: number;
+        widgetId: number;
+        preview?: string;
+    } | null>;
+    widgetAttach?: (box: { widgetId: number; x: number; y: number; w: number; h: number }) => Promise<boolean>;
+    widgetLayout?: (box: { widgetId: number; x: number; y: number; w: number; h: number }) => Promise<boolean>;
+    widgetDetach?: (widgetId: number) => Promise<boolean>;
+    widgetDelete?: (widgetId: number) => Promise<boolean>;
+    widgetHideAll?: () => Promise<boolean>;
 };
 
 let registeredLauncherBridge: LauncherBridgeSpeedDialApi | null = null;

@@ -3,8 +3,8 @@
 //
 @layer ux-file-manager-content {
     /* Tighter actions track + explicit parent columns so subgrid rows align with the header */
-    $row-grid:        [icon] minmax(0px, 2.5rem) [name] minmax(0px, 1fr) [size] minmax(4.5rem, 6rem) [date] minmax(0px, 7.5rem) [actions] minmax(6.75rem, max-content);
-    $row-grid-mobile: [icon] minmax(0px, 2.5rem) [name] minmax(0px, 1fr) [size] minmax(4.5rem, 6rem) [date] minmax(0px, 0px)  [actions] minmax(6.75rem, max-content);
+    $row-grid:        [icon] var(--ui-explorer-icon-track, 2rem) [name] minmax(0px, 1fr) [size] minmax(4.5rem, 6rem) [date] minmax(0px, 7.5rem) [actions] minmax(6.75rem, max-content);
+    $row-grid-mobile: [icon] var(--ui-explorer-icon-track, 2rem) [name] minmax(0px, 1fr) [size] minmax(4.5rem, 6rem) [date] minmax(0px, 0px)  [actions] minmax(6.75rem, max-content);
 
     :host(ui-file-manager-content) {
         &, :where(*) {
@@ -76,7 +76,7 @@
         .fm-grid-rows {
             display: grid;
             grid-template-columns: subgrid;
-            grid-auto-rows: var(--explorer-row-height, 2.625rem);
+            grid-auto-rows: var(--ui-explorer-row-height, 2.625rem);
             grid-column: 1 / -1;
             align-content: start;
 
@@ -94,7 +94,7 @@
             z-index: 1;
 
             content-visibility: visible;
-            contain-intrinsic-size: 1px var(--explorer-row-height, 2.625rem);
+            contain-intrinsic-size: 1px var(--ui-explorer-row-height, 2.625rem);
             contain: none;
 
             //
@@ -110,7 +110,7 @@
             color: var(--color-on-surface);
 
             display: grid;
-            grid-template-rows: minmax(0, var(--explorer-row-height, 2.625rem)) !important;
+            grid-template-rows: minmax(0, var(--ui-explorer-row-height, 2.625rem)) !important;
             grid-column: 1 / -1;
             order: var(--order, 1) !important;
             min-block-size: 0;
@@ -126,7 +126,7 @@
             cursor: pointer;
             pointer-events: auto;
             touch-action: manipulation;
-            block-size: var(--explorer-row-height, 2.625rem);
+            block-size: var(--ui-explorer-row-height, 2.625rem);
             user-drag: none;
             -webkit-user-drag: none;
 
@@ -146,8 +146,12 @@
             }
 
             ui-icon {
-                inline-size: 1.25rem;
-                block-size: 1.25rem;
+                --ui-icon-size: var(--ui-explorer-icon-size, 1.5rem);
+                --ui-icon-padding: 0px;
+                inline-size: var(--ui-icon-size);
+                block-size: var(--ui-icon-size);
+                min-inline-size: var(--ui-icon-size);
+                min-block-size: var(--ui-icon-size);
                 flex-shrink: 0;
                 place-content: center;
                 place-items: center;
@@ -177,7 +181,7 @@
             }
         }
 
-        .c {
+        .c:not(.icon) {
             min-inline-size: 0;
             display: flex;
             flex-direction: row;
@@ -195,7 +199,33 @@
             block-size: auto;
         }
 
-        .icon { grid-column: icon; place-content: center; place-items: center; }
+        .icon {
+            display: flex;
+            grid-column: icon;
+            place-content: center;
+            place-items: center;
+            overflow: visible;
+            flex-shrink: 0;
+            inline-size: 1.5rem;
+            block-size: 1.5rem;
+            min-inline-size: 1.5rem;
+            min-block-size: 1.5rem;
+            aspect-ratio: 1;
+
+            ui-icon,
+            img {
+                --ui-icon-size: var(--ui-explorer-icon-size, 1.5rem);
+                --ui-icon-padding: 0px;
+                inline-size: var(--ui-icon-size) !important;
+                block-size: var(--ui-icon-size) !important;
+                min-inline-size: var(--ui-icon-size) !important;
+                min-block-size: var(--ui-icon-size) !important;
+                max-inline-size: var(--ui-icon-size) !important;
+                max-block-size: var(--ui-icon-size) !important;
+                flex-shrink: 0;
+                object-fit: contain;
+            }
+        }
         .name { grid-column: name; inline-size: stretch; }
         .size {
             grid-column: size;
@@ -281,10 +311,14 @@
             }
 
             ui-icon {
-                inline-size: 1.0625rem;
-                block-size: 1.0625rem;
-                min-inline-size: 1.0625rem;
-                min-block-size: 1.0625rem;
+                --ui-icon-size: var(--ui-explorer-action-icon-size, 1.15rem);
+                --ui-icon-padding: 0px;
+                inline-size: var(--ui-icon-size) !important;
+                block-size: var(--ui-icon-size) !important;
+                min-inline-size: var(--ui-icon-size) !important;
+                min-block-size: var(--ui-icon-size) !important;
+                max-inline-size: var(--ui-icon-size) !important;
+                max-block-size: var(--ui-icon-size) !important;
             }
         }
 

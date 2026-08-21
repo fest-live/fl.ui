@@ -13,3 +13,5 @@ export {
 } from "./action-registry";
 export * from "./launcher-state";
 export * from "./link-store";
+export * from "./workspace-pages";
+export * from "./widgets";

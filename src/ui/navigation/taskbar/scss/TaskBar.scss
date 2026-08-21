@@ -2,7 +2,7 @@
  * Filename: TaskBar.scss
  * FullPath: modules/projects/fl.ui/src/ui/navigation/taskbar/scss/TaskBar.scss
  * Change date and time: 13.35.00_31.07.2026
- * Reason for changes: Reconnect after chrome.scss split — no cross-package Sass @use (use CSS var).
+ * Reason for changes: Mobile Home is pinned to the physical right; slotted 3-col grid kept it on the left.
  */
 /* Taskbar / env chrome (document + host). Former environment-shell/scss/chrome.scss. */
 //@use "veela-lib" as m;
@@ -122,6 +122,36 @@
         margin: 0px 0px 0px 0px;
     }
     
+    .env-shell-taskbar__workspaces {
+        display: none;
+        flex-direction: row;
+        align-items: center;
+        gap: 0.25rem;
+        margin-inline-start: 0.35rem;
+    }
+
+    .env-shell-taskbar__workspace {
+        min-inline-size: 1.35rem;
+        min-block-size: 1.35rem;
+        padding: 0 0.35rem;
+        border: none;
+        border-radius: 0.35rem;
+        background: color-mix(in oklab, CanvasText 10%, transparent);
+        color: inherit;
+        font: inherit;
+        font-size: 0.7rem;
+        cursor: pointer;
+    }
+
+    .env-shell-taskbar__workspace[data-active] {
+        background: color-mix(in oklab, CanvasText 22%, transparent);
+        font-weight: 650;
+    }
+
+    .env-shell-chrome[data-desktop] .env-shell-taskbar__workspaces {
+        display: flex;
+    }
+
     .env-shell-taskbar__pins {
         flex: 0 0 auto;
         content-visibility: visible;
@@ -345,18 +375,17 @@
     }
     
     /*
-    * Mobile nav bar: fully transparent; centered house icon only.
+    * Mobile nav bar: fully transparent; house icon at the physical right
+    * so workspace pager dots stay visible in the center.
+    * WHY: `ui-taskbar::part(taskbar)` is a 3-col grid (pins | windows | tray);
+    * `justify-content` on the host cannot move the slotted Home pin.
     * Long-press Home → `.env-shell-navbar__switcher` (open processes).
     */
     .env-shell-chrome:not([data-desktop]) .env-shell-taskbar {
         position: relative;
-        display: flex;
-        flex-direction: row;
-        place-content: center;
-        place-items: center;
-        place-self: center;
-        align-items: center;
-        justify-content: center;
+        display: block;
+        place-self: stretch;
+        inline-size: 100%;
         gap: 0;
         block-size: 3rem;
         min-block-size: 3rem;
@@ -371,14 +400,20 @@
         --icon-color: currentColor;
     }
     
+    .env-shell-chrome:not([data-desktop]) .env-shell-taskbar::part(taskbar) {
+        display: block !important;
+        grid-template-columns: none !important;
+        position: relative;
+        inline-size: 100%;
+        block-size: 100%;
+    }
+
     .env-shell-chrome:not([data-desktop]) .env-shell-taskbar-under {
         display: none !important;
     }
     
     .env-shell-chrome:not([data-desktop]) .env-shell-taskbar__pins {
-        flex: 0 0 auto;
-        justify-content: center;
-        align-items: center;
+        display: contents;
     }
     
     .env-shell-chrome:not([data-desktop]) .env-shell-taskbar__pins ui-task:not([data-env-home]) {
@@ -394,10 +429,17 @@
     }
     
     .env-shell-chrome:not([data-desktop]) .env-shell-taskbar ui-task[data-env-home] {
+        position: absolute;
+        top: auto;
+        left: auto;
+        right: calc(0.7rem + env(safe-area-inset-right, 0px));
+        bottom: calc(0.22rem + env(safe-area-inset-bottom, 0px));
         min-inline-size: 2.5rem;
         min-block-size: 2.5rem;
         padding: 0;
+        margin: 0;
         border-radius: 999px;
+        z-index: 6;
         background: color-mix(in oklab, var(--color-surface-container, #111827) 78%, transparent);
         box-shadow: 0 6px 20px -8px color-mix(in oklab, #000 45%, transparent);
         touch-action: manipulation;

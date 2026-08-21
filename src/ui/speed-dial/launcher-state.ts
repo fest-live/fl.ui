@@ -10,7 +10,15 @@
 
 import { JSOX } from "jsox";
 import { makeObjectAssignable, observe, stringRef, safe } from "@fest-lib/object";
-import { relocateItemsToLayout, normalizeOrient, pointToLogicalCell } from "./layout.ts";
+import {
+    findNearestFreeRect,
+    markOccupiedSpan,
+    normalizeSpan,
+    relocateItemsToLayout,
+    normalizeOrient,
+    pointToLogicalCell,
+    type GridSpan
+} from "./layout.ts";
 import { decodeDesktopState, loadDesktopRaw, makeUIState, saveUIState } from "@fest-lib/lure";
 import {
     createOpfsLinkStoreIo,
@@ -76,6 +84,17 @@ export interface SpeedDialItemMeta {
      * `auto` / omit → Workspace default; else `fit` | `fill` | `zoom` | `max`.
      */
     iconScale?: string;
+    /** In-grid widget: `clock` | `search` | `android`. */
+    widgetKind?: string;
+    /** AppWidgetHost id after bind (Capacitor). */
+    androidWidgetId?: number;
+    androidProvider?: string;
+    spanCols?: number;
+    spanRows?: number;
+    /** Clock widget: `24h` | `12h`. */
+    clockFormat?: string;
+    /** Search widget URL template; `%s` is the query. */
+    searchUrl?: string;
     /**
      * Open destination:
      * - `native-window` — new browser window / mono native immersive
@@ -245,7 +264,8 @@ const NAVIGATION_SHORTCUTS_ALL = [
     { view: "explorer", label: "Explorer", icon: "books" },
     { view: "workcenter", label: "Work Center", icon: "briefcase" },
     { view: "history", label: "History", icon: "clock-counter-clockwise" },
-    { view: "settings", label: "Settings", icon: "gear-six" }
+    { view: "settings", label: "Settings", icon: "gear-six" },
+    { view: "apps", label: "Apps", icon: "squares-four" }
 ] as const;
 
 /** WHY: document PWA disables Network at build time — hide it from add-shortcut menus too. */
@@ -328,13 +348,15 @@ const CORE_RAIL_GRID_IDS = new Set([
     "shortcut-settings",
     "shortcut-viewer",
     "shortcut-markdown",
+    "shortcut-apps",
+    "apps",
     "explorer",
     "settings",
     "viewer",
     "markdown"
 ]);
-const CORE_RAIL_GRID_VIEWS = new Set(["explorer", "settings", "viewer", "markdown", "reader"]);
-const CORE_RAIL_GRID_LABELS = new Set(["explorer", "settings", "markdown", "viewer"]);
+const CORE_RAIL_GRID_VIEWS = new Set(["apps", "explorer", "settings", "viewer", "markdown", "reader"]);
+const CORE_RAIL_GRID_LABELS = new Set(["apps", "explorer", "settings", "markdown", "viewer"]);
 
 const unwrapPersistedLabel = (label: unknown): string => {
     if (label && typeof label === "object" && "value" in (label as object)) {
@@ -954,6 +976,116 @@ export const persistSpeedDialMeta = () => {
     } catch { /* quota / private mode */ }
 };
 
+/** Packed grid used by multi-page workspaces. */
+export type SpeedDialSnapshot = {
+    items: SpeedDialPersistedItem[];
+};
+
+export const captureSpeedDialSnapshot = (): SpeedDialSnapshot => {
+    const items: SpeedDialPersistedItem[] = (speedDialItems || []).map((item) => {
+        const packed = serializeItemState(item);
+        const meta = getSpeedDialMeta(item.id);
+        return {
+            ...packed,
+            ...(meta ? { meta: fallbackClone(meta) } : {})
+        };
+    });
+    return { items };
+};
+
+export const applySpeedDialSnapshot = (snapshot: SpeedDialSnapshot | null | undefined): void => {
+    markUserEditedBeforeHydrate();
+    const rows = Array.isArray(snapshot?.items) ? snapshot!.items : [];
+    const nextItems: SpeedDialItem[] = [];
+    const keepIds = new Set<string>();
+    for (const raw of rows) {
+        if (!raw?.id) continue;
+        keepIds.add(String(raw.id));
+        const item = createStatefulItem({
+            id: raw.id,
+            cell: observe([Number((raw.cell as any)?.[0]) || 0, Number((raw.cell as any)?.[1]) || 0]),
+            icon: raw.icon || "sparkle",
+            label: raw.label || "Shortcut",
+            action: raw.action || "open-link"
+        });
+        nextItems.push(observe(item) as any);
+    }
+    speedDialItems.splice(0, speedDialItems.length, ...nextItems);
+    const stale = [...(speedDialMeta?.keys?.() || [])].filter((id) => !keepIds.has(String(id)));
+    for (const id of stale) removeSpeedDialMeta(id);
+    for (const raw of rows) {
+        if (!raw?.id) continue;
+        ensureSpeedDialMeta(raw.id, { action: raw.action, ...(raw.meta || {}) });
+    }
+    persistSpeedDialItems();
+    persistSpeedDialMeta();
+};
+
+const metaNumber = (value: unknown, fallback: number): number => {
+    let cur: unknown = value;
+    if (cur && typeof cur === "object" && "value" in (cur as object)) {
+        cur = (cur as { value: unknown }).value;
+    }
+    const n = Number(cur);
+    return Number.isFinite(n) && n >= 1 ? n : fallback;
+};
+
+export const defaultWidgetSpan = (kind: string): GridSpan => {
+    const id = String(kind || "").toLowerCase();
+    if (id === "search") return [2, 1];
+    if (id === "clock") return [2, 1];
+    if (id === "android") return [2, 2];
+    return [1, 1];
+};
+
+export const getItemSpan = (id?: string | null): GridSpan => {
+    const meta = id ? getSpeedDialMeta(id) : null;
+    const kind = String(meta?.widgetKind || "").toLowerCase();
+    const fallback = kind ? defaultWidgetSpan(kind) : ([1, 1] as GridSpan);
+    return normalizeSpan([
+        metaNumber(meta?.spanCols, fallback[0]),
+        metaNumber(meta?.spanRows, fallback[1])
+    ]);
+};
+
+export const setItemSpan = (id: string, span: GridSpan | readonly number[]): GridSpan => {
+    const next = normalizeSpan(span);
+    const meta = ensureSpeedDialMeta(id);
+    meta.spanCols = next[0];
+    meta.spanRows = next[1];
+    persistSpeedDialMeta();
+    return next;
+};
+
+export const createWidgetSpeedDialItem = (
+    kind: "clock" | "search" | "android",
+    cell?: GridCell,
+    extra?: SpeedDialItemMeta
+): SpeedDialItem => {
+    const span = normalizeSpan([
+        extra?.spanCols ?? defaultWidgetSpan(kind)[0],
+        extra?.spanRows ?? defaultWidgetSpan(kind)[1]
+    ]);
+    const item = createStatefulItem({
+        id: generateItemId(),
+        cell: cell || findNextFreeSpeedDialCell(span),
+        icon: kind === "clock" ? "clock" : kind === "search" ? "magnifying-glass" : "squares-four",
+        label:
+            String(extra?.description || "").trim() ||
+            (kind === "clock" ? "Clock" : kind === "search" ? "Search" : "Widget"),
+        action: "widget"
+    });
+    ensureSpeedDialMeta(item.id, {
+        action: "widget",
+        widgetKind: kind,
+        shape: getDefaultTileShape(),
+        spanCols: span[0],
+        spanRows: span[1],
+        ...(extra || {})
+    });
+    return item;
+};
+
 export const getSpeedDialMeta = (id?: string | null) => {
     if (!id) return null;
     return speedDialMeta?.get?.(id) ?? null;
@@ -1409,22 +1541,17 @@ export function buildLauncherAppDragEnvelope(app: LauncherAppPinPayload): string
     });
 }
 
-/** First unoccupied logical cell on the current grid. */
-export function findNextFreeSpeedDialCell(): GridCell {
+/** First unoccupied logical origin that fits `span`. */
+export function findNextFreeSpeedDialCell(span: GridSpan | readonly number[] = [1, 1]): GridCell {
     const columns = Math.max(1, Math.min(16, Number(gridLayoutState?.columns) || 4));
     const rows = Math.max(1, Math.min(16, Number(gridLayoutState?.rows) || 8));
-    const occupied = new Set(
-        (speedDialItems || []).map(
-            (item) => `${Number(item?.cell?.[0]) || 0}:${Number(item?.cell?.[1]) || 0}`
-        )
-    );
-    for (let y = 0; y < rows; y += 1) {
-        for (let x = 0; x < columns; x += 1) {
-            const key = `${x}:${y}`;
-            if (!occupied.has(key)) return [x, y];
-        }
+    const occupied = new Set<string>();
+    for (const item of speedDialItems || []) {
+        if (!item?.id) continue;
+        const origin: GridCell = [Number(item?.cell?.[0]) || 0, Number(item?.cell?.[1]) || 0];
+        markOccupiedSpan(occupied, origin, getItemSpan(item.id));
     }
-    return [0, 0];
+    return findNearestFreeRect([0, 0], span, occupied, [columns, rows]);
 }
 
 const querySpeedDialGridElement = (): HTMLElement | null =>
@@ -1827,7 +1954,11 @@ export const applyGridSettings = (settings?: {
     // WHY: shrink before writing layout state so the first visual pass already
     // has in-bounds cells. Clamping in logicalToVisualCell would stack overflow
     // tiles on the last track; CSS grid-column then grows implicit columns.
-    if (relocateItemsToLayout(speedDialItems, [columns, rows])) {
+    if (
+        relocateItemsToLayout(speedDialItems, [columns, rows], (item) =>
+            getItemSpan((item as { id?: string }).id)
+        )
+    ) {
         persistSpeedDialItems();
     }
 

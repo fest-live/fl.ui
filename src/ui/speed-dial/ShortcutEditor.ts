@@ -2,7 +2,7 @@
  * Filename: ShortcutEditor.ts
  * FullPath: modules/projects/fl.ui/src/ui/speed-dial/ShortcutEditor.ts
  * Change date and time: 12.45.00_03.08.2026
- * Reason for changes: Default Open link in → inline; dialog top-layer + div fields (not wrapper label).
+ * Reason for changes: Widget span/kind/clock/search fields in the shortcut editor.
  */
 import { registerModal } from "@fest-lib/lure";
 import {
@@ -94,6 +94,11 @@ export type ShortcutEditorDraft = {
     openLinkTarget: string;
     /** Android package for launch-app tiles — seeds icon picker variants. */
     packageName?: string;
+    widgetKind?: string;
+    spanCols?: number;
+    spanRows?: number;
+    clockFormat?: string;
+    searchUrl?: string;
 };
 
 type ShortcutEditorOptions = {
@@ -105,6 +110,7 @@ type ShortcutEditorOptions = {
     onDelete?: () => void;
     isViewAction?: (action: string) => boolean;
     isHrefAction?: (action: string) => boolean;
+    isWidgetAction?: (action: string) => boolean;
     registerForBackNavigation?: boolean;
 };
 
@@ -154,6 +160,7 @@ export const openShortcutEditor = (options: ShortcutEditorOptions): void => {
         onDelete,
         isViewAction = isDefaultViewAction,
         isHrefAction = isDefaultHrefAction,
+        isWidgetAction = (action: string) => action === "widget",
         registerForBackNavigation = false
     } = options;
 
@@ -243,6 +250,32 @@ export const openShortcutEditor = (options: ShortcutEditorOptions): void => {
                         <option value="new-tab">Open in new tab</option>
                     </select>
                 </div>
+                <div class="modal-field" data-field="widget-kind">
+                    <label for="sd-edit-widget-kind">Widget</label>
+                    <select id="sd-edit-widget-kind" name="widgetKind">
+                        <option value="clock">Clock</option>
+                        <option value="search">Search</option>
+                        <option value="android">Android</option>
+                    </select>
+                </div>
+                <div class="modal-field" data-field="span">
+                    <label for="sd-edit-span-cols">Size (columns × rows)</label>
+                    <div class="sd-icon-resource-row">
+                        <input id="sd-edit-span-cols" name="spanCols" type="number" min="1" max="8" step="1" />
+                        <input id="sd-edit-span-rows" name="spanRows" type="number" min="1" max="8" step="1" />
+                    </div>
+                </div>
+                <div class="modal-field" data-field="clock-format">
+                    <label for="sd-edit-clock-format">Clock format</label>
+                    <select id="sd-edit-clock-format" name="clockFormat">
+                        <option value="24h">24-hour</option>
+                        <option value="12h">12-hour</option>
+                    </select>
+                </div>
+                <div class="modal-field" data-field="search-url">
+                    <label for="sd-edit-search-url">Search URL (%s = query)</label>
+                    <input id="sd-edit-search-url" name="searchUrl" type="url" placeholder="https://www.google.com/search?q=%s" />
+                </div>
                 <div class="modal-field">
                     <label for="sd-edit-description">Description</label>
                     <textarea id="sd-edit-description" name="description" rows="2" placeholder="Optional description"></textarea>
@@ -283,6 +316,15 @@ export const openShortcutEditor = (options: ShortcutEditorOptions): void => {
     const openLinkTargetField = form?.querySelector('[data-field="open-link-target"]') as HTMLElement | null;
     const iconGlyphField = form?.querySelector('[data-field="icon-glyph"]') as HTMLElement | null;
     const iconUrlField = form?.querySelector('[data-field="icon-url"]') as HTMLElement | null;
+    const widgetKindField = form?.querySelector('[data-field="widget-kind"]') as HTMLElement | null;
+    const spanField = form?.querySelector('[data-field="span"]') as HTMLElement | null;
+    const clockFormatField = form?.querySelector('[data-field="clock-format"]') as HTMLElement | null;
+    const searchUrlField = form?.querySelector('[data-field="search-url"]') as HTMLElement | null;
+    const widgetKindSelect = form?.querySelector('select[name="widgetKind"]') as HTMLSelectElement | null;
+    const spanColsInput = form?.querySelector('input[name="spanCols"]') as HTMLInputElement | null;
+    const spanRowsInput = form?.querySelector('input[name="spanRows"]') as HTMLInputElement | null;
+    const clockFormatSelect = form?.querySelector('select[name="clockFormat"]') as HTMLSelectElement | null;
+    const searchUrlInput = form?.querySelector('input[name="searchUrl"]') as HTMLInputElement | null;
 
     const packageNameOf = (): string => String(initial.packageName || "").trim();
     const pageUrlOf = (): string => {
@@ -311,6 +353,17 @@ export const openShortcutEditor = (options: ShortcutEditorOptions): void => {
     const iconDisplayVal = normalizeIconDisplay(initial.iconDisplay) || "glyph";
     const iconScaleVal = normalizeItemIconBitmapScale(initial.iconScale);
     const olt = asDraftText(initial.openLinkTarget, "inline").toLowerCase();
+    const widgetKindVal = asDraftText(initial.widgetKind, "clock").toLowerCase();
+    if (widgetKindSelect) {
+        if (widgetKindVal !== "android") {
+            widgetKindSelect.querySelector('option[value="android"]')?.remove();
+        }
+        widgetKindSelect.value = widgetKindVal === "search" || widgetKindVal === "android" ? widgetKindVal : "clock";
+    }
+    if (spanColsInput) spanColsInput.value = String(Math.max(1, Math.min(8, Number(initial.spanCols) || 1)));
+    if (spanRowsInput) spanRowsInput.value = String(Math.max(1, Math.min(8, Number(initial.spanRows) || 1)));
+    if (clockFormatSelect) clockFormatSelect.value = String(initial.clockFormat || "24h").toLowerCase() === "12h" ? "12h" : "24h";
+    fillTextControl(searchUrlInput, asDraftText(initial.searchUrl, ""));
 
     fillTextControl(labelInput, labelValue);
     fillTextControl(iconInput, iconValue);
@@ -346,12 +399,23 @@ export const openShortcutEditor = (options: ShortcutEditorOptions): void => {
 
     const syncFieldVisibility = () => {
         const action = String(actionSelect?.value || "");
-        if (viewField) viewField.hidden = !isViewAction(action);
-        if (hrefField) hrefField.hidden = !isHrefAction(action);
+        const widgetOn = isWidgetAction(action);
+        const kind = String(widgetKindSelect?.value || widgetKindVal || "clock");
+        if (viewField) viewField.hidden = !isViewAction(action) || widgetOn;
+        if (hrefField) hrefField.hidden = !isHrefAction(action) || widgetOn;
         /* Show target mode for Open link (and when Open view also exposes Link). */
         if (openLinkTargetField) {
-            openLinkTargetField.hidden = !(action === "open-link" || isHrefAction(action));
+            openLinkTargetField.hidden = widgetOn || !(action === "open-link" || isHrefAction(action));
         }
+        const toggleField = (node: HTMLElement | null, show: boolean): void => {
+            if (!node) return;
+            if (show) node.removeAttribute("hidden");
+            else node.setAttribute("hidden", "");
+        };
+        toggleField(widgetKindField, widgetOn);
+        toggleField(spanField, widgetOn);
+        toggleField(clockFormatField, widgetOn && kind === "clock");
+        toggleField(searchUrlField, widgetOn && kind === "search");
         const display = normalizeIconDisplay(iconDisplaySelect?.value) || "glyph";
         /* WHY: Capacitor WebView sometimes keeps [hidden] stuck with .hidden=false — use attributes. */
         if (iconGlyphField) {
@@ -396,6 +460,7 @@ export const openShortcutEditor = (options: ShortcutEditorOptions): void => {
     };
 
     actionSelect?.addEventListener("change", syncFieldVisibility);
+    widgetKindSelect?.addEventListener("change", syncFieldVisibility);
     iconDisplaySelect?.addEventListener("change", syncFieldVisibility);
     syncFieldVisibility();
 
@@ -446,6 +511,11 @@ export const openShortcutEditor = (options: ShortcutEditorOptions): void => {
             iconDisplay: normalizeIconDisplay(iconDisplaySelect?.value) || "glyph",
             iconUrl: String(iconUrlInput?.value || "").trim(),
             iconScale: normalizeItemIconBitmapScale(iconScaleSelect?.value),
+            widgetKind: String(widgetKindSelect?.value || "clock"),
+            spanCols: Math.max(1, Math.min(8, Number(spanColsInput?.value) || 1)),
+            spanRows: Math.max(1, Math.min(8, Number(spanRowsInput?.value) || 1)),
+            clockFormat: String(clockFormatSelect?.value || "24h"),
+            searchUrl: String(searchUrlInput?.value || "").trim(),
             openLinkTarget: (() => {
                 const v = String(openLinkTargetSelect?.value || "inline").toLowerCase();
                 if (v === "native-window" || v === "native" || v === "window") return "native-window";

@@ -860,8 +860,9 @@ export class FileOperative {
                 return;
             }
             const abs = (self.path || "/") + (item?.name || "");
-            if (!item?.file && isAssetsPath(abs)) {
-                item.file = await provide(abs).catch(() => null);
+            if (!item?.file) {
+                const loadPath = itemPath || abs;
+                item.file = await provide(loadPath).catch(() => null);
                 if (item.file) {
                     item.size = item.file.size;
                     item.lastModified = item.file.lastModified;

@@ -7,6 +7,7 @@ import { UIElement } from "../base/UIElement";
 
 //
 import FileManagerContent from "./FileManagerContent";
+import { closeExplorerSettings, openExplorerSettings } from "./ExplorerSettings";
 
 // @ts-ignore
 import fmCss from "./FileManager.scss?inline";
@@ -104,6 +105,9 @@ export class FileManager extends UIElement {
             }
         };
         addEvent(this, "keydown", onEnter);
+        addEvent(window, "cwsp:explorer-mount-change", () => {
+            void this.operative?.refreshList?.(this.path || "/");
+        });
     }
 
     //
@@ -144,6 +148,18 @@ export class FileManager extends UIElement {
     requestPaste() { this.operative?.requestPaste?.(); }
     requestUse() { this.operative?.requestUse?.(); }
 
+    toggleSettings() {
+        const root = this.shadowRoot?.querySelector(".fm-root") as HTMLElement | null;
+        const open = Boolean(root?.querySelector("ui-explorer-settings"));
+        if (open) {
+            closeExplorerSettings();
+            root?.querySelector("ui-explorer-settings")?.remove();
+            this.operative?.refreshList?.(this.path || "/");
+            return;
+        }
+        openExplorerSettings(root);
+    }
+
     //
     render = function() {
         const self: any = this;
@@ -153,16 +169,17 @@ export class FileManager extends UIElement {
         const content = H`<div part="content" class="fm-content"><slot></slot></div>`
         const toolbar = H`<div part="toolbar" class="fm-toolbar">
             <div class="fm-toolbar-left">
-                <button class="btn" title="Up" on:click=${() => requestAnimationFrame(() => self.goUp())}><ui-icon icon="arrow-up"/></button>
-                <button class="btn" title="Refresh" on:click=${() => requestAnimationFrame(() => self.navigate(self.inputValue || self.path || "/"))}><ui-icon icon="arrow-clockwise"/></button>
+                <button class="btn" title="Up" on:click=${() => requestAnimationFrame(() => self.goUp())}><ui-icon icon="arrow-up" size="1.5rem" style="--ui-icon-padding:0px"/></button>
+                <button class="btn" title="Refresh" on:click=${() => requestAnimationFrame(() => self.navigate(self.inputValue || self.path || "/"))}><ui-icon icon="arrow-clockwise" size="1.5rem" style="--ui-icon-padding:0px"/></button>
             </div>
             <div class="fm-toolbar-center"><form style="display: contents;" onsubmit="return false;">
                 <input class="address c2-surface" autocomplete="off" type="text" name="address" value=${self.path || "/"} />
             </form></div>
             <div class="fm-toolbar-right">
-                <button class="btn" title="Add" on:click=${() => requestAnimationFrame(() => self.requestUpload?.())}><ui-icon icon="upload"/></button>
-                <button class="btn" title="Paste" on:click=${() => requestAnimationFrame(() => self.requestPaste?.())}><ui-icon icon="clipboard"/></button>
-                <button class="btn" title="Use" on:click=${() => requestAnimationFrame(() => self.requestUse?.())}><ui-icon icon="hand-withdraw"/></button>
+                <button class="btn" title="Add" on:click=${() => requestAnimationFrame(() => self.requestUpload?.())}><ui-icon icon="upload" size="1.5rem" style="--ui-icon-padding:0px"/></button>
+                <button class="btn" title="Paste" on:click=${() => requestAnimationFrame(() => self.requestPaste?.())}><ui-icon icon="clipboard" size="1.5rem" style="--ui-icon-padding:0px"/></button>
+                <button class="btn" title="Use" on:click=${() => requestAnimationFrame(() => self.requestUse?.())}><ui-icon icon="hand-withdraw" size="1.5rem" style="--ui-icon-padding:0px"/></button>
+                <button class="btn" title="Explorer settings" on:click=${() => requestAnimationFrame(() => self.toggleSettings?.())}><ui-icon icon="gear" size="1.5rem" style="--ui-icon-padding:0px"/></button>
             </div>
         </div>`
 

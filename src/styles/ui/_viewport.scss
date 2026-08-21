@@ -465,5 +465,6 @@
     }
 }
 
-// :root `--vv-width`, `--vv-height`, `--vv-offset-left`, `--vv-offset-top`, `--vv-scale`
-// are set by fest/dom `getAvailSize()` / `updateVP()` (see `whenAnyScreenChanges`).
+// :root `--vv-*` is the visual viewport (IME may shrink it).
+// `--lv-width` / `--lv-height` / `--view-height` stay on the layout viewport
+// (fest/dom `getAvailSize()` / `updateVP()` — see `whenAnyScreenChanges`).

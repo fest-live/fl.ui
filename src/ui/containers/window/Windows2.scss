@@ -31,7 +31,7 @@
     --ui-win-titlebar-height: 2.5rem;
     --ui-win-footer-min: 2.25rem;
     --ui-win-control-size: 1.75rem;
-    --ui-win-icon-size: 0.95rem;
+    --ui-win-icon-size: var(--ui-window-icon-size, 0.95rem);
     --ui-win-gap: 0.5rem;
     --ui-win-pad-inline: 0.75rem;
     --ui-win-pad-block: 0.65rem;
@@ -83,7 +83,8 @@
     --ui-win-close-fg: var(--ui-win-fg);
     --ui-win-close-fg-hover: --u2-color-mod(var(--ui-win-seed), 40);
     --icon-color: var(--ui-win-fg);
-    --icon-size: var(--ui-win-icon-size);
+    /* WHY: do not set --icon-size on the host — it inherits into Explorer/viewer
+     * and shrinks list + toolbar glyphs to titlebar chrome size (0.95rem). */
 
     /*
      * WHY: `light dark` made window chrome follow OS while Settings locked light — cream panel
@@ -507,8 +508,8 @@
         min-inline-size: var(--ui-win-icon-size);
         min-block-size: var(--ui-win-icon-size);
         flex-shrink: 0;
-        --icon-size: var(--ui-win-icon-size);
-        --icon-padding: 0;
+        --ui-icon-size: var(--ui-win-icon-size);
+        --ui-icon-padding: 0;
         pointer-events: none;
     }
 }
@@ -550,6 +551,10 @@
      * (settings tabs, explorer, etc.) becomes unclickable even while visible.
      */
     pointer-events: auto;
+    /*
+     * INVARIANT: window content does not inherit the titlebar icon token.
+     * Explorer and other views choose their own component token locally.
+     */
 
     ::slotted(*) {
         max-inline-size: 100%;

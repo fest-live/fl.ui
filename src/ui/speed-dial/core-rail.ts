@@ -16,7 +16,7 @@ import { getSpeedDialViewOpener } from "./view-opener";
 
 const RAIL_OPEN_KEY = "cw::workspace::speed-dial::core-rail-open";
 /** Views that belong on the rail — not the freeform Speed Dial grid. */
-export const CORE_RAIL_VIEWS = ["explorer", "settings", "viewer"] as const;
+export const CORE_RAIL_VIEWS = ["apps", "explorer", "settings", "viewer"] as const;
 
 export type CoreRailView = (typeof CORE_RAIL_VIEWS)[number];
 
@@ -33,10 +33,11 @@ export const getCoreRailEntries = (): Array<{ view: string; label: string; icon:
 export const isCoreRailOpen = (): boolean => {
     try {
         const v = localStorage.getItem(RAIL_OPEN_KEY);
-        if (v == null || !String(v).trim()) return true;
+        // WHY: first visit has no key — keep the rail collapsed so the grid is the default surface.
+        if (v == null || !String(v).trim()) return false;
         return v === "1" || v === "true" || v === "open";
     } catch {
-        return true;
+        return false;
     }
 };
 
@@ -57,6 +58,18 @@ export const migrateCoreViewShortcutsOffGrid = (): void => {
 };
 
 const runCoreView = (view: string): void => {
+    if (view === "apps") {
+        const home = (globalThis as { __CWSP_LAUNCHER_HOME__?: { openAppMenu?: () => void; openAppMenuPage?: () => void } })
+            .__CWSP_LAUNCHER_HOME__;
+        if (typeof home?.openAppMenuPage === "function") {
+            home.openAppMenuPage();
+            return;
+        }
+        if (typeof home?.openAppMenu === "function") {
+            home.openAppMenu();
+            return;
+        }
+    }
     const opener = getSpeedDialViewOpener();
     const registry = getSpeedDialActionRegistry();
     const action = registry.get(`open-view-${view}`) || registry.get("open-view");

@@ -11,6 +11,9 @@ import {
   type FileEntryLike
 } from "./fs-backend.ts";
 import { createChromeBookmarksBackend } from "./backends/chrome-bookmarks-backend.ts";
+import { createNativeFsBackend } from "./backends/native-fs-backend.ts";
+import { ensureMountsRootBackend } from "./mounts.ts";
+import { isNativeStorageAvailable } from "./storage-bridge.ts";
 
 // Re-export the shared helper so callers can import everything from path-router.
 export { normalizeVirtualPath };
@@ -210,7 +213,44 @@ export function ensureDefaultFsBackends(): void {
       if (backend) registerFsBackend(backend);
     }
   }
+  /*
+   * WHY: /sdcard/ and /saf/ are native-only. PWA mounts live under /mounts/
+   * from showDirectoryPicker. Registering here (not only in Operative) keeps
+   * the virtual-root listing consistent for Speed Dial / CRX callers too.
+   */
+  if (isNativeStorageAvailable()) {
+    if (!resolveFsBackend("/sdcard/")) registerFsBackend(createNativeFsBackend("/sdcard/"));
+    if (!resolveFsBackend("/saf/")) registerFsBackend(createNativeFsBackend("/saf/"));
+  }
+  if (!resolveFsBackend("/mounts/")) ensureMountsRootBackend();
+  observeUserFileSystem();
 }
+
+/**
+ * WHY: FileSystemObserver is Chromium-experimental. When present, OPFS
+ * mutations refresh Explorer without polling. Cap / SAF fall back to the
+ * toolbar refresh and `cwsp:explorer-mount-change`.
+ */
+const observeUserFileSystem = (): void => {
+  if (typeof window === "undefined") return;
+  const g = globalThis as {
+    FileSystemObserver?: new (cb: () => void) => { observe: (h: unknown) => Promise<void> };
+    navigator?: { storage?: { getDirectory?: () => Promise<unknown> } };
+  };
+  const Ctor = g.FileSystemObserver;
+  const getDir = g.navigator?.storage?.getDirectory;
+  if (typeof Ctor !== "function" || typeof getDir !== "function") return;
+  if ((globalThis as { __CWSP_USER_FS_OBS__?: boolean }).__CWSP_USER_FS_OBS__) return;
+  (globalThis as { __CWSP_USER_FS_OBS__?: boolean }).__CWSP_USER_FS_OBS__ = true;
+  void getDir.call(g.navigator?.storage).then((root) => {
+    const observer = new Ctor(() => {
+      window.dispatchEvent(new CustomEvent("cwsp:explorer-mount-change"));
+    });
+    return observer.observe(root);
+  }).catch(() => {
+    (globalThis as { __CWSP_USER_FS_OBS__?: boolean }).__CWSP_USER_FS_OBS__ = false;
+  });
+};
 
 // Register at module boot so callers don't need to call ensureDefaultFsBackends.
 ensureDefaultFsBackends();

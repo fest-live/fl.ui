@@ -48,9 +48,9 @@
             direction: ltr !important;
 
             //
-            // Cap by dynamic viewport and by JS visual viewport (--vv-* from fest/dom updateVP) for mobile browser chrome / keyboard.
-            max-inline-size: min(100%, min(100cqi, 100dvi), var(--vv-width, 100dvi)) !important;
-            max-block-size: min(100%, min(100cqb, 100dvb), var(--vv-height, 100dvb)) !important;
+            /* WHY: IME must overlay — do not cap to shrinking `--vv-height` / `100dvb`. */
+            max-inline-size: min(100%, min(100cqi, 100lvi), var(--lv-width, 100lvi)) !important;
+            max-block-size: min(100%, min(100cqb, 100lvb), var(--lv-height, 100lvb)) !important;
 
             //
             /*outline-color: oklch(from var(--on-surface-color) l c h / 0.1);

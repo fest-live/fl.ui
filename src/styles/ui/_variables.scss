@@ -42,4 +42,18 @@
     --color-on-surface: --u2-color-mod(var(--base-color), 100);
     --color-on-surface-variant: --u2-color-mod(var(--base-color), 280);
     --error-color: #f87171;
+
+    /*
+     * COMPAT: same names as veela `@layer tokens`. Component styles consume
+     * these namespaced values; generic `--icon-*` variables stay local to
+     * the ui-icon shadow contract.
+     */
+    --ui-icon-size: 1.25rem;
+    --ui-icon-padding: 0px;
+    --ui-icon-tile-padding: 0.45rem;
+    --ui-window-icon-size: 0.95rem;
+    --ui-explorer-icon-size: 1.5rem;
+    --ui-explorer-icon-track: 2rem;
+    --ui-explorer-action-icon-size: 1.15rem;
+    --ui-explorer-row-height: 2.875rem;
 }

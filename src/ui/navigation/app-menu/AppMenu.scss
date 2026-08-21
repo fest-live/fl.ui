@@ -1,4 +1,20 @@
 @layer ui-app-menu {
+    .env-shell-app-menu[data-page] {
+        inset: 0;
+        align-items: stretch;
+        justify-items: stretch;
+        padding: 0;
+        z-index: calc(var(--env-z-shell-chrome, 2147483000) + 4);
+    }
+
+    .env-shell-app-menu[data-page] .env-shell-app-menu__panel {
+        inline-size: 100%;
+        block-size: 100%;
+        max-inline-size: none;
+        max-block-size: none;
+        border-radius: 0;
+    }
+
     .env-shell-app-menu {
         position: fixed;
         z-index: calc(var(--env-z-shell-chrome, 2147483000) + 2);

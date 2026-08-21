@@ -1,8 +1,8 @@
 /*
  * Filename: SpeedDial.scss
  * FullPath: modules/projects/fl.ui/src/ui/speed-dial/SpeedDial.scss
- * Change date and time: 12.48.00_03.08.2026
- * Reason for changes: Restore adaptive editor colors (--base-color / --u2-color-mod) like context menu.
+ * Change date and time: 19.55.00_21.08.2026
+ * Reason for changes: Widget grab/resize chips only on hover or active.
  */
 
 @use "../design/_wavy-runtime.scss" as *;
@@ -127,6 +127,258 @@
         pointer-events: none;
     }
 
+    .speed-dial-workspace-pager {
+        position: absolute;
+        inset-inline: 0;
+        inset-block-end: 0.55rem;
+        z-index: 5;
+        display: flex;
+        justify-content: center;
+        gap: 0.4rem;
+        pointer-events: none;
+    }
+
+    .speed-dial-workspace-pager__dot {
+        pointer-events: auto;
+        inline-size: 0.45rem;
+        block-size: 0.45rem;
+        padding: 0;
+        border: none;
+        border-radius: 999px;
+        background: color-mix(in oklab, CanvasText 35%, transparent);
+        cursor: pointer;
+    }
+
+    .speed-dial-workspace-pager__dot[data-active] {
+        inline-size: 0.85rem;
+        background: CanvasText;
+    }
+
+    .sd-widget-host {
+        overflow: visible;
+        position: relative;
+        container-type: size;
+        container-name: sd-widget;
+        aspect-ratio: auto;
+        max-inline-size: none;
+        max-block-size: none;
+        place-self: stretch;
+        --tile-size: 100%;
+        background: transparent !important;
+        box-shadow: none !important;
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+        border-radius: 0 !important;
+        clip-path: none !important;
+        filter: none !important;
+    }
+
+    .sd-widget-host > :is(ui-icon, .ui-ws-item-icon-native, img[data-launcher-icon], .ui-ws-item-icon-img, .ui-ws-item-icon-mask) {
+        display: none !important;
+    }
+
+    .sd-widget {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: stretch;
+        inline-size: 100%;
+        block-size: 100%;
+        min-inline-size: 0;
+        min-block-size: 0;
+        padding: clamp(0.45rem, 6cqi, 0.9rem);
+        pointer-events: auto;
+        touch-action: none;
+        user-select: none;
+        -webkit-user-select: none;
+        box-sizing: border-box;
+        isolation: isolate;
+        z-index: 1;
+    }
+
+    .sd-widget-host:not([data-widget="android"]) {
+        pointer-events: auto !important;
+        cursor: grab;
+        touch-action: none;
+        user-select: none;
+        -webkit-user-select: none;
+        /* INVARIANT: keep `container-type: size` so clock `cqi`/`cqb` track the span. */
+    }
+
+    .sd-widget-host[data-interaction-state="onGrab"],
+    .sd-widget-host[data-interaction-state="onMoving"] {
+        cursor: grabbing;
+    }
+
+    .sd-widget--clock {
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        gap: 0.12em;
+        overflow: hidden;
+        padding-block-start: 1.35rem;
+    }
+
+    .sd-widget__time {
+        font-size: clamp(1.6rem, min(28cqi, 38cqb), 10rem);
+        font-weight: 650;
+        line-height: 1;
+        letter-spacing: 0.01em;
+        font-variant-numeric: tabular-nums;
+        font-feature-settings: "tnum" 1;
+        text-align: center;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-inline-size: 100%;
+    }
+
+    .sd-widget__date {
+        font-size: clamp(0.75rem, min(10cqi, 12cqb), 2.75rem);
+        opacity: 0.78;
+        text-align: center;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-inline-size: 100%;
+    }
+
+    .ui-ws-item[data-widget="android"] {
+        aspect-ratio: auto;
+        max-inline-size: none;
+        max-block-size: none;
+        place-self: stretch;
+        pointer-events: none;
+    }
+
+    .sd-widget-chrome,
+    .sd-widget-resize {
+        pointer-events: auto;
+        /* INVARIANT: `--env-launcher-fg` + Canvas ring — readable on light and dark wallpaper. */
+        --sd-widget-ink: var(--env-launcher-fg, CanvasText);
+        --sd-widget-chip: color-mix(in oklab, Canvas 72%, var(--sd-widget-ink) 28%);
+        --sd-widget-ring: color-mix(in oklab, var(--sd-widget-ink) 55%, Canvas 45%);
+    }
+
+    .sd-widget-chrome {
+        position: absolute;
+        inset-inline: 0;
+        inset-block-start: 0;
+        block-size: 1.45rem;
+        z-index: 4;
+        display: grid;
+        place-items: center;
+        cursor: grab;
+        touch-action: none;
+        background: transparent;
+
+        &::before {
+            content: "";
+            inline-size: 2.4rem;
+            block-size: 0.32rem;
+            border-radius: 999px;
+            background: var(--sd-widget-chip);
+            box-shadow: 0 0 0 1px var(--sd-widget-ring);
+            /* WHY: hit strip stays live; the pill must not sit on the wallpaper at rest. */
+            opacity: 0;
+            transition: opacity 120ms ease;
+        }
+    }
+
+    .sd-widget-resize {
+        position: absolute;
+        inset-inline-end: 0.15rem;
+        inset-block-end: 0.15rem;
+        z-index: 5;
+        inline-size: 1.35rem;
+        block-size: 1.35rem;
+        padding: 0;
+        border: none;
+        border-radius: 0.35rem;
+        cursor: nwse-resize;
+        touch-action: none;
+        background: var(--sd-widget-chip);
+        box-shadow: 0 0 0 1px var(--sd-widget-ring);
+        opacity: 0;
+        transition: opacity 120ms ease;
+
+        &::before {
+            content: "";
+            position: absolute;
+            inset-inline-end: 0.22rem;
+            inset-block-end: 0.22rem;
+            inline-size: 0.5rem;
+            block-size: 0.5rem;
+            border-inline-end: 2px solid var(--sd-widget-ink);
+            border-block-end: 2px solid var(--sd-widget-ink);
+            border-radius: 0 0 0.08rem 0;
+            filter: drop-shadow(0 0 1px Canvas);
+        }
+
+        &::after {
+            content: "";
+            position: absolute;
+            inset: -0.45rem;
+        }
+    }
+
+    .sd-widget-host:hover,
+    .sd-widget-host:focus-within,
+    .sd-widget-host:active,
+    .sd-widget-host[data-resizing],
+    .sd-widget-host[data-interaction-state="onGrab"],
+    .sd-widget-host[data-interaction-state="onMoving"] {
+        .sd-widget-chrome::before,
+        .sd-widget-resize {
+            opacity: 1;
+        }
+    }
+
+    @media (pointer: coarse) {
+        .sd-widget-chrome {
+            block-size: 2.1rem;
+        }
+
+        .sd-widget-resize {
+            inline-size: 2.05rem;
+            block-size: 2.05rem;
+        }
+    }
+
+    .sd-widget--android {
+        pointer-events: none;
+        opacity: 0.08;
+    }
+
+    .sd-widget__preview {
+        inline-size: 100%;
+        block-size: 100%;
+        object-fit: contain;
+    }
+
+    .sd-widget--search {
+        justify-content: center;
+        padding-block-start: 2.2rem;
+        padding-block-end: 2rem;
+        padding-inline: 0.7rem;
+    }
+
+    .sd-widget__search {
+        inline-size: 100%;
+        min-block-size: clamp(2rem, 28cqb, 3.1rem);
+        border: 1px solid color-mix(in oklab, CanvasText 18%, transparent);
+        border-radius: 999px;
+        background: color-mix(in oklab, Canvas 78%, transparent);
+        color: CanvasText;
+        padding: 0.35rem 0.85rem;
+        font: inherit;
+        font-size: clamp(0.85rem, 8cqi, 1.2rem);
+        touch-action: manipulation;
+        user-select: text;
+        -webkit-user-select: text;
+        cursor: text;
+    }
+
     .speed-dial-core-rail__label {
         font-size: 0.62rem;
         line-height: 1.15;
@@ -166,17 +418,18 @@
         grid-template-rows: minmax(0px, 1fr);
         pointer-events: auto;
         min-inline-size: 0px;
-        min-block-size: 0px;
-        max-inline-size: max(100%, 100lvi);
-        max-block-size: max(100%, 100lvb);
-        inline-size: max(100%, 100lvi);
-        block-size: max(100%, 100lvb);
+        min-block-size: var(--lv-height, 100lvb);
+        max-inline-size: var(--lv-width, 100lvi);
+        max-block-size: var(--lv-height, 100lvb);
+        inline-size: var(--lv-width, 100lvi);
+        block-size: var(--lv-height, 100lvb);
         box-sizing: border-box;
-        inset: 0;
-        inset-block-end: auto;
+        inset: 0 auto auto 0;
         position: fixed;
         background-color: transparent;
         overflow: hidden;
+        perspective: 72rem;
+        transform-style: preserve-3d;
         border-radius: 0px;
         user-select: none;
         user-drag: none;
@@ -188,6 +441,17 @@
         & > * {
             grid-row: 1 / -1;
             grid-column: 1 / -1;
+        }
+
+        &[data-ws-turning] .speed-dial-grid {
+            transform-origin: 50% 50%;
+            backface-visibility: hidden;
+            will-change: transform, opacity;
+        }
+
+        .speed-dial-grid--turn-ghost {
+            pointer-events: none;
+            z-index: 3;
         }
     }
 
@@ -255,8 +519,12 @@
             --drag-y: 0px;
             --tile-size: 4rem;
 
-            grid-column: clamp(1, var(--cell-column, auto), var(--grid-columns, var(--cs-layout-c, 4)));
-            grid-row: clamp(1, var(--cell-row, auto), var(--grid-rows, var(--cs-layout-r, 8)));
+            /* WHY: labels omit the `auto` fallback — missing `--cell-column` must
+             * drop this rule so inline `grid-column` from the label template wins. */
+            &:not([data-layer="labels"]) {
+                grid-column: var(--cell-column, auto);
+                grid-row: var(--cell-row, auto);
+            }
 
             position: relative;
             display: grid;
@@ -299,6 +567,12 @@
                 }
             }
 
+            &.sd-widget-host:hover,
+            &[data-widget]:hover,
+            &[data-spanned]:hover {
+                scale: 1;
+            }
+
             &:active {
                 scale: 0.94;
             }
@@ -311,6 +585,23 @@
             &[data-interaction-state="onPlace"] {
                 scale: 1;
                 transition: none !important;
+            }
+
+            &.sd-widget-host,
+            &[data-widget]:not([data-layer="labels"]),
+            &[data-spanned]:not([data-layer="labels"]) {
+                /* WHY: launcher grid uses place-items:center + 4rem --tile-size; widgets must fill the span. */
+                grid-column: var(--cell-column, auto) / span var(--cell-span-x, 1) !important;
+                grid-row: var(--cell-row, auto) / span var(--cell-span-y, 1) !important;
+                place-self: stretch !important;
+                justify-self: stretch !important;
+                align-self: stretch !important;
+                aspect-ratio: auto !important;
+                inline-size: 100% !important;
+                block-size: 100% !important;
+                max-inline-size: none !important;
+                max-block-size: none !important;
+                --tile-size: 100%;
             }
 
             &.ui-ws-item-icon {
@@ -339,6 +630,30 @@
                 max-inline-size: var(--tile-size);
                 max-block-size: var(--tile-size);
                 padding: 0.8rem;
+
+                &.sd-widget-host,
+                &[data-shape="none"] {
+                    overflow: visible;
+                    aspect-ratio: auto !important;
+                    max-inline-size: none !important;
+                    max-block-size: none !important;
+                    inline-size: 100% !important;
+                    block-size: 100% !important;
+                    padding: 0;
+                    line-height: normal;
+                    cursor: default;
+                    background: transparent !important;
+                    box-shadow: none !important;
+                    backdrop-filter: none !important;
+                    -webkit-backdrop-filter: none !important;
+                    border-radius: 0 !important;
+                    clip-path: none !important;
+                    filter: none !important;
+
+                    @supports (corner-shape: squircle) {
+                        corner-shape: unset;
+                    }
+                }
 
                 background: color-mix(in oklab, var(--color-surface-container, #111827) 80%, transparent);
                 border: none;
@@ -478,6 +793,10 @@
                 }
             }
 
+            &.ui-ws-item-label[data-widget] {
+                visibility: hidden;
+            }
+
             &.ui-ws-item-label {
                 position: absolute;
                 inset-inline: 0;
@@ -577,6 +896,11 @@
                 pointer-events: none !important;
                 overflow: visible;
                 transition: transform 240ms cubic-bezier(0.22, 0.8, 0.3, 1);
+                /* INVARIANT: valid only after JS stamps `--cell-column`. No `auto` / `--cell-x:0`
+                 * fallback — those packed captions at the top or stacked in 1×1. */
+                grid-column: var(--cell-column) / span 1 !important;
+                grid-row: var(--cell-row) / span 1 !important;
+                place-self: center;
 
                 /*
                  * WHY: Icons use place-self:center in tall grid cells. Captions sit just under the
@@ -710,6 +1034,9 @@
             transform: none;
             transition: none;
             z-index: 0;
+            grid-column: var(--cell-column) / span 1 !important;
+            grid-row: var(--cell-row) / span 1 !important;
+            position: relative;
         }
 
         .ui-ws-item:hover,
@@ -901,6 +1228,19 @@
     .speed-dial-editor__form .modal-field {
         display: grid;
         gap: 0.35rem;
+        pointer-events: auto;
+    }
+
+    .speed-dial-editor__form [data-field="span"] .sd-icon-resource-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.45rem;
+    }
+
+    .speed-dial-editor__form input[name="spanCols"],
+    .speed-dial-editor__form input[name="spanRows"] {
+        min-inline-size: 0;
+        inline-size: 100%;
         pointer-events: auto;
     }
 
@@ -1213,11 +1553,11 @@
 
         .speed-dial-root {
             position: fixed;
-            inset: 0;
-            inline-size: 100%;
-            block-size: 100%;
-            max-inline-size: 100%;
-            max-block-size: 100%;
+            inset: 0 auto auto 0;
+            inline-size: var(--lv-width, 100lvi);
+            block-size: var(--lv-height, 100lvb);
+            max-inline-size: var(--lv-width, 100lvi);
+            max-block-size: var(--lv-height, 100lvb);
             overflow: hidden;
         }
     }
@@ -1415,4 +1755,42 @@
 .sd-icon-picker__card:disabled {
     opacity: 0.45 !important;
     cursor: not-allowed !important;
+}
+
+.sd-widget-picker {
+    inline-size: min(22rem, 92vw);
+    max-block-size: 80vh;
+    padding: 0.85rem;
+    border: none;
+    border-radius: 0.85rem;
+    background: Canvas;
+    color: CanvasText;
+}
+
+.sd-widget-picker__list {
+    display: grid;
+    gap: 0.4rem;
+    max-block-size: 60vh;
+    overflow: auto;
+    margin-block: 0.6rem;
+}
+
+.sd-widget-picker__item {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    inline-size: 100%;
+    padding: 0.45rem 0.55rem;
+    border: 1px solid color-mix(in oklab, CanvasText 14%, transparent);
+    border-radius: 0.55rem;
+    background: transparent;
+    color: inherit;
+    text-align: start;
+    cursor: pointer;
+}
+
+.sd-widget-picker__item img {
+    inline-size: 2.2rem;
+    block-size: 2.2rem;
+    object-fit: contain;
 }

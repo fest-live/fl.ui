@@ -1,16 +1,20 @@
 /*
  * Filename: pointer-interaction.ts
  * FullPath: modules/projects/fl.ui/src/ui/speed-dial/pointer-interaction.ts
- * Change date and time: 11.30.00_03.08.2026
- * Reason for changes: Track last pointer client during drag so touch drop uses finger position, not lagged tile center.
+ * Change date and time: 19.55.00_21.08.2026
+ * Reason for changes: Spanned widgets track the box center, then convert to origin.
  */
 
 import {
-    cellKey,
-    findNearestFreeCell,
+    findNearestFreeRect,
+    logicalToVisualSpan,
+    markOccupiedSpan,
+    normalizeSpan,
     pointToLogicalCell,
+    visualLayout,
     type GridCell,
     type GridLayout,
+    type GridSpan,
     type Orient
 } from "./layout";
 
@@ -25,6 +29,7 @@ type PointerInteractionOptions = {
     items: readonly GridItem[];
     getLayout: () => GridLayout;
     getOrient: () => Orient;
+    getSpan?: (id: string) => GridSpan | readonly number[] | null | undefined;
     onCommitCell: (cell: GridCell) => void;
     onSettled?: (cell: GridCell) => void;
 };
@@ -137,10 +142,15 @@ const readCell = (cell: GridItem["cell"] | undefined): GridCell => [
     Math.floor(Number(cell?.[1]) || 0)
 ];
 
-const occupiedCells = (items: readonly GridItem[], exceptId: string): Set<string> => {
+const occupiedCells = (
+    items: readonly GridItem[],
+    exceptId: string,
+    getSpan?: PointerInteractionOptions["getSpan"]
+): Set<string> => {
     const occupied = new Set<string>();
     for (const entry of items) {
-        if (entry.id !== exceptId) occupied.add(cellKey(readCell(entry.cell)));
+        if (entry.id === exceptId) continue;
+        markOccupiedSpan(occupied, readCell(entry.cell), normalizeSpan(getSpan?.(entry.id)));
     }
     return occupied;
 };
@@ -168,7 +178,7 @@ export const bindPointerInteraction = (
         const extra: HTMLElement[] = [];
         if (id) {
             options.root.querySelectorAll<HTMLElement>('[data-speed-dial-item][data-layer="labels"]').forEach((el) => {
-                if (el.dataset.id === id) extra.push(el);
+                if (el.dataset.id === id && !el.closest(".speed-dial-grid--turn-ghost")) extra.push(el);
             });
         }
         return [node, ...extra];
@@ -179,17 +189,45 @@ export const bindPointerInteraction = (
         return readCell(live?.cell ?? options.item.cell);
     };
 
+    const itemSpan = (): GridSpan => normalizeSpan(options.getSpan?.(options.item.id) || [1, 1]);
+
     const nodes = () => relatedNodes();
 
+    const iconGrid = (): HTMLElement | null => {
+        const live = options.root.querySelector<HTMLElement>(
+            ".speed-dial-grid[data-grid-layer='icons']:not(.speed-dial-grid--turn-ghost)"
+        );
+        const closest = node.closest<HTMLElement>(".speed-dial-grid");
+        if (closest && !closest.classList.contains("speed-dial-grid--turn-ghost")) return closest;
+        return live;
+    };
+
     const getDropCell = (clientPoint: [number, number]): GridCell => {
-        const grid = node.closest<HTMLElement>(".speed-dial-grid");
+        const grid = iconGrid();
         if (!grid) return liveCell();
         const { point, size } = getGridContentPoint(grid, clientPoint);
-        const center = [point[0] - grabOffset[0], point[1] - grabOffset[1]] as [number, number];
-        return findNearestFreeCell(
-            pointToLogicalCell(center, size, options.getLayout(), options.getOrient()),
-            occupiedCells(options.items, options.item.id),
-            options.getLayout()
+        const layout = options.getLayout();
+        const orient = options.getOrient();
+        const span = itemSpan();
+        const tracked: [number, number] = [
+            point[0] - grabOffset[0],
+            point[1] - grabOffset[1]
+        ];
+        /* WHY: grab is the box center (same as icons). Persist the span origin so a
+         * 2×N search tile dropped in the middle does not clamp into a corner. */
+        const [spanX, spanY] = logicalToVisualSpan(span, orient);
+        const [cols, rows] = visualLayout(layout, orient);
+        const cellW = size[0] / Math.max(1, cols);
+        const cellH = size[1] / Math.max(1, rows);
+        const originPoint: [number, number] =
+            spanX > 1 || spanY > 1
+                ? [tracked[0] - (spanX * cellW) / 2, tracked[1] - (spanY * cellH) / 2]
+                : tracked;
+        return findNearestFreeRect(
+            pointToLogicalCell(originPoint, size, layout, orient),
+            span,
+            occupiedCells(options.items, options.item.id, options.getSpan),
+            layout
         );
     };
 

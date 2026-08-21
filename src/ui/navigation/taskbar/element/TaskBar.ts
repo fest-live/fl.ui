@@ -8,7 +8,7 @@
 /**
  * WHY: Desktop shell chrome — `ui-taskbar` + `ui-task` from FL-UI, `fest/lure` tasking `makeTask` / `getBy`,
  * and the same reactive device tray as {@link buildShellDeviceTray} (desktop-only via CSS + data-desktop).
- * Mobile: transparent nav, centered house icon; tap goes Home (Start); long-press lists open windows.
+ * Mobile: transparent nav, house icon at the right; tap goes Home (Start); long-press lists open windows.
  * Desktop: Start pin (same as mobile Home tap); icon-only tasks; Win-style click toggle; tray clock.
  */
 import { UITask } from "@fest-lib/fl-ui";
@@ -30,6 +30,13 @@ import {
     mountEnvironmentAppMenu,
     type MountAppMenuResult
 } from "../../app-menu/AppMenu";
+import {
+    getActiveWorkspaceId,
+    listWorkspacePages,
+    switchWorkspacePage,
+    WORKSPACE_PAGE_EVENT
+} from "fl-ui/speed-dial/workspace-pages";
+import { installLauncherBackStack } from "fl-ui/navigation/overlay-back";
 
 /* Taskbar wrapper */
 import UIElement from "fl-ui/base/UIElement";
@@ -84,6 +91,7 @@ export type MountTaskBarResult = {
     appMenu?: MountAppMenuResult;
     /** Open app menu with taskbar chrome sync (swipe-up from Speed Dial). */
     openAppMenu?: () => void;
+    openAppMenuPage?: () => void;
     isSwitcherOpen?: () => boolean;
     closeSwitcher?: () => void;
     dispose: () => void;
@@ -197,6 +205,33 @@ export function mountEnvironmentTaskBar(opts: EnvironmentTaskbarOptions): MountT
     pinsHost.append(tHome, tViewer);
     */
     pinsHost.append(tHome);
+
+    const workspacePager = document.createElement("div");
+    workspacePager.className = "env-shell-taskbar__workspaces";
+    workspacePager.setAttribute("aria-label", "Workspaces");
+    const paintWorkspacePager = (): void => {
+        const pages = listWorkspacePages();
+        const active = getActiveWorkspaceId();
+        workspacePager.replaceChildren();
+        for (const page of pages) {
+            const btn = document.createElement("button");
+            btn.type = "button";
+            btn.className = "env-shell-taskbar__workspace";
+            btn.title = page.label;
+            btn.textContent = page.label.replace(/^Side\s+/i, "") || page.id.slice(-1).toUpperCase();
+            btn.toggleAttribute("data-active", page.id === active);
+            btn.addEventListener("click", (ev) => {
+                ev.preventDefault();
+                ev.stopPropagation();
+                switchWorkspacePage(page.id);
+            });
+            workspacePager.append(btn);
+        }
+    };
+    paintWorkspacePager();
+    window.addEventListener(WORKSPACE_PAGE_EVENT, paintWorkspacePager);
+    pinsHost.append(workspacePager);
+    installLauncherBackStack();
 
     const syncStartChrome = (): void => {
         const mobile = isMobileChrome();
@@ -522,6 +557,27 @@ export function mountEnvironmentTaskBar(opts: EnvironmentTaskbarOptions): MountT
         paintActive();
     };
 
+    const openAppMenuPage = (): void => {
+        if (!appMenu) return;
+        closeSwitcher();
+        appMenu.openPage();
+        syncAppMenuChrome();
+        getBy(taskList, HOME_TASK)!.focus = true;
+        opts.focusedTaskId.value = "home";
+        paintActive();
+    };
+
+    try {
+        const g = globalThis as { __CWSP_LAUNCHER_HOME__?: Record<string, unknown> };
+        g.__CWSP_LAUNCHER_HOME__ = {
+            ...(g.__CWSP_LAUNCHER_HOME__ || {}),
+            openAppMenu: openAppMenuFromDesktop,
+            openAppMenuPage
+        };
+    } catch {
+        /* ignore */
+    }
+
     const handleLauncherHomeTap = (): void => {
         if (hasVisibleManagedWindows(lastWindows, opts.focusedTaskId)) {
             goHome();
@@ -814,6 +870,7 @@ export function mountEnvironmentTaskBar(opts: EnvironmentTaskbarOptions): MountT
         syncWindowTasks,
         appMenu,
         openAppMenu: appMenu ? openAppMenuFromDesktop : undefined,
+        openAppMenuPage: appMenu ? openAppMenuPage : undefined,
         isSwitcherOpen: () => switcherOpen,
         closeSwitcher,
         dispose

@@ -2,11 +2,12 @@
  * Filename: layout.ts
  * FullPath: modules/projects/fl.ui/src/ui/speed-dial/layout.ts
  * Change date and time: 20.47.00_28.07.2026
- * Reason for changes: Provide one small, testable source of truth for speed-dial orientation and cells.
+ * Reason for changes: Span-aware occupancy + visual span swap on odd orientations.
  */
 
 export type GridCell = [number, number];
 export type GridLayout = [number, number];
+export type GridSpan = [number, number];
 export type Orient = 0 | 1 | 2 | 3;
 
 const DEFAULT_LAYOUT: GridLayout = [4, 8];
@@ -139,6 +140,94 @@ export const pointToLogicalCell = (
 
 export const cellKey = (cell: GridCell): string => `${cell[0]}:${cell[1]}`;
 
+export const normalizeSpan = (span: GridSpan | readonly number[] | null | undefined): GridSpan => [
+    Math.max(1, Math.min(8, Math.floor(Number(span?.[0]) || 1))),
+    Math.max(1, Math.min(8, Math.floor(Number(span?.[1]) || 1)))
+];
+
+/** Visual span tracks swap with columns/rows on odd orientations. */
+export const logicalToVisualSpan = (
+    span: GridSpan | readonly number[] | null | undefined,
+    orient: unknown
+): GridSpan => {
+    const [cols, rows] = normalizeSpan(span);
+    return normalizeOrient(orient) % 2 ? [rows, cols] : [cols, rows];
+};
+
+export const cellsForSpan = (origin: GridCell, span: GridSpan | readonly number[] | null | undefined): GridCell[] => {
+    const [sx, sy] = normalizeSpan(span);
+    const x0 = Math.floor(Number(origin?.[0]) || 0);
+    const y0 = Math.floor(Number(origin?.[1]) || 0);
+    const cells: GridCell[] = [];
+    for (let y = 0; y < sy; y += 1) {
+        for (let x = 0; x < sx; x += 1) cells.push([x0 + x, y0 + y]);
+    }
+    return cells;
+};
+
+export const markOccupiedSpan = (
+    occupied: Set<string>,
+    origin: GridCell,
+    span: GridSpan | readonly number[] | null | undefined
+): void => {
+    for (const cell of cellsForSpan(origin, span)) occupied.add(cellKey(cell));
+};
+
+export const spanFits = (
+    origin: GridCell,
+    span: GridSpan | readonly number[] | null | undefined,
+    layout: GridLayout | readonly number[] | null | undefined
+): boolean => {
+    const [columns, rows] = normalizeLayout(layout);
+    const [sx, sy] = normalizeSpan(span);
+    const x = Math.floor(Number(origin?.[0]) || 0);
+    const y = Math.floor(Number(origin?.[1]) || 0);
+    return x >= 0 && y >= 0 && x + sx <= columns && y + sy <= rows;
+};
+
+const rectConflicts = (
+    origin: GridCell,
+    span: GridSpan | readonly number[] | null | undefined,
+    occupied: ReadonlySet<string>
+): boolean => cellsForSpan(origin, span).some((cell) => occupied.has(cellKey(cell)));
+
+/**
+ * Nearest logical origin where `span` fits and none of its cells are occupied.
+ * INVARIANT: origin is the top-left of the rectangle in logical space.
+ */
+export const findNearestFreeRect = (
+    preferred: GridCell,
+    span: GridSpan | readonly number[] | null | undefined,
+    occupied: ReadonlySet<string>,
+    layout: GridLayout | readonly number[] | null | undefined
+): GridCell => {
+    const normalizedLayout = normalizeLayout(layout);
+    const [sx, sy] = normalizeSpan(span);
+    const [columns, rows] = normalizedLayout;
+    const maxX = Math.max(0, columns - sx);
+    const maxY = Math.max(0, rows - sy);
+    const start: GridCell = [
+        clamp(Math.floor(Number(preferred?.[0]) || 0), 0, maxX),
+        clamp(Math.floor(Number(preferred?.[1]) || 0), 0, maxY)
+    ];
+    if (spanFits(start, [sx, sy], normalizedLayout) && !rectConflicts(start, [sx, sy], occupied)) {
+        return start;
+    }
+    const maxRadius = Math.max(columns, rows);
+    for (let radius = 1; radius <= maxRadius; radius += 1) {
+        for (let y = Math.max(0, start[1] - radius); y <= Math.min(maxY, start[1] + radius); y += 1) {
+            for (let x = Math.max(0, start[0] - radius); x <= Math.min(maxX, start[0] + radius); x += 1) {
+                if (Math.abs(x - start[0]) !== radius && Math.abs(y - start[1]) !== radius) continue;
+                const candidate: GridCell = [x, y];
+                if (spanFits(candidate, [sx, sy], normalizedLayout) && !rectConflicts(candidate, [sx, sy], occupied)) {
+                    return candidate;
+                }
+            }
+        }
+    }
+    return start;
+};
+
 /** Clamp a logical cell to the supplied grid. */
 export const clampLogicalCell = (
     cell: GridCell,
@@ -179,7 +268,7 @@ export const findNearestFreeCell = (
     return start;
 };
 
-type CellHolder = { cell?: GridCell | { 0?: unknown; 1?: unknown } | null };
+type CellHolder = { cell?: GridCell | { 0?: unknown; 1?: unknown } | null; id?: string };
 
 const readCell = (item: CellHolder): GridCell => [
     Math.floor(Number(item?.cell?.[0]) || 0),
@@ -202,7 +291,8 @@ const writeCell = (item: CellHolder, cell: GridCell): boolean => {
  */
 export const relocateItemsToLayout = (
     items: readonly CellHolder[],
-    layout: GridLayout | readonly number[] | null | undefined
+    layout: GridLayout | readonly number[] | null | undefined,
+    getSpan?: (item: CellHolder) => GridSpan | readonly number[] | null | undefined
 ): boolean => {
     const normalized = normalizeLayout(layout);
     const [columns, rows] = normalized;
@@ -211,15 +301,17 @@ export const relocateItemsToLayout = (
     for (const item of items) {
         if (!item?.cell) continue;
         const [x, y] = readCell(item);
-        if (x >= 0 && x < columns && y >= 0 && y < rows) inBounds.push(item);
+        const span = normalizeSpan(getSpan?.(item));
+        if (x >= 0 && y >= 0 && x + span[0] <= columns && y + span[1] <= rows) inBounds.push(item);
         else overflow.push(item);
     }
 
     const occupied = new Set<string>();
     let changed = false;
     const place = (item: CellHolder, preferred: GridCell): void => {
-        const cell = findNearestFreeCell(preferred, occupied, normalized);
-        occupied.add(cellKey(cell));
+        const span = normalizeSpan(getSpan?.(item));
+        const cell = findNearestFreeRect(preferred, span, occupied, normalized);
+        markOccupiedSpan(occupied, cell, span);
         if (writeCell(item, cell)) changed = true;
     };
 

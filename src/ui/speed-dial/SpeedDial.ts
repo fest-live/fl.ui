@@ -1,8 +1,8 @@
 /*
  * Filename: SpeedDial.ts
  * FullPath: modules/projects/fl.ui/src/ui/speed-dial/SpeedDial.ts
- * Change date and time: 10.25.00_16.08.2026
- * Reason for changes: Guard item click bind-once + debounce open (duplicate ref → double open).
+ * Change date and time: 19.25.00_21.08.2026
+ * Reason for changes: Widget hosts are shapeless — no tile plate or under-shadow.
  */
 
 import { observe, numberRef, propRef, stringRef, affected } from "@fest-lib/object";
@@ -11,6 +11,7 @@ import { pointerAnchorRef } from "@fest-lib/lure";
 import { bindPointerInteraction } from "./pointer-interaction";
 import {
     logicalToVisualCell,
+    logicalToVisualSpan,
     normalizeOrient,
     pointToLogicalCell,
     visualLayout,
@@ -63,12 +64,37 @@ import {
     getSpeedDialMirrorPath,
     setSpeedDialMirrorPath,
     refreshSpeedDialMirror,
+    createWidgetSpeedDialItem,
+    getItemSpan,
+    setItemSpan,
     type SpeedDialItem
 } from "./launcher-state";
-import { isInFocus, MOCElement } from "@fest-lib/dom";
+import { isInFocus, MOCElement, updateVP, ensureVirtualKeyboardOverlay } from "@fest-lib/dom";
 import { openShortcutEditor } from "./ShortcutEditor";
 import { mountCoreRail } from "./core-rail";
 import { setSpeedDialViewOpener, getSpeedDialViewOpener } from "./view-opener";
+import {
+    bootWorkspacePages,
+    bindWorkspacePageHotkeys,
+    getActiveWorkspaceId,
+    listWorkspacePages,
+    switchWorkspaceByDelta,
+    switchWorkspacePage,
+    WORKSPACE_PAGE_EVENT
+} from "./workspace-pages";
+import {
+    bindWidgetResize,
+    createWidgetNode,
+    decorateWidgetHost,
+    getSpeedDialWidgetKind,
+    hideAndroidWidgetHosts,
+    openWidgetPicker,
+    releaseAndroidWidget,
+    syncAndroidWidgetHosts
+} from "./widgets";
+// WHY: home-view `src/ts` is a symlink into speed-dial; Vite preserveSymlinks
+// cannot resolve `../navigation/overlay-back` from that view path.
+import { installLauncherBackStack } from "#fl-ui/navigation/overlay-back";
 import {
     getSpeedDialActionRegistry,
     getSpeedDialActionLabels,
@@ -133,10 +159,59 @@ const getGridLayout = (): GridLayout => [
     Number(gridLayoutState.rows) || 8
 ];
 
+const readCellAxis = (value: unknown): number => {
+    let cur: unknown = value;
+    if (cur && typeof cur === "object" && "value" in (cur as object)) {
+        cur = (cur as { value: unknown }).value;
+    }
+    const n = Number(cur);
+    return Number.isFinite(n) ? Math.max(0, Math.floor(n)) : 0;
+};
+
 const getItemCell = (item: SpeedDialItem): GridCell => [
-    Number(item.cell?.[0]) || 0,
-    Number(item.cell?.[1]) || 0
+    readCellAxis(item.cell?.[0]),
+    readCellAxis(item.cell?.[1])
 ];
+
+const currentHomeRoot = (): HTMLElement | null => {
+    if (typeof document === "undefined") return null;
+    return document.getElementById("home") || document.querySelector(".speed-dial-root");
+};
+
+/* WHY: lure applies `style=` after `ref=` and can wipe `--cell-*`. First paint
+ * still needs explicit grid lines so captions never auto-flow into the top rows. */
+const labelLayerStyle = (item: { cell?: unknown }): string => {
+    const logical: GridCell = [
+        readCellAxis((item as SpeedDialItem)?.cell?.[0]),
+        readCellAxis((item as SpeedDialItem)?.cell?.[1])
+    ];
+    const visual = logicalToVisualCell(logical, getGridLayout(), getRootOrient(currentHomeRoot()));
+    return `grid-column:${visual[0] + 1} / span 1;grid-row:${visual[1] + 1} / span 1`;
+};
+
+const isLiveSpeedDialNode = (node: Element): boolean =>
+    !node.closest(".speed-dial-grid--turn-ghost");
+
+const usedGridLine = (el: HTMLElement, axis: "column" | "row"): string => {
+    const fromVar = el.style.getPropertyValue(axis === "column" ? "--cell-column" : "--cell-row").trim();
+    if (fromVar) return fromVar;
+    const cs = el.ownerDocument?.defaultView?.getComputedStyle(el);
+    const start = axis === "column" ? cs?.gridColumnStart : cs?.gridRowStart;
+    return start && start !== "auto" ? start : "";
+};
+
+const stampItemGridLine = (el: HTMLElement, visualCell: GridCell): void => {
+    const col = visualCell[0] + 1;
+    const row = visualCell[1] + 1;
+    el.dataset.cellColumn = String(col);
+    el.dataset.cellRow = String(row);
+    el.style.setProperty("--cell-column", String(col));
+    el.style.setProperty("--cell-row", String(row));
+    if (el.dataset.layer !== "labels") return;
+    /* WHY: stylesheet `auto` packed captions into the top rows; inline !important pins 1×1. */
+    el.style.setProperty("grid-column", `${col} / span 1`, "important");
+    el.style.setProperty("grid-row", `${row} / span 1`, "important");
+};
 
 const applyVisualCell = (el: HTMLElement, item: SpeedDialItem, root?: HTMLElement | null): void => {
     const orient = getRootOrient(root);
@@ -151,23 +226,30 @@ const applyVisualCell = (el: HTMLElement, item: SpeedDialItem, root?: HTMLElemen
     el.style.setProperty("--cell-y", String(logicalCell[1]));
     el.style.setProperty("--p-cell-x", String(logicalCell[0]));
     el.style.setProperty("--p-cell-y", String(logicalCell[1]));
-    el.style.setProperty("--cell-column", String(visualCell[0] + 1));
-    el.style.setProperty("--cell-row", String(visualCell[1] + 1));
+    stampItemGridLine(el, visualCell);
+    const [spanCols, spanRows] = getItemSpan(item.id);
+    const [spanX, spanY] = logicalToVisualSpan([spanCols, spanRows], orient);
+    const [visCols, visRows] = visualLayout(layout, orient);
+    const fitX = Math.max(1, Math.min(spanX, visCols - visualCell[0]));
+    const fitY = Math.max(1, Math.min(spanY, visRows - visualCell[1]));
+    el.style.setProperty("--cell-span-x", String(fitX));
+    el.style.setProperty("--cell-span-y", String(fitY));
+    if (el.dataset.layer === "labels") el.removeAttribute("data-spanned");
+    else el.toggleAttribute("data-spanned", fitX > 1 || fitY > 1);
+    const widgetKind = getSpeedDialWidgetKind(item);
+    if (widgetKind) el.setAttribute("data-widget", widgetKind);
+    else el.removeAttribute("data-widget");
     if (el.dataset.layer === "labels") {
         const [, visualRows] = visualLayout(layout, orient);
-        /* WHY: prefer below; only flip above when caption would clip under chrome/viewport. */
         let placement: "above" | "below" = "below";
         const rootRect = root?.getBoundingClientRect();
         const itemRect = el.getBoundingClientRect();
-        const labelRect = el.querySelector<HTMLElement>(".ui-ws-item-label")?.getBoundingClientRect();
-        // The first ref pass can happen before the caption has a layout box.
-        const labelHeight = labelRect?.height || 28;
+        const labelHeight = el.querySelector("span")?.getBoundingClientRect().height || 28;
         const nearLastRow = visualCell[1] >= visualRows - 1;
         if (rootRect && itemRect.height > 0) {
             const viewportBottom = Number(globalThis.innerHeight) || rootRect.bottom;
             const visibleTop = Math.max(rootRect.top, 0);
             const visibleBottom = Math.min(rootRect.bottom, viewportBottom);
-            /* Measure from icon tile — label node may already be translated. */
             const itemId = String(item.id || "");
             let iconSibling: HTMLElement | null = null;
             root?.querySelectorAll<HTMLElement>('[data-speed-dial-item][data-layer="icons"]').forEach((node) => {
@@ -178,7 +260,6 @@ const applyVisualCell = (el: HTMLElement, item: SpeedDialItem, root?: HTMLElemen
             const fitsAbove = anchorRect.top - labelHeight >= visibleTop - 1;
             placement = !fitsBelow && fitsAbove ? "above" : "below";
         } else if (nearLastRow) {
-            /* Cold layout: last visual row often sits above taskbar reserve — keep below. */
             placement = "below";
         }
         el.dataset.labelPlacement = placement;
@@ -190,9 +271,29 @@ const scheduleLabelPlacementSync = (root: HTMLElement): void => {
     root.dataset.labelPlacementFrame = "pending";
     const sync = (): void => {
         delete root.dataset.labelPlacementFrame;
+        const icons = new Map<string, HTMLElement>();
+        root.querySelectorAll<HTMLElement>('[data-speed-dial-item][data-layer="icons"]').forEach((node) => {
+            if (!isLiveSpeedDialNode(node) || !node.dataset.id) return;
+            icons.set(node.dataset.id, node);
+        });
         root.querySelectorAll<HTMLElement>('[data-speed-dial-item][data-layer="labels"]').forEach((node) => {
+            if (!isLiveSpeedDialNode(node)) return;
             const item = findSpeedDialItem(node.dataset.id);
             if (item) applyVisualCell(node, item, root);
+            const icon = icons.get(node.dataset.id || "");
+            if (!icon) return;
+            const col = usedGridLine(icon, "column");
+            const row = usedGridLine(icon, "row");
+            if (col) {
+                node.style.setProperty("--cell-column", col);
+                node.style.setProperty("grid-column", `${col} / span 1`, "important");
+                node.dataset.cellColumn = col;
+            }
+            if (row) {
+                node.style.setProperty("--cell-row", row);
+                node.style.setProperty("grid-row", `${row} / span 1`, "important");
+                node.dataset.cellRow = row;
+            }
         });
     };
     if (typeof globalThis.requestAnimationFrame === "function") {
@@ -223,6 +324,7 @@ const syncGridLayout = (root: HTMLElement): void => {
         grid.dataset.gridRows = String(logicalLayout[1]);
     });
     root.querySelectorAll<HTMLElement>("[data-speed-dial-item]").forEach((node) => {
+        if (!isLiveSpeedDialNode(node)) return;
         const item = findSpeedDialItem(node.dataset.id);
         if (item) applyVisualCell(node, item, root);
     });
@@ -232,6 +334,7 @@ const syncGridLayout = (root: HTMLElement): void => {
 /** Capacitor / coarse pointer: swipe up on empty Speed Dial → App Menu. */
 const SWIPE_APP_MENU_MIN_DY = 72;
 const SWIPE_APP_MENU_MAX_DX_RATIO = 0.75;
+const SWIPE_WORKSPACE_MIN_DX = 72;
 
 const isNativeCapacitorOrCoarse = (): boolean => {
     try {
@@ -264,9 +367,38 @@ const isEmptySpeedDialSurface = (root: HTMLElement, target: EventTarget | null):
     );
 };
 
+const mountWorkspacePager = (root: HTMLElement): void => {
+    if (root.querySelector(".speed-dial-workspace-pager")) return;
+    const pager = document.createElement("nav");
+    pager.className = "speed-dial-workspace-pager";
+    pager.setAttribute("aria-label", "Workspaces");
+    const paint = (): void => {
+        const pages = listWorkspacePages();
+        const active = getActiveWorkspaceId();
+        pager.replaceChildren();
+        for (const page of pages) {
+            const dot = document.createElement("button");
+            dot.type = "button";
+            dot.className = "speed-dial-workspace-pager__dot";
+            dot.title = page.label;
+            dot.setAttribute("aria-label", page.label);
+            dot.toggleAttribute("data-active", page.id === active);
+            dot.addEventListener("click", (ev) => {
+                ev.preventDefault();
+                ev.stopPropagation();
+                switchWorkspacePage(page.id);
+            });
+            pager.append(dot);
+        }
+    };
+    paint();
+    window.addEventListener(WORKSPACE_PAGE_EVENT, paint);
+    root.append(pager);
+};
+
 const bindEmptySpaceSwipeOpenAppMenu = (root: HTMLElement): void => {
     if (root.dataset.swipeAppMenuBound === "1") return;
-    if (!isLauncherSku() || !isNativeCapacitorOrCoarse()) return;
+    if (!isNativeCapacitorOrCoarse()) return;
     root.dataset.swipeAppMenuBound = "1";
 
     let tracking = false;
@@ -294,6 +426,10 @@ const bindEmptySpaceSwipeOpenAppMenu = (root: HTMLElement): void => {
         pointerId = -1;
         const dx = ev.clientX - startX;
         const dy = ev.clientY - startY;
+        if (Math.abs(dx) >= SWIPE_WORKSPACE_MIN_DX && Math.abs(dx) > Math.abs(dy) * 1.1) {
+            switchWorkspaceByDelta(dx < 0 ? 1 : -1);
+            return;
+        }
         if (dy > -SWIPE_APP_MENU_MIN_DY) return;
         if (Math.abs(dx) > Math.abs(dy) * SWIPE_APP_MENU_MAX_DX_RATIO) return;
         tryOpenLauncherAppMenu();
@@ -339,6 +475,7 @@ const bindRootOrientation = (root: HTMLElement): void => {
         );
     }
     bindEmptySpaceSwipeOpenAppMenu(root);
+    mountWorkspacePager(root);
     const observer = new MutationObserver((records) => {
         if (records.some((record) => record.attributeName === "orient")) {
             syncGridLayout(root);
@@ -353,14 +490,29 @@ const bindRootOrientation = (root: HTMLElement): void => {
     affected(gridLayoutState, () => syncGridLayout(root));
     syncGridLayout(root);
     queueMicrotask(() => syncGridLayout(root));
+    if (typeof globalThis.requestAnimationFrame === "function") {
+        globalThis.requestAnimationFrame(() => refreshRootCells(root));
+    }
 };
 
 const refreshRootCells = (root: HTMLElement): void => {
     root.querySelectorAll<HTMLElement>("[data-speed-dial-item]").forEach((node) => {
+        if (!isLiveSpeedDialNode(node)) return;
         const item = findSpeedDialItem(node.dataset.id);
         if (item) applyVisualCell(node, item, root);
     });
     scheduleLabelPlacementSync(root);
+};
+
+const scheduleRootCellRefresh = (): void => {
+    const run = (): void => {
+        const home = currentHomeRoot();
+        if (home) refreshRootCells(home);
+    };
+    queueMicrotask(run);
+    if (typeof globalThis.requestAnimationFrame === "function") {
+        globalThis.requestAnimationFrame(run);
+    }
 };
 
 type PointerAnchorPair = ReturnType<typeof pointerAnchorRef>;
@@ -394,7 +546,8 @@ const BASE_ACTION_OPTIONS = [
     { value: "open-link", label: "Open link" },
     { value: "open-path", label: "Open path" },
     { value: "copy-link", label: "Copy link" },
-    { value: "copy-state-desc", label: "Copy state + desc" }
+    { value: "copy-state-desc", label: "Copy state + desc" },
+    { value: "widget", label: "Widget" }
 ];
 
 /** Launcher SKU exposes Android app launch tiles via dynamic launcher-bridge import. */
@@ -433,6 +586,13 @@ const durableIconUrl = (raw: unknown): string => {
  */
 const paintSpeedDialTileIcon = (el: HTMLElement, item: SpeedDialItem): void => {
     if (!el || el.dataset.layer === "labels") return;
+    /* WHY: widgets own their face — a glyph clock here stacks analog hands on digital time. */
+    if (el.classList.contains("sd-widget-host") || el.dataset.widget || getSpeedDialWidgetKind(item)) {
+        el.querySelectorAll(
+            "ui-icon, .ui-ws-item-icon-native, img[data-launcher-icon], .ui-ws-item-icon-img, .ui-ws-item-icon-mask"
+        ).forEach((node) => node.remove());
+        return;
+    }
 
     const launchApp = isLauncherAppSpeedDialItem(item);
     const cacheKey = launchApp ? getLauncherAppTileCacheKey(item) : "";
@@ -590,6 +750,7 @@ const paintSpeedDialTileIcon = (el: HTMLElement, item: SpeedDialItem): void => {
 };
 
 const bindSpeedDialTileIconChrome = (el: HTMLElement, item: SpeedDialItem): void => {
+    if (el.classList.contains("sd-widget-host") || el.dataset.widget || getSpeedDialWidgetKind(item)) return;
     if (el.dataset.iconChromeBound === "1") return;
     el.dataset.iconChromeBound = "1";
     const meta = ensureSpeedDialMeta(item.id);
@@ -627,11 +788,19 @@ const buildDescriptor = (item: SpeedDialItem) => {
 const bindCell = (el: HTMLElement, args: any): void => {
     const item = args?.item as SpeedDialItem | undefined;
     if (!item) return;
-    const root = el.closest<HTMLElement>(".speed-dial-root");
-    const sync = (): void => applyVisualCell(el, item, root);
+    const sync = (): void => {
+        const mounted = el.closest<HTMLElement>(".speed-dial-root")
+            || el.ownerDocument?.getElementById("home");
+        applyVisualCell(el, item, mounted);
+    };
     sync();
     affected([item.cell, 0], sync);
     affected([item.cell, 1], sync);
+    const meta = getSpeedDialMeta(item.id);
+    if (meta) {
+        affected([meta, "spanCols"], sync);
+        affected([meta, "spanRows"], sync);
+    }
 };
 
 //
@@ -653,6 +822,8 @@ const runItemAction = (
     }
     lastItemOpenKey = openKey;
     lastItemOpenAt = now;
+
+    if (resolvedAction === "widget" || getSpeedDialWidgetKind(item)) return;
 
     const action = getSpeedDialActionRegistry().get(resolvedAction);
     if (!action) { showError("Action is unavailable"); return; }
@@ -735,10 +906,15 @@ const attachItemNode = (item: SpeedDialItem, el?: HTMLElement | null, interactiv
         }
     }
 
-    if (el.dataset.layer === "labels") {
+    if (!interactive || el.dataset.layer === "labels") {
+        el.dataset.layer = "labels";
         el.style.pointerEvents = "none";
-        // needs to bind cell
-        bindCell(el, args);
+        if (el.dataset.cellBound !== "true") {
+            el.dataset.cellBound = "true";
+            bindCell(el, args);
+        } else {
+            applyVisualCell(el, item, root);
+        }
     }
     if (el.dataset.layer === "icons") {
         const dragItem = { id: item.id, cell: getItemCell(item) };
@@ -751,20 +927,42 @@ const attachItemNode = (item: SpeedDialItem, el?: HTMLElement | null, interactiv
                 items: speedDialItems as unknown as Array<{ id: string; cell: GridCell }>,
                 getLayout: getGridLayout,
                 getOrient: () => getRootOrient(mountedRoot),
+                getSpan: (id) => getItemSpan(id),
                 onCommitCell: (cell) => {
                     dragItem.cell = [...cell];
                     item.cell[0] = cell[0];
                     item.cell[1] = cell[1];
                     refreshRootCells(mountedRoot);
+                },
+                onSettled: () => {
+                    requestAnimationFrame(() => syncAndroidWidgetHosts(mountedRoot));
                 }
             });
         };
         bindDrag(root);
-        if (!root) {
-            queueMicrotask(() => bindDrag(
+        if (!root || el.dataset.pointerInteractionBound !== "true") {
+            const retryDrag = (): void => bindDrag(
                 el.closest<HTMLElement>(".speed-dial-root")
                 || el.ownerDocument?.getElementById("home")
-            ));
+            );
+            queueMicrotask(retryDrag);
+            if (typeof globalThis.requestAnimationFrame === "function") {
+                globalThis.requestAnimationFrame(retryDrag);
+            }
+        }
+        const widgetKind = getSpeedDialWidgetKind(item);
+        if (widgetKind) {
+            decorateWidgetHost(el, widgetKind);
+            bindWidgetResize(el, item, {
+                refresh: () => {
+                    const mounted =
+                        el.closest<HTMLElement>(".speed-dial-root") ||
+                        el.ownerDocument?.getElementById("home") ||
+                        root;
+                    if (mounted) refreshRootCells(mounted);
+                    requestAnimationFrame(() => syncAndroidWidgetHosts(mounted));
+                }
+            });
         }
         if (el.dataset.cellBound !== "true") {
             el.dataset.cellBound = "true";
@@ -1361,6 +1559,10 @@ const attachMirrorItemNode = (item: any, el?: HTMLElement | null, makeView?: any
         el.style.setProperty("--cell-y", String(logicalCell[1]));
         el.style.setProperty("--cell-column", String(visualCell[0] + 1));
         el.style.setProperty("--cell-row", String(visualCell[1] + 1));
+        if (el.dataset.layer === "labels") {
+            el.style.setProperty("grid-column", `${visualCell[0] + 1} / span 1`, "important");
+            el.style.setProperty("grid-row", `${visualCell[1] + 1} / span 1`, "important");
+        }
     };
     sync();
     if (!el.dataset.mirrorActionBound) {
@@ -1402,14 +1604,16 @@ const renderMirrorIconItem = (item: any, makeView?: any) => {
 
 const renderMirrorLabelItem = (item: any, makeView?: any) => {
     const labelRef = item?.label;
-    return H`<div style="background-color: transparent;" data-id=${item.id} class="ui-ws-item ui-ws-item-label" data-speed-dial-item data-layer="labels" data-mirror-item ref=${(el: HTMLElement) => attachMirrorItemNode(item, el, makeView)}>
-        <span style="background-color: transparent;">${labelRef ?? ""}</span>
+    return H`<div data-id=${item.id} class="ui-ws-item ui-ws-item-label" data-speed-dial-item data-layer="labels" data-mirror-item style=${labelLayerStyle(item)} ref=${(el: HTMLElement) => attachMirrorItemNode(item, el, makeView)}>
+        <span>${labelRef ?? ""}</span>
     </div>`;
 };
 
 export function SpeedDial(makeView: any) {
     getLayout();
     getCoordinateRef();
+    ensureVirtualKeyboardOverlay();
+    updateVP();
     /*
      * WHY: HomeView often registers the opener first, then mounts via OrientDesktop without
      * re-passing makeView. Do not wipe a live opener with null — only replace when given a function.
@@ -1421,6 +1625,25 @@ export function SpeedDial(makeView: any) {
     // WHY: fetch the mirror listing once SpeedDial mounts so mirror tiles
     // appear alongside curated ones when mirror mode was persisted last boot.
     void refreshSpeedDialMirror();
+    bootWorkspacePages();
+    installLauncherBackStack();
+    bindWorkspacePageHotkeys();
+    queueMicrotask(() => syncAndroidWidgetHosts());
+    window.addEventListener(WORKSPACE_PAGE_EVENT, () => {
+        hideAndroidWidgetHosts();
+        scheduleRootCellRefresh();
+        requestAnimationFrame(() => syncAndroidWidgetHosts());
+    });
+    if (typeof ResizeObserver === "function") {
+        const ro = new ResizeObserver(() => syncAndroidWidgetHosts());
+        queueMicrotask(() => {
+            const home = document.getElementById("home");
+            if (home) ro.observe(home);
+        });
+    }
+    window.addEventListener("resize", () => syncAndroidWidgetHosts());
+    document.addEventListener("env-app-menu-open", () => hideAndroidWidgetHosts());
+    document.addEventListener("env-app-menu-close", () => syncAndroidWidgetHosts());
     const columnsRef = propRef(gridLayoutState, "columns", 4);
     const rowsRef = propRef(gridLayoutState, "rows", 8);
     const shapeRef = propRef(gridLayoutState, "shape", "square");
@@ -1431,6 +1654,14 @@ export function SpeedDial(makeView: any) {
 
     //
     const renderIconItem = (item: SpeedDialItem)=>{
+        const widgetKind = getSpeedDialWidgetKind(item);
+        if (widgetKind) {
+            const widget = createWidgetNode(widgetKind, item);
+            /* INVARIANT: widgets are shapeless — no tile plate, clip, or under-shadow. */
+            return H`<div data-shape="none" data-id=${item.id} class="ui-ws-item ui-ws-item-icon sd-widget-host" data-speed-dial-item data-layer="icons" data-widget=${widgetKind} ref=${(el) => attachItemNode(item, el as HTMLElement, true, makeView)}>
+                ${widget}
+            </div>`;
+        }
         const launchApp = isLauncherAppSpeedDialItem(item);
         const cacheKey = launchApp ? getLauncherAppTileCacheKey(item) : "";
         const meta = getSpeedDialMeta(item.id) || {};
@@ -1553,26 +1784,23 @@ export function SpeedDial(makeView: any) {
         return H`${element}${SE}`;
     };
 
-    //
-    const renderLabelItem = (item: SpeedDialItem)=>{
-        /* WHY: pass the observe ref into H so rename in properties re-paints the label layer. */
+    const renderLabelItem = (item: SpeedDialItem) => {
         const labelRef = (item as any)?.label;
-        const element = H`<div style="background-color: transparent;" data-id=${item.id} class="ui-ws-item ui-ws-item-label" data-speed-dial-item data-layer="labels" ref=${(el) => attachItemNode(item, el as HTMLElement, false, makeView)}>
-            <span style="background-color: transparent;">${labelRef ?? ""}</span>
+        const widgetKind = getSpeedDialWidgetKind(item);
+        return H`<div data-id=${item.id} class="ui-ws-item ui-ws-item-label" data-speed-dial-item data-layer="labels" data-widget=${widgetKind || undefined} style=${labelLayerStyle(item)} ref=${(el) => attachItemNode(item, el as HTMLElement, false, makeView)}>
+            <span>${labelRef ?? ""}</span>
         </div>`;
-        return element;
     };
 
-    //
     const box = H`<div slot="underlay" style="pointer-events: auto; position: relative; contain: strict; overflow: hidden; display: grid;" id="home" class="speed-dial-root" tabindex="-1" ref=${(el: HTMLElement) => {
         bindRootOrientation(el);
         mountCoreRail(el);
     }} on:dragover=${(ev: DragEvent) => acceptHomeLinkDragOver(ev)} on:drop=${(ev: DragEvent) => handleWallpaperDropOrPaste(ev)} on:paste=${(ev: ClipboardEvent) => void handleWallpaperDropOrPaste(ev)} prop:onPaste=${async (ev: ClipboardEvent) => await handleWallpaperDropOrPaste(ev)}>
-        <div style="background-color: transparent; pointer-events: none;" class="speed-dial-grid speed-dial-label-layer speed-dial-grid--labels ui-launcher-grid" data-layer="items" data-grid-layer="labels" data-grid-columns=${columnsRef} data-grid-rows=${rowsRef} data-grid-shape=${shapeRef}>
+        <div class="speed-dial-grid speed-dial-label-layer speed-dial-grid--labels ui-launcher-grid" data-layer="items" data-grid-layer="labels" data-grid-columns=${columnsRef} data-grid-rows=${rowsRef} data-grid-shape=${shapeRef}>
             ${M(speedDialItems, renderLabelItem)}
             ${M(mirrorSpeedDialItems, renderMirrorLabelItem)}
         </div>
-        <div style="background-color: transparent; pointer-events: none;" class="speed-dial-grid speed-dial-icon-layer speed-dial-grid--icons ui-launcher-grid" data-layer="items" data-grid-layer="icons" data-grid-columns=${columnsRef} data-grid-rows=${rowsRef} data-grid-shape=${shapeRef}>
+        <div class="speed-dial-grid speed-dial-icon-layer speed-dial-grid--icons ui-launcher-grid" data-layer="items" data-grid-layer="icons" data-grid-columns=${columnsRef} data-grid-rows=${rowsRef} data-grid-shape=${shapeRef}>
             ${M(speedDialItems, renderIconItem)}
             ${M(mirrorSpeedDialItems, renderMirrorIconItem)}
         </div>
@@ -1580,10 +1808,13 @@ export function SpeedDial(makeView: any) {
 
     //
     affected(speedDialItems, (_items, _index, prev, operation) => {
-        if (operation !== "remove" && operation !== "delete") return;
-        const id = prev?.id;
-        if (!id) return;
-        document.body?.querySelectorAll?.(`[data-id="${CSS.escape(String(id))}"][data-layer]`)?.forEach?.((el) => el.remove?.());
+        if (operation === "remove" || operation === "delete") {
+            const id = prev?.id;
+            if (id) {
+                document.body?.querySelectorAll?.(`[data-id="${CSS.escape(String(id))}"][data-layer]`)?.forEach?.((el) => el.remove?.());
+            }
+        }
+        scheduleRootCellRefresh();
     });
 
     //
@@ -1638,7 +1869,12 @@ const openItemEditor = (item?: SpeedDialItem, opts?: {
         iconUrl: durableIconUrl(workingMeta?.iconUrl),
         iconScale: String(workingMeta?.iconScale || "auto"),
         openLinkTarget: resolveItemOpenLinkTarget(workingMeta),
-        packageName: String(workingMeta?.packageName || workingMeta?.iconCacheKey || "")
+        packageName: String(workingMeta?.packageName || workingMeta?.iconCacheKey || ""),
+        widgetKind: String(workingMeta?.widgetKind || getSpeedDialWidgetKind(workingItem) || "clock"),
+        spanCols: getItemSpan(workingItem.id)[0],
+        spanRows: getItemSpan(workingItem.id)[1],
+        clockFormat: String(workingMeta?.clockFormat || "24h"),
+        searchUrl: String(workingMeta?.searchUrl || "")
     };
 
     openShortcutEditor({
@@ -1655,7 +1891,12 @@ const openItemEditor = (item?: SpeedDialItem, opts?: {
             iconUrl: draft.iconUrl,
             iconScale: draft.iconScale,
             openLinkTarget: draft.openLinkTarget || getDefaultOpenLinkTarget(),
-            packageName: draft.packageName
+            packageName: draft.packageName,
+            widgetKind: draft.widgetKind,
+            spanCols: draft.spanCols,
+            spanRows: draft.spanRows,
+            clockFormat: draft.clockFormat,
+            searchUrl: draft.searchUrl
         },
         actionOptions: getActionOptions(),
         viewOptions: [...NAVIGATION_SHORTCUTS].map((shortcut: { view: string; label: string; icon: string }) => ({
@@ -1666,6 +1907,7 @@ const openItemEditor = (item?: SpeedDialItem, opts?: {
         isViewAction: (value) => value === "open-view",
         /* WHY: windowed view tiles may also carry an Open-link URL (hash / deep link). */
         isHrefAction: (value) => value === "open-link" || value === "copy-link" || value === "open-view",
+        isWidgetAction: (value) => value === "widget",
         onSave: (next) => {
             workingItem.label.value = next.label;
             workingItem.icon.value = next.icon || "sparkle";
@@ -1706,6 +1948,20 @@ const openItemEditor = (item?: SpeedDialItem, opts?: {
                             ? "external-app"
                             : "inline";
             }
+            {
+                const kind = String(next.widgetKind || "").toLowerCase();
+                workingMeta.widgetKind =
+                    kind === "search" || kind === "android" || kind === "clock" ? kind : "clock";
+                setItemSpan(workingItem.id, [
+                    Math.max(1, Math.min(8, Number(next.spanCols) || 1)),
+                    Math.max(1, Math.min(8, Number(next.spanRows) || 1))
+                ]);
+                workingMeta.clockFormat = String(next.clockFormat || "24h").toLowerCase() === "12h" ? "12h" : "24h";
+                workingMeta.searchUrl = String(next.searchUrl || "").trim();
+                if (workingItem.action === "widget") {
+                    workingMeta.action = "widget";
+                }
+            }
             if (isNew) {
                 addSpeedDialItem(workingItem);
             } else {
@@ -1713,6 +1969,11 @@ const openItemEditor = (item?: SpeedDialItem, opts?: {
             }
             persistSpeedDialItems();
             persistSpeedDialMeta();
+            {
+                const home = document.getElementById("home");
+                if (home) refreshRootCells(home);
+                requestAnimationFrame(() => syncAndroidWidgetHosts(home));
+            }
             // Force chrome paint — upsert may keep the same item ref so M() won't rebuild icons/labels.
             const idSel = CSS.escape(String(workingItem.id));
             document
@@ -1733,6 +1994,7 @@ const openItemEditor = (item?: SpeedDialItem, opts?: {
         onDelete: isNew
             ? undefined
             : () => {
+                releaseAndroidWidget(workingItem);
                 removeSpeedDialItem(workingItem.id);
                 persistSpeedDialItems();
                 persistSpeedDialMeta();
@@ -1854,6 +2116,7 @@ export function createCtxMenu(makeView?: any) {
                                 icon: "trash",
                                 danger: true,
                                 action: ()=>{
+                                    releaseAndroidWidget(item);
                                     removeSpeedDialItem(item.id);
                                     persistSpeedDialItems();
                                     persistSpeedDialMeta();
@@ -1893,6 +2156,35 @@ export function createCtxMenu(makeView?: any) {
                                             description: ""
                                         }
                                     });
+                                }
+                            },
+                            {
+                                id: "add-widget",
+                                label: "Add widget",
+                                icon: "squares-four",
+                                action: async () => {
+                                    const pick = await openWidgetPicker();
+                                    if (!pick) return;
+                                    if (pick.kind === "android") {
+                                        addSpeedDialItem(
+                                            createWidgetSpeedDialItem("android", guessedCell, {
+                                                widgetKind: "android",
+                                                description: pick.bound.label,
+                                                androidWidgetId: pick.bound.widgetId,
+                                                androidProvider: pick.bound.provider,
+                                                spanCols: pick.bound.spanCols,
+                                                spanRows: pick.bound.spanRows,
+                                                iconUrl: pick.bound.preview,
+                                                iconDisplay: "colored"
+                                            })
+                                        );
+                                    } else {
+                                        addSpeedDialItem(createWidgetSpeedDialItem(pick.kind, guessedCell));
+                                    }
+                                    persistSpeedDialItems();
+                                    persistSpeedDialMeta();
+                                    requestAnimationFrame(() => syncAndroidWidgetHosts());
+                                    showSuccess("Widget added");
                                 }
                             },
                             {

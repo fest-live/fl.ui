@@ -1,0 +1,70 @@
+:host {
+    display: block;
+    position: absolute;
+    inset: 3rem 0 0 0;
+    z-index: 4;
+    overflow: auto;
+    background: light-dark(#f4f0f7, #141218);
+    color-scheme: light dark;
+}
+
+.explorer-settings {
+    display: grid;
+    gap: 1rem;
+    padding: 1rem 1.1rem 1.25rem;
+    color: light-dark(#1c1b1f, #e6e1e5);
+}
+
+.explorer-settings__head h2 {
+    margin: 0 0 0.35rem;
+    font: 600 1.15rem/1.3 system-ui, sans-serif;
+}
+
+.explorer-settings__head p,
+.explorer-settings__card p {
+    margin: 0;
+    opacity: 0.78;
+    font-size: 0.88rem;
+}
+
+.explorer-settings__card {
+    display: grid;
+    gap: 0.65rem;
+    padding: 0.85rem 0.9rem;
+    border-radius: 0.85rem;
+    background: light-dark(color-mix(in srgb, #fff 86%, #c8c5d0), color-mix(in srgb, #2b2930 88%, #000));
+}
+
+.explorer-settings__card h3 {
+    margin: 0;
+    font: 600 0.95rem/1.3 system-ui, sans-serif;
+}
+
+.explorer-settings__status {
+    margin: 0;
+    white-space: pre-wrap;
+    font: 0.78rem/1.4 ui-monospace, monospace;
+}
+
+.explorer-settings__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.explorer-settings__mounts {
+    display: grid;
+    gap: 0.4rem;
+    font-size: 0.85rem;
+}
+
+.explorer-settings__mount {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.45rem 0.7rem;
+}
+
+.explorer-settings__mount code {
+    opacity: 0.7;
+}

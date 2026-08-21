@@ -88,46 +88,98 @@ export const getCurrentQuickTheme = (): QuickThemeMode => {
  * Apply light/dark from Quick Settings without importing app Theme.ts (fl.ui ↔ subsystem cycle).
  * WHY: Must mirror `syncBrowserChromeTheme` — `data-scheme` + hosts + body — or env-shell /
  * veela keep OS `prefers-color-scheme` / stale `data-scheme="auto"` and light never sticks.
+ *
+ * When preference is `auto`, keep `data-scheme="auto"` and pin `data-theme` to the resolved
+ * OS mode so light-dark()/components refresh while still tracking system changes.
  */
-export const applyQuickTheme = (mode: QuickThemeMode): void => {
+export const applyQuickTheme = (mode: QuickThemeMode | "auto"): void => {
     const root = document.documentElement;
-    /* Pin preference (not auto) so normalize `[data-scheme=auto]` cannot fight light-dark(). */
-    root.setAttribute("data-scheme", mode);
-    root.setAttribute(THEME_ATTR, mode);
-    root.style.colorScheme = mode;
+    const resolved: QuickThemeMode =
+        mode === "auto" ? (prefersDarkScheme() ? "dark" : "light") : mode;
+    const schemeAttr = mode === "auto" ? "auto" : mode;
+    root.setAttribute("data-scheme", schemeAttr);
+    root.setAttribute(THEME_ATTR, resolved);
+    root.style.colorScheme = resolved;
     try {
-        if (document.body) document.body.style.colorScheme = mode;
+        if (document.body) document.body.style.colorScheme = resolved;
     } catch {
         /* ignore */
     }
     try {
         document.querySelectorAll(".env-shell-root, [data-shell], ui-window").forEach((node) => {
             const el = node as HTMLElement;
-            el.dataset.theme = mode;
-            el.style.colorScheme = mode;
+            el.dataset.theme = resolved;
+            el.style.colorScheme = resolved;
             const inner = el.shadowRoot?.querySelector?.(".app-shell") as HTMLElement | null;
             if (inner) {
-                inner.dataset.theme = mode;
-                inner.style.colorScheme = mode;
+                inner.dataset.theme = resolved;
+                inner.style.colorScheme = resolved;
             }
         });
     } catch {
         /* ignore */
     }
     try {
-        localStorage.setItem(THEME_STORAGE_KEY, mode);
-        localStorage.setItem(THEME_STORAGE_KEY_DOTTED, mode);
+        localStorage.setItem(THEME_STORAGE_KEY, mode === "auto" ? "auto" : mode);
+        localStorage.setItem(THEME_STORAGE_KEY_DOTTED, mode === "auto" ? "auto" : mode);
     } catch {
         /* ignore quota / private mode */
     }
-    mergeThemeIntoSettingsBlobs(mode);
+    if (mode !== "auto") {
+        mergeThemeIntoSettingsBlobs(mode);
+    }
     /* documentElement so Theme/DynamicEngine observers see the same target as WallpaperTheme. */
     root.dispatchEvent(
         new CustomEvent("u2-theme-change", {
             bubbles: true,
-            detail: { source: "quick-settings", theme: mode }
+            detail: { source: "quick-settings", theme: resolved, preference: mode }
         })
     );
+};
+
+/** Stored preference: light | dark | auto (missing → auto on Cap / OS-follow). */
+export const getStoredThemePreference = (): QuickThemeMode | "auto" => {
+    try {
+        const stored = String(localStorage.getItem(THEME_STORAGE_KEY) || "").trim().toLowerCase();
+        if (stored === "light" || stored === "dark" || stored === "auto") return stored;
+        const dotted = String(localStorage.getItem(THEME_STORAGE_KEY_DOTTED) || "")
+            .trim()
+            .toLowerCase();
+        if (dotted === "light" || dotted === "dark" || dotted === "auto") return dotted;
+    } catch {
+        /* ignore */
+    }
+    return "auto";
+};
+
+/** Follow OS light/dark when preference is `auto`. Idempotent. */
+export const installAutoThemeFollow = (): void => {
+    const g = globalThis as typeof globalThis & { __CWSP_AUTO_THEME_FOLLOW__?: boolean };
+    if (g.__CWSP_AUTO_THEME_FOLLOW__) return;
+    g.__CWSP_AUTO_THEME_FOLLOW__ = true;
+    const mq =
+        typeof matchMedia === "function" ? matchMedia("(prefers-color-scheme: dark)") : null;
+    if (!mq) return;
+    const sync = () => {
+        const pref = getStoredThemePreference();
+        if (pref !== "auto") return;
+        applyQuickTheme("auto");
+    };
+    try {
+        mq.addEventListener("change", sync);
+    } catch {
+        try {
+            mq.addListener(sync);
+        } catch {
+            /* ignore */
+        }
+    }
+    /* First paint: if storage says auto (or unset), resolve now. */
+    try {
+        sync();
+    } catch {
+        /* ignore */
+    }
 };
 
 /* */
@@ -524,3 +576,10 @@ Promise.try(() => {
         }).catch(console.warn.bind(console));
     });
 }).catch(console.warn.bind(console));
+
+/* WHY: Cap/Android auto theme must repaint when the system light↔dark flips. */
+try {
+    installAutoThemeFollow();
+} catch {
+    /* ignore */
+}

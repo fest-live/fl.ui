@@ -37,6 +37,107 @@
         font-variant-numeric: tabular-nums;
     }
 
+    /* Native Explorer / Settings / Markdown — collapsible right rail. */
+    .speed-dial-core-rail {
+        position: fixed;
+        inset-block: 12%;
+        inset-inline-end: 0;
+        z-index: 6;
+        display: flex;
+        flex-direction: row;
+        align-items: stretch;
+        pointer-events: none;
+        max-block-size: 76%;
+        padding: 0px;
+        border: none 0px transparent;
+        outline: none 0px transparent;
+    }
+
+    .speed-dial-core-rail__toggle {
+        pointer-events: auto;
+        align-self: center;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        inline-size: 1.65rem;
+        block-size: 2.6rem;
+        margin: 0;
+        padding: 0;
+        border: 1px solid color-mix(in oklab, CanvasText 18%, transparent);
+        border-inline-end: none;
+        border-radius: 10px 0 0 10px;
+        background: color-mix(in oklab, Canvas 78%, transparent);
+        color: CanvasText;
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        cursor: pointer;
+    }
+
+    .speed-dial-core-rail__toggle ui-icon {
+        --icon-size: 1.1rem;
+        pointer-events: none;
+    }
+
+    .speed-dial-core-rail__panel {
+        pointer-events: auto;
+        display: none;
+        flex-direction: column;
+        gap: 0.45rem;
+        padding: 0.55rem 0.45rem;
+        min-inline-size: 3.4rem;
+        max-inline-size: 5.2rem;
+        overflow: auto;
+        border: 1px solid color-mix(in oklab, CanvasText 16%, transparent);
+        border-inline-end: none;
+        border-radius: 14px 0 0 14px;
+        background: color-mix(in oklab, Canvas 82%, transparent);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+        color: CanvasText;
+    }
+
+    .speed-dial-core-rail[data-open] .speed-dial-core-rail__panel {
+        display: flex;
+    }
+
+    .speed-dial-core-rail__item {
+        appearance: none;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.2rem;
+        margin: 0;
+        padding: 0.35rem 0.2rem;
+        border: none;
+        border-radius: 12px;
+        background: transparent;
+        color: inherit;
+        cursor: pointer;
+        min-inline-size: 0;
+    }
+
+    .speed-dial-core-rail__item:hover,
+    .speed-dial-core-rail__item:focus-visible {
+        background: color-mix(in oklab, CanvasText 10%, transparent);
+        outline: none;
+    }
+
+    .speed-dial-core-rail__item ui-icon {
+        --icon-size: 1.55rem;
+        pointer-events: none;
+    }
+
+    .speed-dial-core-rail__label {
+        font-size: 0.62rem;
+        line-height: 1.15;
+        text-align: center;
+        max-inline-size: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        opacity: 0.88;
+    }
+
     ui-window-frame,
     ui-modal,
     .ui-grid-item {
@@ -326,7 +427,7 @@
                     inset: 0;
                     inline-size: stretch;
                     block-size: stretch;
-                    object-fit: contain;
+                    object-fit: cover;
                     object-position: center;
                     image-rendering: auto;
                     border-radius: 0;
@@ -851,7 +952,7 @@
 
     .speed-dial-editor__form .sd-icon-resource-row {
         display: grid;
-        grid-template-columns: minmax(0, 1fr) auto;
+        grid-template-columns: minmax(0, 1fr) auto auto;
         align-items: center;
         gap: 0.45rem;
         min-inline-size: 0;
@@ -1111,7 +1212,7 @@
         background: transparent;
 
         .speed-dial-root {
-            position: absolute;
+            position: fixed;
             inset: 0;
             inline-size: 100%;
             block-size: 100%;
@@ -1292,7 +1393,7 @@
     block-size: 2.1rem !important;
     max-inline-size: 2.1rem !important;
     max-block-size: 2.1rem !important;
-    object-fit: contain !important;
+    object-fit: cover !important;
     order: 0 !important;
 }
 

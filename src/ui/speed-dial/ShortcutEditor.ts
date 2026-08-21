@@ -201,6 +201,9 @@ export const openShortcutEditor = (options: ShortcutEditorOptions): void => {
                         <button type="button" class="btn secondary sd-icon-resource-pick" data-action="pick-icon" title="Pick alternative icon" aria-label="Pick alternative icon">
                             <ui-icon icon="squares-four" icon-style="duotone" aria-hidden="true"></ui-icon>
                         </button>
+                        <button type="button" class="btn secondary sd-icon-resource-pick" data-action="pick-photo" title="Use photo / avatar" aria-label="Use photo or avatar">
+                            <ui-icon icon="user-circle" icon-style="duotone" aria-hidden="true"></ui-icon>
+                        </button>
                     </div>
                 </div>
                 <div class="modal-field">

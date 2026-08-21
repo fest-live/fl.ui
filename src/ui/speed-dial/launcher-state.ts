@@ -286,33 +286,11 @@ const EXTERNAL_SHORTCUTS: SpeedDialPersistedItem[] = [
      */
 ];
 
-const DEFAULT_SPEED_DIAL_DATA_ALL: SpeedDialPersistedItem[] = [
-    {
-        id: "shortcut-explorer",
-        cell: observe([2, 0]),
-        icon: "books",
-        label: "Explorer",
-        action: "open-view",
-        meta: { view: "explorer" }
-    },
-    {
-        id: "shortcut-settings",
-        cell: observe([3, 0]),
-        icon: "gear-six",
-        label: "Settings",
-        action: "open-view",
-        meta: { view: "settings" }
-    },
-    {
-        id: "shortcut-viewer",
-        cell: observe([1, 0]),
-        icon: "article",
-        label: "Markdown",
-        action: "open-view",
-        meta: { view: "viewer" }
-    },
-    ...EXTERNAL_SHORTCUTS
-];
+/*
+ * WHY: Explorer / Settings / Markdown ship on the Core Rail — not as default grid tiles.
+ * EXTERNAL_SHORTCUTS may still seed sibling-host deep links when defined.
+ */
+const DEFAULT_SPEED_DIAL_DATA_ALL: SpeedDialPersistedItem[] = [...EXTERNAL_SHORTCUTS];
 
 /** Drop view shortcuts that this host build disabled (e.g. Network on CWSP-document). */
 const isSpeedDialViewAllowed = (
@@ -343,6 +321,56 @@ const splitDefaultEntries = (entries: SpeedDialPersistedItem[]) => {
 
 const { records: DEFAULT_SPEED_DIAL_RECORDS, metaEntries: DEFAULT_META_ENTRIES } = splitDefaultEntries(DEFAULT_SPEED_DIAL_DATA);
 const legacyMetaBuffer: Array<[string, SpeedDialItemMeta]> = [];
+
+/** Ids historically injected onto the Speed Dial grid (now Core Rail only). */
+const CORE_RAIL_GRID_IDS = new Set([
+    "shortcut-explorer",
+    "shortcut-settings",
+    "shortcut-viewer",
+    "shortcut-markdown",
+    "explorer",
+    "settings",
+    "viewer",
+    "markdown"
+]);
+const CORE_RAIL_GRID_VIEWS = new Set(["explorer", "settings", "viewer", "markdown", "reader"]);
+const CORE_RAIL_GRID_LABELS = new Set(["explorer", "settings", "markdown", "viewer"]);
+
+const unwrapPersistedLabel = (label: unknown): string => {
+    if (label && typeof label === "object" && "value" in (label as object)) {
+        return String((label as { value?: unknown }).value || "").trim().toLowerCase();
+    }
+    return String(label || "").trim().toLowerCase();
+};
+
+/**
+ * True when a curated / persisted tile belongs on the Core Rail only
+ * (Explorer / Settings / Markdown) — never on the freeform Speed Dial grid.
+ */
+export const isCoreRailGridTile = (
+    item: { id?: string; action?: string; label?: unknown } | null | undefined,
+    meta?: SpeedDialItemMeta | null
+): boolean => {
+    if (!item?.id) return false;
+    const id = String(item.id || "").trim().toLowerCase();
+    if (CORE_RAIL_GRID_IDS.has(id)) return true;
+    const action = String(meta?.action || item.action || "open-view")
+        .trim()
+        .toLowerCase();
+    if (action && action !== "open-view") return false;
+    const view = String(meta?.view || "")
+        .trim()
+        .toLowerCase();
+    if (view && CORE_RAIL_GRID_VIEWS.has(view)) return true;
+    const label = unwrapPersistedLabel(item.label);
+    return Boolean(label) && CORE_RAIL_GRID_LABELS.has(label);
+};
+
+const isCoreRailPersistedEntry = (entry: SpeedDialPersistedItem): boolean =>
+    isCoreRailGridTile(
+        { id: entry.id, action: entry.action, label: entry.label },
+        { action: entry.action, ...(entry.meta || {}) }
+    );
 
 const ensureCell = (cell?: ReturnType<typeof observe<GridCell>>): ReturnType<typeof observe<GridCell>> => {
     if (cell && Array.isArray(cell) && cell.length >= 2) {
@@ -440,8 +468,11 @@ const createStatefulItem = (config: SpeedDialRecord): SpeedDialItem => {
 const createInitialState = () => observe(DEFAULT_SPEED_DIAL_RECORDS.map(createStatefulItem));
 const unpackState = (raw?: SpeedDialPersistedItem[]) => {
     // WHY: strip persisted Network (etc.) tiles when this host build disabled the view.
-    const source = (Array.isArray(raw) && raw.length ? raw : DEFAULT_SPEED_DIAL_DATA).filter((entry) =>
-        isSpeedDialViewAllowed(entry.meta, entry.id)
+    // WHY (CRX): chrome.storage.local hydrates async AFTER boot strip — filter here so
+    // Explorer/Settings/Markdown never reappear from chrome.storage or dual StateStorage writers.
+    const source = (Array.isArray(raw) && raw.length ? raw : DEFAULT_SPEED_DIAL_DATA).filter(
+        (entry) =>
+            isSpeedDialViewAllowed(entry.meta, entry.id) && !isCoreRailPersistedEntry(entry)
     );
     const records = source.map((entry) => {
         const { meta, ...record } = entry;
@@ -454,7 +485,16 @@ const unpackState = (raw?: SpeedDialPersistedItem[]) => {
     });
     return observe(records.map(createStatefulItem));
 };
-const packState = (collection: SpeedDialItem[]) => collection.map(serializeItemState);
+const packState = (collection: SpeedDialItem[]) =>
+    collection
+        .filter((item) => {
+            try {
+                return !isCoreRailGridTile(item, speedDialMeta?.get?.(item.id) ?? null);
+            } catch {
+                return !isCoreRailGridTile(item, null);
+            }
+        })
+        .map(serializeItemState);
 
 /**
  * WHY: Vite `preserveSymlinks` can load this file via fl.ui and home-view paths as
@@ -786,11 +826,15 @@ const hydrateFromOpfs = async (io: LinkStoreIo): Promise<void> => {
                 ...(raw.href ? { href: raw.href } : {}),
                 ...(raw.path ? { path: raw.path } : {})
             };
+            /* WHY: Core Rail apps must not reappear from legacy OPFS snapshots. */
+            if (isCoreRailGridTile(item, meta)) continue;
             nextItems.push(observe(item) as any);
             nextMeta.set(item.id, meta);
         }
         if (!nextItems.length) {
             boot.opfsHydrated = true;
+            /* Still flush a strip if LS boot state had cores and OPFS was empty-after-filter. */
+            stripCoreRailTilesFromGrid({ markDirty: true });
             return;
         }
         /*
@@ -812,9 +856,12 @@ const hydrateFromOpfs = async (io: LinkStoreIo): Promise<void> => {
         for (const [id, meta] of nextMeta) {
             ensureSpeedDialMeta(id, meta);
         }
+        /* Defense in depth — strip any that slipped past the filter (label-only legacy). */
+        stripCoreRailTilesFromGrid({ markDirty: true });
     } catch (e) {
         console.warn("[link-store] OPFS hydration failed; using localStorage boot state", e);
         linkStoreBoot().opfsHydrated = true;
+        stripCoreRailTilesFromGrid({ markDirty: true });
     }
 };
 
@@ -837,6 +884,8 @@ const initLinkStore = (): Promise<void> => {
                 await migrateLocalStorageToOpfsIfNeeded(boot.opfsIo, ls);
             }
             await hydrateFromOpfs(boot.opfsIo);
+            /* WHY: always re-strip after hydrate — legacy OPFS may still carry Core Rail tiles. */
+            stripCoreRailTilesFromGrid({ markDirty: true });
             /*
              * WHY: pin during boot marks dirty and schedules flush, but the timer
              * used to no-op when `opfsIo` was still null. After hydrate aborts for
@@ -1017,76 +1066,65 @@ const ensureExternalShortcuts = () => {
 ensureExternalShortcuts();
 
 /**
- * WHY: Existing IDB/localStorage grids keep old default sets — missing core view tiles
- * (e.g. Work Center) never appear until storage is wiped. Merge by id or meta.view.
+ * WHY: Explorer / Settings / Markdown live on the Core Rail only.
+ * Strip them from the curated grid and persist — including after OPFS hydrate,
+ * which otherwise re-injects the legacy OPFS snapshot.
  */
-const ensureCoreViewShortcuts = () => {
-    const core = DEFAULT_SPEED_DIAL_DATA_ALL.filter(
-        (entry) => entry.action === "open-view" && isSpeedDialViewAllowed(entry.meta, entry.id)
-    );
-    let changed = false;
-    const occupied = new Set(
-        (speedDialItems || []).map((item) => `${Number(item?.cell?.[0]) || 0}:${Number(item?.cell?.[1]) || 0}`)
-    );
-    for (const shortcut of core) {
-        const shortcutView = String(shortcut.meta?.view || "").trim().toLowerCase();
-        /* WHY: legacy persisted tiles used bare ids (`settings`) while defaults use `shortcut-settings` — match by view too. */
-        const exists = speedDialItems?.find?.((item) => {
-            if (item?.id === shortcut.id) return true;
-            if (!shortcutView) return false;
-            const metaView = String(getSpeedDialMeta(item.id)?.view || "").trim().toLowerCase();
-            return metaView === shortcutView;
-        });
-        if (exists) {
-            const meta = getSpeedDialMeta(exists.id) || ensureSpeedDialMeta(exists.id, {
-                action: "open-view",
-                ...(shortcut.meta || {})
-            });
-            if (!String(meta.view || "").trim() && shortcut.meta?.view) {
-                meta.view = shortcut.meta.view;
-                meta.action = meta.action || "open-view";
+export const stripCoreRailTilesFromGrid = (opts?: { markDirty?: boolean }): boolean => {
+    try {
+        let changed = false;
+        const matches = (speedDialItems || []).filter((item) =>
+            isCoreRailGridTile(item, getSpeedDialMeta(item?.id))
+        );
+        for (const item of matches) {
+            const idx = speedDialItems.findIndex((it) => it?.id === item.id);
+            if (idx >= 0) {
+                speedDialItems.splice(idx, 1);
+                removeSpeedDialMeta(item.id);
                 changed = true;
             }
-            continue;
         }
-        let cellX = Number(shortcut.cell?.[0]) || 0;
-        let cellY = Number(shortcut.cell?.[1]) || 0;
-        let key = `${cellX}:${cellY}`;
-        if (occupied.has(key)) {
-            let placed = false;
-            for (let y = 0; y < 12 && !placed; y += 1) {
-                for (let x = 0; x < 8 && !placed; x += 1) {
-                    const candidate = `${x}:${y}`;
-                    if (!occupied.has(candidate)) {
-                        cellX = x;
-                        cellY = y;
-                        key = candidate;
-                        placed = true;
-                    }
-                }
-            }
+        if (changed) {
+            /* WHY: boot strip must abort OPFS hydrate that still has these tiles. */
+            if (opts?.markDirty !== false) markUserEditedBeforeHydrate();
+            persistSpeedDialItems();
+            persistSpeedDialMeta();
         }
-        occupied.add(key);
-        const item = createStatefulItem({
-            ...shortcut,
-            cell: observe([cellX, cellY])
-        });
-        if (shortcut.label && item.label && typeof item.label === "object" && "value" in item.label) {
-            item.label.value = shortcut.label;
-        }
-        if (shortcut.icon && item.icon && typeof item.icon === "object" && "value" in item.icon) {
-            item.icon.value = shortcut.icon;
-        }
-        speedDialItems.push(observe(item) as any);
-        ensureSpeedDialMeta(item.id, { action: "open-view", ...(shortcut.meta || {}) });
-        changed = true;
-    }
-    if (changed) {
-        persistSpeedDialItems();
-        persistSpeedDialMeta();
+        return changed;
+    } catch (e) {
+        console.warn("[speed-dial] core rail strip failed", e);
+        return false;
     }
 };
+
+/** Boot: remove legacy Core Rail tiles from LS-backed grid before/around hydrate. */
+const ensureCoreViewShortcuts = () => {
+    stripCoreRailTilesFromGrid({ markDirty: true });
+};
 ensureCoreViewShortcuts();
+
+/*
+ * WHY (CRX): chrome.storage.local.get is async and completes after the boot strip.
+ * Re-strip + persist shortly after so the cleaned grid is written back to chrome.storage
+ * and dual idle-savers cannot keep resurrecting Explorer/Settings/Markdown.
+ */
+try {
+    const hasChrome =
+        typeof chrome !== "undefined" && !!(chrome as any)?.storage?.local;
+    if (hasChrome) {
+        const rewrite = () => {
+            stripCoreRailTilesFromGrid({ markDirty: true });
+            persistSpeedDialItems();
+            persistSpeedDialMeta();
+        };
+        queueMicrotask(rewrite);
+        setTimeout(rewrite, 0);
+        setTimeout(rewrite, 300);
+        setTimeout(rewrite, 1200);
+    }
+} catch {
+    /* ignore */
+}
 
 /**
  * WHY: Past merges left both legacy `settings` and `shortcut-settings` (same view) on disk.
@@ -1977,10 +2015,262 @@ export const parseSpeedDialItemFromJSON = (jsonText: string, suggestedCell?: Gri
     }
 };
 
+/** Digits-only length for phone heuristics (E.164-ish). */
+const PHONE_DIGIT_MIN = 7;
+const PHONE_DIGIT_MAX = 15;
+
+const digitsOnly = (s: string): string => String(s || "").replace(/\D+/g, "");
+
+const looksLikePhoneNumber = (raw: string): boolean => {
+    const t = String(raw || "").trim();
+    if (!t || /\s{3,}/.test(t)) return false;
+    if (/^tel:/i.test(t)) return true;
+    /* Reject obvious URLs / emails. */
+    if (/[@/]|https?:/i.test(t) && !/^tel:/i.test(t)) return false;
+    const digits = digitsOnly(t);
+    if (digits.length < PHONE_DIGIT_MIN || digits.length > PHONE_DIGIT_MAX) return false;
+    /* Allow +, spaces, dashes, parens, dots. */
+    return /^[+]?[\d\s().-]{7,24}$/.test(t);
+};
+
+const looksLikeEmail = (raw: string): boolean => {
+    const t = String(raw || "").trim();
+    if (!t) return false;
+    if (/^mailto:/i.test(t)) return true;
+    if (/\s/.test(t)) return false;
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/i.test(t);
+};
+
+const looksLikeTelegramHandle = (raw: string): boolean => {
+    const t = String(raw || "").trim();
+    if (!t) return false;
+    if (/^(tg:|telegram:)/i.test(t)) return true;
+    if (/^(https?:\/\/)?(t\.me|telegram\.me)\//i.test(t)) return true;
+    /* Bare @username */
+    return /^@[a-zA-Z][a-zA-Z0-9_]{3,31}$/.test(t);
+};
+
+/**
+ * Parse common calendar-ish fragments → Android calendar time URI when possible.
+ * WHY: Cap openUri(ACTION_VIEW) on content://com.android.calendar/time/<ms> opens the day.
+ */
+const parseCalendarHref = (raw: string): { href: string; label: string } | null => {
+    const t = String(raw || "").trim();
+    if (!t) return null;
+    if (/^content:\/\/com\.android\.calendar\//i.test(t)) {
+        return { href: t, label: "Calendar" };
+    }
+    /* ISO date / datetime */
+    const iso = t.match(
+        /^(\d{4}-\d{2}-\d{2})(?:[T\s](\d{1,2}:\d{2}(?::\d{2})?))?(?:Z|[+-]\d{2}:?\d{2})?$/
+    );
+    if (iso) {
+        const d = new Date(iso[2] ? `${iso[1]}T${iso[2]}` : `${iso[1]}T12:00:00`);
+        if (!Number.isNaN(d.getTime())) {
+            return {
+                href: `content://com.android.calendar/time/${d.getTime()}`,
+                label: iso[1]
+            };
+        }
+    }
+    /* DD.MM.YYYY or DD/MM/YYYY */
+    const dmy = t.match(/^(\d{1,2})[./](\d{1,2})[./](\d{4})(?:\s+(\d{1,2}):(\d{2}))?$/);
+    if (dmy) {
+        const day = Number(dmy[1]);
+        const month = Number(dmy[2]) - 1;
+        const year = Number(dmy[3]);
+        const hh = dmy[4] != null ? Number(dmy[4]) : 12;
+        const mm = dmy[5] != null ? Number(dmy[5]) : 0;
+        const d = new Date(year, month, day, hh, mm, 0, 0);
+        if (!Number.isNaN(d.getTime()) && d.getFullYear() === year && d.getMonth() === month) {
+            return {
+                href: `content://com.android.calendar/time/${d.getTime()}`,
+                label: `${String(day).padStart(2, "0")}.${String(month + 1).padStart(2, "0")}.${year}`
+            };
+        }
+    }
+    return null;
+};
+
+const normalizeTelegramHref = (raw: string): { href: string; label: string } | null => {
+    const t = String(raw || "").trim();
+    if (!t) return null;
+    if (/^tg:/i.test(t) || /^telegram:/i.test(t)) {
+        return { href: t, label: "Telegram" };
+    }
+    const at = t.match(/^@([a-zA-Z][a-zA-Z0-9_]{3,31})$/);
+    if (at) {
+        return { href: `https://t.me/${at[1]}`, label: `@${at[1]}` };
+    }
+    try {
+        const u = new URL(t.startsWith("http") ? t : `https://${t.replace(/^\/+/, "")}`);
+        if (/^(t\.me|telegram\.me)$/i.test(u.hostname.replace(/^www\./, ""))) {
+            const user = u.pathname.replace(/^\/+/, "").split("/")[0] || "Telegram";
+            return { href: u.href, label: user.startsWith("+") ? user : `@${user}` };
+        }
+    } catch {
+        /* ignore */
+    }
+    return null;
+};
+
+/**
+ * Build a Speed Dial open-link tile for tel / mailto / telegram / calendar / smart text.
+ * Prefer this before plain http(s) parsing when the clipboard is not a web URL.
+ */
+export const parseSpeedDialItemFromSmartText = (
+    rawText: string,
+    suggestedCell?: GridCell
+): SpeedDialItem | null => {
+    const text = String(rawText || "").trim();
+    if (!text) return null;
+
+    const firstLine =
+        text
+            .split(/\r?\n/)
+            .map((l) => l.trim())
+            .find((l) => l && !l.startsWith("#")) || text;
+
+    let candidate = firstLine;
+    if (candidate.startsWith("<") && candidate.endsWith(">")) {
+        candidate = candidate.slice(1, -1).trim();
+    }
+
+    const makeLinkItem = (opts: {
+        href: string;
+        label: string;
+        icon: string;
+        description?: string;
+    }): SpeedDialItem => {
+        const item = createStatefulItem({
+            id: generateItemId(),
+            cell: suggestedCell || [0, 0],
+            icon: opts.icon,
+            label: opts.label,
+            action: "open-link"
+        });
+        /* WHY: paste defaults to Phosphor glyph; properties can still set iconUrl photo/avatar. */
+        ensureSpeedDialMeta(item.id, {
+            action: "open-link",
+            href: opts.href,
+            description: opts.description || opts.label,
+            iconDisplay: "glyph",
+            openLinkTarget: prefersExternalAppOpenLink()
+                ? "external-app"
+                : getDefaultOpenLinkTarget()
+        });
+        return item;
+    };
+
+    /* Explicit schemes first */
+    try {
+        const u = new URL(candidate);
+        const proto = (u.protocol || "").toLowerCase();
+        if (proto === "tel:") {
+            const num = decodeURIComponent(u.pathname || u.href.replace(/^tel:/i, "")).trim() || candidate;
+            return makeLinkItem({
+                href: `tel:${digitsOnly(num) ? (num.startsWith("+") ? `+${digitsOnly(num)}` : digitsOnly(num)) : num}`,
+                label: num,
+                icon: "phone",
+                description: `Call ${num}`
+            });
+        }
+        if (proto === "mailto:") {
+            const addr = decodeURIComponent(u.pathname || u.username || "").trim() || candidate.replace(/^mailto:/i, "");
+            return makeLinkItem({
+                href: `mailto:${addr}`,
+                label: addr,
+                icon: "at",
+                description: `Email ${addr}`
+            });
+        }
+        if (proto === "tg:" || proto === "telegram:") {
+            return makeLinkItem({
+                href: u.href,
+                label: "Telegram",
+                icon: "telegram-logo",
+                description: u.href
+            });
+        }
+        if (proto === "content:" && /calendar/i.test(u.href)) {
+            return makeLinkItem({
+                href: u.href,
+                label: "Calendar",
+                icon: "calendar",
+                description: u.href
+            });
+        }
+    } catch {
+        /* not an absolute URL */
+    }
+
+    if (looksLikePhoneNumber(candidate)) {
+        const digits = digitsOnly(candidate);
+        const hrefNum = candidate.trim().startsWith("+") ? `+${digits}` : digits;
+        return makeLinkItem({
+            href: `tel:${hrefNum}`,
+            label: candidate.trim(),
+            icon: "phone",
+            description: `Call ${candidate.trim()}`
+        });
+    }
+
+    if (looksLikeEmail(candidate)) {
+        const addr = candidate.replace(/^mailto:/i, "").trim();
+        return makeLinkItem({
+            href: `mailto:${addr}`,
+            label: addr,
+            icon: "at",
+            description: `Email ${addr}`
+        });
+    }
+
+    if (looksLikeTelegramHandle(candidate)) {
+        const tg = normalizeTelegramHref(candidate);
+        if (tg) {
+            return makeLinkItem({
+                href: tg.href,
+                label: tg.label,
+                icon: "telegram-logo",
+                description: `Telegram ${tg.label}`
+            });
+        }
+    }
+
+    const cal = parseCalendarHref(candidate);
+    if (cal) {
+        return makeLinkItem({
+            href: cal.href,
+            label: cal.label,
+            icon: "calendar",
+            description: `Calendar ${cal.label}`
+        });
+    }
+
+    return null;
+};
+
 export const parseSpeedDialItemFromURL = (urlText: string, suggestedCell?: GridCell): SpeedDialItem | null => {
     try {
         const trimmed = urlText.trim();
         if (!trimmed) return null;
+
+        /* Smart schemes / phone / email / telegram before generic http(s). */
+        const smart = parseSpeedDialItemFromSmartText(trimmed, suggestedCell);
+        if (smart) {
+            try {
+                const u = new URL(trimmed);
+                if (/^https?:$/i.test(u.protocol) && !looksLikeTelegramHandle(trimmed)) {
+                    /* Fall through — plain web URL should keep favicon path below. */
+                } else {
+                    return smart;
+                }
+            } catch {
+                return smart;
+            }
+            /* Telegram https://t.me/... already handled as smart. */
+            if (looksLikeTelegramHandle(trimmed)) return smart;
+        }
 
         let url: URL;
         try {
@@ -1989,8 +2279,17 @@ export const parseSpeedDialItemFromURL = (urlText: string, suggestedCell?: GridC
             try {
                 url = new URL(trimmed, globalThis?.location?.href);
             } catch {
-                return null;
+                return parseSpeedDialItemFromSmartText(trimmed, suggestedCell);
             }
+        }
+
+        if (!/^https?:$/i.test(url.protocol)) {
+            return parseSpeedDialItemFromSmartText(trimmed, suggestedCell);
+        }
+
+        /* Telegram web links */
+        if (/^(t\.me|telegram\.me)$/i.test(url.hostname.replace(/^www\./, ""))) {
+            return parseSpeedDialItemFromSmartText(trimmed, suggestedCell);
         }
 
         const hostname = url.hostname || "";
@@ -2266,12 +2565,6 @@ export const createSpeedDialItemFromClipboard = async (suggestedCell?: GridCell)
     }
 
     try {
-        // WHY: mobile browsers often put "Title\nhttps://…" or HTML <a href> — not a bare URL line.
-        const absolute = extractHttpUrlFromClipboardText(clipboardText);
-        if (absolute) {
-            return parseSpeedDialItemFromURL(absolute, suggestedCell);
-        }
-
         const firstLine =
             clipboardText
                 .split(/\r?\n/)
@@ -2280,6 +2573,16 @@ export const createSpeedDialItemFromClipboard = async (suggestedCell?: GridCell)
         let trimmed = firstLine;
         if (trimmed.startsWith("<") && trimmed.endsWith(">")) {
             trimmed = trimmed.slice(1, -1).trim();
+        }
+
+        /* tel / mailto / telegram / calendar before http(s) hostname tiles. */
+        const smart = parseSpeedDialItemFromSmartText(clipboardText, suggestedCell);
+        if (smart) return smart;
+
+        // WHY: mobile browsers often put "Title\nhttps://…" or HTML <a href> — not a bare URL line.
+        const absolute = extractHttpUrlFromClipboardText(clipboardText);
+        if (absolute) {
+            return parseSpeedDialItemFromURL(absolute, suggestedCell);
         }
 
         if (isSpeedDialVirtualPath(trimmed)) {

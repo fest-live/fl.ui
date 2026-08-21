@@ -1,0 +1,148 @@
+/*
+ * Filename: core-rail.ts
+ * FullPath: modules/projects/fl.ui/src/ui/speed-dial/core-rail.ts
+ * Change date and time: 10.05.00_21.08.2026
+ * Reason for changes: Native Explorer/Settings/Markdown tiles live in a collapsible right rail.
+ */
+
+import { getSpeedDialActionRegistry } from "./action-registry";
+import {
+    NAVIGATION_SHORTCUTS,
+    speedDialItems,
+    speedDialMeta,
+    stripCoreRailTilesFromGrid
+} from "./launcher-state";
+import { getSpeedDialViewOpener } from "./view-opener";
+
+const RAIL_OPEN_KEY = "cw::workspace::speed-dial::core-rail-open";
+/** Views that belong on the rail — not the freeform Speed Dial grid. */
+export const CORE_RAIL_VIEWS = ["explorer", "settings", "viewer"] as const;
+
+export type CoreRailView = (typeof CORE_RAIL_VIEWS)[number];
+
+const isCoreRailView = (view: string): view is CoreRailView =>
+    (CORE_RAIL_VIEWS as readonly string[]).includes(view);
+
+export const getCoreRailEntries = (): Array<{ view: string; label: string; icon: string }> =>
+    NAVIGATION_SHORTCUTS.filter((s) => isCoreRailView(String(s.view || ""))).map((s) => ({
+        view: String(s.view),
+        label: String(s.label || s.view),
+        icon: String(s.icon || "sparkle")
+    }));
+
+export const isCoreRailOpen = (): boolean => {
+    try {
+        const v = localStorage.getItem(RAIL_OPEN_KEY);
+        if (v == null || !String(v).trim()) return true;
+        return v === "1" || v === "true" || v === "open";
+    } catch {
+        return true;
+    }
+};
+
+export const setCoreRailOpen = (open: boolean): void => {
+    try {
+        localStorage.setItem(RAIL_OPEN_KEY, open ? "1" : "0");
+    } catch {
+        /* private mode */
+    }
+};
+
+/**
+ * WHY: Legacy boot used to inject Explorer/Settings/Markdown onto the grid.
+ * Move those tiles off the desktop into the rail so the grid stays user shortcuts.
+ */
+export const migrateCoreViewShortcutsOffGrid = (): void => {
+    stripCoreRailTilesFromGrid({ markDirty: true });
+};
+
+const runCoreView = (view: string): void => {
+    const opener = getSpeedDialViewOpener();
+    const registry = getSpeedDialActionRegistry();
+    const action = registry.get(`open-view-${view}`) || registry.get("open-view");
+    try {
+        action?.(
+            {
+                id: `rail-${view}`,
+                items: speedDialItems,
+                meta: speedDialMeta,
+                viewMaker: opener
+            },
+            { view, type: view, label: view }
+        );
+    } catch (e) {
+        console.warn("[core-rail] open failed", view, e);
+    }
+};
+
+/** Mount collapsible right rail into the Speed Dial root. */
+export function mountCoreRail(host: HTMLElement): () => void {
+    if (!host || host.querySelector(".speed-dial-core-rail")) {
+        return () => undefined;
+    }
+    migrateCoreViewShortcutsOffGrid();
+
+    let open = isCoreRailOpen();
+    const rail = document.createElement("aside");
+    rail.className = "speed-dial-core-rail";
+    rail.setAttribute("aria-label", "Native apps");
+    rail.toggleAttribute("data-open", open);
+
+    const toggle = document.createElement("button");
+    toggle.type = "button";
+    toggle.className = "speed-dial-core-rail__toggle";
+    toggle.title = open ? "Hide apps" : "Show apps";
+    toggle.setAttribute("aria-expanded", open ? "true" : "false");
+    toggle.setAttribute("aria-controls", "speed-dial-core-rail-panel");
+    toggle.innerHTML =
+        '<ui-icon icon="caret-left" icon-style="duotone" aria-hidden="true"></ui-icon>';
+
+    const panel = document.createElement("div");
+    panel.id = "speed-dial-core-rail-panel";
+    panel.className = "speed-dial-core-rail__panel";
+    panel.setAttribute("role", "toolbar");
+
+    const paintEntries = (): void => {
+        panel.replaceChildren();
+        for (const entry of getCoreRailEntries()) {
+            const btn = document.createElement("button");
+            btn.type = "button";
+            btn.className = "speed-dial-core-rail__item";
+            btn.title = entry.label;
+            btn.setAttribute("aria-label", entry.label);
+            btn.dataset.view = entry.view;
+            btn.innerHTML = `<ui-icon icon="${entry.icon}" icon-style="duotone" aria-hidden="true"></ui-icon><span class="speed-dial-core-rail__label">${entry.label}</span>`;
+            btn.addEventListener("click", (ev) => {
+                ev.preventDefault();
+                ev.stopPropagation();
+                runCoreView(entry.view);
+            });
+            panel.append(btn);
+        }
+    };
+    paintEntries();
+
+    const syncOpen = (): void => {
+        rail.toggleAttribute("data-open", open);
+        toggle.setAttribute("aria-expanded", open ? "true" : "false");
+        toggle.title = open ? "Hide apps" : "Show apps";
+        const icon = toggle.querySelector("ui-icon");
+        if (icon) icon.setAttribute("icon", open ? "caret-right" : "caret-left");
+        setCoreRailOpen(open);
+    };
+
+    toggle.addEventListener("click", (ev) => {
+        ev.preventDefault();
+        ev.stopPropagation();
+        open = !open;
+        syncOpen();
+    });
+
+    syncOpen();
+    rail.append(toggle, panel);
+    host.append(rail);
+
+    return () => {
+        rail.remove();
+    };
+}

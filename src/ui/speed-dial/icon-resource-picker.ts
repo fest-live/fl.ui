@@ -694,7 +694,7 @@ export function attachIconResourcePickButton(
     }
     /* WHY: Cap ignored layered SCSS — pin input|button on one row via inline style. */
     row.style.setProperty("display", "grid", "important");
-    row.style.setProperty("grid-template-columns", "minmax(0,1fr) 2.5rem", "important");
+    row.style.setProperty("grid-template-columns", "minmax(0,1fr) 2.5rem 2.5rem", "important");
     row.style.setProperty("align-items", "stretch", "important");
     row.style.setProperty("gap", "0.45rem", "important");
     row.style.setProperty("min-inline-size", "0", "important");
@@ -712,18 +712,42 @@ export function attachIconResourcePickButton(
             '<ui-icon icon="squares-four" icon-style="duotone" aria-hidden="true"></ui-icon>';
         row.append(btn);
     }
+
+    let photoBtn = row.querySelector<HTMLButtonElement>("[data-action='pick-photo']");
+    if (!photoBtn) {
+        photoBtn = document.createElement("button");
+        photoBtn.type = "button";
+        photoBtn.className = "btn secondary sd-icon-resource-pick";
+        photoBtn.setAttribute("data-action", "pick-photo");
+        photoBtn.title = "Use photo / avatar";
+        photoBtn.setAttribute("aria-label", "Use photo or avatar");
+        photoBtn.innerHTML =
+            '<ui-icon icon="user-circle" icon-style="duotone" aria-hidden="true"></ui-icon>';
+        row.append(photoBtn);
+    }
+
     if (input.parentElement !== row) {
         row.insertBefore(input, btn);
     }
-    btn.style.setProperty("display", "inline-flex", "important");
-    btn.style.setProperty("align-items", "center", "important");
-    btn.style.setProperty("justify-content", "center", "important");
-    btn.style.setProperty("inline-size", "2.5rem", "important");
-    btn.style.setProperty("min-inline-size", "2.5rem", "important");
-    btn.style.setProperty("max-inline-size", "2.5rem", "important");
-    btn.style.setProperty("min-block-size", "2.5rem", "important");
-    btn.style.setProperty("padding", "0", "important");
-    btn.style.setProperty("margin", "0", "important");
+    /* Keep order: input → pick-icon → pick-photo */
+    if (btn.parentElement === row && photoBtn.parentElement === row) {
+        row.append(btn, photoBtn);
+        row.insertBefore(input, btn);
+    }
+
+    const stylePickBtn = (el: HTMLButtonElement) => {
+        el.style.setProperty("display", "inline-flex", "important");
+        el.style.setProperty("align-items", "center", "important");
+        el.style.setProperty("justify-content", "center", "important");
+        el.style.setProperty("inline-size", "2.5rem", "important");
+        el.style.setProperty("min-inline-size", "2.5rem", "important");
+        el.style.setProperty("max-inline-size", "2.5rem", "important");
+        el.style.setProperty("min-block-size", "2.5rem", "important");
+        el.style.setProperty("padding", "0", "important");
+        el.style.setProperty("margin", "0", "important");
+    };
+    stylePickBtn(btn);
+    stylePickBtn(photoBtn);
 
     btn.addEventListener("click", (ev) => {
         ev.preventDefault();
@@ -749,5 +773,44 @@ export function attachIconResourcePickButton(
             }
         });
     });
+
+    photoBtn.addEventListener("click", (ev) => {
+        ev.preventDefault();
+        ev.stopPropagation();
+        const fileInput = document.createElement("input");
+        fileInput.type = "file";
+        fileInput.accept = "image/*";
+        fileInput.style.display = "none";
+        document.body.append(fileInput);
+        fileInput.addEventListener(
+            "change",
+            () => {
+                const file = fileInput.files?.[0];
+                fileInput.remove();
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = () => {
+                    const dataUrl = String(reader.result || "").trim();
+                    if (!dataUrl.startsWith("data:image/")) return;
+                    input.value = dataUrl;
+                    input.setAttribute("value", dataUrl);
+                    input.dispatchEvent(new Event("input", { bubbles: true }));
+                    input.dispatchEvent(new Event("change", { bubbles: true }));
+                    /* Prefer colored bitmap for photos/avatars. */
+                    const display = field
+                        .closest("form")
+                        ?.querySelector<HTMLSelectElement>('select[name="iconDisplay"]');
+                    if (display) {
+                        display.value = "colored";
+                        display.dispatchEvent(new Event("change", { bubbles: true }));
+                    }
+                };
+                reader.readAsDataURL(file);
+            },
+            { once: true }
+        );
+        fileInput.click();
+    });
+
     return btn;
 }

@@ -48,6 +48,7 @@ import {
     createSpeedDialItemFromClipboard,
     parseSpeedDialItemFromJSON,
     parseSpeedDialItemFromURL,
+    parseSpeedDialItemFromSmartText,
     parseSpeedDialItemFromVirtualPath,
     isSpeedDialVirtualPath,
     resolveItemOpenLinkTarget,
@@ -66,6 +67,7 @@ import {
 } from "./launcher-state";
 import { isInFocus, MOCElement } from "@fest-lib/dom";
 import { openShortcutEditor } from "./ShortcutEditor";
+import { mountCoreRail } from "./core-rail";
 import { setSpeedDialViewOpener, getSpeedDialViewOpener } from "./view-opener";
 import {
     getSpeedDialActionRegistry,
@@ -906,6 +908,8 @@ const normalizePasteUrl = (text: string): string | null => {
     try {
         const parsed = new URL(value);
         if (/^https?:$/i.test(parsed.protocol)) return parsed.href;
+        /* tel / mailto / tg / calendar content — keep absolute for smart parse. */
+        if (/^(tel|mailto|tg|telegram|content):$/i.test(parsed.protocol)) return parsed.href;
         return null;
     } catch {
         /* not an absolute URL — try bare-domain scheme fixup below */
@@ -983,13 +987,15 @@ const parseShortcutFromTransfer = (transfer: DataTransfer | null | undefined, su
             if (item) return item;
         }
     }
-    // Last resort: shortcut JSON envelope or virtual path in plain text.
+    // Last resort: shortcut JSON envelope, virtual path, or smart tel/mailto/telegram/date.
     if (plain) {
         const item = parseSpeedDialItemFromJSON(plain, suggestedCell);
         if (item) return item;
         if (isSpeedDialVirtualPath(plain)) {
             return parseSpeedDialItemFromVirtualPath(plain, suggestedCell);
         }
+        const smart = parseSpeedDialItemFromSmartText(plain, suggestedCell);
+        if (smart) return smart;
     }
     return null;
 };
@@ -1395,8 +1401,9 @@ const renderMirrorIconItem = (item: any, makeView?: any) => {
 };
 
 const renderMirrorLabelItem = (item: any, makeView?: any) => {
+    const labelRef = item?.label;
     return H`<div style="background-color: transparent;" data-id=${item.id} class="ui-ws-item ui-ws-item-label" data-speed-dial-item data-layer="labels" data-mirror-item ref=${(el: HTMLElement) => attachMirrorItemNode(item, el, makeView)}>
-        <span style="background-color: transparent;">${String(item.label || "")}</span>
+        <span style="background-color: transparent;">${labelRef ?? ""}</span>
     </div>`;
 };
 
@@ -1548,14 +1555,19 @@ export function SpeedDial(makeView: any) {
 
     //
     const renderLabelItem = (item: SpeedDialItem)=>{
+        /* WHY: pass the observe ref into H so rename in properties re-paints the label layer. */
+        const labelRef = (item as any)?.label;
         const element = H`<div style="background-color: transparent;" data-id=${item.id} class="ui-ws-item ui-ws-item-label" data-speed-dial-item data-layer="labels" ref=${(el) => attachItemNode(item, el as HTMLElement, false, makeView)}>
-            <span style="background-color: transparent;">${getRefValue(item.label)}</span>
+            <span style="background-color: transparent;">${labelRef ?? ""}</span>
         </div>`;
         return element;
     };
 
     //
-    const box = H`<div slot="underlay" style="pointer-events: auto; position: relative; contain: strict; overflow: hidden; display: grid;" id="home" class="speed-dial-root" tabindex="-1" ref=${(el: HTMLElement) => bindRootOrientation(el)} on:dragover=${(ev: DragEvent) => acceptHomeLinkDragOver(ev)} on:drop=${(ev: DragEvent) => handleWallpaperDropOrPaste(ev)} on:paste=${(ev: ClipboardEvent) => void handleWallpaperDropOrPaste(ev)} prop:onPaste=${async (ev: ClipboardEvent) => await handleWallpaperDropOrPaste(ev)}>
+    const box = H`<div slot="underlay" style="pointer-events: auto; position: relative; contain: strict; overflow: hidden; display: grid;" id="home" class="speed-dial-root" tabindex="-1" ref=${(el: HTMLElement) => {
+        bindRootOrientation(el);
+        mountCoreRail(el);
+    }} on:dragover=${(ev: DragEvent) => acceptHomeLinkDragOver(ev)} on:drop=${(ev: DragEvent) => handleWallpaperDropOrPaste(ev)} on:paste=${(ev: ClipboardEvent) => void handleWallpaperDropOrPaste(ev)} prop:onPaste=${async (ev: ClipboardEvent) => await handleWallpaperDropOrPaste(ev)}>
         <div style="background-color: transparent; pointer-events: none;" class="speed-dial-grid speed-dial-label-layer speed-dial-grid--labels ui-launcher-grid" data-layer="items" data-grid-layer="labels" data-grid-columns=${columnsRef} data-grid-rows=${rowsRef} data-grid-shape=${shapeRef}>
             ${M(speedDialItems, renderLabelItem)}
             ${M(mirrorSpeedDialItems, renderMirrorLabelItem)}
@@ -1701,12 +1713,21 @@ const openItemEditor = (item?: SpeedDialItem, opts?: {
             }
             persistSpeedDialItems();
             persistSpeedDialMeta();
-            // Force chrome paint — upsert may keep the same item ref so M() won't rebuild icons.
+            // Force chrome paint — upsert may keep the same item ref so M() won't rebuild icons/labels.
+            const idSel = CSS.escape(String(workingItem.id));
             document
                 .querySelectorAll<HTMLElement>(
-                    `[data-speed-dial-item][data-id="${CSS.escape(String(workingItem.id))}"][data-layer="icons"]`
+                    `[data-speed-dial-item][data-id="${idSel}"][data-layer="icons"]`
                 )
                 .forEach((tile) => paintSpeedDialTileIcon(tile, workingItem));
+            const labelText = String(next.label || "").trim();
+            document
+                .querySelectorAll<HTMLElement>(
+                    `[data-speed-dial-item][data-id="${idSel}"][data-layer="labels"] span`
+                )
+                .forEach((span) => {
+                    span.textContent = labelText;
+                });
             showSuccess(isNew ? "Shortcut created" : "Shortcut updated");
         },
         onDelete: isNew

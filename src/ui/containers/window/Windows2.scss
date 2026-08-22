@@ -5,7 +5,7 @@
  * Reason for changes: --ui-win-* palette via --u2-color-mod (token names kept).
  */
 
-/* WHY: Inline adopted sheet for <ui-window>; function local so shadow sheet resolves mods. */
+/* COMPAT: Adopted shadow sheet cannot see document --u2-color-mod; body matches veela SoT. */
 @#{"function --u2-color-mod(--base-color <color>, --index <number> : 550) returns <color>"} {
     --i: clamp(0, var(--index), 1000);
     --pivot: 550;
@@ -27,7 +27,7 @@
 
 :host(ui-window) {
     /* Tokens — light defaults via light-dark(); dark flips with color-scheme / data-theme */
-    --ui-win-radius: 0.75rem;
+    --ui-win-radius: var(--radius-lg, 0.75rem);
     --ui-win-titlebar-height: 2.5rem;
     --ui-win-footer-min: 2.25rem;
     --ui-win-control-size: 1.75rem;
@@ -498,7 +498,7 @@
     }
 
     &:focus-visible {
-        outline: 2px solid light-dark(#3794ff, #6ee7b7);
+        outline: 2px solid color-mix(in oklab, var(--color-primary, #5a7fff) 70%, transparent);
         outline-offset: 2px;
     }
 

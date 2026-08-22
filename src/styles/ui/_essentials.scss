@@ -6,8 +6,7 @@
 // Default off; opt in via `patch-global-native-controls.scss` / `loadFlUIGlobalNativeControlStyles()`.
 @use "./essentials-options" as eo;
 @use "./native-host-button-chrome" as hostbtn;
-
-@layer tokens, base, layout, utilities, shells, shell, views, view, viewer, components, ux-layer, markdown, essentials, print, print-breaks, overrides;
+@use "../layers";
 
 @layer components {
     @if eo.$include-native-button-styles {
@@ -374,7 +373,10 @@
     }
 
     @media screen {
-        :root, :host, :scope {
+        ui-window-frame,
+        ui-modal,
+        .ui-grid-item,
+        .ctx-menu {
             --font-family: "InterVariable", "Inter", "Helvetica Neue", "Helvetica", "Calibri", "Roboto", ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif;
         }
 

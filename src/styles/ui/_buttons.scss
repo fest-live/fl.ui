@@ -123,8 +123,8 @@
     $state-var: if(sass($variant == tonal): color.md3-var($state-role); else: color.md3-var($role));
 
     // Common CSS variable setup
-    --md-button-bg: color-mix(in oklch, var(--surface-color, transparent) 90%, var(--on-surface-color, transparent));
-    --md-button-on: var(--on-surface-color, currentColor);
+    --md-button-bg: color-mix(in oklch, var(--color-surface, var(--surface-color, transparent)) 90%, var(--color-on-surface, var(--on-surface-color, transparent)));
+    --md-button-on: var(--color-on-surface, var(--on-surface-color, currentColor));
     --md-button-outline-color: var(--border-color, transparent);
 
     // Variant-specific styles
@@ -138,8 +138,8 @@
         border: none;
     } @else {
         // filled, elevated, tonal
-        background-color: var(--surface-color, var(--surface-color, transparent));
-        color: var(--md-button-on, var(--on-surface-color, currentColor));
+        background-color: var(--color-surface, var(--surface-color, transparent));
+        color: var(--md-button-on, var(--color-on-surface, currentColor));
         border: none;
     }
 

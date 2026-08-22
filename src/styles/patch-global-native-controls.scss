@@ -1,8 +1,7 @@
 // Incremental sheet: legacy host-wide native `button` + bare `input`/`select`/`textarea`.
 @use "./ui/native-host-button-chrome" as host;
 @use "./ui/forms-bare-host-elements" as bare;
-
-@layer tokens, base, layout, utilities, shells, shell, views, view, viewer, components, ux-layer, markdown, essentials, print, print-breaks, overrides;
+@use "./layers";
 
 @layer components {
     button {

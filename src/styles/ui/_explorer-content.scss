@@ -176,7 +176,7 @@
                 background-color: color-mix(in oklab, var(--color-on-surface) 11%, transparent);
             }
             &:focus-visible {
-                outline: 2px solid var(--color-primary, #3794ff);
+                outline: 2px solid var(--color-primary, #5a7fff);
                 outline-offset: -2px;
             }
         }
@@ -306,7 +306,7 @@
             }
 
             &:focus-visible {
-                outline: 2px solid color-mix(in oklab, var(--color-primary, #3794ff) 55%, transparent);
+                outline: 2px solid color-mix(in oklab, var(--color-primary, #5a7fff) 55%, transparent);
                 outline-offset: 1px;
             }
 

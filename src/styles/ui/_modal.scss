@@ -12,7 +12,7 @@
         place-content: center;
         place-items: center;
         padding: var(--space-xl);
-        z-index: 9999;
+        z-index: var(--z-modal-backdrop, 400);
         line-height: normal;
         box-sizing: border-box;
         max-inline-size: min(100cqi, 100dvi);
@@ -41,8 +41,8 @@
         max-block-size: max(95dvb, 50rem);
 
         line-height: normal;
-        background-color: var(--surface-color);
-        color: var(--on-surface-color);
+        background-color: var(--color-surface, var(--surface-color));
+        color: var(--color-on-surface, var(--on-surface-color));
         padding: var(--padding-lg);
         padding-block-end: var(--space-md);
         border-radius: var(--radius-lg);

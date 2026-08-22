@@ -12,7 +12,7 @@
 }
 
 @mixin tonal-surface($role: surface, $opacity: var(--surface-opacity-subtle), $radius: var(--radius-md), $border: null, $shadow: 0, $clip: false) {
-    background-color: color-mix(in oklch, var(--#{$role}-color, var(--surface-color, transparent)) calc(100% * #{$opacity}), transparent);
+    background-color: color-mix(in oklch, var(--color-#{$role}, var(--#{$role}-color, var(--color-surface, transparent))) calc(100% * #{$opacity}), transparent);
     border-radius: $radius;
 
     @if $border != null {
@@ -34,7 +34,7 @@
 
 @mixin glass-backdrop() {
     backdrop-filter: blur(var(--backdrop-blur, 16px));
-    background-color: var(--backdrop-color, color-mix(in oklch, var(--surface-color, black) 40%, transparent));
+    background-color: var(--backdrop-color, color-mix(in oklch, var(--color-surface, var(--surface-color, black)) 40%, transparent));
 }
 
 @mixin container-inline() {

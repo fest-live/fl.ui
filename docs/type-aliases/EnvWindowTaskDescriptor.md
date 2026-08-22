@@ -1,4 +1,4 @@
-[**@fest-lib/fl-ui v0.1.11**](../README.md)
+[**@fest-lib/fl-ui v0.1.12**](../README.md)
 
 ***
 
@@ -10,7 +10,7 @@
 type EnvWindowTaskDescriptor = object;
 ```
 
-Defined in: fl.ui/src/ui/navigation/taskbar/element/TaskBar.ts:49
+Defined in: fl.ui/src/ui/navigation/taskbar/element/TaskBar.ts:61
 
 Open floating window entry for the desktop taskbar.
 
@@ -22,7 +22,7 @@ Open floating window entry for the desktop taskbar.
 optional focused?: boolean;
 ```
 
-Defined in: fl.ui/src/ui/navigation/taskbar/element/TaskBar.ts:53
+Defined in: fl.ui/src/ui/navigation/taskbar/element/TaskBar.ts:65
 
 ***
 
@@ -32,7 +32,7 @@ Defined in: fl.ui/src/ui/navigation/taskbar/element/TaskBar.ts:53
 optional icon?: string;
 ```
 
-Defined in: fl.ui/src/ui/navigation/taskbar/element/TaskBar.ts:52
+Defined in: fl.ui/src/ui/navigation/taskbar/element/TaskBar.ts:64
 
 ***
 
@@ -42,7 +42,7 @@ Defined in: fl.ui/src/ui/navigation/taskbar/element/TaskBar.ts:52
 id: string;
 ```
 
-Defined in: fl.ui/src/ui/navigation/taskbar/element/TaskBar.ts:50
+Defined in: fl.ui/src/ui/navigation/taskbar/element/TaskBar.ts:62
 
 ***
 
@@ -52,7 +52,7 @@ Defined in: fl.ui/src/ui/navigation/taskbar/element/TaskBar.ts:50
 optional minimized?: boolean;
 ```
 
-Defined in: fl.ui/src/ui/navigation/taskbar/element/TaskBar.ts:54
+Defined in: fl.ui/src/ui/navigation/taskbar/element/TaskBar.ts:66
 
 ***
 
@@ -62,7 +62,7 @@ Defined in: fl.ui/src/ui/navigation/taskbar/element/TaskBar.ts:54
 title: string;
 ```
 
-Defined in: fl.ui/src/ui/navigation/taskbar/element/TaskBar.ts:51
+Defined in: fl.ui/src/ui/navigation/taskbar/element/TaskBar.ts:63
 
 ***
 
@@ -72,4 +72,4 @@ Defined in: fl.ui/src/ui/navigation/taskbar/element/TaskBar.ts:51
 optional visible?: boolean;
 ```
 
-Defined in: fl.ui/src/ui/navigation/taskbar/element/TaskBar.ts:55
+Defined in: fl.ui/src/ui/navigation/taskbar/element/TaskBar.ts:67

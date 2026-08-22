@@ -1,4 +1,4 @@
-[**@fest-lib/fl-ui v0.1.11**](../README.md)
+[**@fest-lib/fl-ui v0.1.12**](../README.md)
 
 ***
 
@@ -10,7 +10,7 @@
 function toggleQuickSettingsFlyout(anchor?): void;
 ```
 
-Defined in: fl.ui/src/ui/navigation/settings/QuickSettings.ts:448
+Defined in: fl.ui/src/ui/navigation/settings/QuickSettings.ts:540
 
 Toggle the shared Quick Settings flyout, wired through `ChromeFlyout`'s exclusive-open contract.
 

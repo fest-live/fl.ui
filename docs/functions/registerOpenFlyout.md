@@ -1,4 +1,4 @@
-[**@fest-lib/fl-ui v0.1.11**](../README.md)
+[**@fest-lib/fl-ui v0.1.12**](../README.md)
 
 ***
 
@@ -10,7 +10,7 @@
 function registerOpenFlyout(ctrl): void;
 ```
 
-Defined in: fl.ui/src/ui/navigation/flyout/ChromeFlyout.ts:173
+Defined in: fl.ui/src/ui/navigation/flyout/ChromeFlyout.ts:155
 
 Register an open flyout; closes the other kind (exclusive).
 Caller must already append `el` into the overlay root and call `positionFlyout`.

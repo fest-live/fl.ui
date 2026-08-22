@@ -1,8 +1,8 @@
-**@fest-lib/fl-ui v0.1.11**
+**@fest-lib/fl-ui v0.1.12**
 
 ***
 
-# @fest-lib/fl-ui v0.1.11
+# @fest-lib/fl-ui v0.1.12
 
 ## Classes
 
@@ -26,14 +26,24 @@
 
 ## Type Aliases
 
+- [AnchoredModalOptions](type-aliases/AnchoredModalOptions.md)
 - [AnchoredWindowOptions](type-aliases/AnchoredWindowOptions.md)
 - [AnchoredWindowParts](type-aliases/AnchoredWindowParts.md)
+- [AppMenuMode](type-aliases/AppMenuMode.md)
+- [BookmarkMenuEntry](type-aliases/BookmarkMenuEntry.md)
+- [BookmarksMenuApi](type-aliases/BookmarksMenuApi.md)
 - [ChromeFlyoutController](type-aliases/ChromeFlyoutController.md)
 - [ChromeFlyoutKind](type-aliases/ChromeFlyoutKind.md)
 - [EnvironmentShellStatusRefs](type-aliases/EnvironmentShellStatusRefs.md)
 - [EnvironmentTaskbarOptions](type-aliases/EnvironmentTaskbarOptions.md)
 - [EnvWindowTaskDescriptor](type-aliases/EnvWindowTaskDescriptor.md)
 - [FlUIStyleVariant](type-aliases/FlUIStyleVariant.md)
+- [LauncherAppEntry](type-aliases/LauncherAppEntry.md)
+- [LauncherBridgeApi](type-aliases/LauncherBridgeApi.md)
+- [ModalCloseReason](type-aliases/ModalCloseReason.md)
+- [ModalController](type-aliases/ModalController.md)
+- [ModalOptions](type-aliases/ModalOptions.md)
+- [MountAppMenuResult](type-aliases/MountAppMenuResult.md)
 - [MountStatusBarResult](type-aliases/MountStatusBarResult.md)
 - [MountTaskBarResult](type-aliases/MountTaskBarResult.md)
 - [NativeChromeSubscribeOptions](type-aliases/NativeChromeSubscribeOptions.md)
@@ -60,6 +70,7 @@
 - [applyQuickTheme](functions/applyQuickTheme.md)
 - [attachShellDeviceStatus](functions/attachShellDeviceStatus.md)
 - [attachStatusBarContrast](functions/attachStatusBarContrast.md)
+- [buildLauncherAppDragEnvelope](functions/buildLauncherAppDragEnvelope.md)
 - [buildShellDeviceTray](functions/buildShellDeviceTray.md)
 - [clearToasts](functions/clearToasts.md)
 - [closeAllChromeFlyouts](functions/closeAllChromeFlyouts.md)
@@ -68,14 +79,17 @@
 - [closeQuickSettingsFlyout](functions/closeQuickSettingsFlyout.md)
 - [closeToastLayer](functions/closeToastLayer.md)
 - [configureFlUI](functions/configureFlUI.md)
+- [createAnchoredModal](functions/createAnchoredModal.md)
 - [~~createAnchoredWindow~~](functions/createAnchoredWindow.md)
 - [createAnchoredWindowShell](functions/createAnchoredWindowShell.md)
+- [createChromeBookmarksMenuApi](functions/createChromeBookmarksMenuApi.md)
 - [ensureOverlayRoot](functions/ensureOverlayRoot.md)
 - [ensureWindowElementsDefined](functions/ensureWindowElementsDefined.md)
 - [formatAsCode](functions/formatAsCode.md)
 - [formatBiography](functions/formatBiography.md)
 - [formatBiographyList](functions/formatBiographyList.md)
 - [formatByCondition](functions/formatByCondition.md)
+- [formatChromeClock](functions/formatChromeClock.md)
 - [formatEmailElement](functions/formatEmailElement.md)
 - [formatEmailList](functions/formatEmailList.md)
 - [formatLocation](functions/formatLocation.md)
@@ -86,10 +100,16 @@
 - [formatTextList](functions/formatTextList.md)
 - [getCurrentQuickTheme](functions/getCurrentQuickTheme.md)
 - [getFlUIConfig](functions/getFlUIConfig.md)
+- [getStoredThemePreference](functions/getStoredThemePreference.md)
+- [hasBookmarksMenuApi](functions/hasBookmarksMenuApi.md)
 - [initToastReceiver](functions/initToastReceiver.md)
+- [installAutoThemeFollow](functions/installAutoThemeFollow.md)
+- [isAppMenuEnabled](functions/isAppMenuEnabled.md)
 - [isCalendarFlyoutOpen](functions/isCalendarFlyoutOpen.md)
 - [isChromeFlyoutOpen](functions/isChromeFlyoutOpen.md)
 - [isDesktopChrome](functions/isDesktopChrome.md)
+- [isLauncherSku](functions/isLauncherSku.md)
+- [isNativeCapacitorHost](functions/isNativeCapacitorHost.md)
 - [isQuickSettingsOpen](functions/isQuickSettingsOpen.md)
 - [isShellStandaloneDisplay](functions/isShellStandaloneDisplay.md)
 - [listenForToasts](functions/listenForToasts.md)
@@ -98,14 +118,19 @@
 - [makeDayHeader](functions/makeDayHeader.md)
 - [makePropertyDesc](functions/makePropertyDesc.md)
 - [matchShellDisplayMode](functions/matchShellDisplayMode.md)
+- [mountEnvironmentAppMenu](functions/mountEnvironmentAppMenu.md)
 - [mountEnvironmentStatusBar](functions/mountEnvironmentStatusBar.md)
 - [mountEnvironmentTaskBar](functions/mountEnvironmentTaskBar.md)
+- [openModal](functions/openModal.md)
 - [positionFlyout](functions/positionFlyout.md)
 - [probeNativeWindowChrome](functions/probeNativeWindowChrome.md)
 - [registerOpenFlyout](functions/registerOpenFlyout.md)
 - [renderAddress](functions/renderAddress.md)
+- [resolveAppMenuMode](functions/resolveAppMenuMode.md)
 - [restoreQuickFilters](functions/restoreQuickFilters.md)
+- [setBookmarksMenuApi](functions/setBookmarksMenuApi.md)
 - [setChromeFlyoutShellHost](functions/setChromeFlyoutShellHost.md)
+- [setLauncherBridgeForAppMenu](functions/setLauncherBridgeForAppMenu.md)
 - [shouldShowStatusOverlay](functions/shouldShowStatusOverlay.md)
 - [showError](functions/showError.md)
 - [showInfo](functions/showInfo.md)

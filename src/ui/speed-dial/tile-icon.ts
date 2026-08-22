@@ -1,8 +1,10 @@
 /*
  * Filename: tile-icon.ts
  * FullPath: modules/projects/fl.ui/src/ui/speed-dial/tile-icon.ts
- * Change date and time: 21.00.00_22.08.2026
- * Reason for changes: Shapeless tile — icon is the shape; shadow is a blurred black clone.
+ * Change date and time: 22.17.00_22.08.2026
+ * Reason for changes: FIND hub for shapeless tile shadow clone.
+ * FIND:shapeless
+ * TAG:speed-dial,tile-icon
  */
 
 /** How a Speed Dial / App Menu tile paints its icon. */

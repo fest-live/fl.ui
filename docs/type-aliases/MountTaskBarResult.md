@@ -1,4 +1,4 @@
-[**@fest-lib/fl-ui v0.1.11**](../README.md)
+[**@fest-lib/fl-ui v0.1.12**](../README.md)
 
 ***
 
@@ -10,9 +10,35 @@
 type MountTaskBarResult = object;
 ```
 
-Defined in: fl.ui/src/ui/navigation/taskbar/element/TaskBar.ts:72
+Defined in: fl.ui/src/ui/navigation/taskbar/element/TaskBar.ts:84
 
 ## Properties
+
+### appMenu?
+
+```ts
+optional appMenu?: MountAppMenuResult;
+```
+
+Defined in: fl.ui/src/ui/navigation/taskbar/element/TaskBar.ts:91
+
+Launcher SKU app drawer (Task 4+); undefined on non-launcher builds.
+
+***
+
+### closeSwitcher?
+
+```ts
+optional closeSwitcher?: () => void;
+```
+
+Defined in: fl.ui/src/ui/navigation/taskbar/element/TaskBar.ts:96
+
+#### Returns
+
+`void`
+
+***
 
 ### dispose
 
@@ -20,7 +46,7 @@ Defined in: fl.ui/src/ui/navigation/taskbar/element/TaskBar.ts:72
 dispose: () => void;
 ```
 
-Defined in: fl.ui/src/ui/navigation/taskbar/element/TaskBar.ts:78
+Defined in: fl.ui/src/ui/navigation/taskbar/element/TaskBar.ts:97
 
 #### Returns
 
@@ -34,7 +60,51 @@ Defined in: fl.ui/src/ui/navigation/taskbar/element/TaskBar.ts:78
 element: HTMLElement;
 ```
 
-Defined in: fl.ui/src/ui/navigation/taskbar/element/TaskBar.ts:73
+Defined in: fl.ui/src/ui/navigation/taskbar/element/TaskBar.ts:85
+
+***
+
+### isSwitcherOpen?
+
+```ts
+optional isSwitcherOpen?: () => boolean;
+```
+
+Defined in: fl.ui/src/ui/navigation/taskbar/element/TaskBar.ts:95
+
+#### Returns
+
+`boolean`
+
+***
+
+### openAppMenu?
+
+```ts
+optional openAppMenu?: () => void;
+```
+
+Defined in: fl.ui/src/ui/navigation/taskbar/element/TaskBar.ts:93
+
+Open app menu with taskbar chrome sync (swipe-up from Speed Dial).
+
+#### Returns
+
+`void`
+
+***
+
+### openAppMenuPage?
+
+```ts
+optional openAppMenuPage?: () => void;
+```
+
+Defined in: fl.ui/src/ui/navigation/taskbar/element/TaskBar.ts:94
+
+#### Returns
+
+`void`
 
 ***
 
@@ -44,7 +114,7 @@ Defined in: fl.ui/src/ui/navigation/taskbar/element/TaskBar.ts:73
 setFocusedTaskId: (id) => void;
 ```
 
-Defined in: fl.ui/src/ui/navigation/taskbar/element/TaskBar.ts:75
+Defined in: fl.ui/src/ui/navigation/taskbar/element/TaskBar.ts:87
 
 #### Parameters
 
@@ -64,7 +134,7 @@ Defined in: fl.ui/src/ui/navigation/taskbar/element/TaskBar.ts:75
 syncWindowTasks: (windows) => void;
 ```
 
-Defined in: fl.ui/src/ui/navigation/taskbar/element/TaskBar.ts:77
+Defined in: fl.ui/src/ui/navigation/taskbar/element/TaskBar.ts:89
 
 Replace dynamic window tasks (Home / Markdown pins stay).
 
@@ -86,4 +156,4 @@ Replace dynamic window tasks (Home / Markdown pins stay).
 taskList: ITask[];
 ```
 
-Defined in: fl.ui/src/ui/navigation/taskbar/element/TaskBar.ts:74
+Defined in: fl.ui/src/ui/navigation/taskbar/element/TaskBar.ts:86

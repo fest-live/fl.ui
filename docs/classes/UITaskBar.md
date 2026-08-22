@@ -1,4 +1,4 @@
-[**@fest-lib/fl-ui v0.1.11**](../README.md)
+[**@fest-lib/fl-ui v0.1.12**](../README.md)
 
 ***
 
@@ -6,7 +6,7 @@
 
 # Class: UITaskBar
 
-Defined in: fl.ui/src/ui/navigation/taskbar/element/TaskBar.ts:42
+Defined in: fl.ui/src/ui/navigation/taskbar/element/TaskBar.ts:54
 
 ## Extends
 
@@ -20,7 +20,7 @@ Defined in: fl.ui/src/ui/navigation/taskbar/element/TaskBar.ts:42
 new UITaskBar(): UITaskBar;
 ```
 
-Defined in: fl.ui/src/ui/navigation/taskbar/element/TaskBar.ts:43
+Defined in: fl.ui/src/ui/navigation/taskbar/element/TaskBar.ts:55
 
 #### Returns
 
@@ -307,7 +307,7 @@ Defined in: fl.ui/src/ui/base/UIElement.ts:17
 render(): any;
 ```
 
-Defined in: fl.ui/src/ui/navigation/taskbar/element/TaskBar.ts:45
+Defined in: fl.ui/src/ui/navigation/taskbar/element/TaskBar.ts:57
 
 #### Returns
 
@@ -345,7 +345,7 @@ Defined in: lur.e/src/lure/misc/Glit.ts:144
 styles(): any;
 ```
 
-Defined in: fl.ui/src/ui/navigation/taskbar/element/TaskBar.ts:44
+Defined in: fl.ui/src/ui/navigation/taskbar/element/TaskBar.ts:56
 
 #### Returns
 

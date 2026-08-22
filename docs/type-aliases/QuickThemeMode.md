@@ -1,4 +1,4 @@
-[**@fest-lib/fl-ui v0.1.11**](../README.md)
+[**@fest-lib/fl-ui v0.1.12**](../README.md)
 
 ***
 
@@ -10,4 +10,4 @@
 type QuickThemeMode = "light" | "dark";
 ```
 
-Defined in: fl.ui/src/ui/navigation/settings/QuickSettings.ts:40
+Defined in: fl.ui/src/ui/navigation/settings/QuickSettings.ts:41

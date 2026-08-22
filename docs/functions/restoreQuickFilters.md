@@ -1,4 +1,4 @@
-[**@fest-lib/fl-ui v0.1.11**](../README.md)
+[**@fest-lib/fl-ui v0.1.12**](../README.md)
 
 ***
 
@@ -10,7 +10,7 @@
 function restoreQuickFilters(): object;
 ```
 
-Defined in: fl.ui/src/ui/navigation/settings/QuickSettings.ts:227
+Defined in: fl.ui/src/ui/navigation/settings/QuickSettings.ts:287
 
 Restore persisted night/brightness filters; idempotent — safe to call on every panel open.
 

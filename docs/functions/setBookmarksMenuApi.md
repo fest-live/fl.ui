@@ -1,0 +1,23 @@
+[**@fest-lib/fl-ui v0.1.12**](../README.md)
+
+***
+
+[@fest-lib/fl-ui](../README.md) / setBookmarksMenuApi
+
+# Function: setBookmarksMenuApi()
+
+```ts
+function setBookmarksMenuApi(api): void;
+```
+
+Defined in: fl.ui/src/ui/navigation/app-menu/bookmarks-menu.ts:61
+
+## Parameters
+
+### api
+
+[`BookmarksMenuApi`](../type-aliases/BookmarksMenuApi.md) \| `null`
+
+## Returns
+
+`void`

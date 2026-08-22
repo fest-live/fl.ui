@@ -1,4 +1,4 @@
-[**@fest-lib/fl-ui v0.1.11**](../README.md)
+[**@fest-lib/fl-ui v0.1.12**](../README.md)
 
 ***
 
@@ -10,7 +10,7 @@
 function isQuickSettingsOpen(): boolean;
 ```
 
-Defined in: fl.ui/src/ui/navigation/settings/QuickSettings.ts:477
+Defined in: fl.ui/src/ui/navigation/settings/QuickSettings.ts:569
 
 Whether the Quick Settings flyout is currently open.
 

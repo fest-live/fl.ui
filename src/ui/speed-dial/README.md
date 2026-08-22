@@ -1,17 +1,18 @@
-# Concept
+# Speed Dial
 
-Placed in special slot/layer of `environment` shell,
-Or as main `${view}` content in other shells.
+Home-grid layer for the environment shell (or the main `${view}` in other shells). Rotatable desktop / mobile launcher.
+
+Tiles: square, circle, squircle, wavy, shapeless. Shapeless drops the plate and uses a blurred black clone of the icon as the shadow.
 
 ## Layout
 
+```
 |----------------------------------|
 | H                                |
 | G                                |
 | F                                |
 | A  B  C  D  E                    |
 |----------------------------------|
+```
 
-Rotatable, may be like in desktop or mobile launcher.
-
-## Currently is AI slopped component
+Pointer interaction, shortcut editor, icon picker, and workspace pages live next to `SpeedDial.ts`.

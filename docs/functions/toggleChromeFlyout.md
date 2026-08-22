@@ -1,4 +1,4 @@
-[**@fest-lib/fl-ui v0.1.11**](../README.md)
+[**@fest-lib/fl-ui v0.1.12**](../README.md)
 
 ***
 
@@ -10,7 +10,7 @@
 function toggleChromeFlyout(kind, mountAndOpen): void;
 ```
 
-Defined in: fl.ui/src/ui/navigation/flyout/ChromeFlyout.ts:194
+Defined in: fl.ui/src/ui/navigation/flyout/ChromeFlyout.ts:198
 
 Toggle helper: if open → close; else open via `mountAndOpen`.
 

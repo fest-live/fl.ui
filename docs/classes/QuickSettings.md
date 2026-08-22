@@ -1,4 +1,4 @@
-[**@fest-lib/fl-ui v0.1.11**](../README.md)
+[**@fest-lib/fl-ui v0.1.12**](../README.md)
 
 ***
 
@@ -6,7 +6,7 @@
 
 # Class: QuickSettings
 
-Defined in: fl.ui/src/ui/navigation/settings/QuickSettings.ts:329
+Defined in: fl.ui/src/ui/navigation/settings/QuickSettings.ts:411
 
 Win11-like Quick Settings flyout: theme toggle + placeholder tiles + night/brightness sliders.
 
@@ -27,7 +27,7 @@ helpers, which wrap `ChromeFlyout` (mirrors `CalendarFlyout.ts`).
 new QuickSettings(): QuickSettings;
 ```
 
-Defined in: fl.ui/src/ui/navigation/settings/QuickSettings.ts:330
+Defined in: fl.ui/src/ui/navigation/settings/QuickSettings.ts:412
 
 #### Returns
 
@@ -200,7 +200,7 @@ Defined in: lur.e/src/lure/misc/Glit.ts:120
 close(): void;
 ```
 
-Defined in: fl.ui/src/ui/navigation/settings/QuickSettings.ts:412
+Defined in: fl.ui/src/ui/navigation/settings/QuickSettings.ts:504
 
 #### Returns
 
@@ -310,7 +310,7 @@ Defined in: fl.ui/src/ui/base/UIElement.ts:29
 onRender(): this;
 ```
 
-Defined in: fl.ui/src/ui/navigation/settings/QuickSettings.ts:399
+Defined in: fl.ui/src/ui/navigation/settings/QuickSettings.ts:491
 
 #### Returns
 
@@ -328,7 +328,7 @@ Defined in: fl.ui/src/ui/navigation/settings/QuickSettings.ts:399
 open(): void;
 ```
 
-Defined in: fl.ui/src/ui/navigation/settings/QuickSettings.ts:405
+Defined in: fl.ui/src/ui/navigation/settings/QuickSettings.ts:497
 
 #### Returns
 
@@ -342,7 +342,7 @@ Defined in: fl.ui/src/ui/navigation/settings/QuickSettings.ts:405
 render(): any;
 ```
 
-Defined in: fl.ui/src/ui/navigation/settings/QuickSettings.ts:334
+Defined in: fl.ui/src/ui/navigation/settings/QuickSettings.ts:416
 
 #### Returns
 
@@ -380,7 +380,7 @@ Defined in: lur.e/src/lure/misc/Glit.ts:144
 styles(): any;
 ```
 
-Defined in: fl.ui/src/ui/navigation/settings/QuickSettings.ts:333
+Defined in: fl.ui/src/ui/navigation/settings/QuickSettings.ts:415
 
 #### Returns
 
@@ -400,7 +400,7 @@ UIElement.styles
 toggle(anchor?): void;
 ```
 
-Defined in: fl.ui/src/ui/navigation/settings/QuickSettings.ts:418
+Defined in: fl.ui/src/ui/navigation/settings/QuickSettings.ts:510
 
 #### Parameters
 

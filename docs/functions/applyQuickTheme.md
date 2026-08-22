@@ -1,4 +1,4 @@
-[**@fest-lib/fl-ui v0.1.11**](../README.md)
+[**@fest-lib/fl-ui v0.1.12**](../README.md)
 
 ***
 
@@ -10,17 +10,20 @@
 function applyQuickTheme(mode): void;
 ```
 
-Defined in: fl.ui/src/ui/navigation/settings/QuickSettings.ts:91
+Defined in: fl.ui/src/ui/navigation/settings/QuickSettings.ts:95
 
 Apply light/dark from Quick Settings without importing app Theme.ts (fl.ui ↔ subsystem cycle).
 WHY: Must mirror `syncBrowserChromeTheme` — `data-scheme` + hosts + body — or env-shell /
 veela keep OS `prefers-color-scheme` / stale `data-scheme="auto"` and light never sticks.
 
+When preference is `auto`, keep `data-scheme="auto"` and pin `data-theme` to the resolved
+OS mode so light-dark()/components refresh while still tracking system changes.
+
 ## Parameters
 
 ### mode
 
-[`QuickThemeMode`](../type-aliases/QuickThemeMode.md)
+[`QuickThemeMode`](../type-aliases/QuickThemeMode.md) \| `"auto"`
 
 ## Returns
 

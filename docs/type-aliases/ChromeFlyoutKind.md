@@ -1,4 +1,4 @@
-[**@fest-lib/fl-ui v0.1.11**](../README.md)
+[**@fest-lib/fl-ui v0.1.12**](../README.md)
 
 ***
 
@@ -10,4 +10,4 @@
 type ChromeFlyoutKind = "calendar" | "quick-settings";
 ```
 
-Defined in: fl.ui/src/ui/navigation/flyout/ChromeFlyout.ts:14
+Defined in: fl.ui/src/ui/navigation/flyout/ChromeFlyout.ts:16

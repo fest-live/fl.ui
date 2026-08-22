@@ -1,4 +1,4 @@
-[**@fest-lib/fl-ui v0.1.11**](../README.md)
+[**@fest-lib/fl-ui v0.1.12**](../README.md)
 
 ***
 
@@ -10,7 +10,7 @@
 function attachShellDeviceStatus(): ShellDeviceStatus;
 ```
 
-Defined in: fl.ui/src/ui/navigation/statusbar/statusbar.ts:338
+Defined in: fl.ui/src/ui/navigation/statusbar/statusbar.ts:355
 
 ## Returns
 

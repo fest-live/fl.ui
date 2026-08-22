@@ -1,4 +1,4 @@
-[**@fest-lib/fl-ui v0.1.11**](../README.md)
+[**@fest-lib/fl-ui v0.1.12**](../README.md)
 
 ***
 
@@ -10,7 +10,7 @@
 function shouldShowStatusOverlay(opts): boolean;
 ```
 
-Defined in: fl.ui/src/ui/navigation/statusbar/statusbar.ts:70
+Defined in: fl.ui/src/ui/navigation/statusbar/statusbar.ts:83
 
 Transparent top status overlay when:
 - mobile browser (not standalone), or

@@ -69,10 +69,20 @@
             --color-surface-container-high,
             --u2-color-mod(var(--base-color, #5a9ec8), 980)
         );
-        --env-app-menu-ink: var(--color-on-surface, --u2-color-mod(var(--base-color, #5a9ec8), 100));
+        /* WHY: fallbacks must flip with color-scheme — index 100/880 is dark-only. */
+        --env-app-menu-ink: var(
+            --color-on-surface,
+            light-dark(
+                --u2-color-mod(var(--base-color, #5a9ec8), 900),
+                --u2-color-mod(var(--base-color, #5a9ec8), 100)
+            )
+        );
         --env-app-menu-plate: var(
             --color-primary-container,
-            --u2-color-mod(var(--base-color, #5a9ec8), 880)
+            light-dark(
+                --u2-color-mod(var(--base-color, #5a9ec8), 160),
+                --u2-color-mod(var(--base-color, #5a9ec8), 820)
+            )
         );
     }
 
@@ -496,8 +506,8 @@
         -webkit-backdrop-filter: blur(16px) saturate(1.35);
         box-sizing: border-box;
         overflow: hidden;
-        color: var(--env-app-menu-ink);
-        --icon-color: var(--env-app-menu-accent, var(--color-primary, currentColor));
+        color: var(--color-on-primary-container, var(--env-app-menu-ink));
+        --icon-color: var(--color-on-primary-container, var(--env-app-menu-ink));
 
         /* Capacitor App Menu — circular plates by default (override via data-shape). */
         &:not([data-shape]),

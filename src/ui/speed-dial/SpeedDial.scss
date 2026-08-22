@@ -1,8 +1,8 @@
 /*
  * Filename: SpeedDial.scss
  * FullPath: modules/projects/fl.ui/src/ui/speed-dial/SpeedDial.scss
- * Change date and time: 18.15.00_22.08.2026
- * Reason for changes: Hide pending launcher bitmaps so hydrate does not flash a phone/square.
+ * Change date and time: 22.30.00_22.08.2026
+ * Reason for changes: Clock widget ink follows wallpaper luminance, not app light theme.
  */
 
 @use "../design/_wavy-runtime.scss" as *;
@@ -217,6 +217,8 @@
         gap: 0.12em;
         overflow: hidden;
         padding-block-start: 1.35rem;
+        /* INVARIANT: wallpaper overlay — do not inherit light-theme on-surface (dark). */
+        color: var(--env-launcher-fg, #f7f7f8);
     }
 
     .sd-widget__time {
@@ -231,6 +233,10 @@
         overflow: hidden;
         text-overflow: ellipsis;
         max-inline-size: 100%;
+        color: inherit;
+        text-shadow:
+            0 1px 2px var(--env-launcher-fg-shadow, rgb(0 0 0 / 0.88)),
+            0 0 12px var(--env-launcher-fg-glow, rgb(0 0 0 / 0.45));
     }
 
     .sd-widget__date {
@@ -241,6 +247,10 @@
         overflow: hidden;
         text-overflow: ellipsis;
         max-inline-size: 100%;
+        color: inherit;
+        text-shadow:
+            0 1px 2px var(--env-launcher-fg-shadow, rgb(0 0 0 / 0.88)),
+            0 0 8px var(--env-launcher-fg-glow, rgb(0 0 0 / 0.45));
     }
 
     .ui-ws-item[data-widget="android"] {
@@ -366,10 +376,10 @@
     .sd-widget__search {
         inline-size: 100%;
         min-block-size: clamp(2rem, 28cqb, 3.1rem);
-        border: 1px solid color-mix(in oklab, CanvasText 18%, transparent);
+        border: 1px solid color-mix(in oklab, var(--color-on-surface, CanvasText) 18%, transparent);
         border-radius: var(--radius-full);
-        background: color-mix(in oklab, Canvas 78%, transparent);
-        color: CanvasText;
+        background: color-mix(in oklab, var(--color-surface-container-highest, Canvas) 82%, transparent);
+        color: var(--color-on-surface, CanvasText);
         padding: 0.35rem 0.85rem;
         font: inherit;
         font-size: clamp(0.85rem, 8cqi, 1.2rem);

@@ -1,8 +1,8 @@
 /*
  * Filename: TaskBar.scss
  * FullPath: modules/projects/fl.ui/src/ui/navigation/taskbar/scss/TaskBar.scss
- * Change date and time: 13.35.00_31.07.2026
- * Reason for changes: Mobile Home is pinned to the physical right; slotted 3-col grid kept it on the left.
+ * Change date and time: 22.30.00_22.08.2026
+ * Reason for changes: Light theme — pin glyphs use on-surface ink, not contrast-color(surface).
  */
 /* Taskbar / env chrome (document + host). Former environment-shell/scss/chrome.scss. */
 //@use "veela-lib" as m;
@@ -39,8 +39,8 @@
         gap: 0px !important;
         padding: 0px 0px 0px 0px !important;
         font: 12px ui-sans-serif, system-ui, sans-serif;
-        color: var(--wf-md-on-surface-variant, oklch(0.78 0.03 274));
-        color: contrast-color(var(--wf-md-on-surface-variant, oklch(0.78 0.03 274)));
+        /* WHY: contrast-color(dark variant) painted white glyphs on the light dock. */
+        color: var(--color-on-surface, var(--wf-md-on-surface-variant, #1c1c1e));
         pointer-events: none;
     }
     
@@ -59,9 +59,16 @@
             var(--color-surface-container-high, --u2-color-mod(var(--base-color, #5a9ec8), 980)) 88%,
             transparent
         );
-        --env-taskbar-ink: var(--color-on-surface, --u2-color-mod(var(--base-color, #5a9ec8), 100));
+        --env-taskbar-ink: var(
+            --color-on-surface,
+            light-dark(
+                --u2-color-mod(var(--base-color, #5a9ec8), 900),
+                --u2-color-mod(var(--base-color, #5a9ec8), 100)
+            )
+        );
         --env-taskbar-accent: var(--wf-md-primary, var(--color-primary, #5a9ec8));
         --icon-color: var(--env-taskbar-ink);
+        color-scheme: inherit;
 
         order: 0;
         position: relative;
@@ -177,8 +184,8 @@
         }
 
         ui-task::part(icon), ui-task::part(glyph) {
-            color: contrast-color(var(--env-taskbar-surface, black));
-            --icon-color: contrast-color(var(--env-taskbar-surface, black));
+            color: var(--env-taskbar-ink);
+            --icon-color: var(--env-taskbar-ink);
         }
     }
 

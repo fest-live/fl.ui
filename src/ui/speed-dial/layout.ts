@@ -199,7 +199,8 @@ export const findNearestFreeRect = (
     preferred: GridCell,
     span: GridSpan | readonly number[] | null | undefined,
     occupied: ReadonlySet<string>,
-    layout: GridLayout | readonly number[] | null | undefined
+    layout: GridLayout | readonly number[] | null | undefined,
+    maxSearchRadius?: number
 ): GridCell => {
     const normalizedLayout = normalizeLayout(layout);
     const [sx, sy] = normalizeSpan(span);
@@ -213,7 +214,10 @@ export const findNearestFreeRect = (
     if (spanFits(start, [sx, sy], normalizedLayout) && !rectConflicts(start, [sx, sy], occupied)) {
         return start;
     }
-    const maxRadius = Math.max(columns, rows);
+    const maxRadius = Math.min(
+        Math.max(columns, rows),
+        Number.isFinite(Number(maxSearchRadius)) ? Math.max(0, Math.floor(Number(maxSearchRadius))) : Math.max(columns, rows)
+    );
     for (let radius = 1; radius <= maxRadius; radius += 1) {
         for (let y = Math.max(0, start[1] - radius); y <= Math.min(maxY, start[1] + radius); y += 1) {
             for (let x = Math.max(0, start[0] - radius); x <= Math.min(maxX, start[0] + radius); x += 1) {

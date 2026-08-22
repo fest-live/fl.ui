@@ -294,7 +294,7 @@ const META_STORAGE_KEY = `${STORAGE_KEY}::meta`;
 /** User mutations use this to keep the active workspace snapshot authoritative. */
 export const SPEED_DIAL_MUTATION_EVENT = "cwsp:speed-dial-mutation";
 
-const emitSpeedDialMutation = (kind: "add" | "update" | "remove", id: string): void => {
+export const emitSpeedDialMutation = (kind: "add" | "update" | "remove", id: string): void => {
     try {
         window.dispatchEvent(new CustomEvent(SPEED_DIAL_MUTATION_EVENT, { detail: { kind, id } }));
     } catch {

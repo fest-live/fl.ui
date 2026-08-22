@@ -37,6 +37,7 @@ import {
     upsertSpeedDialItem,
     removeSpeedDialItem,
     markSpeedDialUserEditBeforeHydrate,
+    emitSpeedDialMutation,
     persistSpeedDialItems,
     persistSpeedDialMeta,
     findSpeedDialItem,
@@ -935,6 +936,10 @@ const attachItemNode = (item: SpeedDialItem, el?: HTMLElement | null, interactiv
                     item.cell[0] = cell[0];
                     item.cell[1] = cell[1];
                     refreshRootCells(mountedRoot);
+                    /* WHY: workspace snapshot used to keep the pre-drag cell and reset on reload. */
+                    markSpeedDialUserEditBeforeHydrate();
+                    persistSpeedDialItems();
+                    emitSpeedDialMutation("update", item.id);
                 },
                 onSettled: () => {
                     requestAnimationFrame(() => syncAndroidWidgetHosts(mountedRoot));

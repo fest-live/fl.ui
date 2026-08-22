@@ -1,12 +1,13 @@
 /*
  * Filename: pointer-interaction.ts
  * FullPath: modules/projects/fl.ui/src/ui/speed-dial/pointer-interaction.ts
- * Change date and time: 19.55.00_21.08.2026
- * Reason for changes: Spanned widgets track the box center, then convert to origin.
+ * Change date and time: 14.45.00_22.08.2026
+ * Reason for changes: Drop ghost + nearby snap so widgets stay where the pointer puts them.
  */
 
 import {
     findNearestFreeRect,
+    logicalToVisualCell,
     logicalToVisualSpan,
     markOccupiedSpan,
     normalizeSpan,
@@ -37,6 +38,7 @@ type PointerInteractionOptions = {
 const DRAG_THRESHOLD_PX = 6;
 const SETTLE_DURATION_MS = 240;
 const SETTLE_EASING = "cubic-bezier(0.22, 0.8, 0.3, 1)";
+const DROP_GHOST_CLASS = "sd-drop-ghost";
 
 const centerOf = (rect: DOMRect): [number, number] => [
     (rect.left + rect.right) / 2,
@@ -223,12 +225,38 @@ export const bindPointerInteraction = (
             spanX > 1 || spanY > 1
                 ? [tracked[0] - (spanX * cellW) / 2, tracked[1] - (spanY * cellH) / 2]
                 : tracked;
+        /* WHY: spanned widgets must not teleport across the board; clamp nearby. */
+        const searchRadius = spanX > 1 || spanY > 1 ? 2 : undefined;
         return findNearestFreeRect(
-            pointToLogicalCell(originPoint, size, layout, orient),
+            pointToLogicalCell(originPoint, size, layout, orient, "round"),
             span,
             occupiedCells(options.items, options.item.id, options.getSpan),
-            layout
+            layout,
+            searchRadius
         );
+    };
+
+    const paintDropGhost = (cell: GridCell): void => {
+        const grid = iconGrid();
+        if (!grid) return;
+        let ghost = grid.querySelector<HTMLElement>(`:scope > .${DROP_GHOST_CLASS}`);
+        if (!ghost) {
+            ghost = document.createElement("div");
+            ghost.className = DROP_GHOST_CLASS;
+            ghost.setAttribute("aria-hidden", "true");
+            grid.append(ghost);
+        }
+        const layout = options.getLayout();
+        const orient = options.getOrient();
+        const [vx, vy] = logicalToVisualCell(cell, layout, orient);
+        const [sx, sy] = logicalToVisualSpan(itemSpan(), orient);
+        ghost.style.gridColumn = `${vx + 1} / span ${sx}`;
+        ghost.style.gridRow = `${vy + 1} / span ${sy}`;
+        ghost.hidden = false;
+    };
+
+    const clearDropGhost = (): void => {
+        iconGrid()?.querySelector(`:scope > .${DROP_GHOST_CLASS}`)?.remove();
     };
 
     const clearPointer = (): void => {
@@ -272,9 +300,11 @@ export const bindPointerInteraction = (
             entry.style.setProperty("--drag-y", `${dy}px`);
         }
         setInteractionState(activeNodes, "onMoving", "intermediate");
+        const hoverCell = getDropCell(lastPointerClient);
+        paintDropGhost(hoverCell);
         node.dispatchEvent(new CustomEvent("m-dragging", {
             bubbles: true,
-            detail: { dx, dy, cell: [...options.item.cell] }
+            detail: { dx, dy, cell: [...hoverCell] }
         }));
     };
 
@@ -294,6 +324,7 @@ export const bindPointerInteraction = (
             currentNodes.map((entry) => [entry, entry.getBoundingClientRect()])
         );
         const targetCell = getDropCell(dropPoint);
+        clearDropGhost();
         const run = ++animationRun;
 
         setInteractionState(currentNodes, "onRelax", "destination");
@@ -337,6 +368,7 @@ export const bindPointerInteraction = (
         node.releasePointerCapture?.(event.pointerId);
         resetTransforms(nodes());
         setInteractionState(nodes(), "onHover", "source");
+        clearDropGhost();
         clearPointer();
     };
 

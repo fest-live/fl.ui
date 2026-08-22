@@ -1,8 +1,8 @@
 /*
  * Filename: action-registry.ts
  * FullPath: modules/projects/fl.ui/src/ui/speed-dial/action-registry.ts
- * Change date and time: 11.26.00_03.08.2026
- * Reason for changes: Cherry-pick richer open-view / open-link builtins + markdown-view alias normalization from second half (Task 4).
+ * Change date and time: 17.45.00_22.08.2026
+ * Reason for changes: Copy shortcut uses the shared clipboard envelope (Cap/CRX + in-session).
  */
 
 import { navigate } from "@fest-lib/lure";
@@ -18,7 +18,7 @@ import {
     normalizeOpenLinkTarget,
     resolveItemOpenLinkTarget,
     resolveSpeedDialItemHref,
-    snapshotSpeedDialItem,
+    copySpeedDialItemToClipboard,
     getSpeedDialMeta,
     tileIconFetchSize,
     type SpeedDialItem,
@@ -755,7 +755,7 @@ const installBuiltins = (): void => {
     labelsPerAction.set("open-view", (d: any) => `Open ${d?.label || "view"}`);
     labelsPerAction.set("open-link", (d: any) => (d?.label ? `Open ${d.label}` : "Open link"));
     labelsPerAction.set("copy-link", () => "Copy link");
-    labelsPerAction.set("copy-state-desc", () => "Copy shortcut JSON");
+    labelsPerAction.set("copy-state-desc", () => "Copy shortcut");
 
     actionRegistry.set("open-view", async (context: any, entityDesc?: any) => {
         const item = context?.items?.find?.((i: SpeedDialItem) => i?.id === context?.id) || null;
@@ -952,15 +952,9 @@ const installBuiltins = (): void => {
             showError("Nothing to copy");
             return;
         }
-        const snapshot = snapshotSpeedDialItem(item);
-        if (!snapshot) {
-            showError("Nothing to copy");
-            return;
-        }
         try {
-            const text = JSON.stringify(snapshot, null, 2);
-            await copyTextToClipboard(text);
-            showSuccess("Shortcut saved to clipboard");
+            await copySpeedDialItemToClipboard(item);
+            showSuccess("Shortcut copied");
         } catch (e) {
             console.warn(e);
             showError("Failed to copy shortcut");

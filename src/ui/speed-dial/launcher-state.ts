@@ -1,8 +1,8 @@
 /*
  * Filename: launcher-state.ts
  * FullPath: modules/projects/fl.ui/src/ui/speed-dial/launcher-state.ts
- * Change date and time: 09.35.00_19.08.2026
- * Reason for changes: Workspace settings apply grid/shape/default action via cwsp:workspace-grid.
+ * Change date and time: 17.45.00_22.08.2026
+ * Reason for changes: Shortcut copy/paste envelope + new ids so clones do not collide across sides.
  *
  * Speed-dial / launcher persistence for fl.ui only (no core).
  * Storage keys match CWSP-shell `StateStorage` so shells sharing one origin keep one grid.
@@ -1020,17 +1020,18 @@ export type SpeedDialSnapshot = {
     items: SpeedDialPersistedItem[];
 };
 
-export const captureSpeedDialSnapshot = (): SpeedDialSnapshot => {
-    const items: SpeedDialPersistedItem[] = (speedDialItems || []).map((item) => {
-        const packed = serializeItemState(item);
-        const meta = getSpeedDialMeta(item.id);
-        return {
-            ...packed,
-            ...(meta ? { meta: fallbackClone(meta) } : {})
-        };
-    });
-    return { items };
+export const packSpeedDialItem = (item: SpeedDialItem): SpeedDialPersistedItem => {
+    const packed = serializeItemState(item);
+    const meta = getSpeedDialMeta(item.id);
+    return {
+        ...packed,
+        ...(meta ? { meta: fallbackClone(meta) } : {})
+    };
 };
+
+export const captureSpeedDialSnapshot = (): SpeedDialSnapshot => ({
+    items: (speedDialItems || []).map((item) => packSpeedDialItem(item))
+});
 
 export const applySpeedDialSnapshot = (snapshot: SpeedDialSnapshot | null | undefined): void => {
     markUserEditedBeforeHydrate();
@@ -1612,6 +1613,27 @@ export function findNextFreeSpeedDialCell(span: GridSpan | readonly number[] = [
     return findNearestFreeRect([0, 0], span, occupied, [columns, rows]);
 }
 
+/** First free cell inside a packed workspace snapshot (Side B/C while A is live). */
+export function findNextFreeCellInSnapshot(
+    snapshot: SpeedDialSnapshot | null | undefined,
+    prefer?: GridCell,
+    span: GridSpan | readonly number[] = [1, 1]
+): GridCell {
+    const columns = Math.max(1, Math.min(16, Number(gridLayoutState?.columns) || 4));
+    const rows = Math.max(1, Math.min(16, Number(gridLayoutState?.rows) || 8));
+    const occupied = new Set<string>();
+    for (const raw of snapshot?.items || []) {
+        if (!raw) continue;
+        const origin: GridCell = [Number((raw.cell as number[])?.[0]) || 0, Number((raw.cell as number[])?.[1]) || 0];
+        const packedSpan = normalizeSpan([
+            Number((raw.meta as { spanCols?: number } | undefined)?.spanCols) || 1,
+            Number((raw.meta as { spanRows?: number } | undefined)?.spanRows) || 1
+        ]);
+        markOccupiedSpan(occupied, origin, packedSpan);
+    }
+    return findNearestFreeRect(prefer || [0, 0], span, occupied, [columns, rows]);
+}
+
 const querySpeedDialGridElement = (): HTMLElement | null =>
     document.querySelector<HTMLElement>('#home .speed-dial-grid[data-grid-layer="icons"]') ||
     document.querySelector<HTMLElement>("#home .speed-dial-grid:last-of-type") ||
@@ -1699,7 +1721,7 @@ export const snapshotSpeedDialItem = (item: SpeedDialItem) => {
     return {
         state: {
             id: item.id,
-            cell: observe([item.cell?.[0] ?? 0, item.cell?.[1] ?? 0]),
+            cell: [Number(item.cell?.[0]) || 0, Number(item.cell?.[1]) || 0] as GridCell,
             icon: unwrapRef(item.icon, ""),
             label: unwrapRef(item.label, "")
         },
@@ -1708,6 +1730,37 @@ export const snapshotSpeedDialItem = (item: SpeedDialItem) => {
             meta: metaSnapshot
         }
     };
+};
+
+/** Clone a tile without keeping the source id (paste / Side B/C must not collide). */
+export const cloneSpeedDialItemPacked = (item: SpeedDialItem, cell?: GridCell): SpeedDialPersistedItem => {
+    const snap = snapshotSpeedDialItem(item);
+    const meta = fallbackClone((snap.desc?.meta || {}) as SpeedDialItemMeta);
+    const action = String(snap.desc?.action || item.action || "open-view");
+    meta.action = action;
+    return {
+        id: generateItemId(),
+        cell: cell
+            ? [Number(cell[0]) || 0, Number(cell[1]) || 0]
+            : [Number(item.cell?.[0]) || 0, Number(item.cell?.[1]) || 0],
+        icon: String(snap.state?.icon || unwrapRef(item.icon, "sparkle") || "sparkle"),
+        label: String(snap.state?.label || unwrapRef(item.label, "Shortcut") || "Shortcut"),
+        action,
+        meta
+    };
+};
+
+export const addClonedSpeedDialItem = (source: SpeedDialItem, cell?: GridCell): SpeedDialItem | null => {
+    const packed = cloneSpeedDialItemPacked(source, cell);
+    const item = createStatefulItem(packed);
+    ensureSpeedDialMeta(item.id, { action: packed.action, ...(packed.meta || {}) });
+    if (!cell) {
+        const free = findNextFreeSpeedDialCell(getItemSpan(item.id));
+        item.cell[0] = free[0];
+        item.cell[1] = free[1];
+    }
+    addSpeedDialItem(item);
+    return item;
 };
 
 const WALLPAPER_KEY = "cw::workspace::wallpaper";
@@ -2087,6 +2140,19 @@ const looksLikeJsonObject = (raw: string): boolean => {
     return (t.startsWith("{") && t.endsWith("}")) || (t.startsWith("[") && t.endsWith("]"));
 };
 
+export const SPEED_DIAL_CLIP_KIND = "cwsp.speed-dial.shortcut";
+
+/** Pretty or compact shortcut JSON — not a single `{` line from stringify(..., 2). */
+export const looksLikeSpeedDialShortcutJson = (raw: string): boolean => {
+    const t = String(raw || "").trim();
+    if (!t.startsWith("{") || !t.endsWith("}")) return false;
+    return (
+        /"kind"\s*:\s*"cwsp\.speed-dial\.shortcut"/.test(t) ||
+        /"state"\s*:/.test(t) ||
+        /"desc"\s*:/.test(t)
+    );
+};
+
 /**
  * Explorer virtual paths (`/bookmarks/…`, `/user/…`, `/assets/…`).
  * WHY: drag from Explorer used to put these in `text/plain`; they are not JSON.
@@ -2145,17 +2211,25 @@ export const parseSpeedDialItemFromJSON = (jsonText: string, suggestedCell?: Gri
     }
     if (!looksLikeJsonObject(raw)) return null;
     try {
-        const parsed = JSON.parse(raw) as any;
-        if (!parsed || typeof parsed !== "object") return null;
+        const parsedRaw = JSON.parse(raw) as any;
+        if (!parsedRaw || typeof parsedRaw !== "object") return null;
+
+        const parsed =
+            parsedRaw.kind === SPEED_DIAL_CLIP_KIND && parsedRaw.snapshot
+                ? parsedRaw.snapshot
+                : parsedRaw;
 
         const state = parsed.state || parsed;
         const desc = parsed.desc || parsed.meta || {};
 
         if (!state || typeof state !== "object") return null;
 
-        const cellValue = state.cell && Array.isArray(state.cell) && state.cell.length >= 2
-            ? [Number(state.cell[0]) || 0, Number(state.cell[1]) || 0] as GridCell
-            : (suggestedCell || [0, 0] as GridCell);
+        /* WHY: paste must land on the click/pointer cell; keep source cell only when none given. */
+        const cellValue = suggestedCell
+            ? ([Number(suggestedCell[0]) || 0, Number(suggestedCell[1]) || 0] as GridCell)
+            : state.cell && Array.isArray(state.cell) && state.cell.length >= 2
+                ? [Number(state.cell[0]) || 0, Number(state.cell[1]) || 0] as GridCell
+                : ([0, 0] as GridCell);
 
         const href = String(desc.href || desc.meta?.href || state.href || "").trim();
         const path = String(desc.path || desc.meta?.path || state.path || "").trim();
@@ -2165,7 +2239,7 @@ export const parseSpeedDialItemFromJSON = (jsonText: string, suggestedCell?: Gri
             (href ? "open-link" : path ? "open-path" : "open-view");
 
         const item = createStatefulItem({
-            id: state.id || generateItemId(),
+            id: generateItemId(),
             cell: cellValue,
             icon:
                 state.icon ||
@@ -2675,7 +2749,17 @@ const guessMimeFromLabelOrHref = (label: string, href: string): string => {
 };
 
 const CLIPBOARD_READ_HOOK = "__CWSP_READ_CLIPBOARD_TEXT__";
+const CLIPBOARD_WRITE_HOOK = "__CWSP_WRITE_CLIPBOARD_TEXT__";
 const CAP_CLIPBOARD_PKGS = ["@capacitor/clipboard", "@supernotes/capacitor-clipboard"] as const;
+const CLIP_TEXT_MAX = 80_000;
+
+type SpeedDialClipEnvelope = {
+    kind: typeof SPEED_DIAL_CLIP_KIND;
+    v: 1;
+    snapshot: ReturnType<typeof snapshotSpeedDialItem>;
+};
+
+let lastCopiedSpeedDial: SpeedDialClipEnvelope | null = null;
 
 const isCapacitorNativeHost = (): boolean => {
     try {
@@ -2714,6 +2798,78 @@ const readClipboardTextNative = async (): Promise<string> => {
     return "";
 };
 
+const writeClipboardTextNative = async (text: string): Promise<boolean> => {
+    const hook = (globalThis as Record<string, unknown>)[CLIPBOARD_WRITE_HOOK];
+    if (typeof hook === "function") {
+        try {
+            await (hook as (value: string) => Promise<unknown>)(text);
+            return true;
+        } catch {
+            /* fall through */
+        }
+    }
+    if (!isCapacitorNativeHost()) return false;
+    for (const pkg of CAP_CLIPBOARD_PKGS) {
+        try {
+            const mod = (await import(/* @vite-ignore */ pkg)) as {
+                Clipboard?: { write: (opts: { string: string }) => Promise<void> };
+            };
+            if (!mod?.Clipboard?.write) continue;
+            await mod.Clipboard.write({ string: text });
+            return true;
+        } catch {
+            /* package missing in this shell */
+        }
+    }
+    return false;
+};
+
+const writeClipboardTextBrowser = async (text: string): Promise<void> => {
+    if (await writeClipboardTextNative(text)) return;
+    if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(text);
+        return;
+    }
+    if (typeof document === "undefined") throw new Error("clipboard write unavailable");
+    const ta = document.createElement("textarea");
+    ta.value = text;
+    ta.style.position = "fixed";
+    ta.style.left = "-9999px";
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand("copy");
+    ta.remove();
+};
+
+export const copySpeedDialItemToClipboard = async (item: SpeedDialItem): Promise<void> => {
+    const snapshot = snapshotSpeedDialItem(item);
+    if (!snapshot) throw new Error("empty");
+    const envelope: SpeedDialClipEnvelope = { kind: SPEED_DIAL_CLIP_KIND, v: 1, snapshot };
+    lastCopiedSpeedDial = envelope;
+    let text = JSON.stringify(envelope);
+    if (text.length > CLIP_TEXT_MAX) {
+        const slim = fallbackClone(envelope);
+        const meta = slim.snapshot?.desc?.meta as { iconUrl?: string } | undefined;
+        if (meta && typeof meta.iconUrl === "string" && /^(data:|blob:)/i.test(meta.iconUrl)) {
+            delete meta.iconUrl;
+        }
+        text = JSON.stringify(slim);
+    }
+    try {
+        await writeClipboardTextBrowser(text);
+    } catch (e) {
+        /* WHY: Cap/CRX OS clipboard can fail; in-session paste still uses lastCopiedSpeedDial. */
+        console.warn("OS clipboard write failed; in-session paste still works", e);
+    }
+};
+
+export const hasCopiedSpeedDialItem = (): boolean => lastCopiedSpeedDial != null;
+
+const materializeCopiedSpeedDial = (suggestedCell?: GridCell): SpeedDialItem | null => {
+    if (!lastCopiedSpeedDial) return null;
+    return parseSpeedDialItemFromJSON(JSON.stringify(lastCopiedSpeedDial), suggestedCell);
+};
+
 const readClipboardTextBrowser = async (): Promise<{ ok: boolean; data?: string; error?: string }> => {
     try {
         const native = await readClipboardTextNative();
@@ -2731,17 +2887,28 @@ const readClipboardTextBrowser = async (): Promise<{ ok: boolean; data?: string;
 
 export const createSpeedDialItemFromClipboard = async (suggestedCell?: GridCell): Promise<SpeedDialItem | null> => {
     const clipboardResult = await readClipboardTextBrowser();
-    if (!clipboardResult.ok) {
-        console.warn("Failed to read clipboard text:", clipboardResult.error);
-        throw new Error(clipboardResult.error || "clipboard read failed");
-    }
-
-    const clipboardText = String(clipboardResult.data ?? "");
-    if (!clipboardText.trim()) {
-        throw new Error("clipboard empty");
-    }
+    const clipboardText = clipboardResult.ok ? String(clipboardResult.data ?? "") : "";
 
     try {
+        /* WHY: pretty JSON and href fields must win over URL scraping / first-line `{`. */
+        if (looksLikeSpeedDialShortcutJson(clipboardText)) {
+            const parsed = parseSpeedDialItemFromJSON(clipboardText, suggestedCell);
+            if (parsed) return parsed;
+        }
+
+        if (!clipboardResult.ok) {
+            const fromMemory = materializeCopiedSpeedDial(suggestedCell);
+            if (fromMemory) return fromMemory;
+            console.warn("Failed to read clipboard text:", clipboardResult.error);
+            throw new Error(clipboardResult.error || "clipboard read failed");
+        }
+
+        if (!clipboardText.trim()) {
+            const fromMemory = materializeCopiedSpeedDial(suggestedCell);
+            if (fromMemory) return fromMemory;
+            throw new Error("clipboard empty");
+        }
+
         const firstLine =
             clipboardText
                 .split(/\r?\n/)
@@ -2766,15 +2933,21 @@ export const createSpeedDialItemFromClipboard = async (suggestedCell?: GridCell)
             return parseSpeedDialItemFromVirtualPath(trimmed, suggestedCell);
         }
 
-        if (looksLikeJsonObject(trimmed)) {
-            const parsed = parseSpeedDialItemFromJSON(trimmed, suggestedCell);
+        if (looksLikeJsonObject(clipboardText.trim()) || looksLikeJsonObject(trimmed)) {
+            const parsed = parseSpeedDialItemFromJSON(
+                looksLikeJsonObject(clipboardText.trim()) ? clipboardText : trimmed,
+                suggestedCell
+            );
             if (parsed) return parsed;
         }
 
-        return null;
+        return materializeCopiedSpeedDial(suggestedCell);
     } catch (e) {
         console.warn("Failed to create speed dial item from clipboard:", e);
-        return null;
+        if (/empty|failed|unavailable|denied|permission/i.test(String((e as Error)?.message || e || ""))) {
+            throw e;
+        }
+        return materializeCopiedSpeedDial(suggestedCell);
     }
 };
 

@@ -1,8 +1,8 @@
 /*
  * Filename: SpeedDial.ts
  * FullPath: modules/projects/fl.ui/src/ui/speed-dial/SpeedDial.ts
- * Change date and time: 19.25.00_21.08.2026
- * Reason for changes: Widget hosts are shapeless — no tile plate or under-shadow.
+ * Change date and time: 17.45.00_22.08.2026
+ * Reason for changes: Copy/paste shortcuts + clone to other sides; ignore page-turn ghost icons.
  */
 
 import { observe, numberRef, propRef, stringRef, affected } from "@fest-lib/object";
@@ -48,6 +48,9 @@ import {
     persistWallpaper,
     gridLayoutState,
     createSpeedDialItemFromClipboard,
+    copySpeedDialItemToClipboard,
+    addClonedSpeedDialItem,
+    looksLikeSpeedDialShortcutJson,
     parseSpeedDialItemFromJSON,
     parseSpeedDialItemFromURL,
     parseSpeedDialItemFromSmartText,
@@ -77,6 +80,7 @@ import { setSpeedDialViewOpener, getSpeedDialViewOpener } from "./view-opener";
 import {
     bootWorkspacePages,
     bindWorkspacePageHotkeys,
+    cloneSpeedDialItemToWorkspace,
     getActiveWorkspaceId,
     listWorkspacePages,
     switchWorkspaceByDelta,
@@ -256,6 +260,7 @@ const applyVisualCell = (el: HTMLElement, item: SpeedDialItem, root?: HTMLElemen
             const itemId = String(item.id || "");
             let iconSibling: HTMLElement | null = null;
             root?.querySelectorAll<HTMLElement>('[data-speed-dial-item][data-layer="icons"]').forEach((node) => {
+                if (!isLiveSpeedDialNode(node)) return;
                 if (!iconSibling && node.dataset.id === itemId) iconSibling = node;
             });
             const anchorRect = iconSibling?.getBoundingClientRect() || itemRect;
@@ -809,6 +814,7 @@ const bindCell = (el: HTMLElement, args: any): void => {
 //
 let lastItemOpenKey = "";
 let lastItemOpenAt = 0;
+let lastFocusedSpeedDialId = "";
 
 const runItemAction = (
     item: SpeedDialItem,
@@ -854,6 +860,9 @@ const attachItemNode = (item: SpeedDialItem, el?: HTMLElement | null, interactiv
     el.dataset.id = item.id;
     el.dataset.speedDialItem = "true";
     if (interactive) {
+        el.addEventListener("pointerdown", () => {
+            lastFocusedSpeedDialId = item.id;
+        });
         el.addEventListener("dragstart", (ev)=>ev.preventDefault());
         bindSpeedDialTileIconChrome(el, item);
         if (resolveItemAction(item) === "launch-app" || resolveItemAction(item) === "launch-shortcut") {
@@ -1160,6 +1169,15 @@ const parseShortcutFromTransfer = (transfer: DataTransfer | null | undefined, su
     const plain = String(transfer.getData("text/plain") || "").trim();
     const html = String(transfer.getData("text/html") || "").trim();
     const jsonMime = String(transfer.getData("application/json") || "").trim();
+    /* WHY: pretty shortcut JSON contains href lines — parse the envelope before URL scraping. */
+    if (looksLikeSpeedDialShortcutJson(plain)) {
+        const item = parseSpeedDialItemFromJSON(plain, suggestedCell);
+        if (item) return item;
+    }
+    if (looksLikeSpeedDialShortcutJson(jsonMime)) {
+        const item = parseSpeedDialItemFromJSON(jsonMime, suggestedCell);
+        if (item) return item;
+    }
     // WHY: prefer the Explorer JSON envelope (bookmark title + href/path) over
     // a hostname-only `open-link` tile built from uri-list.
     if (jsonMime) {
@@ -1273,6 +1291,56 @@ const isHomeWorkspaceSurface = (event: Event): boolean => {
         )
     );
 };
+
+const copySpeedDialItemAction = (item: SpeedDialItem) => async (): Promise<void> => {
+    try {
+        await copySpeedDialItemToClipboard(item);
+        showSuccess("Shortcut copied");
+    } catch (e) {
+        console.warn(e);
+        showError("Failed to copy shortcut");
+    }
+};
+
+const pasteSpeedDialItemAction = (suggestedCell: GridCell) => async (): Promise<void> => {
+    try {
+        const speedDialItem = await createSpeedDialItemFromClipboard(suggestedCell);
+        if (!speedDialItem) {
+            showError("Clipboard does not contain a valid URL or shortcut JSON");
+            return;
+        }
+        addSpeedDialItem(speedDialItem);
+        persistSpeedDialItems();
+        persistSpeedDialMeta();
+        showSuccess("Shortcut created from clipboard");
+    } catch (e) {
+        console.warn(e);
+        const msg = String((e as Error)?.message || e || "");
+        if (/empty/i.test(msg)) {
+            showError("Clipboard is empty");
+        } else if (/unavailable|denied|failed|permission/i.test(msg)) {
+            showError("Could not read clipboard on this device");
+        } else {
+            showError("Failed to paste shortcut");
+        }
+    }
+};
+
+const cloneToOtherSidesEntries = (item: SpeedDialItem): ContextMenuEntry[] =>
+    listWorkspacePages()
+        .filter((page) => page.id !== getActiveWorkspaceId())
+        .map((page) => ({
+            id: `clone-to-${page.id}`,
+            label: page.label,
+            icon: "copy",
+            action: () => {
+                if (cloneSpeedDialItemToWorkspace(item, page.id)) {
+                    showSuccess(`Copied to ${page.label}`);
+                    return;
+                }
+                showError(`Could not copy to ${page.label}`);
+            }
+        }));
 
 const createMenuEntryForAction = (actionId: string, item: SpeedDialItem, fallbackLabel: string = "", makeView?: any) => {
     const descriptor = buildDescriptor(item) as any;
@@ -1482,6 +1550,21 @@ const ensureHomeTransferListeners = (): void => {
         "paste",
         (event: ClipboardEvent) => {
             void handleWallpaperDropOrPaste(event);
+        },
+        true
+    );
+    document.addEventListener(
+        "keydown",
+        (event: KeyboardEvent) => {
+            if (!(event.ctrlKey || event.metaKey) || event.altKey) return;
+            if (event.key !== "c" && event.key !== "C") return;
+            if (isEditablePasteTarget(resolveDeepActiveElement())) return;
+            const home = document.getElementById("home");
+            if (!home?.isConnected) return;
+            const item = findSpeedDialItem(lastFocusedSpeedDialId);
+            if (!item) return;
+            event.preventDefault();
+            void copySpeedDialItemAction(item)();
         },
         true
     );
@@ -2033,7 +2116,9 @@ export function createCtxMenu(makeView?: any) {
             const targetEl = target?.closest?.("[data-speed-dial-item]");
             const itemId = targetEl?.getAttribute?.("data-id");
             const item = findSpeedDialItem(itemId);
+            if (item?.id) lastFocusedSpeedDialId = item.id;
             const guessedCell = deriveCellFromEvent(event) ?? deriveCellFromAnchor();
+            const otherSides = item ? cloneToOtherSidesEntries(item) : [];
             const toLeaf = (entry: any): ContextMenuEntry => ({
                 id: String(entry?.id || "menu-action"),
                 label: String(entry?.label || "Action"),
@@ -2056,6 +2141,18 @@ export function createCtxMenu(makeView?: any) {
                         label: "Open",
                         icon: "play",
                         action: () => runItemAction(item, undefined, { event, initiator: targetEl as HTMLElement }, getSpeedDialViewOpener() || makeView)
+                    },
+                    {
+                        id: "copy-shortcut",
+                        label: "Copy shortcut",
+                        icon: "copy",
+                        action: copySpeedDialItemAction(item)
+                    },
+                    {
+                        id: "paste-shortcut",
+                        label: "Paste shortcut",
+                        icon: "clipboard",
+                        action: pasteSpeedDialItemAction(guessedCell)
                     },
                     {
                         id: "actions",
@@ -2084,7 +2181,7 @@ export function createCtxMenu(makeView?: any) {
                                 },
                                 toLeaf(createMenuEntryForAction("copy-link", item, "Copy link", getSpeedDialViewOpener() || makeView))
                             ] : []),
-                            toLeaf(createMenuEntryForAction("copy-state-desc", item, "Copy shortcut JSON", getSpeedDialViewOpener() || makeView))
+                            toLeaf(createMenuEntryForAction("copy-state-desc", item, "Copy shortcut", getSpeedDialViewOpener() || makeView))
                         ]
                     },
                     {
@@ -2120,6 +2217,27 @@ export function createCtxMenu(makeView?: any) {
                         action: () => {},
                         children: [
                             { id: "edit", label: "Edit Properties", icon: "pencil-simple-line", action: ()=>openItemEditor(item) },
+                            {
+                                id: "duplicate",
+                                label: "Duplicate here",
+                                icon: "copy",
+                                action: () => {
+                                    if (addClonedSpeedDialItem(item)) {
+                                        showSuccess("Shortcut duplicated");
+                                        return;
+                                    }
+                                    showError("Could not duplicate shortcut");
+                                }
+                            },
+                            ...(otherSides.length
+                                ? [{
+                                    id: "copy-to-side",
+                                    label: "Copy to side",
+                                    icon: "squares-four",
+                                    action: () => {},
+                                    children: otherSides
+                                }]
+                                : []),
                             {
                                 id: "remove",
                                 label: "Remove",
@@ -2201,31 +2319,15 @@ export function createCtxMenu(makeView?: any) {
                                 id: "paste-shortcut",
                                 label: "Paste shortcut",
                                 icon: "clipboard",
-                                action: async ()=>{
-                                    try {
-                                        const speedDialItem = await createSpeedDialItemFromClipboard(guessedCell);
-                                        if (!speedDialItem) {
-                                            showError("Clipboard does not contain a valid URL or shortcut JSON");
-                                            return;
-                                        }
-                                        addSpeedDialItem(speedDialItem);
-                                        persistSpeedDialItems();
-                                        persistSpeedDialMeta();
-                                        showSuccess("Shortcut created from clipboard");
-                                    } catch (e) {
-                                        console.warn(e);
-                                        const msg = String((e as Error)?.message || e || "");
-                                        if (/empty/i.test(msg)) {
-                                            showError("Clipboard is empty");
-                                        } else if (/unavailable|denied|failed|permission/i.test(msg)) {
-                                            showError("Could not read clipboard on this device");
-                                        } else {
-                                            showError("Failed to paste shortcut");
-                                        }
-                                    }
-                                }
+                                action: pasteSpeedDialItemAction(guessedCell)
                             }
                         ]
+                    },
+                    {
+                        id: "paste-shortcut-root",
+                        label: "Paste shortcut",
+                        icon: "clipboard",
+                        action: pasteSpeedDialItemAction(guessedCell)
                     },
                     {
                         id: "open",

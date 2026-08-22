@@ -1,8 +1,8 @@
 /*
  * Filename: ContextMenu.ts
  * FullPath: modules/projects/fl.ui/src/ui/explorer/ContextMenu.ts
- * Change date and time: 12.18.00_03.08.2026
- * Reason for changes: Wallpaper-seed menu chrome (no slate !important stamps); theme pin for light/dark ink.
+ * Change date and time: 17.45.00_22.08.2026
+ * Reason for changes: Clamp submenus to the viewport (JS placement + max-height), not CSS-anchor overflow.
  */
 
 import { MOCElement } from "@fest-lib/dom";
@@ -55,6 +55,32 @@ const submenuAnchorByDepth = new Map<number, HTMLButtonElement>();
 const submenuPlacementByDepth = new Map<number, PlacementHandle>();
 const submenuOpenTimers = new Map<number, ReturnType<typeof setTimeout>>();
 const submenuCloseTimers = new Map<number, ReturnType<typeof setTimeout>>();
+
+const SUBMENU_FALLBACKS: Parameters<typeof placeOverlay>[1]["fallbacks"] = [
+    "left-start",
+    "right-end",
+    "left-end",
+    "bottom-start",
+    "top-start",
+];
+
+/**
+ * WHY: Chromium CSS Anchor (`strategy: auto`) only flips — it does not keep the
+ * submenu inside the visual viewport. Force the JS solver + a post-layout
+ * measure so the first paint (icons/fonts) cannot leave a 0×0 clamp.
+ */
+const placeMenuOverlay = (
+    menu: HTMLElement,
+    options: Parameters<typeof placeOverlay>[1],
+): PlacementHandle => {
+    const handle = placeOverlay(menu, { ...options, strategy: "js" });
+    if (typeof requestAnimationFrame === "function") {
+        requestAnimationFrame(() => {
+            handle.update?.();
+        });
+    }
+    return handle;
+};
 
 /**
  * WHY: Before Settings opens, `html[data-theme]` may lag OS prefers-color-scheme.
@@ -201,6 +227,12 @@ const ensureStyle = (): void => {
             -webkit-backdrop-filter: blur(10px) !important;
             pointer-events: auto;
             user-select: none;
+            /* WHY: nested Actions/Open-in menus are taller than the remaining
+             * viewport; CSS Anchor flip does not clamp, so the panel must scroll. */
+            max-height: min(80dvh, calc(100vh - 16px));
+            overflow-x: hidden;
+            overflow-y: auto;
+            overscroll-behavior: contain;
         }
 
         html[data-theme="light"] .cw-context-menu,
@@ -453,11 +485,11 @@ const buildMenuElement = (
         menuLayer.appendChild(submenu);
         submenuByDepth.set(nextDepth, submenu);
         submenuAnchorByDepth.set(nextDepth, anchorButton);
-        submenuPlacementByDepth.set(nextDepth, placeOverlay(submenu, {
+        submenuPlacementByDepth.set(nextDepth, placeMenuOverlay(submenu, {
             origin: { type: "element", element: anchorButton },
             placement: "right-start",
-            fallbacks: ["left-start", "right-end", "left-end"],
-            strategy: placementStrategy,
+            fallbacks: SUBMENU_FALLBACKS,
+            strategy: "js",
         }));
     };
 
@@ -588,7 +620,7 @@ export const openUnifiedContextMenu = (request: ContextMenuOpenRequest): void =>
     const menu = buildMenuElement(entries, Boolean(request.compact), 0, session, submenuPlacementStrategy);
     rootMenu = menu;
     layer.appendChild(menu);
-    rootMenuPlacement = placeOverlay(menu, {
+    rootMenuPlacement = placeMenuOverlay(menu, {
         origin: { type: "point", x: request.x, y: request.y },
         placement: "bottom-start",
         gap: 0,

@@ -1,15 +1,19 @@
 /*
  * Filename: workspace-pages.ts
  * FullPath: modules/projects/fl.ui/src/ui/speed-dial/workspace-pages.ts
- * Change date and time: 19.10.00_21.08.2026
- * Reason for changes: Mark page-turn ghosts so live labels do not copy their cells.
+ * Change date and time: 17.45.00_22.08.2026
+ * Reason for changes: Clone tiles onto other sides; clear leftover page-turn ghost icons.
  */
 
 import { resolveFsBackend } from "#fl-ui/explorer/path-router";
 import {
+    addClonedSpeedDialItem,
     applySpeedDialSnapshot,
     captureSpeedDialSnapshot,
+    cloneSpeedDialItemPacked,
+    findNextFreeCellInSnapshot,
     SPEED_DIAL_MUTATION_EVENT,
+    type SpeedDialItem,
     type SpeedDialSnapshot
 } from "./launcher-state";
 import { hideAndroidWidgetHosts, syncAndroidWidgetHosts } from "./widgets";
@@ -196,12 +200,48 @@ const workspaceTurnTargets = (): HTMLElement[] => {
     return grids.length ? grids : [root];
 };
 
+const clearWorkspaceTurnGhosts = (root?: HTMLElement | null): void => {
+    const scope = root || (typeof document !== "undefined" ? document : null);
+    if (!scope?.querySelectorAll) return;
+    scope.querySelectorAll(".speed-dial-grid--turn-ghost").forEach((node) => node.remove());
+    scope.querySelectorAll<HTMLElement>("[data-ws-turning]").forEach((el) => {
+        delete el.dataset.wsTurning;
+        el.querySelectorAll<HTMLElement>(".speed-dial-grid").forEach((grid) => {
+            grid.style.opacity = "";
+        });
+    });
+};
+
+/**
+ * Clone a shortcut onto another Side without sharing the live id.
+ * INVARIANT: inactive pages only receive a packed snapshot row — live meta stays on the active grid.
+ */
+export const cloneSpeedDialItemToWorkspace = (item: SpeedDialItem, targetId: string): boolean => {
+    const cat = readCatalog();
+    if (!item || !cat.pages.some((page) => page.id === targetId)) return false;
+    if (targetId === (cat.activeId || "side-a")) {
+        return Boolean(addClonedSpeedDialItem(item));
+    }
+    const snap = cat.snapshots[targetId] || { items: [] };
+    const packed = cloneSpeedDialItemPacked(item);
+    packed.cell = findNextFreeCellInSnapshot(snap, packed.cell as [number, number], [
+        Number(packed.meta?.spanCols) || 1,
+        Number(packed.meta?.spanRows) || 1
+    ]);
+    snap.items = [...(snap.items || []), packed];
+    cat.snapshots[targetId] = snap;
+    writeCatalog(cat);
+    return true;
+};
+
 /**
  * Clone outgoing tiles, then return a closer that turns the new page in.
  * WHY: snapshot apply stays synchronous so rapid A→C clicks never persist the wrong page.
  */
 const beginWorkspacePageTurn = (direction: number): (() => void) => {
     const targets = workspaceTurnTargets();
+    const root = targets[0]?.closest<HTMLElement>(".speed-dial-root") || targets[0] || null;
+    clearWorkspaceTurnGhosts(root);
     if (!targets.length || prefersReducedMotion() || typeof targets[0].animate !== "function") {
         return () => undefined;
     }
@@ -210,8 +250,8 @@ const beginWorkspacePageTurn = (direction: number): (() => void) => {
     const inDeg = `${88 * dir}deg`;
     const outX = `${-18 * dir}%`;
     const inX = `${18 * dir}%`;
-    const root = targets[0].closest<HTMLElement>(".speed-dial-root") || targets[0];
-    root.dataset.wsTurning = dir > 0 ? "next" : "prev";
+    const turnRoot = root || targets[0];
+    turnRoot.dataset.wsTurning = dir > 0 ? "next" : "prev";
     const ghosts: HTMLElement[] = [];
     for (const el of targets) {
         const ghost = el.cloneNode(true) as HTMLElement;
@@ -229,6 +269,11 @@ const beginWorkspacePageTurn = (direction: number): (() => void) => {
             { duration: 180, easing: "cubic-bezier(.4, 0, .2, 1)", fill: "forwards" }
         );
     }
+    const finishCleanup = (): void => {
+        for (const el of targets) el.style.opacity = "";
+        for (const ghost of ghosts) ghost.remove();
+        delete turnRoot.dataset.wsTurning;
+    };
     return () => {
         const incoming = targets.map((el) =>
             el.animate(
@@ -239,11 +284,11 @@ const beginWorkspacePageTurn = (direction: number): (() => void) => {
                 { duration: 220, easing: "cubic-bezier(.22, 1, .36, 1)", fill: "none" }
             )
         );
-        void Promise.all(incoming.map((anim) => anim.finished.catch(() => undefined))).then(() => {
-            for (const el of targets) el.style.opacity = "";
-            for (const ghost of ghosts) ghost.remove();
-            delete root.dataset.wsTurning;
+        const done = Promise.all(incoming.map((anim) => anim.finished.catch(() => undefined)));
+        const watchdog = new Promise<void>((resolve) => {
+            setTimeout(resolve, 500);
         });
+        void Promise.race([done, watchdog]).then(finishCleanup);
     };
 };
 

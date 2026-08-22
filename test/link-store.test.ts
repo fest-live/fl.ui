@@ -238,6 +238,37 @@ test("writeLinkStore refuses to wipe existing curated files with an empty list",
     assert.ok(io.files[LINKS_JSON], "legacy links.json kept");
 });
 
+test("writeLinkStore allowEmpty wipes the last curated tile", async () => {
+    const io = memoryIo({
+        [itemJsonPath("shortcut-network")]: JSON.stringify({
+            id: "shortcut-network",
+            label: "Network",
+            action: "open-view",
+            icon: "sparkle"
+        })
+    });
+    await writeLinkStore(io, [], { version: 1, mirrorPath: null, items: {} }, { allowEmpty: true });
+    assert.equal(io.files[itemJsonPath("shortcut-network")], undefined);
+    const got = await readLinkStore(io);
+    assert.equal(got?.items.length, 0);
+    assert.equal(got?.meta.curatedEmpty, true);
+});
+
+test("readLinkStore curatedEmpty does not revive leftover Network meta", async () => {
+    const io = memoryIo({
+        [META_JSON]: JSON.stringify({
+            version: 1,
+            curatedEmpty: true,
+            items: {
+                "shortcut-network": { action: "open-view", view: "network", label: "Network" }
+            }
+        })
+    });
+    const got = await readLinkStore(io);
+    assert.equal(got?.items.length, 0);
+    assert.equal(got?.items.some((item) => item.id === "shortcut-network"), false);
+});
+
 test("readLinkStore prefers per-item files over legacy links.json", async () => {
     const io = memoryIo({
         [LINKS_JSON]: JSON.stringify([{ id: "old", label: "Old", action: "open-view", icon: "books" }]),

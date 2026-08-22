@@ -1,8 +1,8 @@
 /*
  * Filename: tile-icon.ts
  * FullPath: modules/projects/fl.ui/src/ui/speed-dial/tile-icon.ts
- * Change date and time: 11.20.00_20.08.2026
- * Reason for changes: Per-tile icon display modes — glyph / masked / masked-inverse / colored.
+ * Change date and time: 14.22.00_22.08.2026
+ * Reason for changes: Pasted URL tiles default to Phosphor `link`, not a failed S2 favicon.
  */
 
 /** How a Speed Dial / App Menu tile paints its icon. */
@@ -117,6 +117,25 @@ export function createTileUiIconElement(opts: TileIconPaintOptions): HTMLElement
     return host;
 }
 
+/** Auto-attached on URL paste — not a user-chosen bitmap. */
+export function isAutoLinkFaviconUrl(raw: unknown): boolean {
+    const u = String(raw || "").trim().toLowerCase();
+    return u.includes("google.com/s2/favicons");
+}
+
+/**
+ * Glyph tiles appear at compact (0.78). Explicit per-tile scale always wins;
+ * bitmaps keep `auto` → workspace fill.
+ */
+export function defaultIconScaleForDisplay(display: unknown, rawItemScale?: unknown): string {
+    const raw = String(rawItemScale || "").trim().toLowerCase();
+    if (raw && raw !== "auto" && raw !== "default" && raw !== "inherit") {
+        return String(rawItemScale || raw).trim();
+    }
+    const mode = normalizeIconDisplay(display);
+    return mode === "glyph" ? "compact" : raw || "auto";
+}
+
 /** Infer default display when meta.iconDisplay is unset. */
 export function inferIconDisplay(input: {
     iconDisplay?: unknown;
@@ -127,6 +146,12 @@ export function inferIconDisplay(input: {
     const explicit = normalizeIconDisplay(input.iconDisplay);
     if (explicit) return explicit;
     if (input.isLauncherApp) return "colored";
-    if (input.isBookmarkFavicon || String(input.iconUrl || "").trim()) return "colored";
+    if (input.isBookmarkFavicon) return "colored";
+    const url = String(input.iconUrl || "").trim();
+    /*
+     * WHY: pasted http(s) tiles store a Google S2 URL. Treating that as
+     * `colored` hid the default `link` glyph when the favicon failed (CSP).
+     */
+    if (url && !isAutoLinkFaviconUrl(url)) return "colored";
     return "glyph";
 }

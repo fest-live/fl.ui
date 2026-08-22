@@ -9,6 +9,7 @@ import { resolveFsBackend } from "#fl-ui/explorer/path-router";
 import {
     applySpeedDialSnapshot,
     captureSpeedDialSnapshot,
+    SPEED_DIAL_MUTATION_EVENT,
     type SpeedDialSnapshot
 } from "./launcher-state";
 import { hideAndroidWidgetHosts, syncAndroidWidgetHosts } from "./widgets";
@@ -92,6 +93,24 @@ export const getActiveWorkspace = (): WorkspacePage => {
     const cat = readCatalog();
     return cat.pages.find((p) => p.id === cat.activeId) || cat.pages[0];
 };
+
+/** Keep the active page snapshot in sync with add/edit/remove grid mutations. */
+const syncActiveWorkspaceSnapshot = (): void => {
+    const cat = readCatalog();
+    if (!cat.pages.some((page) => page.id === cat.activeId)) return;
+    cat.snapshots[cat.activeId] = captureSpeedDialSnapshot();
+    writeCatalog(cat);
+};
+
+try {
+    const g = globalThis as typeof globalThis & { __CWSP_WORKSPACE_SNAPSHOT_SYNC_BOUND__?: boolean };
+    if (!g.__CWSP_WORKSPACE_SNAPSHOT_SYNC_BOUND__) {
+        g.__CWSP_WORKSPACE_SNAPSHOT_SYNC_BOUND__ = true;
+        window.addEventListener(SPEED_DIAL_MUTATION_EVENT, syncActiveWorkspaceSnapshot);
+    }
+} catch {
+    /* non-browser test/runtime */
+}
 
 const nextSideId = (pages: WorkspacePage[]): string => {
     const used = new Set(pages.map((p) => p.id));
@@ -270,9 +289,18 @@ export const switchWorkspaceByDelta = (delta: number): boolean => {
 /** First boot: treat the current grid as side-a; ensure Explorer folders. */
 export const bootWorkspacePages = (): void => {
     const cat = readCatalog();
+    const g = globalThis as typeof globalThis & { __CWSP_WS_BOOT_APPLIED__?: boolean };
     if (!cat.snapshots[cat.activeId]) {
         cat.snapshots[cat.activeId] = captureSpeedDialSnapshot();
         writeCatalog(cat);
+    } else if (!g.__CWSP_WS_BOOT_APPLIED__) {
+        /*
+         * WHY: OPFS hydrate can resurrect a deleted last tile (Network + sparkle)
+         * after an empty write was skipped. Apply the active snapshot once per
+         * tab so a cleared grid stays cleared without resetting later remounts.
+         */
+        g.__CWSP_WS_BOOT_APPLIED__ = true;
+        applySpeedDialSnapshot(cat.snapshots[cat.activeId]);
     }
     for (const page of cat.pages) void ensureWorkspaceExplorerDir(page);
 };

@@ -14,6 +14,7 @@ export * from "./navigation/app-menu/AppMenu";
 //
 export * from "./containers/window/Windows2";
 export * from "./containers/window/Windows";
+export * from "./containers/modal/Modal";
 
 //
 export * from "../misc/Toast";

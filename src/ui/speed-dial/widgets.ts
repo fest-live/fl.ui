@@ -1,8 +1,8 @@
 /*
  * Filename: widgets.ts
  * FullPath: modules/projects/fl.ui/src/ui/speed-dial/widgets.ts
- * Change date and time: 19.50.00_21.08.2026
- * Reason for changes: Every widget gets a move chrome; search field no longer owns drag.
+ * Change date and time: 14.32.00_22.08.2026
+ * Reason for changes: Ignore widgetKind on non-widget shortcuts (Properties New-tab bug).
  */
 
 import {
@@ -72,10 +72,35 @@ export const hasAndroidWidgetBridge = (): boolean => {
 export const getSpeedDialWidgetKind = (item: SpeedDialItem): SpeedDialWidgetKind | "" => {
     const meta = getSpeedDialMeta(item.id);
     const action = String(meta?.action || item.action || "").toLowerCase();
+    /* INVARIANT: widgetKind on a shortcut must not turn it into a clock plate. */
+    if (action !== "widget") return "";
     const kind = String(meta?.widgetKind || "").toLowerCase();
     if (kind === "clock" || kind === "search" || kind === "android") return kind;
-    if (action === "widget") return "clock";
-    return "";
+    return "clock";
+};
+
+/** Properties used to stamp `widgetKind: clock` on every save — drop that on shortcuts. */
+export const stripStaleWidgetMetaFromShortcuts = (): boolean => {
+    let changed = false;
+    for (const item of speedDialItems || []) {
+        const meta = getSpeedDialMeta(item?.id);
+        if (!meta) continue;
+        const action = String(meta.action || item.action || "").toLowerCase();
+        if (action === "widget") continue;
+        if (meta.widgetKind) {
+            delete meta.widgetKind;
+            changed = true;
+        }
+        const cols = Number(meta.spanCols);
+        const rows = Number(meta.spanRows);
+        if ((Number.isFinite(cols) && cols > 1) || (Number.isFinite(rows) && rows > 1)) {
+            meta.spanCols = 1;
+            meta.spanRows = 1;
+            changed = true;
+        }
+    }
+    if (changed) persistSpeedDialMeta();
+    return changed;
 };
 
 export const getAndroidWidgetId = (item: SpeedDialItem): number => {

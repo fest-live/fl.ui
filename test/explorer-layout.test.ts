@@ -807,6 +807,117 @@ test("user listing includes a file uploaded immediately after entering /user", a
     }
 });
 
+test("context menu submenus use anchors progressively and retain a JavaScript fallback", async () => {
+    const browser = await puppeteer.launch({
+        executablePath: "/snap/bin/chromium",
+        headless: true,
+        args: ["--no-sandbox"]
+    });
+
+    try {
+        const page = await browser.newPage();
+        await page.setViewport({ width: 320, height: 240 });
+        await page.goto(EXPLORER_URL, { waitUntil: "networkidle0", timeout: 30_000 });
+
+        const openSubmenu = async (placementStrategy: "auto" | "js") => {
+            await page.evaluate(async (strategy) => {
+                const { openUnifiedContextMenu } = await import("/src/ui/explorer/ContextMenu.ts");
+                openUnifiedContextMenu({
+                    x: 296,
+                    y: 196,
+                    placementStrategy: strategy,
+                    items: [{
+                        id: "more",
+                        label: "More",
+                        action: () => {},
+                        children: [{
+                            id: "child",
+                            label: "Child",
+                            action: () => {},
+                        }],
+                    }],
+                });
+            }, placementStrategy);
+            await page.waitForSelector(".cw-context-menu");
+            await page.click('.cw-context-menu__item[aria-haspopup="menu"]');
+            await page.waitForSelector(".cw-context-menu--submenu");
+            return page.evaluate(() => {
+                const submenu = document.querySelector(".cw-context-menu--submenu") as HTMLElement | null;
+                const rect = submenu?.getBoundingClientRect();
+                return {
+                    cssAnchorSupported: CSS.supports("position-anchor: --test")
+                        && CSS.supports("position-try-fallbacks: flip-inline"),
+                    positionAnchor: submenu?.style.getPropertyValue("position-anchor") ?? "",
+                    left: submenu?.style.getPropertyValue("left") ?? "",
+                    top: submenu?.style.getPropertyValue("top") ?? "",
+                    rect: rect ? { left: rect.left, top: rect.top, right: rect.right, bottom: rect.bottom } : null,
+                };
+            });
+        };
+
+        const auto = await openSubmenu("auto");
+        assert.ok(auto.rect);
+        assert.ok(auto.rect.right <= 320 && auto.rect.bottom <= 240);
+        if (auto.cssAnchorSupported) {
+            assert.match(auto.positionAnchor, /^--fest-placement-/);
+            assert.equal(auto.left, "");
+            assert.equal(auto.top, "");
+        }
+
+        await page.evaluate(async () => {
+            const { closeUnifiedContextMenu } = await import("/src/ui/explorer/ContextMenu.ts");
+            closeUnifiedContextMenu();
+        });
+        const fallback = await openSubmenu("js");
+        assert.ok(fallback.rect);
+        assert.ok(fallback.rect.right <= 320 && fallback.rect.bottom <= 240);
+        assert.equal(fallback.positionAnchor, "");
+        assert.notEqual(fallback.left, "");
+        assert.notEqual(fallback.top, "");
+    } finally {
+        await browser.close();
+    }
+});
+
+test("context menu mounts in the shell host and closes through overlay priority", async () => {
+    const browser = await puppeteer.launch({
+        executablePath: "/snap/bin/chromium",
+        headless: true,
+        args: ["--no-sandbox"]
+    });
+
+    try {
+        const page = await browser.newPage();
+        await page.setViewport({ width: 640, height: 480 });
+        await page.goto(EXPLORER_URL, { waitUntil: "networkidle0", timeout: 30_000 });
+
+        const result = await page.evaluate(async () => {
+            const shellHost = document.createElement("div");
+            shellHost.setAttribute("data-env-shell-overlays", "");
+            document.body.appendChild(shellHost);
+            const { openUnifiedContextMenu } = await import("/src/ui/explorer/ContextMenu.ts");
+            const { closeHighestPriority } = await import("/test/overlay-lifecycle-bridge.ts");
+            openUnifiedContextMenu({
+                x: 32,
+                y: 32,
+                items: [{ id: "action", label: "Action", action: () => {} }],
+            });
+            const menu = document.querySelector(".cw-context-menu");
+            const mountedInShell = menu?.parentElement?.parentElement === shellHost;
+            const closed = closeHighestPriority()?.id ?? null;
+            const remainsOpen = Boolean(document.querySelector(".cw-context-menu"));
+            shellHost.remove();
+            return { mountedInShell, closed, remainsOpen };
+        });
+
+        assert.equal(result.mountedInShell, true);
+        assert.match(result.closed || "", /context-menu/);
+        assert.equal(result.remainsOpen, false);
+    } finally {
+        await browser.close();
+    }
+});
+
 test("drop guards Chromium directory handles by secure context and event timing", async () => {
     const browser = await puppeteer.launch({
         executablePath: "/snap/bin/chromium",

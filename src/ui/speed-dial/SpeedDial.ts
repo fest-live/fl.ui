@@ -53,7 +53,7 @@ import {
     parseSpeedDialItemFromVirtualPath,
     isSpeedDialVirtualPath,
     resolveItemOpenLinkTarget,
-    getDefaultOpenLinkTarget,
+    defaultOpenLinkTargetForHref,
     getDefaultTileShape,
     applyItemIconScaleToElement,
     applyIconScaleToPaintedNodes,
@@ -90,6 +90,7 @@ import {
     hideAndroidWidgetHosts,
     openWidgetPicker,
     releaseAndroidWidget,
+    stripStaleWidgetMetaFromShortcuts,
     syncAndroidWidgetHosts
 } from "./widgets";
 // WHY: home-view `src/ts` is a symlink into speed-dial; Vite preserveSymlinks
@@ -114,6 +115,7 @@ import {
 } from "./action-registry";
 import {
     createTileUiIconElement,
+    defaultIconScaleForDisplay,
     inferIconDisplay,
     normalizeIconDisplay,
     normalizeTileShape,
@@ -639,7 +641,7 @@ const paintSpeedDialTileIcon = (el: HTMLElement, item: SpeedDialItem): void => {
     el.setAttribute("data-shape", shape);
     applyItemIconScaleToElement(
         el,
-        getRefValue((meta as { iconScale?: unknown }).iconScale, "")
+        defaultIconScaleForDisplay(display, getRefValue((meta as { iconScale?: unknown }).iconScale, ""))
     );
 
     el.querySelectorAll(
@@ -1625,6 +1627,7 @@ export function SpeedDial(makeView: any) {
     // WHY: fetch the mirror listing once SpeedDial mounts so mirror tiles
     // appear alongside curated ones when mirror mode was persisted last boot.
     void refreshSpeedDialMirror();
+    stripStaleWidgetMetaFromShortcuts();
     bootWorkspacePages();
     installLauncherBackStack();
     bindWorkspacePageHotkeys();
@@ -1890,7 +1893,7 @@ const openItemEditor = (item?: SpeedDialItem, opts?: {
             iconDisplay: draft.iconDisplay as IconDisplayMode,
             iconUrl: draft.iconUrl,
             iconScale: draft.iconScale,
-            openLinkTarget: draft.openLinkTarget || getDefaultOpenLinkTarget(),
+            openLinkTarget: draft.openLinkTarget || defaultOpenLinkTargetForHref(draft.href),
             packageName: draft.packageName,
             widgetKind: draft.widgetKind,
             spanCols: draft.spanCols,
@@ -1948,7 +1951,7 @@ const openItemEditor = (item?: SpeedDialItem, opts?: {
                             ? "external-app"
                             : "inline";
             }
-            {
+            if (workingItem.action === "widget") {
                 const kind = String(next.widgetKind || "").toLowerCase();
                 workingMeta.widgetKind =
                     kind === "search" || kind === "android" || kind === "clock" ? kind : "clock";
@@ -1958,9 +1961,11 @@ const openItemEditor = (item?: SpeedDialItem, opts?: {
                 ]);
                 workingMeta.clockFormat = String(next.clockFormat || "24h").toLowerCase() === "12h" ? "12h" : "24h";
                 workingMeta.searchUrl = String(next.searchUrl || "").trim();
-                if (workingItem.action === "widget") {
-                    workingMeta.action = "widget";
-                }
+                workingMeta.action = "widget";
+            } else {
+                delete workingMeta.widgetKind;
+                workingMeta.spanCols = 1;
+                workingMeta.spanRows = 1;
             }
             if (isNew) {
                 addSpeedDialItem(workingItem);

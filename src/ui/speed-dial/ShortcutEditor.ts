@@ -11,7 +11,11 @@ import {
     normalizeIconDisplay,
     type IconDisplayMode
 } from "./tile-icon";
-import { ICON_BITMAP_SCALE_OPTIONS, normalizeItemIconBitmapScale } from "./launcher-state";
+import {
+    ICON_BITMAP_SCALE_OPTIONS,
+    defaultOpenLinkTargetForHref,
+    normalizeItemIconBitmapScale
+} from "./launcher-state";
 import { attachIconResourcePickButton } from "./icon-resource-picker";
 
 /** WHY: Match context-menu pin — Settings may not have applied data-theme yet. */
@@ -352,7 +356,7 @@ export const openShortcutEditor = (options: ShortcutEditorOptions): void => {
     const shapeVal = asDraftText(initial.shape, "squircle").toLowerCase();
     const iconDisplayVal = normalizeIconDisplay(initial.iconDisplay) || "glyph";
     const iconScaleVal = normalizeItemIconBitmapScale(initial.iconScale);
-    const olt = asDraftText(initial.openLinkTarget, "inline").toLowerCase();
+    const olt = asDraftText(initial.openLinkTarget, defaultOpenLinkTargetForHref(initial.href)).toLowerCase();
     const widgetKindVal = asDraftText(initial.widgetKind, "clock").toLowerCase();
     if (widgetKindSelect) {
         if (widgetKindVal !== "android") {
@@ -461,7 +465,13 @@ export const openShortcutEditor = (options: ShortcutEditorOptions): void => {
 
     actionSelect?.addEventListener("change", syncFieldVisibility);
     widgetKindSelect?.addEventListener("change", syncFieldVisibility);
-    iconDisplaySelect?.addEventListener("change", syncFieldVisibility);
+    iconDisplaySelect?.addEventListener("change", () => {
+        if (normalizeIconDisplay(iconDisplaySelect.value) === "glyph") {
+            const cur = normalizeItemIconBitmapScale(iconScaleSelect?.value);
+            if (cur === "auto" && iconScaleSelect) iconScaleSelect.value = "compact";
+        }
+        syncFieldVisibility();
+    });
     syncFieldVisibility();
 
     modal.addEventListener("cancel", (event) => {
@@ -517,7 +527,7 @@ export const openShortcutEditor = (options: ShortcutEditorOptions): void => {
             clockFormat: String(clockFormatSelect?.value || "24h"),
             searchUrl: String(searchUrlInput?.value || "").trim(),
             openLinkTarget: (() => {
-                const v = String(openLinkTargetSelect?.value || "inline").toLowerCase();
+                const v = String(openLinkTargetSelect?.value || defaultOpenLinkTargetForHref(hrefInput?.value)).toLowerCase();
                 if (v === "native-window" || v === "native" || v === "window") return "native-window";
                 if (v === "new-tab" || v === "tab" || v === "browser") return "new-tab";
                 if (

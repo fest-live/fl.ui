@@ -47,6 +47,7 @@ import {
  * instance — no dual PathRouter registry.
  */
 import { resolveFsBackend, subscribeFsBackendRegister } from "#fl-ui/explorer/path-router";
+import { defaultIconScaleForDisplay } from "./tile-icon";
 
 /*
  * WHY: fl.ui must stay standalone — it cannot import `core/routing/core/views`
@@ -193,13 +194,20 @@ export const getDefaultOpenLinkTarget = (): OpenLinkTarget => {
     try {
         const stored = localStorage.getItem(OPEN_LINK_TARGET_KEY);
         if (stored == null || !String(stored).trim()) {
-            /* Cap/Android: system chooser is the useful default for http(s) tiles. */
+            /* Cap/Android: system chooser. Views stay inline; http(s) uses defaultOpenLinkTargetForHref. */
             return prefersExternalAppOpenLink() ? "external-app" : "inline";
         }
         return normalizeOpenLinkTarget(stored);
     } catch {
         return prefersExternalAppOpenLink() ? "external-app" : "inline";
     }
+};
+
+/** http(s) tiles open in a new tab (or Cap chooser). App views stay inline unless set. */
+export const defaultOpenLinkTargetForHref = (href?: unknown): OpenLinkTarget => {
+    if (prefersExternalAppOpenLink()) return "external-app";
+    if (isExternalWebHref(href)) return "new-tab";
+    return getDefaultOpenLinkTarget();
 };
 
 /** Capacitor / coarse launcher — Open in app (chooser) beats inline iframe. */
@@ -230,11 +238,19 @@ export const setDefaultOpenLinkTarget = (target: OpenLinkTarget): void => {
 };
 
 export const resolveItemOpenLinkTarget = (meta?: SpeedDialItemMeta | null): OpenLinkTarget => {
-    if (meta?.openLinkTarget != null && String(meta.openLinkTarget).trim()) {
-        return normalizeOpenLinkTarget(meta.openLinkTarget);
+    const raw = meta?.openLinkTarget != null ? String(meta.openLinkTarget).trim() : "";
+    if (raw) return normalizeOpenLinkTarget(raw);
+    return defaultOpenLinkTargetForHref(meta?.href);
+};
+
+/** True only on Capacitor native — web must not await the bridge before window.open. */
+export const canUseNativeOpenUri = (): boolean => {
+    try {
+        const c = (globalThis as { Capacitor?: { isNativePlatform?: () => boolean } }).Capacitor;
+        return typeof c?.isNativePlatform === "function" && !!c.isNativePlatform();
+    } catch {
+        return false;
     }
-    /* WHY: Settings `Open links in` applies to http(s) too (inline → iframe window). */
-    return getDefaultOpenLinkTarget();
 };
 
 export interface SpeedDialPersistedItem {
@@ -275,6 +291,16 @@ export const NAVIGATION_SHORTCUTS = NAVIGATION_SHORTCUTS_ALL.filter((shortcut) =
 
 const STORAGE_KEY = "cw::workspace::speed-dial";
 const META_STORAGE_KEY = `${STORAGE_KEY}::meta`;
+/** User mutations use this to keep the active workspace snapshot authoritative. */
+export const SPEED_DIAL_MUTATION_EVENT = "cwsp:speed-dial-mutation";
+
+const emitSpeedDialMutation = (kind: "add" | "update" | "remove", id: string): void => {
+    try {
+        window.dispatchEvent(new CustomEvent(SPEED_DIAL_MUTATION_EVENT, { detail: { kind, id } }));
+    } catch {
+        /* non-browser test/runtime */
+    }
+};
 
 const fallbackClone = <T>(value: T): T => {
     if (typeof structuredClone === "function") {
@@ -572,6 +598,11 @@ type LinkStoreBootSlot = {
     userEditedBeforeHydrate: boolean;
     /** WHY: bumped on every user edit so hydrate can abort even if dirty was already true. */
     editGen: number;
+    /**
+     * WHY: last-tile delete / empty workspace must wipe OPFS. Boot strips must
+     * not — they also mark dirty and would otherwise erase curated files.
+     */
+    allowEmptyOpfsWrite: boolean;
 };
 
 const linkStoreBoot = (): LinkStoreBootSlot => {
@@ -583,10 +614,16 @@ const linkStoreBoot = (): LinkStoreBootSlot => {
             opfsFlushTimer: null,
             opfsHydrated: false,
             userEditedBeforeHydrate: false,
-            editGen: 0
+            editGen: 0,
+            allowEmptyOpfsWrite: false
         };
     }
     return g[LINK_STORE_BOOT]!;
+};
+
+const markIntentionalEmptyGrid = (): void => {
+    const boot = linkStoreBoot();
+    boot.allowEmptyOpfsWrite = true;
 };
 
 /*
@@ -775,7 +812,9 @@ const flushLinkStoreToOpfs = async (): Promise<void> => {
             if (!item.action && meta.action) item.action = String(meta.action);
         }
         const meta = packMetaFileFromState();
-        await writeLinkStore(boot.opfsIo, items, meta);
+        const allowEmpty = boot.allowEmptyOpfsWrite === true && !(speedDialItems?.length);
+        await writeLinkStore(boot.opfsIo, items, meta, { allowEmpty });
+        if (allowEmpty) boot.allowEmptyOpfsWrite = false;
     } catch (e) {
         console.warn("[link-store] OPFS write failed; localStorage remains primary", e);
     }
@@ -1011,6 +1050,7 @@ export const applySpeedDialSnapshot = (snapshot: SpeedDialSnapshot | null | unde
         nextItems.push(observe(item) as any);
     }
     speedDialItems.splice(0, speedDialItems.length, ...nextItems);
+    if (!nextItems.length) markIntentionalEmptyGrid();
     const stale = [...(speedDialMeta?.keys?.() || [])].filter((id) => !keepIds.has(String(id)));
     for (const id of stale) removeSpeedDialMeta(id);
     for (const raw of rows) {
@@ -1040,7 +1080,9 @@ export const defaultWidgetSpan = (kind: string): GridSpan => {
 
 export const getItemSpan = (id?: string | null): GridSpan => {
     const meta = id ? getSpeedDialMeta(id) : null;
-    const kind = String(meta?.widgetKind || "").toLowerCase();
+    const action = String(meta?.action || "").toLowerCase();
+    const kind =
+        action === "widget" ? String(meta?.widgetKind || "").toLowerCase() : "";
     const fallback = kind ? defaultWidgetSpan(kind) : ([1, 1] as GridSpan);
     return normalizeSpan([
         metaNumber(meta?.spanCols, fallback[0]),
@@ -1054,6 +1096,7 @@ export const setItemSpan = (id: string, span: GridSpan | readonly number[]): Gri
     meta.spanCols = next[0];
     meta.spanRows = next[1];
     persistSpeedDialMeta();
+    emitSpeedDialMutation("update", id);
     return next;
 };
 
@@ -1364,9 +1407,21 @@ export const buildSpeedDialViewPathHref = (
  */
 export const openInNewBrowserTab = (href: string): boolean => {
     const url = String(href || "").trim();
-    if (!url || typeof document === "undefined") return false;
+    if (!url || typeof window === "undefined") return false;
     try {
-        window?.open?.(url, window?.self != window?.top ? "_unfencedTop" : "_blank", "noreferrer,noopener");
+        let target = "_blank";
+        try {
+            if (typeof (window as unknown as { fence?: unknown }).fence === "object") {
+                target = "_unfencedTop";
+            }
+        } catch {
+            target = "_blank";
+        }
+        /*
+         * WHY: `_unfencedTop` only works in fenced frames. A normal iframe
+         * (`self !== top`) used to swallow the click and open nothing.
+         */
+        window.open(url, target, "noreferrer,noopener");
         return true;
     } catch (e) {
         console.warn("[home-view] openInNewBrowserTab failed", e);
@@ -1503,6 +1558,8 @@ export const createEmptySpeedDialItem = (
         href: "",
         description: "",
         shape: getDefaultTileShape(),
+        iconDisplay: "glyph",
+        iconScale: "compact",
         openLinkTarget: getDefaultOpenLinkTarget()
     });
     return item;
@@ -1515,6 +1572,7 @@ export const addSpeedDialItem = (item: SpeedDialItem) => {
     // INVARIANT: always flush both carriers — meta holds href/view for open-link tiles.
     persistSpeedDialItems();
     persistSpeedDialMeta();
+    emitSpeedDialMutation("add", item.id);
     return item;
 };
 
@@ -1612,6 +1670,7 @@ export const upsertSpeedDialItem = (item: SpeedDialItem) => {
     syncMetaActionFromItem(item);
     persistSpeedDialItems();
     persistSpeedDialMeta();
+    emitSpeedDialMutation("update", item.id);
     return item;
 };
 
@@ -1620,8 +1679,10 @@ export const removeSpeedDialItem = (id: string) => {
     const index = speedDialItems?.findIndex?.((entry) => entry?.id === id) ?? -1;
     if (index === -1) return false;
     speedDialItems.splice(index, 1);
+    if (!speedDialItems.length) markIntentionalEmptyGrid();
     removeSpeedDialMeta(id);
     persistSpeedDialItems();
+    emitSpeedDialMutation("remove", id);
     return true;
 };
 
@@ -1856,31 +1917,6 @@ const hasStoredValue = (key: string): boolean => {
     }
 };
 
-const storedSpeedDialStateIsCustom = (): boolean => {
-    try {
-        const raw = localStorage.getItem(STORAGE_KEY);
-        if (!raw) return false;
-        // WHY: makeUIState writes JSOX (unquoted keys) — JSON.parse always fails and
-        // used to report "not custom", letting migrateLegacyDesktopState wipe user tiles.
-        const parsed = JSOX.parse(raw);
-        if (!Array.isArray(parsed)) return false;
-        const signature = (entry: any): string => JSOX.stringify([
-            String(entry?.id || ""),
-            Number(entry?.cell?.[0]) || 0,
-            Number(entry?.cell?.[1]) || 0,
-            String(unwrapRef(entry?.icon, "") || ""),
-            String(unwrapRef(entry?.label, "") || ""),
-            String(entry?.action || "")
-        ]);
-        const defaults = DEFAULT_SPEED_DIAL_DATA.map(signature).sort();
-        const current = parsed.map(signature).sort();
-        return defaults.length !== current.length || defaults.some((value, index) => value !== current[index]);
-    } catch {
-        // Prefer preserving whatever is already under STORAGE_KEY over a blind legacy wipe.
-        return true;
-    }
-};
-
 /**
  * Import the former orient-layer storage once. The renderer now has one state
  * model, but old users must not lose shortcuts when the new entrypoint mounts.
@@ -1889,7 +1925,12 @@ const migrateLegacyDesktopState = (): void => {
     const legacy = loadDesktopRaw();
     const decoded = legacy ? decodeDesktopState(legacy) : null;
     if (!decoded?.items?.length) return;
-    if (hasStoredValue(STORAGE_KEY) && storedSpeedDialStateIsCustom()) return;
+    /*
+     * INVARIANT: any stored grid, including an intentional empty array, is
+     * authoritative. Re-importing the orient desktop here resurrects deleted
+     * legacy tiles such as Network on every boot.
+     */
+    if (hasStoredValue(STORAGE_KEY)) return;
 
     const columns = Math.max(1, Math.min(32, Number(decoded.columns) || 4));
     const rows = Math.max(1, Math.min(32, Number(decoded.rows) || 8));
@@ -1993,7 +2034,10 @@ export const applyGridSettings = (settings?: {
             .forEach((tile) => {
                 const id = tile.getAttribute("data-id") || "";
                 const meta = id ? getSpeedDialMeta(id) : null;
-                applyItemIconScaleToElement(tile, meta?.iconScale);
+                applyItemIconScaleToElement(
+                    tile,
+                    defaultIconScaleForDisplay(tile.getAttribute("data-icon-display"), meta?.iconScale)
+                );
                 applyIconScaleToPaintedNodes(tile);
                 tile.dispatchEvent(new CustomEvent("cwsp:icon-bitmap-refresh"));
             });
@@ -2083,7 +2127,9 @@ export const parseSpeedDialItemFromVirtualPath = (
         action: isUrl ? "open-link" : "open-path",
         path,
         ...(isUrl ? { href } : {}),
-        kind: extras?.kind || (isDir ? "directory" : "file")
+        kind: extras?.kind || (isDir ? "directory" : "file"),
+        iconDisplay: "glyph",
+        iconScale: "compact"
     };
     ensureSpeedDialMeta(item.id, meta);
     return item;
@@ -2286,9 +2332,8 @@ export const parseSpeedDialItemFromSmartText = (
             href: opts.href,
             description: opts.description || opts.label,
             iconDisplay: "glyph",
-            openLinkTarget: prefersExternalAppOpenLink()
-                ? "external-app"
-                : getDefaultOpenLinkTarget()
+            iconScale: "compact",
+            openLinkTarget: defaultOpenLinkTargetForHref(opts.href)
         });
         return item;
     };
@@ -2392,7 +2437,7 @@ export const parseSpeedDialItemFromURL = (urlText: string, suggestedCell?: GridC
             try {
                 const u = new URL(trimmed);
                 if (/^https?:$/i.test(u.protocol) && !looksLikeTelegramHandle(trimmed)) {
-                    /* Fall through — plain web URL should keep favicon path below. */
+                    /* Fall through — plain web URL uses `link` glyph + optional S2 iconUrl. */
                 } else {
                     return smart;
                 }
@@ -2448,10 +2493,11 @@ export const parseSpeedDialItemFromURL = (urlText: string, suggestedCell?: GridC
             action: "open-link",
             href: url.href,
             description: `${label}${pathname ? ` - ${pathname}` : ""}`,
-            /* Cap/mobile: pasted/shared http(s) → system Open with, not inline iframe. */
-            openLinkTarget: prefersExternalAppOpenLink()
-                ? "external-app"
-                : getDefaultOpenLinkTarget(),
+            /* WHY: paste shows Phosphor `link`; S2 stays on iconUrl for Properties → Colored. */
+            iconDisplay: "glyph",
+            iconScale: "compact",
+            /* WHY: http(s) defaults to a new browser tab, not an inline iframe window. */
+            openLinkTarget: defaultOpenLinkTargetForHref(url.href),
             ...(favicon ? { iconUrl: favicon } : {})
         };
 

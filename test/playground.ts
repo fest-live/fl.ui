@@ -1,15 +1,19 @@
 /**
  * Dev playground: suite picker in index.html + dynamic loaders for smoke tests.
- * Puppeteer / manual: `?suite=explorer|markdown|misc|speed-dial|window` (alias `demo=`).
+ * Puppeteer / manual: `?suite=anchors|forms|modal|overlays|explorer|markdown|misc|speed-dial|window` (alias `demo=`).
  */
 import "@fest-lib/icon";
 
 const MOUNT_ID = "fl-ui-playground";
 
-export const SUITE_IDS = ["explorer", "markdown", "misc", "speed-dial", "window", "layers"] as const;
+export const SUITE_IDS = ["anchors", "forms", "modal", "overlays", "explorer", "markdown", "misc", "speed-dial", "window", "layers"] as const;
 export type SuiteId = (typeof SUITE_IDS)[number];
 
 const loaders: Record<SuiteId, () => Promise<{ mount: (el: HTMLElement) => void | Promise<void> }>> = {
+    anchors: () => import("./suites/anchors"),
+    forms: () => import("./suites/forms"),
+    modal: () => import("./suites/modal"),
+    overlays: () => import("./suites/overlays"),
     explorer: () => import("./suites/explorer"),
     markdown: () => import("./suites/markdown"),
     misc: () => import("./suites/misc-canvas"),

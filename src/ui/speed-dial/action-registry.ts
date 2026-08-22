@@ -11,6 +11,7 @@ import {
     buildSpeedDialViewPathHref,
     isExternalWebHref,
     normalizeExternalWebHref,
+    canUseNativeOpenUri,
     openInDetachedBrowserWindow,
     openInNewBrowserTab,
     parseSpeedDialViewFromHref,
@@ -884,7 +885,7 @@ const installBuiltins = (): void => {
             }
             /* Prefer plain content/file/http over intent: that embeds publisher package. */
             const openHref = preferDataUriOverIntent(href, meta);
-            if (await openViaNativeUri(openHref, { chooser: true })) return;
+            if (canUseNativeOpenUri() && (await openViaNativeUri(openHref, { chooser: true }))) return;
             if (!openInNewBrowserTab(href)) {
                 showError("Unable to open in app");
             }
@@ -902,8 +903,8 @@ const installBuiltins = (): void => {
                 showError("Link is missing");
                 return;
             }
-            /* Cap WebView: prefer ACTION_VIEW (default handler) over window.open. */
-            if (externalHref && (await openViaNativeUri(href, { chooser: false }))) return;
+            /* WHY: do not await Cap bridge on web — that drops the click gesture and blocks the tab. */
+            if (canUseNativeOpenUri() && externalHref && (await openViaNativeUri(href, { chooser: false }))) return;
             if (!openInNewBrowserTab(href)) {
                 showError("Unable to open new tab");
             }

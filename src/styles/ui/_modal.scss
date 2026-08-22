@@ -257,3 +257,53 @@
         }
     }
 }
+
+/**
+ * Native-first helper styles. Kept separate from `modal()` because legacy
+ * `ui-modal` rules use containment that is unsafe for focusable dialog content.
+ */
+@mixin transient-modal {
+    dialog.ui-modal-dialog {
+        inline-size: min(100% - 2rem, 36rem);
+        max-inline-size: calc(100dvi - 2rem);
+        max-block-size: calc(100dvb - 2rem);
+        margin: auto;
+        padding: 0;
+        border: 1px solid color-mix(in oklab, CanvasText 18%, transparent);
+        border-radius: var(--radius-lg, 1rem);
+        background: var(--modal-bg, Canvas);
+        color: var(--modal-fg, CanvasText);
+        box-shadow: var(--modal-shadow, 0 20px 60px rgb(0 0 0 / 0.42));
+        overflow: visible;
+
+        &::backdrop {
+            background: var(--modal-backdrop-bg, rgb(0 0 0 / 0.58));
+            backdrop-filter: blur(4px);
+        }
+    }
+
+    .ui-modal-backdrop {
+        position: fixed;
+        inset: 0;
+        z-index: var(--ui-modal-fallback-z, 2147483646);
+        display: grid;
+        place-items: center;
+        padding: 1rem;
+        background: var(--modal-backdrop-bg, rgb(0 0 0 / 0.58));
+        backdrop-filter: blur(4px);
+        pointer-events: auto;
+    }
+
+    .ui-modal-panel {
+        inline-size: min(100%, 36rem);
+        max-block-size: calc(100dvb - 2rem);
+        overflow: auto;
+        box-sizing: border-box;
+        padding: var(--modal-padding, 1.25rem);
+        border-radius: var(--modal-radius, var(--radius-lg, 1rem));
+        background: var(--modal-bg, Canvas);
+        color: var(--modal-fg, CanvasText);
+        box-shadow: var(--modal-shadow, 0 20px 60px rgb(0 0 0 / 0.42));
+        pointer-events: auto;
+    }
+}

@@ -1,8 +1,8 @@
 /*
  * Filename: link-store.ts
  * FullPath: modules/projects/fl.ui/src/ui/speed-dial/link-store.ts
- * Change date and time: 09.10.00_19.08.2026
- * Reason for changes: Per-item JSON under `/user/links/<id>.json` instead of one `links.json`.
+ * Change date and time: 14.20.00_22.08.2026
+ * Reason for changes: Allow intentional empty OPFS writes so the last tile stays deleted.
  *
  * Speed-dial persistence lives in OPFS under `/user/links/`.
  * WHY: localStorage is synchronous, quota-bound, and shared across origins; OPFS gives
@@ -104,6 +104,11 @@ export interface LinkStoreMetaFile {
         }
     >;
     grid?: unknown;
+    /**
+     * WHY: deleting the last tile must survive reload. `itemsFromMetaSlots`
+     * otherwise rebuilds leftover overlay rows (Network + sparkle).
+     */
+    curatedEmpty?: boolean;
 }
 
 export interface LinkStoreIo {
@@ -334,10 +339,11 @@ const normalizeLegacyMeta = (raw: any, items: LinkStoreItem[]): LinkStoreMetaFil
     // (launcher-state) writes a flat `{ [id]: meta }` map with no `items`
     // wrapper and no top-level metadata, so when `raw.items` is absent we
     // treat the entire raw object as the per-id map (skipping these keys).
-    const knownTopKeys = new Set(["version", "mirrorPath", "grid", "items"]);
+    const knownTopKeys = new Set(["version", "mirrorPath", "grid", "items", "curatedEmpty"]);
     if (raw && typeof raw === "object") {
         if (raw.mirrorPath != null) meta.mirrorPath = String(raw.mirrorPath);
         if (raw.grid != null) meta.grid = raw.grid;
+        if (raw.curatedEmpty === true) meta.curatedEmpty = true;
         const itemsMap = raw.items;
         let entries: Array<[string, any]>;
         if (itemsMap instanceof Map) {
@@ -443,6 +449,11 @@ export async function readLinkStore(
     }
     const metaRaw = await io.readText(META_JSON);
     const metaParsed = parseLoose(metaRaw);
+    if (metaParsed && typeof metaParsed === "object" && metaParsed.curatedEmpty === true) {
+        const meta = normalizeLegacyMeta({ ...metaParsed, items: {} }, []);
+        meta.curatedEmpty = true;
+        return { items: [], meta };
+    }
     if (!items.length) {
         // WHY: empty-write wipe deleted `links.json` but often left `meta.json`
         // with per-id href/view/cell. Rebuild tiles from that overlay.
@@ -460,7 +471,7 @@ const itemsFromMetaSlots = (raw: any): LinkStoreItem[] => {
     const map = raw.items && typeof raw.items === "object" && !Array.isArray(raw.items)
         ? raw.items
         : raw;
-    const knownTop = new Set(["version", "mirrorPath", "grid", "items"]);
+    const knownTop = new Set(["version", "mirrorPath", "grid", "items", "curatedEmpty"]);
     const out: LinkStoreItem[] = [];
     for (const [id, slot] of Object.entries(map || {})) {
         if (!id || knownTop.has(id) || id.startsWith("mirror:")) continue;
@@ -662,6 +673,14 @@ export function buildMirrorSpeedDialItems(
     return items;
 }
 
+export type WriteLinkStoreOptions = {
+    /**
+     * WHY: boot/hydrate races must not wipe OPFS, but a user who deleted the
+     * last tile (or switched to an empty workspace) must.
+     */
+    allowEmpty?: boolean;
+};
+
 /**
  * Write curated items + meta to OPFS as JSON. Each item is `/user/links/<id>.json`;
  * `meta.json` holds grid overlays. Stale item files and legacy `links.json` are
@@ -670,10 +689,11 @@ export function buildMirrorSpeedDialItems(
 export async function writeLinkStore(
     io: LinkStoreIo,
     items: LinkStoreItem[],
-    meta: LinkStoreMetaFile
+    meta: LinkStoreMetaFile,
+    options?: WriteLinkStoreOptions
 ): Promise<void> {
     const list = Array.isArray(items) ? items.filter((item) => item?.id) : [];
-    if (!list.length) {
+    if (!list.length && !options?.allowEmpty) {
         // WHY: boot/hydrate races used to persist an empty grid and delete
         // `links.json`, wiping the only copy of curated tiles.
         if (await hasCuratedOpfsData(io)) {
@@ -690,8 +710,9 @@ export async function writeLinkStore(
     const metaFile: LinkStoreMetaFile = {
         version: 1,
         mirrorPath: meta?.mirrorPath ?? null,
-        items: meta?.items ?? {},
-        grid: meta?.grid
+        items: list.length ? (meta?.items ?? {}) : {},
+        grid: meta?.grid,
+        ...(list.length ? {} : { curatedEmpty: true })
     };
     await io.writeText(META_JSON, JSON.stringify(metaFile, null, 2));
 

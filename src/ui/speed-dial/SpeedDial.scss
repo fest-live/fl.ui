@@ -711,6 +711,11 @@
                     }
                 }
 
+                /* WHY: glyphs appear at compact 0.78; bitmaps keep workspace fill (1.28). */
+                &[data-icon-display="glyph"] {
+                    --sd-item-icon-scale: 0.78;
+                }
+
                 /* Bitmap / glyph zoom — Cap needs inline transform; CSS var is backup. */
                 img[data-launcher-icon]:not([data-bookmark-favicon]),
                 img[data-bookmark-favicon],

@@ -6,6 +6,13 @@
  */
 
 import { MOCElement } from "@fest-lib/dom";
+import {
+    placeOverlay,
+    registerTransientOverlay,
+    resolveOverlayHost,
+    type OverlayPlacementStrategy,
+    type PlacementHandle,
+} from "@fest-lib/lure";
 import type { FileEntryItem } from "./Operative";
 import { canReceiveIncomingPath } from "./Operative";
 import { entryKey, entryKind } from "./utils";
@@ -27,6 +34,7 @@ type ContextMenuOpenRequest = {
     items: ContextMenuEntry[];
     compact?: boolean;
     anchor?: Element | null;
+    placementStrategy?: OverlayPlacementStrategy;
 };
 
 const SUBMENU_HOVER_OPEN_MS = 320;
@@ -38,18 +46,15 @@ let styleMounted = false;
 let menuSession = 0;
 let menuLayer: HTMLElement | null = null;
 let rootMenu: HTMLElement | null = null;
+let rootMenuPlacement: PlacementHandle | null = null;
+let rootMenuOverlayUnregister: (() => void) | null = null;
 let cleanupFns: Array<() => void> = [];
-let menuSeed = 0;
 
 const submenuByDepth = new Map<number, HTMLElement>();
 const submenuAnchorByDepth = new Map<number, HTMLButtonElement>();
+const submenuPlacementByDepth = new Map<number, PlacementHandle>();
 const submenuOpenTimers = new Map<number, ReturnType<typeof setTimeout>>();
 const submenuCloseTimers = new Map<number, ReturnType<typeof setTimeout>>();
-
-const supportsAnchorPositioning = typeof CSS !== "undefined"
-    && (CSS.supports("position-anchor: --cw-anchor-test")
-        || CSS.supports("anchor-name: --cw-anchor-test"));
-const ENABLE_CSS_ANCHOR_POSITIONING = false;
 
 /**
  * WHY: Before Settings opens, `html[data-theme]` may lag OS prefers-color-scheme.
@@ -372,11 +377,6 @@ const ensureStyle = (): void => {
     `;
 };
 
-const getOverlayHost = (): HTMLElement => {
-    const overlay = document.querySelector('[data-app-layer="overlay"]') as HTMLElement | null;
-    return overlay || document.body;
-};
-
 const clearCleanup = (): void => {
     for (const fn of cleanupFns) {
         try {
@@ -403,30 +403,17 @@ const clearTimersFromDepth = (depth: number): void => {
     }
 };
 
-const placeMenu = (menu: HTMLElement, x: number, y: number): void => {
-    menu.style.left = `${x}px`;
-    menu.style.top = `${y}px`;
-    const rect = menu.getBoundingClientRect();
-    const maxX = Math.max(8, window.innerWidth - rect.width - 8);
-    const maxY = Math.max(8, window.innerHeight - rect.height - 8);
-    menu.style.left = `${Math.min(Math.max(8, x), maxX)}px`;
-    menu.style.top = `${Math.min(Math.max(8, y), maxY)}px`;
-};
-
 const closeSubmenusFromDepth = (depth: number): void => {
     clearTimersFromDepth(depth);
     for (const [key, submenu] of Array.from(submenuByDepth.entries())) {
         if (key >= depth) {
+            submenuPlacementByDepth.get(key)?.dispose();
+            submenuPlacementByDepth.delete(key);
             submenu.remove();
             submenuByDepth.delete(key);
             submenuAnchorByDepth.delete(key);
         }
     }
-};
-
-const placeSubmenuWithFallback = (submenu: HTMLElement, anchor: HTMLElement): void => {
-    const rect = anchor.getBoundingClientRect();
-    placeMenu(submenu, Math.round(rect.right + 4), Math.round(rect.top));
 };
 
 const cancelScheduledCloseFromDepth = (depth: number): void => {
@@ -442,7 +429,8 @@ const buildMenuElement = (
     entries: ContextMenuEntry[],
     compact: boolean,
     depth: number,
-    session: number
+    session: number,
+    placementStrategy: OverlayPlacementStrategy,
 ): HTMLElement => {
     const menu = document.createElement("div");
     menu.className = `cw-context-menu${compact ? " cw-context-menu--compact" : ""}`;
@@ -460,23 +448,17 @@ const buildMenuElement = (
         closeSubmenusFromDepth(nextDepth);
         if (!item.children?.length) return;
 
-        const submenu = buildMenuElement(item.children, compact, nextDepth, session);
+        const submenu = buildMenuElement(item.children, compact, nextDepth, session, placementStrategy);
         submenu.classList.add("cw-context-menu--submenu");
         menuLayer.appendChild(submenu);
         submenuByDepth.set(nextDepth, submenu);
         submenuAnchorByDepth.set(nextDepth, anchorButton);
-
-        if (ENABLE_CSS_ANCHOR_POSITIONING && supportsAnchorPositioning) {
-            menuSeed += 1;
-            const anchorName = `--cw-anchor-${menuSeed}`;
-            anchorButton.style.setProperty("anchor-name", anchorName);
-            submenu.style.setProperty("position-anchor", anchorName);
-            submenu.style.setProperty("position-area", "right span-bottom");
-            submenu.style.setProperty("position-try-fallbacks", "flip-inline, flip-block");
-            queueMicrotask(() => placeSubmenuWithFallback(submenu, anchorButton));
-        } else {
-            placeSubmenuWithFallback(submenu, anchorButton);
-        }
+        submenuPlacementByDepth.set(nextDepth, placeOverlay(submenu, {
+            origin: { type: "element", element: anchorButton },
+            placement: "right-start",
+            fallbacks: ["left-start", "right-end", "left-end"],
+            strategy: placementStrategy,
+        }));
     };
 
     const scheduleOpenSubmenu = (item: ContextMenuEntry, anchorButton: HTMLButtonElement, nextDepth: number): void => {
@@ -569,9 +551,14 @@ const buildMenuElement = (
 export const closeUnifiedContextMenu = (): void => {
     clearCleanup();
     clearTimersFromDepth(0);
+    rootMenuOverlayUnregister?.();
+    rootMenuOverlayUnregister = null;
+    rootMenuPlacement?.dispose();
+    rootMenuPlacement = null;
     closeSubmenusFromDepth(1);
     submenuByDepth.clear();
     submenuAnchorByDepth.clear();
+    submenuPlacementByDepth.clear();
     rootMenu?.remove();
     rootMenu = null;
     menuLayer?.remove();
@@ -590,17 +577,33 @@ export const openUnifiedContextMenu = (request: ContextMenuOpenRequest): void =>
     closeUnifiedContextMenu();
     const session = menuSession;
 
-    const overlayHost = getOverlayHost();
+    const overlayHost = resolveOverlayHost() ?? document.body;
 
     const layer = document.createElement("div");
     layer.className = "cw-context-menu-layer";
     menuLayer = layer;
     overlayHost.appendChild(layer);
 
-    const menu = buildMenuElement(entries, Boolean(request.compact), 0, session);
+    const submenuPlacementStrategy = request.placementStrategy ?? "auto";
+    const menu = buildMenuElement(entries, Boolean(request.compact), 0, session, submenuPlacementStrategy);
     rootMenu = menu;
     layer.appendChild(menu);
-    placeMenu(menu, request.x, request.y);
+    rootMenuPlacement = placeOverlay(menu, {
+        origin: { type: "point", x: request.x, y: request.y },
+        placement: "bottom-start",
+        gap: 0,
+        strategy: "js",
+    });
+    rootMenuOverlayUnregister = registerTransientOverlay({
+        id: `context-menu-${session}`,
+        kind: "context-menu",
+        element: layer,
+        isActive: () => menuSession === session && menuLayer === layer && layer.isConnected,
+        close: () => {
+            closeUnifiedContextMenu();
+            return true;
+        },
+    });
 
     const onPointerDown = (event: Event) => {
         if (session !== menuSession || !menuLayer?.isConnected) return;

@@ -13,7 +13,6 @@ import {
     registerCloseable
 } from "@fest-lib/lure";
 import { closeUnifiedContextMenu } from "../explorer/ContextMenu";
-import { closeChromeFlyout, isChromeFlyoutOpen } from "./flyout/ChromeFlyout";
 
 const installCapacitorBackButton = (): void => {
     const g = globalThis as typeof globalThis & {
@@ -36,14 +35,6 @@ const installCapacitorBackButton = (): void => {
                     ?.dispatchEvent(new CustomEvent("env-app-menu-request-close", { bubbles: true }));
                 return;
             }
-            if (isChromeFlyoutOpen("quick-settings")) {
-                closeChromeFlyout("quick-settings");
-                return;
-            }
-            if (isChromeFlyoutOpen("calendar")) {
-                closeChromeFlyout("calendar");
-                return;
-            }
             const dialog = document.querySelector<HTMLDialogElement>("dialog[open], .speed-dial-editor");
             if (dialog) {
                 dialog.close?.();
@@ -63,15 +54,6 @@ const installCapacitorBackButton = (): void => {
 
 const registerShellOverlays = (): void => {
     registerCloseable({
-        id: "ctx-menu-layer",
-        priority: ClosePriority.CONTEXT_MENU,
-        isActive: () => Boolean(document.querySelector(".cw-context-menu-layer")),
-        close: () => {
-            closeUnifiedContextMenu();
-            return true;
-        }
-    });
-    registerCloseable({
         id: "app-menu-overlay",
         priority: ClosePriority.SIDEBAR,
         isActive: () => Boolean(document.querySelector(".env-shell-app-menu[data-open]")),
@@ -79,16 +61,6 @@ const registerShellOverlays = (): void => {
             document
                 .querySelector<HTMLElement>(".env-shell-app-menu")
                 ?.dispatchEvent(new CustomEvent("env-app-menu-request-close", { bubbles: true }));
-            return true;
-        }
-    });
-    registerCloseable({
-        id: "chrome-flyouts",
-        priority: ClosePriority.OVERLAY,
-        isActive: () => isChromeFlyoutOpen("quick-settings") || isChromeFlyoutOpen("calendar"),
-        close: () => {
-            closeChromeFlyout("quick-settings");
-            closeChromeFlyout("calendar");
             return true;
         }
     });

@@ -10,7 +10,7 @@
 @use "./shared" as *;
 @use "./states" as *;
 @use "./normalize" as *;
-
+@use "./modal" as modal;
 
 @forward "./scrollbar";
 @forward "./layers";
@@ -20,3 +20,5 @@
 @forward "./bar";
 @forward "./home-host";
 @forward "./launcher-typography";
+
+@include modal.transient-modal;

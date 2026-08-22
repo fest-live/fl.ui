@@ -33,6 +33,7 @@ import {
 import { openUnifiedContextMenu } from "fl-ui/explorer/ContextMenu";
 import {
     createTileUiIconElement,
+    defaultIconScaleForDisplay,
     inferIconDisplay,
     normalizeIconDisplay,
     normalizeTileShape,
@@ -227,7 +228,7 @@ function paintAppMenuIconPlate(
             isBookmarkFavicon: Boolean(resource || resourceRaw) && !opts.launcher
         });
     iconPlate.setAttribute("data-icon-display", display);
-    applyItemIconScaleToElement(iconPlate, opts.chrome.iconScale);
+    applyItemIconScaleToElement(iconPlate, defaultIconScaleForDisplay(display, opts.chrome.iconScale));
     iconPlate.replaceChildren();
 
     if (display === "glyph") {

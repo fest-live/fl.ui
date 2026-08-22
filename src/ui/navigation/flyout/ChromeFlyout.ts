@@ -4,6 +4,8 @@
  * Change date and time: 08.30.00_02.08.2026
  * Reason for changes: Shared overlay host for Calendar + Quick Settings (Win11-like).
  */
+import { bindOutsideDismiss, registerTransientOverlay } from "@fest-lib/lure";
+
 
 /** Matches env-shell `$bp-desktop-min` / chrome `data-desktop`. */
 export const CHROME_DESKTOP_MQ = "(min-width: 641px)";
@@ -21,8 +23,18 @@ export type ChromeFlyoutController = {
 };
 
 const openControllers = new Map<ChromeFlyoutKind, ChromeFlyoutController>();
-let dismissBound = false;
+type FlyoutSession = {
+    disposeDismiss: () => void;
+    unregisterBack: () => void;
+};
+const sessions = new Map<ChromeFlyoutKind, FlyoutSession>();
 let overlayShellHost: HTMLElement | null = null;
+const flyoutAnchorSelectors = [
+    "[data-chrome-flyout-anchor]",
+    ".env-shell-taskbar__clock",
+    ".env-ui-statusbar__clock",
+    ".env-device-tray",
+];
 
 export const isDesktopChrome = (): boolean => {
     if (typeof document !== "undefined") {
@@ -110,43 +122,14 @@ export const positionFlyout = (el: HTMLElement, mode: ChromeFlyoutKind): void =>
     el.style.transform = "translateX(-50%)";
 };
 
-const onDocPointerDown = (ev: Event): void => {
-    const t = ev.target as Node | null;
-    for (const [kind, ctrl] of [...openControllers.entries()]) {
-        if (ctrl.contains(t)) continue;
-        /* Keep open when clicking the chrome anchors that toggle (handlers stopPropagation). */
-        const anchor = (t as HTMLElement | null)?.closest?.(
-            "[data-chrome-flyout-anchor], .env-shell-taskbar__clock, .env-ui-statusbar__clock, .env-device-tray"
-        );
-        if (anchor) continue;
-        closeChromeFlyout(kind);
-    }
-};
-
-const onDocKeyDown = (ev: KeyboardEvent): void => {
-    if (ev.key !== "Escape") return;
-    closeAllChromeFlyouts();
-};
-
-const ensureDismissListeners = (): void => {
-    if (dismissBound) return;
-    dismissBound = true;
-    document.addEventListener("pointerdown", onDocPointerDown, true);
-    document.addEventListener("keydown", onDocKeyDown, true);
-};
-
-const releaseDismissListenersIfIdle = (): void => {
-    if (openControllers.size > 0) return;
-    if (!dismissBound) return;
-    dismissBound = false;
-    document.removeEventListener("pointerdown", onDocPointerDown, true);
-    document.removeEventListener("keydown", onDocKeyDown, true);
-};
-
 export const closeChromeFlyout = (kind: ChromeFlyoutKind): void => {
     const ctrl = openControllers.get(kind);
     if (!ctrl) return;
     openControllers.delete(kind);
+    const session = sessions.get(kind);
+    sessions.delete(kind);
+    session?.disposeDismiss();
+    session?.unregisterBack();
     try {
         const el = ctrl.el as HTMLElement & { close?: () => void };
         /* Prefer CE close() so local open/hidden attrs stay consistent. */
@@ -159,7 +142,6 @@ export const closeChromeFlyout = (kind: ChromeFlyoutKind): void => {
     } catch {
         /* ignore */
     }
-    releaseDismissListenersIfIdle();
 };
 
 export const closeAllChromeFlyouts = (): void => {
@@ -171,6 +153,7 @@ export const closeAllChromeFlyouts = (): void => {
  * Caller must already append `el` into the overlay root and call `positionFlyout`.
  */
 export const registerOpenFlyout = (ctrl: ChromeFlyoutController): void => {
+    if (openControllers.has(ctrl.kind)) closeChromeFlyout(ctrl.kind);
     for (const kind of [...openControllers.keys()]) {
         if (kind === ctrl.kind) continue;
         closeChromeFlyout(kind);
@@ -183,7 +166,28 @@ export const registerOpenFlyout = (ctrl: ChromeFlyoutController): void => {
     ctrl.el.hidden = false;
     ctrl.el.removeAttribute("hidden");
     ctrl.el.setAttribute("open", "");
-    ensureDismissListeners();
+    sessions.set(ctrl.kind, {
+        disposeDismiss: bindOutsideDismiss({
+            root: document,
+            inside: ctrl.el,
+            isInside: (event) => ctrl.contains(event.target),
+            exceptSelectors: flyoutAnchorSelectors,
+            onDismiss: () => closeChromeFlyout(ctrl.kind),
+        }),
+        unregisterBack: registerTransientOverlay({
+            id: `chrome-flyout-${ctrl.kind}`,
+            kind: "overlay",
+            element: ctrl.el,
+            isActive: () => openControllers.get(ctrl.kind)?.el === ctrl.el
+                && ctrl.el.isConnected
+                && !ctrl.el.hidden
+                && ctrl.el.hasAttribute("open"),
+            close: () => {
+                closeChromeFlyout(ctrl.kind);
+                return true;
+            },
+        }),
+    });
 };
 
 export const isChromeFlyoutOpen = (kind: ChromeFlyoutKind): boolean => openControllers.has(kind);

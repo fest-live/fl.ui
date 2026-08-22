@@ -397,6 +397,13 @@
             corner-shape: superellipse(1);
         }
 
+        img[data-icon-pending],
+        img[data-launcher-icon]:not([src]),
+        ui-icon[data-icon-pending] {
+            opacity: 0;
+            visibility: hidden;
+        }
+
         img[data-launcher-icon],
         .ui-ws-item-icon-img {
             position: absolute;
@@ -482,6 +489,13 @@
             @supports (corner-shape: square) {
                 corner-shape: square;
             }
+        }
+
+        img[data-icon-pending],
+        img[data-launcher-icon]:not([src]),
+        ui-icon[data-icon-pending] {
+            opacity: 0;
+            visibility: hidden;
         }
 
         img[data-launcher-icon],

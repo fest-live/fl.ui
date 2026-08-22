@@ -1,8 +1,8 @@
 /*
  * Filename: tile-icon.ts
  * FullPath: modules/projects/fl.ui/src/ui/speed-dial/tile-icon.ts
- * Change date and time: 14.22.00_22.08.2026
- * Reason for changes: Pasted URL tiles default to Phosphor `link`, not a failed S2 favicon.
+ * Change date and time: 18.15.00_22.08.2026
+ * Reason for changes: Bitmap tiles stay empty while hydrating — no device-mobile / sparkle flash.
  */
 
 /** How a Speed Dial / App Menu tile paints its icon. */
@@ -78,9 +78,21 @@ export function createTileUiIconElement(opts: TileIconPaintOptions): HTMLElement
         host.style.setProperty("--icon-size", "100%");
     }
 
-    if (display === "glyph" || !resource) {
+    if (display === "glyph") {
         host.setAttribute("icon", glyph);
         host.setAttribute("icon-source", "phosphor");
+        host.removeAttribute("data-icon-bitmap");
+        host.removeAttribute("data-icon-bitmap-mode");
+        host.removeAttribute("data-icon-bitmap-locked");
+        host.removeAttribute("data-icon-pending");
+        return host;
+    }
+
+    /* WHY: launcher hydrate used to flash Phosphor `device-mobile` / a gray square. */
+    if (!resource) {
+        host.removeAttribute("icon");
+        host.setAttribute("icon-source", "resource");
+        host.toggleAttribute("data-icon-pending", true);
         host.removeAttribute("data-icon-bitmap");
         host.removeAttribute("data-icon-bitmap-mode");
         host.removeAttribute("data-icon-bitmap-locked");

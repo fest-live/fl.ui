@@ -1,8 +1,8 @@
 /*
  * Filename: action-registry.ts
  * FullPath: modules/projects/fl.ui/src/ui/speed-dial/action-registry.ts
- * Change date and time: 17.45.00_22.08.2026
- * Reason for changes: Copy shortcut uses the shared clipboard envelope (Cap/CRX + in-session).
+ * Change date and time: 18.15.00_22.08.2026
+ * Reason for changes: Hide launcher icon hosts until the bitmap is ready (no phone/square flash).
  */
 
 import { navigate } from "@fest-lib/lure";
@@ -323,6 +323,7 @@ export function applyLauncherIconToImg(host: HTMLImageElement, objectUrl: string
     const url = String(objectUrl || "").trim();
     if (!url) return;
     if (host.src !== url) host.src = url;
+    host.removeAttribute("data-icon-pending");
     host.toggleAttribute("data-launcher-icon-ready", true);
 }
 
@@ -367,6 +368,7 @@ export function applyLauncherIconToUiIcon(
         if (mode !== "auto" && typeof icon.setBitmapPresentationMode === "function") {
             icon.setBitmapPresentationMode(mode, true);
         }
+        host.removeAttribute("data-icon-pending");
         host.toggleAttribute("data-launcher-icon-ready", true);
         return true;
     };
@@ -389,6 +391,7 @@ export function createLauncherUiIconElement(): HTMLElement {
     host.style.setProperty("--icon-padding", "0px");
     host.style.setProperty("--icon-size", "100%");
     host.setAttribute("aria-hidden", "true");
+    host.toggleAttribute("data-icon-pending", true);
     return host;
 }
 
@@ -397,6 +400,7 @@ export function applyLauncherIconImgUrl(host: HTMLImageElement, dataUrl: string)
     const url = String(dataUrl || "").trim();
     if (!url) return;
     host.src = url;
+    host.removeAttribute("data-icon-pending");
     host.toggleAttribute("data-launcher-icon-ready", true);
 }
 
@@ -420,6 +424,7 @@ export function createLauncherIconImgElement(): HTMLImageElement {
     host.decoding = "async";
     host.draggable = false;
     host.referrerPolicy = "no-referrer";
+    host.toggleAttribute("data-icon-pending", true);
     return host;
 }
 

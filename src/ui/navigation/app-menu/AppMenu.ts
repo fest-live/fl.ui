@@ -1,8 +1,8 @@
 /*
  * Filename: AppMenu.ts
  * FullPath: modules/projects/fl.ui/src/ui/navigation/app-menu/AppMenu.ts
- * Change date and time: 19.00.00_19.08.2026
- * Reason for changes: Task 8 L3 — long-press drag AppMenu tiles → SpeedDial desktop.
+ * Change date and time: 18.15.00_22.08.2026
+ * Reason for changes: App drawer tiles stay empty until the launcher bitmap lands.
  */
 /**
  * WHY: `.env-shell-app-menu` slide-over host for launcher SKU.
@@ -261,13 +261,18 @@ function paintAppMenuIconPlate(
         } else if (opts.launcher) {
             img.toggleAttribute("data-launcher-icon", true);
         }
-        if (resource) img.src = resource;
+        if (resource) {
+            img.src = resource;
+        } else {
+            img.toggleAttribute("data-icon-pending", true);
+        }
         iconPlate.append(img);
         applyIconScaleToPaintedNodes(iconPlate);
         if (isAndroidIconRef(resourceRaw)) {
             void resolveIconResourceUrl(resourceRaw, fetchSize).then((url) => {
                 if (!url || !img.isConnected) return;
                 img.src = url;
+                img.removeAttribute("data-icon-pending");
                 applyIconScaleToPaintedNodes(iconPlate);
             });
         }

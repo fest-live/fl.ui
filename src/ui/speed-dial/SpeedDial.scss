@@ -1,8 +1,8 @@
 /*
  * Filename: SpeedDial.scss
  * FullPath: modules/projects/fl.ui/src/ui/speed-dial/SpeedDial.scss
- * Change date and time: 15.12.00_22.08.2026
- * Reason for changes: Map generic radii to veela tokens (keep icon-mask / asymmetric chrome).
+ * Change date and time: 18.15.00_22.08.2026
+ * Reason for changes: Hide pending launcher bitmaps so hydrate does not flash a phone/square.
  */
 
 @use "../design/_wavy-runtime.scss" as *;
@@ -733,6 +733,13 @@
                 ui-icon {
                     transform: scale(var(--sd-item-icon-scale, var(--sd-launcher-icon-scale, 1.28)));
                     transform-origin: center center;
+                }
+
+                img[data-icon-pending],
+                img[data-launcher-icon]:not([src]),
+                ui-icon[data-icon-pending] {
+                    opacity: 0;
+                    visibility: hidden;
                 }
 
                 img[data-launcher-icon]:not([data-bookmark-favicon]) {

@@ -33,19 +33,20 @@
          * WHY: hard #f4f4f5/#1c1c1e fixed light/dark contrast but killed Veela tint.
          * Keep light-dark for scheme flip; mix primary so surfaces stay colorized.
          */
-        --env-app-menu-accent: var(--wf-md-primary, var(--color-primary, #60cdff));
-        --env-app-menu-surface: light-dark(
-            color-mix(in oklab, #f4f4f5 78%, var(--env-app-menu-accent) 22%),
-            color-mix(in oklab, #1c1c1e 78%, var(--env-app-menu-accent) 22%)
+        --env-app-menu-accent: var(--wf-md-primary, var(--color-primary, #5a9ec8));
+        --env-app-menu-surface: color-mix(
+            in oklab,
+            var(--color-surface-container, --u2-color-mod(var(--base-color, #5a9ec8), 960)) 88%,
+            transparent
         );
-        --env-app-menu-surface-raised: light-dark(
-            color-mix(in oklab, #ffffff 86%, var(--env-app-menu-accent) 14%),
-            color-mix(in oklab, #2a2a2e 86%, var(--env-app-menu-accent) 14%)
+        --env-app-menu-surface-raised: var(
+            --color-surface-container-high,
+            --u2-color-mod(var(--base-color, #5a9ec8), 980)
         );
-        --env-app-menu-ink: light-dark(#1a1c1f, #e8eaed);
-        --env-app-menu-plate: light-dark(
-            color-mix(in oklab, var(--color-primary-container, #e8eaed) 72%, var(--env-app-menu-accent) 28%),
-            color-mix(in oklab, #111827 72%, var(--env-app-menu-accent) 28%)
+        --env-app-menu-ink: var(--color-on-surface, --u2-color-mod(var(--base-color, #5a9ec8), 100));
+        --env-app-menu-plate: var(
+            --color-primary-container,
+            --u2-color-mod(var(--base-color, #5a9ec8), 880)
         );
     }
 

@@ -40,7 +40,7 @@
      * Prefer document `--color-*` (concrete under data-theme) so Light/Dark pins win.
      * light-dark() kept only as last-resort when veela tokens are absent.
      */
-    --ui-win-seed: var(--base-color, var(--color-primary, #5a7fff));
+    --ui-win-seed: var(--base-color, var(--color-primary, #5a9ec8));
     --ui-win-bg: var(--color-surface, light-dark(
         --u2-color-mod(var(--ui-win-seed), 70),
         --u2-color-mod(var(--ui-win-seed), 930)
@@ -214,8 +214,8 @@
 
 :host(ui-window[data-mobile-max]) .title-handler {
     cursor: default;
-    /* Empty gap under overlay statusbar — wallpaper / window edge shows through. */
-    background: transparent;
+    /* WHY: transparent spacer sampled as black theme-color and broke Settings/Launcher unity. */
+    background: var(--ui-win-titlebar-bg, var(--color-surface, --u2-color-mod(var(--ui-win-seed), 940)));
     border-block-end: 0;
     min-block-size: var(--ui-win-titlebar-height);
     padding-block: 0;
@@ -244,7 +244,7 @@
 
 :host(ui-window[data-status-gap]:not([data-no-titlebar])) .title-handler {
     cursor: default;
-    background: transparent;
+    background: var(--ui-win-titlebar-bg, var(--color-surface, --u2-color-mod(var(--ui-win-seed), 940)));
     border-block-end: 0;
     min-block-size: var(--ui-win-titlebar-height);
     padding-block: 0;

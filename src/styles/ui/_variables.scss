@@ -32,10 +32,10 @@
     --fl-ui-gap: var(--space-md, 0.75rem);
 
     /*
-     * NOTE: Standalone fallback only. Same seed as veela SoT (`#5a7fff`).
+     * NOTE: Standalone fallback only. Same seed as veela SoT (`#5a9ec8`).
      * INVARIANT: stay inside `@layer tokens` — unlayered :root would beat veela.
      */
-    --color-primary: #5a7fff;
+    --color-primary: #5a9ec8;
     --base-color: var(--color-primary);
     --color-surface: --u2-color-mod(var(--base-color), 920);
     --color-on-surface: --u2-color-mod(var(--base-color), 100);

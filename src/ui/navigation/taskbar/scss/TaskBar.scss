@@ -53,12 +53,14 @@
     * Soft elevation: `.env-shell-taskbar-under` (UnderlyingShadow) — not box-shadow on blur host.
     */
     .env-shell-taskbar {
-        --env-taskbar-surface: light-dark(
-            color-mix(in oklab, #f4f4f5 82%, transparent),
-            color-mix(in oklab, #1c1c1e 78%, transparent)
+        /* WHY: #f4f4f5/#1c1c1e forked a slate dock from Settings `--sv-*` / `--base-color`. */
+        --env-taskbar-surface: color-mix(
+            in oklab,
+            var(--color-surface-container-high, --u2-color-mod(var(--base-color, #5a9ec8), 980)) 88%,
+            transparent
         );
-        --env-taskbar-ink: contrast-color(var(--env-taskbar-surface));
-        --env-taskbar-accent: var(--wf-md-primary, #60cdff);
+        --env-taskbar-ink: var(--color-on-surface, --u2-color-mod(var(--base-color, #5a9ec8), 100));
+        --env-taskbar-accent: var(--wf-md-primary, var(--color-primary, #5a9ec8));
         --icon-color: var(--env-taskbar-ink);
 
         order: 0;
@@ -440,7 +442,11 @@
         margin: 0;
         border-radius: 999px;
         z-index: 6;
-        background: color-mix(in oklab, var(--color-surface-container, #111827) 78%, transparent);
+        background: color-mix(
+            in oklab,
+            var(--color-surface-container-high, --u2-color-mod(var(--base-color, #5a9ec8), 980)) 88%,
+            transparent
+        );
         box-shadow: 0 6px 20px -8px color-mix(in oklab, #000 45%, transparent);
         touch-action: manipulation;
         -webkit-user-select: none;

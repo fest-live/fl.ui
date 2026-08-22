@@ -1,8 +1,8 @@
 /*
  * Filename: QuickSettings.ts
  * FullPath: modules/projects/fl.ui/src/ui/navigation/settings/QuickSettings.ts
- * Change date and time: 09.40.00_19.08.2026
- * Reason for changes: Footer buttons open Settings / Explorer from Quick Settings.
+ * Change date and time: 15.45.00_22.08.2026
+ * Reason for changes: Swallow orientation.lock() NotSupportedError on desktop Neutralino.
  */
 /**
  * WHY: Singleton `ui-quick-settings` custom element mounted into the shared ChromeFlyout
@@ -197,9 +197,10 @@ export const unlockOrientationLock = (unlocked: boolean): void => {
                 orientation.unlock?.();
                 return;
             }
-            // Desktop CRX / browsers often expose lock() but reject with NotSupportedError.
+            // Desktop CRX / Neutralino expose lock() but reject with NotSupportedError.
             if (typeof orientation.lock !== "function") return;
-            await orientation.lock(orientation.type || "natural");
+            const locked = orientation.lock(orientation.type || "natural");
+            if (locked && typeof locked.catch === "function") await locked.catch(() => {});
         } catch (error) {
             console.warn(error);
         }

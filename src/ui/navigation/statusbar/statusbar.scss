@@ -58,10 +58,14 @@
     .env-ui-statusbar {
         order: 1;
         padding: 0.35rem 0.65rem calc(0.35rem + env(safe-area-inset-bottom, 0));
-        background: color-mix(in oklch, oklch(0.14 0.02 280) 82%, transparent);
-        border-block-start: 1px solid var(--wf-md-outline-variant, color-mix(in oklch, white 12%, transparent));
+        background: color-mix(
+            in oklab,
+            var(--color-surface-container, --u2-color-mod(var(--base-color, #5a9ec8), 960)) 88%,
+            transparent
+        );
+        border-block-start: 1px solid var(--wf-md-outline-variant, var(--color-outline-variant));
         backdrop-filter: blur(10px);
-        color: contrast-color(color-mix(in oklch, oklch(0.14 0.02 280) 82%, transparent));
+        color: var(--color-on-surface, --u2-color-mod(var(--base-color, #5a9ec8), 100));
     }
 
     .env-ui-statusbar__intro p {

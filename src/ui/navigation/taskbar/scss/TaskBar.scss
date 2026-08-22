@@ -1,8 +1,8 @@
 /*
  * Filename: TaskBar.scss
  * FullPath: modules/projects/fl.ui/src/ui/navigation/taskbar/scss/TaskBar.scss
- * Change date and time: 22.30.00_22.08.2026
- * Reason for changes: Light theme — pin glyphs use on-surface ink, not contrast-color(surface).
+ * Change date and time: 23.15.00_22.08.2026
+ * Reason for changes: Desktop chrome elevation on `.env-shell-chrome` — drop lure under-slab.
  */
 /* Taskbar / env chrome (document + host). Former environment-shell/scss/chrome.scss. */
 //@use "veela-lib" as m;
@@ -43,6 +43,11 @@
         color: var(--color-on-surface, var(--wf-md-on-surface-variant, #1c1c1e));
         pointer-events: none;
     }
+
+    /* WHY: lure `env-shell-taskbar-under` was a 40px fixed bbox + inline z-index:0 slab. */
+    .env-shell-chrome[data-desktop] {
+        box-shadow: 0 -8px 28px rgb(0 0 0 / 0.28);
+    }
     
     .env-shell-chrome > * {
         pointer-events: auto;
@@ -50,7 +55,7 @@
     
     /*
     * Taskbar base (desktop Win10 acrylic + mobile transparent dock share the same host).
-    * Soft elevation: `.env-shell-taskbar-under` (UnderlyingShadow) — not box-shadow on blur host.
+    * Soft elevation lives on `.env-shell-chrome` — not on this backdrop-filter host.
     */
     .env-shell-taskbar {
         /* WHY: #f4f4f5/#1c1c1e forked a slate dock from Settings `--sv-*` / `--base-color`. */
@@ -95,18 +100,6 @@
             color: var(--env-taskbar-ink);
             --icon-color: var(--env-taskbar-ink);
         }
-    }
-    
-    .env-shell-taskbar-under.underlying-shadow-container,
-    .env-shell-taskbar-under {
-        pointer-events: none !important;
-        overflow: visible !important;
-        z-index: -1 !important;
-    }
-    
-    .env-shell-taskbar-under .underlying-shadow-geometry {
-        background: transparent !important;
-        box-shadow: 0 -8px 28px rgba(0, 0, 0, 0.4) !important;
     }
     
     .env-shell-taskbar::part(taskbar) {
@@ -417,10 +410,6 @@
         block-size: 100%;
     }
 
-    .env-shell-chrome:not([data-desktop]) .env-shell-taskbar-under {
-        display: none !important;
-    }
-    
     .env-shell-chrome:not([data-desktop]) .env-shell-taskbar__pins {
         display: contents;
     }

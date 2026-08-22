@@ -1,8 +1,8 @@
 /*
  * Filename: Windows2.scss
  * FullPath: modules/projects/fl.ui/src/ui/containers/window/Windows2.scss
- * Change date and time: 16.25.00_31.07.2026
- * Reason for changes: --ui-win-* palette via --u2-color-mod (token names kept).
+ * Change date and time: 23.10.00_22.08.2026
+ * Reason for changes: Desk-max filled to the dock — titlebar-height gap + shadow looked like a PWA bar.
  */
 
 /* COMPAT: Adopted shadow sheet cannot see document --u2-color-mod; body matches veela SoT. */
@@ -259,15 +259,21 @@
 
 :host(ui-window[data-desk-max]) {
     --ui-win-radius: 0;
-    inset: 0px !important;
+    /* WHY: titlebar is inside the window — subtracting it left a shadowed slab above the taskbar (PWA). */
+    inset: 0 0 var(--env-shell-chrome-stack-reserve, 2.5rem) 0 !important;
     inline-size: auto !important;
-    block-size: calc(100% - var(--ui-win-titlebar-height)) !important;
+    block-size: auto !important;
     border-radius: 0;
+    box-shadow: none !important;
     transform: none !important;
 
     @media screen and (pointer: coarse) and (hover: none) {
         block-size: stretch !important;
     }
+}
+
+:host(ui-window[managed][data-focused][data-desk-max]) {
+    box-shadow: none !important;
 }
 
 :host(ui-window[minimized]) {

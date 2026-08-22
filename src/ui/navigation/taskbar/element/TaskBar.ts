@@ -2,8 +2,9 @@
 /*
  * Filename: TaskBar.ts
  * FullPath: modules/projects/fl.ui/src/ui/navigation/taskbar/element/TaskBar.ts
- * Change date and time: 08.36.00_08.08.2026
- * Reason for changes: Import ContextMenu from fl.ui SoT (not app views/explorer alias).
+ * FIND:taskbar-under
+ * Change date and time: 23.15.00_22.08.2026
+ * Reason for changes: Drop lure taskbar-under clone — it painted a 40px z-index-0 slab over PWA windows.
  */
 /**
  * WHY: Desktop shell chrome — `ui-taskbar` + `ui-task` from FL-UI, `fest/lure` tasking `makeTask` / `getBy`,
@@ -13,7 +14,6 @@
  */
 import { UITask } from "@fest-lib/fl-ui";
 import "@fest-lib/icon";
-import { createPanelUnderShadow, type UnderlyingShadow } from "@fest-lib/lure";
 import { effect, observe, type refType } from "@fest-lib/object";
 import { getBy, makeTask, navigationEnable, type ITask } from "@fest-lib/lure";
 // WHY: Library builds have no app `views/*` aliases; use the fl.ui ContextMenu SoT.
@@ -321,7 +321,6 @@ export function mountEnvironmentTaskBar(opts: EnvironmentTaskbarOptions): MountT
     let longPressTimer: ReturnType<typeof setTimeout> | null = null;
     let longPressFired = false;
     let switcherOpen = false;
-    let barUnder: UnderlyingShadow | null = null;
     const cleanupFns: Array<() => void> = [];
     cleanupFns.push(() => clearInterval(clockTimer));
 
@@ -810,30 +809,7 @@ export function mountEnvironmentTaskBar(opts: EnvironmentTaskbarOptions): MountT
         paintActive();
     };
 
-    const syncAcrylicUnder = (): void => {
-        const desktop = !isMobileChrome();
-        syncStartChrome();
-        if (desktop) {
-            if (!barUnder && bar.isConnected) {
-                barUnder = createPanelUnderShadow(bar, {
-                    className: "env-shell-taskbar-under",
-                    shadowBlur: 28,
-                    shadowOffsetY: 8,
-                    shadowColor: "rgba(0, 0, 0, 0.4)"
-                });
-            }
-        } else if (barUnder) {
-            barUnder.destroy();
-            barUnder = null;
-        }
-    };
-
-    queueMicrotask(syncAcrylicUnder);
-    const mq =
-        typeof matchMedia === "function" ? matchMedia("(min-width: 641px)") : null;
-    const onMq = (): void => syncAcrylicUnder();
-    mq?.addEventListener?.("change", onMq);
-    cleanupFns.push(() => mq?.removeEventListener?.("change", onMq));
+    queueMicrotask(syncStartChrome);
 
     if (appMenu) {
         const onAppMenuSurface = (): void => syncAppMenuChrome();
@@ -849,8 +825,6 @@ export function mountEnvironmentTaskBar(opts: EnvironmentTaskbarOptions): MountT
         clearLongPress();
         closeSwitcher();
         appMenu?.dispose();
-        barUnder?.destroy();
-        barUnder = null;
         for (const fn of cleanupFns) {
             try {
                 fn();

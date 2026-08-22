@@ -1,8 +1,8 @@
 /*
  * Filename: mount-ui-window.ts
  * FullPath: modules/shells/environment-shell/src/mount-ui-window.ts
- * Change date and time: 14.05.00_31.07.2026
- * Reason for changes: data-status-gap / data-no-titlebar for overlay statusbar + standalone.
+ * Change date and time: 23.10.00_22.08.2026
+ * Reason for changes: Desk-max sits on the chrome reserve — no 8px + titlebar gap above the taskbar.
  */
 /**
  * WHY: Replaces `.wf-frame` / {@link mountWindowFrame} for environment-shell floating views.
@@ -17,8 +17,6 @@ import { Windows2 } from "@fest-lib/fl-ui";
 import type { WindowChromeModel } from "../frame/window-shell.ts";
 
 void Windows2;
-
-const DESK_INSET = 8;
 
 function isNativeCapacitorShell(): boolean {
     try {
@@ -135,10 +133,10 @@ export function mountUiWindow(
     };
 
     const applyDeskMaxGeometry = (): void => {
-        win.style.left = `${DESK_INSET}px`;
-        win.style.top = `${DESK_INSET}px`;
-        win.style.right = `${DESK_INSET}px`;
-        win.style.bottom = `${DESK_INSET}px`;
+        win.style.left = "0";
+        win.style.top = "0";
+        win.style.right = "0";
+        win.style.bottom = "var(--env-shell-chrome-stack-reserve, 2.5rem)";
         win.style.width = "auto";
         win.style.height = "auto";
         win.style.removeProperty("--ui-win-width");

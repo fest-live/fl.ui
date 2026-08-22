@@ -1776,7 +1776,15 @@ export const wallpaperState = makeUIState(WALLPAPER_KEY, () => observe({
 
 export const persistWallpaper = () => (wallpaperState as any)?.$save?.();
 
-export type GridShape = "square" | "squircle" | "circle" | "rounded" | "hexagon" | "diamond" | "wavy";
+export type GridShape =
+    | "square"
+    | "squircle"
+    | "circle"
+    | "rounded"
+    | "hexagon"
+    | "diamond"
+    | "wavy"
+    | "shapeless";
 
 export interface GridLayoutSettings {
     columns: number;
@@ -1894,7 +1902,16 @@ export function tileIconFetchSize(rawItemScale?: unknown, layoutCssPx = 96): num
 
 const GRID_LAYOUT_KEY = "cw::workspace::grid-layout";
 const WORKSPACE_GRID_EVENT = "cwsp:workspace-grid";
-const TILE_SHAPES = new Set<string>(["square", "squircle", "circle", "rounded", "hexagon", "diamond", "wavy"]);
+const TILE_SHAPES = new Set<string>([
+    "square",
+    "squircle",
+    "circle",
+    "rounded",
+    "hexagon",
+    "diamond",
+    "wavy",
+    "shapeless"
+]);
 
 export const normalizeTileShape = (raw: unknown, fallback: GridShape = "squircle"): GridShape => {
     const v = String(raw || "").trim().toLowerCase();

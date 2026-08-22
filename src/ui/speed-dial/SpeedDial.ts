@@ -1,8 +1,8 @@
 /*
  * Filename: SpeedDial.ts
  * FullPath: modules/projects/fl.ui/src/ui/speed-dial/SpeedDial.ts
- * Change date and time: 17.45.00_22.08.2026
- * Reason for changes: Copy/paste shortcuts + clone to other sides; ignore page-turn ghost icons.
+ * Change date and time: 20.52.00_22.08.2026
+ * Reason for changes: Keep shortcut labels on their own cell — 0,0 and lure style= wipe no longer auto-flow to neighbors.
  */
 
 import { observe, numberRef, propRef, stringRef, affected } from "@fest-lib/object";
@@ -124,6 +124,7 @@ import {
     inferIconDisplay,
     normalizeIconDisplay,
     normalizeTileShape,
+    syncShapelessIconShadow,
     type IconDisplayMode
 } from "./tile-icon";
 import { isLauncherSku } from "../navigation/app-menu/AppMenu";
@@ -186,25 +187,38 @@ const currentHomeRoot = (): HTMLElement | null => {
 };
 
 /* WHY: lure applies `style=` after `ref=` and can wipe `--cell-*`. First paint
- * still needs explicit grid lines so captions never auto-flow into the top rows. */
+ * must keep identity vars — missing `--cell-column` invalidates the !important
+ * rule and captions auto-flow onto neighboring tiles. `--cell-x:0` is a real cell. */
 const labelLayerStyle = (item: { cell?: unknown }): string => {
     const logical: GridCell = [
         readCellAxis((item as SpeedDialItem)?.cell?.[0]),
         readCellAxis((item as SpeedDialItem)?.cell?.[1])
     ];
     const visual = logicalToVisualCell(logical, getGridLayout(), getRootOrient(currentHomeRoot()));
-    return `grid-column:${visual[0] + 1} / span 1;grid-row:${visual[1] + 1} / span 1`;
+    const col = visual[0] + 1;
+    const row = visual[1] + 1;
+    return [
+        `--cell-x:${logical[0]}`,
+        `--cell-y:${logical[1]}`,
+        `--p-cell-x:${logical[0]}`,
+        `--p-cell-y:${logical[1]}`,
+        `--cell-column:${col}`,
+        `--cell-row:${row}`,
+        `grid-column:${col} / span 1`,
+        `grid-row:${row} / span 1`
+    ].join(";");
 };
 
 const isLiveSpeedDialNode = (node: Element): boolean =>
     !node.closest(".speed-dial-grid--turn-ghost");
 
 const usedGridLine = (el: HTMLElement, axis: "column" | "row"): string => {
-    const fromVar = el.style.getPropertyValue(axis === "column" ? "--cell-column" : "--cell-row").trim();
-    if (fromVar) return fromVar;
-    const cs = el.ownerDocument?.defaultView?.getComputedStyle(el);
-    const start = axis === "column" ? cs?.gridColumnStart : cs?.gridRowStart;
-    return start && start !== "auto" ? start : "";
+    const varName = axis === "column" ? "--cell-column" : "--cell-row";
+    const fromVar = el.style.getPropertyValue(varName).trim();
+    /* WHY: do not treat computed `auto` as identity — that is neighbor packing. */
+    if (fromVar && fromVar !== "auto") return fromVar;
+    const fromData = (axis === "column" ? el.dataset.cellColumn : el.dataset.cellRow) || "";
+    return fromData && fromData !== "auto" ? fromData : "";
 };
 
 const stampItemGridLine = (el: HTMLElement, visualCell: GridCell): void => {
@@ -285,13 +299,15 @@ const scheduleLabelPlacementSync = (root: HTMLElement): void => {
             icons.set(node.dataset.id, node);
         });
         root.querySelectorAll<HTMLElement>('[data-speed-dial-item][data-layer="labels"]').forEach((node) => {
-            if (!isLiveSpeedDialNode(node)) return;
+            if (!isLiveSpeedDialNode(node) || !node.dataset.id) return;
             const item = findSpeedDialItem(node.dataset.id);
             if (item) applyVisualCell(node, item, root);
-            const icon = icons.get(node.dataset.id || "");
+            const icon = icons.get(node.dataset.id);
             if (!icon) return;
             const col = usedGridLine(icon, "column");
             const row = usedGridLine(icon, "row");
+            /* WHY: copy only stamped lines. Computed auto from a missing `--cell-column`
+             * would slide this caption onto the next packed neighbor. */
             if (col) {
                 node.style.setProperty("--cell-column", col);
                 node.style.setProperty("grid-column", `${col} / span 1`, "important");
@@ -651,8 +667,13 @@ const paintSpeedDialTileIcon = (el: HTMLElement, item: SpeedDialItem): void => {
     );
 
     el.querySelectorAll(
-        "ui-icon, .ui-ws-item-icon-native, img[data-launcher-icon], .ui-ws-item-icon-img, .ui-ws-item-icon-mask"
+        "ui-icon, .ui-ws-item-icon-native, img[data-launcher-icon], .ui-ws-item-icon-img, .ui-ws-item-icon-mask, .sd-icon-silhouette"
     ).forEach((node) => node.remove());
+
+    const finishPaint = (): void => {
+        applyIconScaleToPaintedNodes(el);
+        syncShapelessIconShadow(el);
+    };
 
     if (display === "glyph") {
         const host = document.createElement("ui-icon");
@@ -660,7 +681,7 @@ const paintSpeedDialTileIcon = (el: HTMLElement, item: SpeedDialItem): void => {
         host.setAttribute("icon-style", "duotone");
         host.setAttribute("aria-hidden", "true");
         el.prepend(host);
-        applyIconScaleToPaintedNodes(el);
+        finishPaint();
         return;
     }
 
@@ -686,15 +707,16 @@ const paintSpeedDialTileIcon = (el: HTMLElement, item: SpeedDialItem): void => {
             if (!favicon) img.toggleAttribute("data-launcher-icon", true);
         }
         el.prepend(img);
-        applyIconScaleToPaintedNodes(el);
+        finishPaint();
         if (resourceUrl) {
             applyLauncherIconToImg(img, resourceUrl);
+            finishPaint();
             if (isAndroidIconRef(customUrl) && !cachedAndroidIcon) {
                 void resolveIconResourceUrl(customUrl, fetchSize).then((fetched) => {
                     if (!fetched || !img.isConnected) return;
                     if (el.getAttribute("data-icon-display") === "glyph") return;
                     applyLauncherIconToImg(img, fetched);
-                    applyIconScaleToPaintedNodes(el);
+                    finishPaint();
                 });
             }
             return;
@@ -704,7 +726,7 @@ const paintSpeedDialTileIcon = (el: HTMLElement, item: SpeedDialItem): void => {
                 if (!fetched || !img.isConnected) return;
                 if (el.getAttribute("data-icon-display") === "glyph") return;
                 applyLauncherIconToImg(img, fetched);
-                applyIconScaleToPaintedNodes(el);
+                finishPaint();
             });
             return;
         }
@@ -713,7 +735,7 @@ const paintSpeedDialTileIcon = (el: HTMLElement, item: SpeedDialItem): void => {
                 if (!fetched || !img.isConnected) return;
                 if (el.getAttribute("data-icon-display") === "glyph") return;
                 applyLauncherIconToImg(img, fetched);
-                applyIconScaleToPaintedNodes(el);
+                finishPaint();
             });
         }
         return;
@@ -728,7 +750,7 @@ const paintSpeedDialTileIcon = (el: HTMLElement, item: SpeedDialItem): void => {
         className: "ui-ws-item-icon-native"
     });
     el.prepend(iconNode);
-    applyIconScaleToPaintedNodes(el);
+    finishPaint();
 
     if (iconNode instanceof HTMLElement && url) {
         applyLauncherIconToUiIcon(iconNode, url, mode);
@@ -737,7 +759,7 @@ const paintSpeedDialTileIcon = (el: HTMLElement, item: SpeedDialItem): void => {
                 if (!fetched || !iconNode.isConnected) return;
                 if (el.getAttribute("data-icon-display") === "glyph") return;
                 applyLauncherIconToUiIcon(iconNode, fetched, mode);
-                applyIconScaleToPaintedNodes(el);
+                finishPaint();
             });
         }
     } else if (isAndroidIconRef(customUrl) && iconNode instanceof HTMLElement) {
@@ -745,14 +767,14 @@ const paintSpeedDialTileIcon = (el: HTMLElement, item: SpeedDialItem): void => {
             if (!fetched || !iconNode.isConnected) return;
             if (el.getAttribute("data-icon-display") === "glyph") return;
             applyLauncherIconToUiIcon(iconNode, fetched, mode);
-            applyIconScaleToPaintedNodes(el);
+            finishPaint();
         });
     } else if (launchApp && cacheKey && iconNode instanceof HTMLElement) {
         void ensureLauncherIconObjectUrl(cacheKey, fetchSize).then((fetched) => {
             if (!fetched || !iconNode.isConnected) return;
             if (el.getAttribute("data-icon-display") === "glyph") return;
             applyLauncherIconToUiIcon(iconNode, fetched, mode);
-            applyIconScaleToPaintedNodes(el);
+            finishPaint();
         });
     }
 };
@@ -802,6 +824,8 @@ const bindCell = (el: HTMLElement, args: any): void => {
         applyVisualCell(el, item, mounted);
     };
     sync();
+    /* WHY: lure writes `style=` after `ref=` and would drop `--cell-*` (incl. 0,0). */
+    queueMicrotask(sync);
     affected([item.cell, 0], sync);
     affected([item.cell, 1], sync);
     const meta = getSpeedDialMeta(item.id);
@@ -1643,12 +1667,14 @@ const attachMirrorItemNode = (item: any, el?: HTMLElement | null, makeView?: any
     const sync = (): void => {
         const orient = getRootOrient(root);
         const layout = getGridLayout();
-        const logicalCell: GridCell = [item.cell?.[0] || 0, item.cell?.[1] || 0];
+        const logicalCell: GridCell = [readCellAxis(item.cell?.[0]), readCellAxis(item.cell?.[1])];
         const visualCell = logicalToVisualCell(logicalCell, layout, orient);
         el.style.setProperty("--cell-x", String(logicalCell[0]));
         el.style.setProperty("--cell-y", String(logicalCell[1]));
         el.style.setProperty("--cell-column", String(visualCell[0] + 1));
         el.style.setProperty("--cell-row", String(visualCell[1] + 1));
+        el.dataset.cellColumn = String(visualCell[0] + 1);
+        el.dataset.cellRow = String(visualCell[1] + 1);
         if (el.dataset.layer === "labels") {
             el.style.setProperty("grid-column", `${visualCell[0] + 1} / span 1`, "important");
             el.style.setProperty("grid-row", `${visualCell[1] + 1} / span 1`, "important");

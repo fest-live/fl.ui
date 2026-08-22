@@ -8,6 +8,7 @@ import { registerModal } from "@fest-lib/lure";
 import {
     ICON_DISPLAY_OPTIONS,
     TILE_SHAPE_OPTIONS,
+    isTileShapeValue,
     normalizeIconDisplay,
     type IconDisplayMode
 } from "./tile-icon";
@@ -84,7 +85,7 @@ export type ShortcutEditorDraft = {
     view: string;
     href: string;
     description: string;
-    /** Tile shape: square, circle, squircle, wavy */
+    /** Tile shape: square, circle, squircle, wavy, shapeless */
     shape: string;
     /** glyph | masked | masked-inverse | colored */
     iconDisplay: IconDisplayMode | string;
@@ -373,7 +374,7 @@ export const openShortcutEditor = (options: ShortcutEditorOptions): void => {
     fillTextControl(iconInput, iconValue);
     fillTextControl(iconUrlInput, iconUrlValue);
     if (iconDisplaySelect) iconDisplaySelect.value = iconDisplayVal;
-    if (shapeSelect) shapeSelect.value = ["circle", "square", "squircle", "wavy"].includes(shapeVal) ? shapeVal : "squircle";
+    if (shapeSelect) shapeSelect.value = isTileShapeValue(shapeVal) ? shapeVal : "squircle";
     if (iconScaleSelect) iconScaleSelect.value = iconScaleVal;
     if (openLinkTargetSelect) {
         openLinkTargetSelect.value =

@@ -1,8 +1,8 @@
 /*
  * Filename: AppMenu.ts
  * FullPath: modules/projects/fl.ui/src/ui/navigation/app-menu/AppMenu.ts
- * Change date and time: 18.15.00_22.08.2026
- * Reason for changes: App drawer tiles stay empty until the launcher bitmap lands.
+ * Change date and time: 20.50.00_22.08.2026
+ * Reason for changes: Empty-surface tap dismisses the full-page All Apps drawer.
  */
 /**
  * WHY: `.env-shell-app-menu` slide-over host for launcher SKU.
@@ -37,6 +37,7 @@ import {
     inferIconDisplay,
     normalizeIconDisplay,
     normalizeTileShape,
+    syncShapelessIconShadow,
     type IconDisplayMode
 } from "fl-ui/speed-dial/tile-icon";
 import {
@@ -230,6 +231,10 @@ function paintAppMenuIconPlate(
     iconPlate.setAttribute("data-icon-display", display);
     applyItemIconScaleToElement(iconPlate, defaultIconScaleForDisplay(display, opts.chrome.iconScale));
     iconPlate.replaceChildren();
+    const finishPaint = (): void => {
+        applyIconScaleToPaintedNodes(iconPlate);
+        syncShapelessIconShadow(iconPlate);
+    };
 
     if (display === "glyph") {
         const glyph =
@@ -239,7 +244,7 @@ function paintAppMenuIconPlate(
         icon.setAttribute("icon-style", "duotone");
         icon.setAttribute("aria-hidden", "true");
         iconPlate.append(icon);
-        applyIconScaleToPaintedNodes(iconPlate);
+        finishPaint();
         return;
     }
 
@@ -267,13 +272,13 @@ function paintAppMenuIconPlate(
             img.toggleAttribute("data-icon-pending", true);
         }
         iconPlate.append(img);
-        applyIconScaleToPaintedNodes(iconPlate);
+        finishPaint();
         if (isAndroidIconRef(resourceRaw)) {
             void resolveIconResourceUrl(resourceRaw, fetchSize).then((url) => {
                 if (!url || !img.isConnected) return;
                 img.src = url;
                 img.removeAttribute("data-icon-pending");
-                applyIconScaleToPaintedNodes(iconPlate);
+                finishPaint();
             });
         }
         return;
@@ -287,14 +292,14 @@ function paintAppMenuIconPlate(
         className: "ui-ws-item-icon-native"
     });
     iconPlate.append(host);
-    applyIconScaleToPaintedNodes(iconPlate);
+    finishPaint();
     if (opts.launcher && resource && display !== "glyph") {
         applyLauncherIconToUiIcon(
             host,
             resource,
             display as "colored" | "masked" | "masked-inverse"
         );
-        applyIconScaleToPaintedNodes(iconPlate);
+        finishPaint();
     }
     if (isAndroidIconRef(resourceRaw)) {
         void resolveIconResourceUrl(resourceRaw, fetchSize).then((url) => {
@@ -304,7 +309,7 @@ function paintAppMenuIconPlate(
                 url,
                 display as "colored" | "masked" | "masked-inverse"
             );
-            applyIconScaleToPaintedNodes(iconPlate);
+            finishPaint();
         });
     }
 }
@@ -1391,12 +1396,60 @@ export function mountEnvironmentAppMenu(): MountAppMenuResult {
     };
     document.addEventListener("pointerdown", onDocPointer, { capture: true });
 
+    /* WHY: `[data-page]` covers the viewport, so outside-pointer never fires.
+     * Treat a short tap on the drawer chrome/gaps as dismiss; ignore scroll/drag. */
+    const APP_MENU_KEEP_OPEN_SEL = [
+        ".env-shell-app-menu__tile",
+        ".env-shell-app-menu__search",
+        ".env-shell-app-menu__banner",
+        ".env-shell-app-menu__pin-menu",
+        ".env-shell-app-menu__crumb-item",
+        ".env-shell-app-menu__start-heading",
+        ".env-shell-app-menu__chrome-editor",
+        ".env-shell-app-menu__drag-ghost",
+        ".cw-context-menu-layer",
+        "dialog.speed-dial-editor"
+    ].join(", ");
+    const TAP_DISMISS_SLOP_PX = 14;
+    let dismissTap: { id: number; x: number; y: number } | null = null;
+    const isKeepOpenTarget = (t: EventTarget | null): boolean =>
+        t instanceof Element && Boolean(t.closest(APP_MENU_KEEP_OPEN_SEL));
+    const onEmptySurfacePointerDown = (ev: PointerEvent): void => {
+        if (!open) return;
+        if (ev.button != null && ev.button !== 0) return;
+        if (document.documentElement.hasAttribute("data-app-menu-dragging") || isKeepOpenTarget(ev.target)) {
+            dismissTap = null;
+            return;
+        }
+        dismissTap = { id: ev.pointerId, x: ev.clientX, y: ev.clientY };
+    };
+    const onEmptySurfacePointerUp = (ev: PointerEvent): void => {
+        if (!dismissTap || dismissTap.id !== ev.pointerId) return;
+        const dx = ev.clientX - dismissTap.x;
+        const dy = ev.clientY - dismissTap.y;
+        dismissTap = null;
+        if (!open) return;
+        if (document.documentElement.hasAttribute("data-app-menu-dragging")) return;
+        if (isKeepOpenTarget(ev.target)) return;
+        if (Math.hypot(dx, dy) > TAP_DISMISS_SLOP_PX) return;
+        close();
+    };
+    const onEmptySurfacePointerCancel = (ev: PointerEvent): void => {
+        if (dismissTap?.id === ev.pointerId) dismissTap = null;
+    };
+    root.addEventListener("pointerdown", onEmptySurfacePointerDown);
+    root.addEventListener("pointerup", onEmptySurfacePointerUp);
+    root.addEventListener("pointercancel", onEmptySurfacePointerCancel);
+
     syncVisibility();
 
     const dispose = (): void => {
         if (searchTimer) clearTimeout(searchTimer);
         document.documentElement.toggleAttribute("data-app-menu-dragging", false);
         document.removeEventListener("pointerdown", onDocPointer, { capture: true } as EventListenerOptions);
+        root.removeEventListener("pointerdown", onEmptySurfacePointerDown);
+        root.removeEventListener("pointerup", onEmptySurfacePointerUp);
+        root.removeEventListener("pointercancel", onEmptySurfacePointerCancel);
         document.removeEventListener("u2-theme-change", onThemeChange);
         try {
             themeAttrObserver.disconnect();

@@ -571,7 +571,7 @@
             &:hover {
                 scale: 1.06;
 
-                .ui-ws-item-icon {
+                .ui-ws-item-icon:not([data-shape="shapeless"]) {
                     background: color-mix(in oklab, var(--color-surface-container-high, #1f2937) 60%, transparent);
                     box-shadow: 0 10px 36px -10px color-mix(in oklab, #000 40%, transparent);
                 }
@@ -681,7 +681,8 @@
                 }
 
                 &[data-shape="circle"] {
-                    border-radius: 50%;
+                    border-radius: 50cqmin;
+                    aspect-ratio: 1 / 1;
 
                     @supports (cornet-shape: superellipse(1)) {
                         corner-shape: superellipse(1);
@@ -718,6 +719,59 @@
 
                     @supports not (border-shape: inset(0)) {
                         
+                    }
+                }
+
+                /* WHY: icon is the silhouette — no glass plate; shadow is a black blur clone. */
+                &[data-shape="shapeless"] {
+                    overflow: visible !important;
+                    contain: none;
+                    background: transparent !important;
+                    box-shadow: none !important;
+                    backdrop-filter: none !important;
+                    -webkit-backdrop-filter: none !important;
+                    border-radius: 0 !important;
+                    clip-path: none !important;
+                    padding: 0.12rem;
+
+                    @supports (corner-shape: squircle) {
+                        corner-shape: unset;
+                    }
+
+                    img[data-launcher-icon],
+                    img[data-bookmark-favicon],
+                    .ui-ws-item-icon-img,
+                    ui-icon {
+                        object-fit: contain;
+                        border-radius: 0;
+                    }
+
+                    img.sd-icon-silhouette,
+                    ui-icon.sd-icon-silhouette {
+                        position: absolute;
+                        inset: 0;
+                        z-index: 1;
+                        pointer-events: none;
+                        object-fit: contain;
+                        opacity: 0.4;
+                        filter: brightness(0) blur(7px);
+                        transform: scale(var(--sd-item-icon-scale, var(--sd-launcher-icon-scale, 1))) translateY(8%);
+                    }
+
+                    img[data-launcher-icon]:not(.sd-icon-silhouette),
+                    img[data-bookmark-favicon]:not(.sd-icon-silhouette),
+                    .ui-ws-item-icon-img:not(.sd-icon-silhouette),
+                    ui-icon:not(.sd-icon-silhouette) {
+                        z-index: 3;
+                        filter: none;
+                    }
+
+                    &[data-icon-display="glyph"] ui-icon:not(.sd-icon-silhouette) {
+                        filter: drop-shadow(0 3px 6px rgb(0 0 0 / 0.42));
+                    }
+
+                    &[data-icon-display="glyph"] .sd-icon-silhouette {
+                        display: none;
                     }
                 }
 
@@ -918,10 +972,16 @@
                 pointer-events: none !important;
                 overflow: visible;
                 transition: transform 240ms cubic-bezier(0.22, 0.8, 0.3, 1);
-                /* INVARIANT: valid only after JS stamps `--cell-column`. No `auto` / `--cell-x:0`
-                 * fallback — those packed captions at the top or stacked in 1×1. */
-                grid-column: var(--cell-column) / span 1 !important;
-                grid-row: var(--cell-row) / span 1 !important;
+                /* INVARIANT: `--cell-column` is 1-based. If lure wiped it, `--cs-grid-*`
+                 * still maps `--cell-x` (including 0) so captions do not auto-flow. */
+                grid-column: var(
+                    --cell-column,
+                    clamp(1, calc(1 + round(nearest, var(--cs-grid-c, 0), 1)), 16)
+                ) / span 1 !important;
+                grid-row: var(
+                    --cell-row,
+                    clamp(1, calc(1 + round(nearest, var(--cs-grid-r, 0), 1)), 16)
+                ) / span 1 !important;
                 place-self: center;
 
                 /*
@@ -1042,6 +1102,11 @@
         & > .ui-ws-item-icon-under:has(+ .ui-ws-item:hover) .underlying-shadow-geometry {
             filter: blur(8px) !important;
         }
+
+        /* WHY: shapeless shadow is the icon clone, not the plate under-glow. */
+        & > .ui-ws-item-icon-under:has(+ .ui-ws-item[data-shape="shapeless"]) {
+            display: none !important;
+        }
     }
 
     // Labels are a projection layer: they follow committed grid cells, but
@@ -1056,8 +1121,14 @@
             transform: none;
             transition: none;
             z-index: 0;
-            grid-column: var(--cell-column) / span 1 !important;
-            grid-row: var(--cell-row) / span 1 !important;
+            grid-column: var(
+                --cell-column,
+                clamp(1, calc(1 + round(nearest, var(--cs-grid-c, 0), 1)), 16)
+            ) / span 1 !important;
+            grid-row: var(
+                --cell-row,
+                clamp(1, calc(1 + round(nearest, var(--cs-grid-r, 0), 1)), 16)
+            ) / span 1 !important;
             position: relative;
         }
 
@@ -1673,105 +1744,299 @@
     pointer-events: none !important;
 }
 
-/* Icon resource picker — fixed 3-col cards, no jagged auto-fill. */
-.sd-icon-picker.speed-dial-editor {
-    padding: 0.5rem !important;
+/* WHY: dialog is a full-viewport host (Cap cannot center a shrink-wrapped <dialog>). */
+.sd-icon-picker {
+    --sd-editor-seed: var(--base-color, var(--color-primary, #5a9ec8));
+    --sd-editor-ink: --u2-color-mod(var(--sd-editor-seed), 100);
+    --sd-editor-field-bg: --u2-color-mod(var(--sd-editor-seed), 900);
+    --sd-editor-panel: --u2-color-mod(var(--sd-editor-seed), 860);
+    --sd-editor-border: color-mix(in oklab, --u2-color-mod(var(--sd-editor-seed), 100) 16%, transparent);
+    --sd-editor-accent: --u2-color-mod(var(--sd-editor-seed), 520);
+    color-scheme: dark;
+    position: fixed;
+    inset: 0;
+    inline-size: 100%;
+    block-size: 100%;
+    max-inline-size: 100%;
+    max-block-size: 100%;
+    margin: 0;
+    padding: 1rem;
+    display: grid;
+    place-items: center;
+    place-content: center;
+    border: none;
+    border-radius: 0;
+    background: transparent;
+    color: var(--sd-editor-ink);
+    overflow: auto;
+    box-shadow: none;
+}
+
+html[data-theme="light"] .sd-icon-picker,
+.sd-icon-picker[data-theme="light"] {
+    color-scheme: light only;
+    --sd-editor-ink: --u2-color-mod(var(--sd-editor-seed), 900);
+    --sd-editor-field-bg: --u2-color-mod(var(--sd-editor-seed), 140);
+    --sd-editor-panel: --u2-color-mod(var(--sd-editor-seed), 120);
+    --sd-editor-border: color-mix(in oklab, --u2-color-mod(var(--sd-editor-seed), 900) 14%, transparent);
+    --sd-editor-accent: --u2-color-mod(var(--sd-editor-seed), 480);
+    color: var(--sd-editor-ink);
+}
+
+.sd-icon-picker::backdrop {
+    background: color-mix(
+        in oklab,
+        --u2-color-mod(var(--base-color, var(--color-primary, #5a9ec8)), 920) 58%,
+        transparent
+    );
+    backdrop-filter: blur(10px) saturate(1.08);
+    -webkit-backdrop-filter: blur(10px) saturate(1.08);
 }
 
 .sd-icon-picker__form {
-    max-inline-size: min(100%, 26rem) !important;
-    max-block-size: min(88vh, 36rem) !important;
+    display: flex !important;
+    flex-direction: column !important;
+    inline-size: min(22rem, 100%) !important;
+    max-inline-size: 100% !important;
+    max-block-size: min(86dvh, 36rem);
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 1px solid var(--sd-editor-border);
+    border-radius: 18px;
+    background: color-mix(
+        in oklab,
+        var(--color-surface-container, var(--sd-editor-panel)) 92%,
+        transparent
+    );
+    color: inherit;
+    overflow: hidden;
+    box-shadow: 0 24px 64px -28px color-mix(in oklab, #000 60%, transparent);
+    backdrop-filter: blur(14px) saturate(1.12);
+    -webkit-backdrop-filter: blur(14px) saturate(1.12);
+    justify-self: center;
+    align-self: center;
 }
 
-.sd-icon-picker__body {
+.sd-icon-picker__header {
+    display: grid;
+    gap: 0.55rem;
+    padding: 0.9rem 0.95rem 0.55rem;
+}
+
+.sd-icon-picker__title {
+    margin: 0;
+    font: 650 1.15rem/1.25 ui-sans-serif, system-ui, sans-serif;
+    text-align: center;
+}
+
+.sd-icon-picker__tabs {
     display: grid !important;
-    gap: 0.85rem !important;
-    overflow: auto !important;
-    min-block-size: 0 !important;
+    grid-auto-flow: column !important;
+    grid-auto-columns: 1fr !important;
+    gap: 0.28rem !important;
+    inline-size: 100%;
+    padding: 0.22rem;
+    border-radius: 999px;
+    background: color-mix(in oklab, var(--sd-editor-field-bg) 42%, transparent);
 }
 
-.sd-icon-picker__section {
-    display: grid !important;
-    gap: 0.35rem !important;
-    min-inline-size: 0 !important;
-}
-
-.sd-icon-picker__section[hidden] {
+.sd-icon-picker__tabs[hidden] {
     display: none !important;
 }
 
-.sd-icon-picker__section-title {
-    font-size: 0.75rem;
-    font-weight: 600;
-    opacity: 0.75;
+.sd-icon-picker__tab {
+    appearance: none !important;
+    flex: 1 1 0 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    margin: 0 !important;
+    padding: 0.38rem 0.4rem !important;
+    inline-size: 100% !important;
+    min-inline-size: 0 !important;
+    block-size: auto !important;
+    border: 0 !important;
+    border-radius: 999px !important;
+    background: transparent !important;
+    color: inherit !important;
+    font: 600 0.74rem/1.2 ui-sans-serif, system-ui, sans-serif !important;
+    cursor: pointer;
+}
+
+.sd-icon-picker__tab[data-active] {
+    background: color-mix(in oklab, var(--sd-editor-accent, currentColor) 28%, transparent) !important;
 }
 
 .sd-icon-picker__search {
     inline-size: 100% !important;
     min-inline-size: 0 !important;
     box-sizing: border-box !important;
+    padding: 0.4rem 0.65rem !important;
+    border-radius: 0.65rem !important;
+    font-size: 0.82rem !important;
+}
+
+.sd-icon-picker__search[hidden] {
+    display: none !important;
+}
+
+.sd-icon-picker__body {
+    padding: 0.45rem 0.75rem 0.35rem;
+    overflow: auto;
+    min-block-size: 0;
+    max-block-size: min(28rem, 58dvh);
+    background: transparent !important;
+}
+
+.sd-icon-picker__section {
+    min-inline-size: 0;
+}
+
+.sd-icon-picker__section[hidden] {
+    display: none !important;
 }
 
 .sd-icon-picker__grid {
     display: grid !important;
-    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
-    gap: 0.4rem !important;
-    max-block-size: 15rem;
-    overflow: auto;
+    grid-template-columns: repeat(auto-fill, minmax(4.75rem, 1fr)) !important;
+    gap: 0.5rem 0.4rem !important;
     align-content: start;
     min-inline-size: 0 !important;
 }
 
-.sd-icon-picker__card {
-    /* WHY: Cap/global button chrome is row — force icon above label. */
-    display: flex !important;
-    flex-direction: column !important;
-    flex-wrap: nowrap !important;
-    align-items: center !important;
-    justify-content: center !important;
-    gap: 0.28rem !important;
+.sd-icon-picker__grid--browse {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    grid-template-rows: auto minmax(0, 1fr) !important;
+    gap: 0.35rem !important;
+}
+
+.sd-icon-picker__pack-toolbar {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 0.3rem 0.4rem;
+    align-items: center;
+}
+
+.sd-icon-picker__pack-toolbar .sd-icon-picker__search {
+    grid-column: 1 / -1;
+}
+
+.sd-icon-picker__pack-back {
+    appearance: none !important;
+    margin: 0;
+    padding: 0.2rem 0.5rem;
+    border: 0 !important;
+    border-radius: 999px !important;
+    background: color-mix(in oklab, var(--sd-editor-field-bg, currentColor) 55%, transparent) !important;
+    color: inherit;
+    font: 600 0.72rem/1.2 ui-sans-serif, system-ui, sans-serif;
+    cursor: pointer;
+}
+
+.sd-icon-picker__pack-title {
+    min-inline-size: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 0.74rem;
+    opacity: 0.78;
+}
+
+.sd-icon-picker__pack-wrap {
+    position: relative;
+    min-inline-size: 0;
+}
+
+.sd-icon-picker__pack-browse {
+    appearance: none !important;
+    position: absolute;
+    inset-block-start: 0;
+    inset-inline-end: 0;
+    z-index: 1;
+    display: grid !important;
+    place-items: center;
     margin: 0 !important;
-    padding: 0.45rem 0.25rem 0.35rem !important;
+    padding: 0 !important;
+    inline-size: 1.2rem !important;
+    block-size: 1.2rem !important;
+    min-inline-size: 1.2rem !important;
+    min-block-size: 1.2rem !important;
+    border: 0 !important;
+    border-radius: 999px !important;
+    background: color-mix(in oklab, var(--sd-editor-panel, Canvas) 82%, transparent) !important;
+    color: inherit;
+    cursor: pointer;
+}
+
+.sd-icon-picker__pack-browse ui-icon {
+    --icon-size: 0.72rem !important;
+    --icon-padding: 0 !important;
+    inline-size: 0.72rem !important;
+    block-size: 0.72rem !important;
+    pointer-events: none;
+}
+
+.sd-icon-picker__card {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    grid-template-rows: auto max-content !important;
+    justify-items: center !important;
+    align-content: start !important;
+    align-items: start !important;
+    flex-direction: column !important;
+    gap: 0.3rem !important;
+    margin: 0 !important;
+    padding: 0.2rem 0.08rem 0.15rem !important;
     min-inline-size: 0 !important;
-    max-inline-size: none !important;
-    inline-size: auto !important;
+    inline-size: 100% !important;
+    max-inline-size: 100% !important;
     block-size: auto !important;
-    min-block-size: 4.75rem !important;
-    border: 1px solid var(--sd-editor-border, color-mix(in oklab, currentColor 16%, transparent)) !important;
-    border-radius: 10px !important;
-    background: color-mix(in oklab, var(--sd-editor-field-bg, currentColor) 40%, transparent) !important;
+    min-block-size: 0 !important;
+    border: 0 !important;
+    border-radius: 0.7rem !important;
+    background: transparent !important;
+    box-shadow: none !important;
     color: inherit !important;
     cursor: pointer !important;
     overflow: hidden !important;
     appearance: none !important;
     -webkit-appearance: none !important;
+    position: static !important;
+    z-index: auto !important;
     text-align: center !important;
+}
+
+.sd-icon-picker__card:hover,
+.sd-icon-picker__card:focus-visible {
+    background: color-mix(in oklab, var(--sd-editor-accent, currentColor) 14%, transparent) !important;
+    outline: none;
 }
 
 .sd-icon-picker__card img {
     display: block !important;
+    grid-row: 1 !important;
     flex: 0 0 auto !important;
-    inline-size: 2.1rem !important;
-    block-size: 2.1rem !important;
-    max-inline-size: 2.1rem !important;
-    max-block-size: 2.1rem !important;
+    inline-size: 3rem !important;
+    block-size: 3rem !important;
+    max-inline-size: 3rem !important;
+    max-block-size: 3rem !important;
     object-fit: cover !important;
-    order: 0 !important;
+    border-radius: 50% !important;
 }
 
 .sd-icon-picker__card-label {
     display: block !important;
-    flex: 0 0 auto !important;
-    order: 1 !important;
-    font-size: 0.6rem !important;
-    line-height: 1.15 !important;
+    grid-row: 2 !important;
+    font-size: 0.62rem !important;
+    line-height: 1.2 !important;
     text-align: center !important;
     inline-size: 100% !important;
     max-inline-size: 100% !important;
     overflow: hidden !important;
     text-overflow: ellipsis !important;
     white-space: nowrap !important;
-    padding-inline: 0.15rem !important;
+    opacity: 0.88;
 }
 
 .sd-icon-picker__card:disabled {
@@ -1779,8 +2044,37 @@
     cursor: not-allowed !important;
 }
 
+.sd-icon-picker__footer {
+    display: flex !important;
+    justify-content: flex-end !important;
+    align-items: center !important;
+    gap: 0.45rem;
+    padding: 0.55rem 0.85rem 0.75rem;
+    border-block-start: 1px solid var(--sd-editor-border);
+}
+
+.sd-icon-picker__cancel {
+    appearance: none !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    flex: 0 0 auto !important;
+    margin: 0 !important;
+    padding: 0.42rem 0.86rem !important;
+    inline-size: auto !important;
+    width: auto !important;
+    min-inline-size: 0 !important;
+    max-inline-size: none !important;
+    border: 1px solid var(--sd-editor-border) !important;
+    border-radius: 0.65rem !important;
+    background: color-mix(in oklab, var(--sd-editor-field-bg) 68%, transparent) !important;
+    color: inherit !important;
+    font: 600 0.82rem/1.2 ui-sans-serif, system-ui, sans-serif;
+    cursor: pointer;
+}
+
 .sd-widget-picker {
-    inline-size: min(22rem, 92vw);
+    inline-size: min(90cqi, 92vw);
     max-block-size: 80vh;
     padding: 0.85rem;
     border: none;

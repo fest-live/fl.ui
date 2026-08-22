@@ -1,8 +1,8 @@
 /*
  * Filename: tile-icon.ts
  * FullPath: modules/projects/fl.ui/src/ui/speed-dial/tile-icon.ts
- * Change date and time: 18.15.00_22.08.2026
- * Reason for changes: Bitmap tiles stay empty while hydrating — no device-mobile / sparkle flash.
+ * Change date and time: 21.00.00_22.08.2026
+ * Reason for changes: Shapeless tile — icon is the shape; shadow is a blurred black clone.
  */
 
 /** How a Speed Dial / App Menu tile paints its icon. */
@@ -19,8 +19,62 @@ export const TILE_SHAPE_OPTIONS: Array<{ value: string; label: string }> = [
     { value: "circle", label: "Circle" },
     { value: "squircle", label: "Squircle" },
     { value: "square", label: "Rounded square" },
-    { value: "wavy", label: "Wavy" }
+    { value: "wavy", label: "Wavy" },
+    { value: "shapeless", label: "Shapeless" }
 ];
+
+export const isTileShapeValue = (raw: unknown): boolean => {
+    const v = String(raw || "")
+        .trim()
+        .toLowerCase();
+    return (
+        v === "circle" ||
+        v === "squircle" ||
+        v === "square" ||
+        v === "wavy" ||
+        v === "shapeless"
+    );
+};
+
+export function isShapelessTileShape(raw: unknown): boolean {
+    return String(raw || "").trim().toLowerCase() === "shapeless";
+}
+
+/**
+ * WHY: shapeless has no plate — a black blurred clone of the bitmap/glyph
+ * sits under the real icon so the shadow follows the icon silhouette.
+ */
+export function syncShapelessIconShadow(host: HTMLElement | null | undefined): void {
+    if (!host) return;
+    host.querySelectorAll(".sd-icon-silhouette").forEach((node) => node.remove());
+    if (!isShapelessTileShape(host.getAttribute("data-shape"))) return;
+
+    const img = host.querySelector<HTMLImageElement>("img:not(.sd-icon-silhouette)");
+    if (img) {
+        if (img.src) {
+            const clone = img.cloneNode(true) as HTMLImageElement;
+            clone.className = "sd-icon-silhouette";
+            clone.removeAttribute("data-launcher-icon");
+            clone.removeAttribute("data-bookmark-favicon");
+            clone.removeAttribute("data-icon-pending");
+            clone.removeAttribute("data-icon-pack");
+            clone.alt = "";
+            clone.setAttribute("aria-hidden", "true");
+            img.before(clone);
+        }
+        if (!img.complete) {
+            img.addEventListener("load", () => syncShapelessIconShadow(host), { once: true });
+        }
+        return;
+    }
+
+    const icon = host.querySelector<HTMLElement>("ui-icon:not(.sd-icon-silhouette)");
+    if (!icon) return;
+    const clone = icon.cloneNode(true) as HTMLElement;
+    clone.classList.add("sd-icon-silhouette");
+    clone.setAttribute("aria-hidden", "true");
+    icon.before(clone);
+}
 
 export function normalizeIconDisplay(raw: unknown): IconDisplayMode | "" {
     const v = String(raw || "")
@@ -37,7 +91,7 @@ export function normalizeTileShape(raw: unknown, fallback = "squircle"): string 
     const v = String(raw || "")
         .trim()
         .toLowerCase();
-    if (v === "circle" || v === "squircle" || v === "square" || v === "wavy") return v;
+    if (isTileShapeValue(v)) return v;
     return fallback;
 }
 

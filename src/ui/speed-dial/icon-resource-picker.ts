@@ -1,8 +1,8 @@
 /*
  * Filename: icon-resource-picker.ts
  * FullPath: modules/projects/fl.ui/src/ui/speed-dial/icon-resource-picker.ts
- * Change date and time: 17.25.00_20.08.2026
- * Reason for changes: Cap Material You picker + CRX bookmark / favicon resource picker.
+ * Change date and time: 21.15.00_22.08.2026
+ * Reason for changes: Center icon picker via full-viewport dialog host (Cap WebView).
  */
 
 import {
@@ -108,6 +108,81 @@ function resolveFaviconCandidates(
     return out;
 }
 
+const PICKER_GRID_COLS = "repeat(auto-fill, minmax(4.75rem, 1fr))";
+
+const pin = (el: HTMLElement, props: Record<string, string>): void => {
+    for (const [name, value] of Object.entries(props)) {
+        el.style.setProperty(name, value, "important");
+    }
+};
+
+function pinPickerGrid(grid: HTMLElement): void {
+    pin(grid, {
+        display: "grid",
+        "grid-template-columns": PICKER_GRID_COLS,
+        gap: "0.5rem 0.4rem",
+        "align-content": "start",
+        "justify-content": "stretch",
+        "min-inline-size": "0",
+        "min-block-size": "0",
+        "inline-size": "100%"
+    });
+}
+
+/* WHY: Cap WebView keeps global `button { inline-flex; green chrome }` — pin column cards. */
+function pinPickerCard(btn: HTMLButtonElement, img: HTMLImageElement, caption: HTMLElement): void {
+    pin(btn, {
+        display: "grid",
+        "grid-template-columns": "minmax(0, 1fr)",
+        "grid-template-rows": "auto max-content",
+        "justify-items": "center",
+        "align-content": "start",
+        "align-items": "start",
+        "flex-direction": "column",
+        gap: "0.3rem",
+        margin: "0",
+        padding: "0.2rem 0.08rem 0.15rem",
+        "min-inline-size": "0",
+        "inline-size": "100%",
+        "max-inline-size": "100%",
+        "block-size": "auto",
+        "min-block-size": "0",
+        background: "transparent",
+        border: "0",
+        "border-radius": "0.7rem",
+        "box-shadow": "none",
+        appearance: "none",
+        "-webkit-appearance": "none",
+        position: "static",
+        "z-index": "auto",
+        overflow: "hidden"
+    });
+    pin(img, {
+        display: "block",
+        "grid-row": "1",
+        "inline-size": "3rem",
+        "block-size": "3rem",
+        "max-inline-size": "3rem",
+        "max-block-size": "3rem",
+        "object-fit": "cover",
+        "border-radius": "50%",
+        "flex-shrink": "0"
+    });
+    pin(caption, {
+        display: "block",
+        "grid-row": "2",
+        "inline-size": "100%",
+        "max-inline-size": "100%",
+        overflow: "hidden",
+        "text-overflow": "ellipsis",
+        "white-space": "nowrap",
+        "font-size": "0.62rem",
+        "line-height": "1.2",
+        "text-align": "center",
+        opacity: "0.88"
+    });
+}
+
 function makeCard(label: string, title?: string): {
     btn: HTMLButtonElement;
     img: HTMLImageElement;
@@ -116,34 +191,16 @@ function makeCard(label: string, title?: string): {
     btn.type = "button";
     btn.className = "sd-icon-picker__card";
     btn.title = title || label;
-    btn.style.setProperty("display", "flex", "important");
-    btn.style.setProperty("flex-direction", "column", "important");
-    btn.style.setProperty("flex-wrap", "nowrap", "important");
-    btn.style.setProperty("align-items", "center", "important");
-    btn.style.setProperty("justify-content", "center", "important");
-    btn.style.setProperty("gap", "0.28rem", "important");
-    btn.style.setProperty("min-inline-size", "0", "important");
-    btn.style.setProperty("overflow", "hidden", "important");
-    btn.style.setProperty("inline-size", "auto", "important");
-    btn.style.setProperty("text-align", "center", "important");
     const img = document.createElement("img");
     img.alt = "";
     img.decoding = "async";
     img.draggable = false;
     img.referrerPolicy = "no-referrer";
-    img.style.setProperty("display", "block", "important");
-    img.style.setProperty("order", "0", "important");
     const caption = document.createElement("span");
     caption.className = "sd-icon-picker__card-label";
     caption.textContent = label;
-    caption.style.setProperty("display", "block", "important");
-    caption.style.setProperty("order", "1", "important");
-    caption.style.setProperty("inline-size", "100%", "important");
-    caption.style.setProperty("text-align", "center", "important");
-    caption.style.setProperty("overflow", "hidden", "important");
-    caption.style.setProperty("text-overflow", "ellipsis", "important");
-    caption.style.setProperty("white-space", "nowrap", "important");
     btn.append(img, caption);
+    pinPickerCard(btn, img, caption);
     return { btn, img };
 }
 
@@ -202,6 +259,8 @@ async function loadIconPackCards(
     close: () => void
 ): Promise<void> {
     host.replaceChildren();
+    host.classList.remove("sd-icon-picker__grid--browse");
+    pinPickerGrid(host);
     if (!bridge.launcherIconPacks) {
         host.textContent = "Icon packs unavailable.";
         return;
@@ -225,12 +284,13 @@ async function loadIconPackCards(
         const label = String(pack.label || packPkg);
         const wrap = document.createElement("div");
         wrap.className = "sd-icon-picker__pack-wrap";
-        wrap.style.setProperty("display", "flex", "important");
-        wrap.style.setProperty("flex-direction", "column", "important");
-        wrap.style.setProperty("gap", "0.2rem", "important");
-        wrap.style.setProperty("min-inline-size", "0", "important");
+        pin(wrap, {
+            position: "relative",
+            "min-inline-size": "0",
+            "inline-size": "100%"
+        });
 
-        const { btn, img } = makeCard(label, `${label} — themed for this app`);
+        const { btn, img } = makeCard(label, `${label} — tap to apply, grid to browse`);
         void ensureLauncherIconObjectUrl(targetPkg, 96, "default", packPkg).then((url) => {
             if (url) {
                 img.src = url;
@@ -258,14 +318,30 @@ async function loadIconPackCards(
         const browse = document.createElement("button");
         browse.type = "button";
         browse.className = "sd-icon-picker__pack-browse";
-        browse.textContent = "Browse…";
+        pin(browse, {
+            position: "absolute",
+            "inset-block-start": "0",
+            "inset-inline-end": "0",
+            display: "grid",
+            "place-items": "center",
+            margin: "0",
+            padding: "0",
+            "inline-size": "1.2rem",
+            "block-size": "1.2rem",
+            "min-inline-size": "1.2rem",
+            "min-block-size": "1.2rem",
+            border: "0",
+            "border-radius": "999px"
+        });
         browse.title = `Browse icons in ${label}`;
-        browse.style.cssText =
-            "font:inherit;font-size:0.68rem;padding:0.15rem 0.35rem;border-radius:6px;border:1px solid color-mix(in oklab,currentColor 22%,transparent);background:transparent;color:inherit;cursor:pointer;";
+        browse.setAttribute("aria-label", `Browse icons in ${label}`);
+        browse.innerHTML = '<ui-icon icon="squares-four" aria-hidden="true"></ui-icon>';
         browse.addEventListener("click", (ev) => {
             ev.preventDefault();
             ev.stopPropagation();
+            host.dataset.packBrowse = "1";
             void loadPackDrawableBrowse(bridge, targetPkg, packPkg, label, host, onPick, close, () => {
+                delete host.dataset.packBrowse;
                 void loadIconPackCards(bridge, targetPkg, host, onPick, close);
             });
         });
@@ -287,35 +363,32 @@ async function loadPackDrawableBrowse(
     onBack: () => void
 ): Promise<void> {
     host.replaceChildren();
+    host.classList.add("sd-icon-picker__grid--browse");
+    host.style.setProperty("display", "grid", "important");
+    host.style.setProperty("grid-template-columns", "minmax(0, 1fr)", "important");
+    host.style.setProperty("grid-template-rows", "auto minmax(0, 1fr)", "important");
+    host.style.setProperty("gap", "0.35rem", "important");
     const toolbar = document.createElement("div");
-    toolbar.style.cssText =
-        "display:flex;flex-wrap:wrap;gap:0.35rem;align-items:center;margin-block-end:0.35rem;grid-column:1/-1;";
+    toolbar.className = "sd-icon-picker__pack-toolbar";
     const back = document.createElement("button");
     back.type = "button";
-    back.textContent = "← Packs";
-    back.style.cssText =
-        "font:inherit;font-size:0.75rem;padding:0.2rem 0.45rem;border-radius:6px;border:1px solid color-mix(in oklab,currentColor 22%,transparent);background:transparent;color:inherit;cursor:pointer;";
+    back.className = "sd-icon-picker__pack-back";
+    back.textContent = "Packs";
     back.addEventListener("click", () => onBack());
     const title = document.createElement("span");
+    title.className = "sd-icon-picker__pack-title";
     title.textContent = packLabel;
-    title.style.cssText = "font-size:0.78rem;opacity:0.85;flex:1;min-inline-size:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;";
     const search = document.createElement("input");
     search.type = "search";
-    search.placeholder = "Filter drawables…";
+    search.placeholder = "Filter…";
     search.autocomplete = "off";
     search.className = "sd-icon-picker__search";
-    search.style.setProperty("flex", "1 1 8rem", "important");
     toolbar.append(back, title, search);
 
     const grid = document.createElement("div");
     grid.className = "sd-icon-picker__grid";
-    grid.style.setProperty("display", "grid", "important");
-    grid.style.setProperty("grid-template-columns", "repeat(3, minmax(0, 1fr))", "important");
-    grid.style.setProperty("gap", "0.4rem", "important");
-    grid.style.setProperty("grid-column", "1 / -1", "important");
+    pinPickerGrid(grid);
 
-    host.style.setProperty("display", "flex", "important");
-    host.style.setProperty("flex-direction", "column", "important");
     host.append(toolbar, grid);
 
     let timer = 0;
@@ -406,7 +479,7 @@ async function loadAppBrowse(
     }
 
     const frag = document.createDocumentFragment();
-    for (const app of apps.slice(0, 48)) {
+    for (const app of apps.slice(0, 96)) {
         const pkg = String(app.packageName || "").trim();
         if (!pkg) continue;
         const { btn, img } = makeCard(String(app.label || pkg), `${app.label} (${pkg})`);
@@ -483,7 +556,7 @@ async function loadBookmarkBrowse(
         return;
     }
     const frag = document.createDocumentFragment();
-    for (const entry of links.slice(0, 48)) {
+    for (const entry of links.slice(0, 80)) {
         const page = httpPageUrl(entry.url);
         if (!page) continue;
         const icon =
@@ -538,57 +611,149 @@ export async function openIconResourcePicker(opts: PickerOpts): Promise<void> {
     const showFaviconVariants = Boolean(pageSeed);
     const showBookmarkBrowse = Boolean(bookmarksApi);
 
+    const tabs: Array<{ id: string; label: string }> = [];
+    if (showAndroidVariants) tabs.push({ id: "variants", label: "This app" });
+    if (showIconPacks) tabs.push({ id: "packs", label: "Packs" });
+    if (showFaviconVariants) tabs.push({ id: "favicon", label: "Link" });
+    if (showAndroidBrowse) tabs.push({ id: "browse", label: "Apps" });
+    if (showBookmarkBrowse) tabs.push({ id: "bookmarks", label: "Bookmarks" });
+    const initialTab = tabs[0]?.id || "browse";
+
     const dialog = document.createElement("dialog");
-    dialog.className = "speed-dial-editor sd-icon-picker";
+    /* INVARIANT: not `.speed-dial-editor` / `.modal-*` — those rules stack a second panel and z-index cards. */
+    dialog.className = "sd-icon-picker";
     dialog.dataset.theme = theme;
-    const description = hasAndroid
-        ? "Material You / adaptive, icon packs, installed apps, or a favicon."
-        : "Favicon for this link, or pick from Chrome bookmarks.";
+    dialog.dataset.tab = initialTab;
     dialog.innerHTML = `
-        <form class="speed-dial-editor__form sd-icon-picker__form" data-theme="${theme}" method="dialog">
-            <header class="modal-header">
-                <h2 class="modal-title">Pick icon</h2>
-                <p class="modal-description">${description}</p>
+        <form class="sd-icon-picker__form" data-theme="${theme}" method="dialog">
+            <header class="sd-icon-picker__header">
+                <h2 class="sd-icon-picker__title">Icon</h2>
+                <nav class="sd-icon-picker__tabs" role="tablist" aria-label="Icon source"></nav>
+                <input class="sd-icon-picker__search" data-search type="search" placeholder="Search…" autocomplete="off" hidden />
             </header>
-            <div class="modal-fields sd-icon-picker__body">
-                <section class="sd-icon-picker__section" data-section="variants" ${showAndroidVariants ? "" : "hidden"}>
-                    <div class="sd-icon-picker__section-title">For this package</div>
+            <div class="sd-icon-picker__body">
+                <section class="sd-icon-picker__section" data-section="variants" hidden>
                     <div class="sd-icon-picker__grid" data-variants></div>
                 </section>
-                <section class="sd-icon-picker__section" data-section="packs" ${showIconPacks ? "" : "hidden"}>
-                    <div class="sd-icon-picker__section-title">Icon packs</div>
+                <section class="sd-icon-picker__section" data-section="packs" hidden>
                     <div class="sd-icon-picker__grid" data-packs></div>
                 </section>
-                <section class="sd-icon-picker__section" data-section="favicon" ${showFaviconVariants ? "" : "hidden"}>
-                    <div class="sd-icon-picker__section-title">For this link</div>
+                <section class="sd-icon-picker__section" data-section="favicon" hidden>
                     <div class="sd-icon-picker__grid" data-favicon></div>
                 </section>
-                <section class="sd-icon-picker__section" data-section="browse" ${showAndroidBrowse ? "" : "hidden"}>
-                    <div class="sd-icon-picker__section-title">Installed apps</div>
-                    <input class="sd-icon-picker__search" data-search="apps" type="search" placeholder="Search apps…" autocomplete="off" />
+                <section class="sd-icon-picker__section" data-section="browse" hidden>
                     <div class="sd-icon-picker__grid" data-browse></div>
                 </section>
-                <section class="sd-icon-picker__section" data-section="bookmarks" ${showBookmarkBrowse ? "" : "hidden"}>
-                    <div class="sd-icon-picker__section-title">Bookmarks</div>
-                    <input class="sd-icon-picker__search" data-search="bookmarks" type="search" placeholder="Search bookmarks…" autocomplete="off" />
+                <section class="sd-icon-picker__section" data-section="bookmarks" hidden>
                     <div class="sd-icon-picker__grid" data-bookmarks></div>
                 </section>
             </div>
-            <div class="modal-actions" role="group">
-                <span class="modal-actions-spacer" aria-hidden="true"></span>
-                <button type="button" data-action="cancel" class="btn secondary">Cancel</button>
-            </div>
+            <footer class="sd-icon-picker__footer">
+                <button type="button" data-action="cancel" class="sd-icon-picker__cancel">Cancel</button>
+            </footer>
         </form>
     `;
+    /* WHY: Cap <dialog> ignores margin:auto — same full-viewport grid as ShortcutEditor. */
+    pin(dialog, {
+        position: "fixed",
+        inset: "0",
+        top: "0",
+        right: "0",
+        bottom: "0",
+        left: "0",
+        width: "100%",
+        height: "100%",
+        "inline-size": "100%",
+        "block-size": "100%",
+        "max-inline-size": "100%",
+        "max-block-size": "100%",
+        "max-width": "100%",
+        "max-height": "100%",
+        margin: "0",
+        padding: "1rem",
+        display: "grid",
+        "place-items": "center",
+        "place-content": "center",
+        background: "transparent",
+        border: "none",
+        "border-radius": "0",
+        "box-shadow": "none",
+        overflow: "auto"
+    });
+    const formEl = dialog.querySelector<HTMLElement>(".sd-icon-picker__form");
+    if (formEl) {
+        pin(formEl, {
+            display: "flex",
+            "flex-direction": "column",
+            "inline-size": "min(90cqi, 100dvi)",
+            width: "min(90cqi, 100dvi)",
+            "max-inline-size": "100%",
+            "max-block-size": "min(86dvh, 36rem)",
+            margin: "0",
+            padding: "0",
+            "border-radius": "18px",
+            overflow: "hidden",
+            "justify-self": "center",
+            "align-self": "center",
+            background: "color-mix(in oklab, var(--color-surface-container, Canvas) 92%, transparent)"
+        });
+    }
+    const tabsEl = dialog.querySelector<HTMLElement>(".sd-icon-picker__tabs");
+    if (tabsEl) {
+        pin(tabsEl, {
+            display: "grid",
+            "grid-auto-flow": "column",
+            "grid-auto-columns": "1fr",
+            gap: "0.28rem",
+            "inline-size": "100%"
+        });
+    }
+    const bodyEl = dialog.querySelector<HTMLElement>(".sd-icon-picker__body");
+    if (bodyEl) {
+        pin(bodyEl, {
+            display: "block",
+            padding: "0.65rem 0.85rem 0.45rem",
+            "min-block-size": "0",
+            "max-block-size": "min(26rem, 52dvh)",
+            overflow: "auto",
+            background: "transparent"
+        });
+    }
+    const footerEl = dialog.querySelector<HTMLElement>(".sd-icon-picker__footer");
+    if (footerEl) {
+        pin(footerEl, {
+            display: "flex",
+            "justify-content": "flex-end",
+            "align-items": "center",
+            gap: "0.45rem",
+            padding: "0.55rem 0.85rem 0.7rem"
+        });
+    }
+    const cancelEl = dialog.querySelector<HTMLElement>(".sd-icon-picker__cancel");
+    if (cancelEl) {
+        pin(cancelEl, {
+            display: "inline-flex",
+            "align-items": "center",
+            "justify-content": "center",
+            flex: "0 0 auto",
+            margin: "0",
+            padding: "0.42rem 0.86rem",
+            "inline-size": "auto",
+            width: "auto",
+            "min-inline-size": "0",
+            "max-inline-size": "none",
+            "border-radius": "0.65rem"
+        });
+    }
 
     const form = dialog.querySelector("form") as HTMLFormElement;
+    const tablist = dialog.querySelector<HTMLElement>(".sd-icon-picker__tabs");
+    const search = dialog.querySelector<HTMLInputElement>("[data-search]");
     const variantsHost = dialog.querySelector<HTMLElement>("[data-variants]");
     const packsHost = dialog.querySelector<HTMLElement>("[data-packs]");
     const faviconHost = dialog.querySelector<HTMLElement>("[data-favicon]");
     const browseHost = dialog.querySelector<HTMLElement>("[data-browse]");
     const bookmarksHost = dialog.querySelector<HTMLElement>("[data-bookmarks]");
-    const appSearch = dialog.querySelector<HTMLInputElement>('[data-search="apps"]');
-    const bmSearch = dialog.querySelector<HTMLInputElement>('[data-search="bookmarks"]');
 
     let closed = false;
     const close = (): void => {
@@ -623,6 +788,61 @@ export async function openIconResourcePicker(opts: PickerOpts): Promise<void> {
         if (ev.target === dialog) close();
     });
 
+    const setTab = (id: string): void => {
+        dialog.dataset.tab = id;
+        dialog.querySelectorAll<HTMLElement>("[data-section]").forEach((section) => {
+            section.hidden = section.dataset.section !== id;
+        });
+        tablist?.querySelectorAll<HTMLElement>("[data-tab]").forEach((btn) => {
+            const on = btn.dataset.tab === id;
+            btn.toggleAttribute("data-active", on);
+            btn.setAttribute("aria-selected", on ? "true" : "false");
+            btn.tabIndex = on ? 0 : -1;
+        });
+        const wantsSearch = id === "browse" || id === "bookmarks";
+        if (search) {
+            search.hidden = !wantsSearch;
+            search.placeholder = id === "bookmarks" ? "Search bookmarks…" : "Search apps…";
+            if (wantsSearch) search.value = "";
+        }
+        if (id === "packs" && packsHost?.dataset.packBrowse === "1" && bridge && pkgSeed) {
+            delete packsHost.dataset.packBrowse;
+            void loadIconPackCards(bridge, pkgSeed, packsHost, onPick, close);
+        }
+    };
+
+    if (tablist) {
+        const frag = document.createDocumentFragment();
+        for (const tab of tabs) {
+            const btn = document.createElement("button");
+            btn.type = "button";
+            btn.className = "sd-icon-picker__tab";
+            btn.dataset.tab = tab.id;
+            btn.setAttribute("role", "tab");
+            btn.textContent = tab.label;
+            pin(btn, {
+                display: "inline-flex",
+                flex: "1 1 0",
+                "align-items": "center",
+                "justify-content": "center",
+                margin: "0",
+                padding: "0.38rem 0.4rem",
+                border: "0",
+                "border-radius": "999px",
+                "inline-size": "100%",
+                "min-inline-size": "0",
+                "block-size": "auto"
+            });
+            btn.addEventListener("click", (ev) => {
+                ev.preventDefault();
+                setTab(tab.id);
+            });
+            frag.append(btn);
+        }
+        tablist.append(frag);
+        tablist.hidden = tabs.length <= 1;
+    }
+
     if (showAndroidVariants && bridge && variantsHost) {
         void loadVariantCards(bridge, pkgSeed, variantsHost, onPick, close);
     }
@@ -636,38 +856,38 @@ export async function openIconResourcePicker(opts: PickerOpts): Promise<void> {
     let appTimer = 0;
     const refreshApps = (): void => {
         if (!browseHost || !bridge) return;
-        void loadAppBrowse(bridge, String(appSearch?.value || ""), browseHost, onPick, close);
+        void loadAppBrowse(bridge, String(search?.value || ""), browseHost, onPick, close);
     };
-    if (showAndroidBrowse) {
-        appSearch?.addEventListener("input", () => {
-            window.clearTimeout(appTimer);
-            appTimer = window.setTimeout(refreshApps, 180);
-        });
-        refreshApps();
-    }
-
     let bmTimer = 0;
     const refreshBookmarks = (): void => {
         if (!bookmarksHost || !bookmarksApi) return;
-        void loadBookmarkBrowse(bookmarksApi, String(bmSearch?.value || ""), bookmarksHost, onPick, close);
+        void loadBookmarkBrowse(bookmarksApi, String(search?.value || ""), bookmarksHost, onPick, close);
     };
-    if (showBookmarkBrowse && bookmarksApi) {
-        bmSearch?.addEventListener("input", () => {
+    search?.addEventListener("input", () => {
+        const tab = dialog.dataset.tab;
+        if (tab === "browse") {
+            window.clearTimeout(appTimer);
+            appTimer = window.setTimeout(refreshApps, 180);
+            return;
+        }
+        if (tab === "bookmarks") {
             window.clearTimeout(bmTimer);
             bmTimer = window.setTimeout(refreshBookmarks, 180);
-        });
-        refreshBookmarks();
-    }
+        }
+    });
+    if (showAndroidBrowse) refreshApps();
+    if (showBookmarkBrowse && bookmarksApi) refreshBookmarks();
+    tablist?.addEventListener("click", (ev) => {
+        const id = (ev.target as HTMLElement | null)?.closest?.("[data-tab]")?.getAttribute("data-tab");
+        if (id === "browse") refreshApps();
+        if (id === "bookmarks") refreshBookmarks();
+    });
+
+    setTab(initialTab);
 
     document.body.append(dialog);
-    /* WHY: Cap WebView flaky with layered picker CSS — pin stable grid on mount. */
-    dialog.querySelectorAll<HTMLElement>(".sd-icon-picker__grid").forEach((grid) => {
-        grid.style.setProperty("display", "grid", "important");
-        grid.style.setProperty("grid-template-columns", "repeat(3, minmax(0, 1fr))", "important");
-        grid.style.setProperty("gap", "0.4rem", "important");
-        grid.style.setProperty("align-content", "start", "important");
-        grid.style.setProperty("min-inline-size", "0", "important");
-    });
+    /* WHY: Cap WebView flaky with layered picker CSS — pin dense grid on mount. */
+    dialog.querySelectorAll<HTMLElement>(".sd-icon-picker__grid").forEach(pinPickerGrid);
     try {
         dialog.showModal();
     } catch {

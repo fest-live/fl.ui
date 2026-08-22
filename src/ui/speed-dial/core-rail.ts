@@ -1,8 +1,8 @@
 /*
  * Filename: core-rail.ts
  * FullPath: modules/projects/fl.ui/src/ui/speed-dial/core-rail.ts
- * Change date and time: 10.05.00_21.08.2026
- * Reason for changes: Native Explorer/Settings/Markdown tiles live in a collapsible right rail.
+ * Change date and time: 21.25.00_22.08.2026
+ * Reason for changes: Tap outside the open core rail dismisses it.
  */
 
 import { getSpeedDialActionRegistry } from "./action-registry";
@@ -155,7 +155,36 @@ export function mountCoreRail(host: HTMLElement): () => void {
     rail.append(toggle, panel);
     host.append(rail);
 
+    const isRailKeepOpenTarget = (ev: Event): boolean => {
+        const path =
+            typeof (ev as PointerEvent).composedPath === "function"
+                ? (ev as PointerEvent).composedPath()
+                : [];
+        for (const n of path) {
+            if (n === rail || (n instanceof Node && rail.contains(n))) return true;
+            if (
+                n instanceof Element &&
+                n.closest?.(
+                    "dialog, .cw-context-menu-layer, .env-shell-app-menu, .speed-dial-editor, .sd-icon-picker"
+                )
+            ) {
+                return true;
+            }
+        }
+        return false;
+    };
+    /* WHY: rail is pointer-events:none except toggle/panel — empty grid/wallpaper must close it. */
+    const onDocPointer = (ev: Event): void => {
+        if (!open) return;
+        if ((ev as PointerEvent).button != null && (ev as PointerEvent).button !== 0) return;
+        if (isRailKeepOpenTarget(ev)) return;
+        open = false;
+        syncOpen();
+    };
+    document.addEventListener("pointerdown", onDocPointer, { capture: true });
+
     return () => {
+        document.removeEventListener("pointerdown", onDocPointer, { capture: true } as EventListenerOptions);
         rail.remove();
     };
 }

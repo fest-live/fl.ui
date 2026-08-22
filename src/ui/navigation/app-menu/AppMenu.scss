@@ -13,6 +13,32 @@
         max-inline-size: none;
         max-block-size: none;
         border-radius: 0;
+        /* WHY: 1fr clamps the grid; panel overflow never fires — scroll on the grid. */
+        overflow: hidden;
+    }
+
+    /* WHY: All Apps is a 1fr grid child — without a scrollport, rows squash to fit the viewport. */
+    .env-shell-app-menu__panel > .env-shell-app-menu__grid {
+        align-self: stretch;
+        block-size: 100%;
+        max-block-size: 100%;
+        min-block-size: 0;
+        overflow-x: hidden;
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        align-content: start;
+        justify-content: start;
+        grid-auto-rows: max-content;
+        touch-action: pan-y;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .env-shell-app-menu[data-page] .env-shell-app-menu__grid {
+        row-gap: 0.85rem;
+        column-gap: 0.45rem;
+        padding-block-end: calc(
+            var(--env-shell-chrome-stack-reserve, 3rem) + env(safe-area-inset-bottom, 0px)
+        );
     }
 
     .env-shell-app-menu {
@@ -79,6 +105,7 @@
         color-scheme: inherit;
         backdrop-filter: blur(22px) saturate(1.35);
         -webkit-backdrop-filter: blur(22px) saturate(1.35);
+        grid-template-rows: auto auto minmax(0, 1fr);
     }
 
     /* Win7-style Start: recent | folders/grid */
@@ -313,7 +340,9 @@
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(4.5rem, 1fr));
         gap: 0.5rem;
-        min-block-size: 2rem;
+        min-block-size: 0;
+        align-content: start;
+        grid-auto-rows: max-content;
         touch-action: pan-y;
         -webkit-overflow-scrolling: touch;
     }
@@ -327,6 +356,8 @@
         gap: 0.35rem;
         justify-items: center;
         align-content: start;
+        min-block-size: max-content;
+        flex-shrink: 0;
         padding: 0.45rem 0.25rem;
         border: 0;
         border-radius: 12px;
@@ -457,7 +488,7 @@
         min-block-size: 2.5rem;
         padding: 0;
         aspect-ratio: 1 / 1;
-        border-radius: 50%;
+        border-radius: 50cqmin;
         border: none;
         background: var(--env-app-menu-plate);
         box-shadow: 0 6px 24px -8px color-mix(in oklab, #000 38%, transparent);
@@ -471,7 +502,8 @@
         /* Capacitor App Menu — circular plates by default (override via data-shape). */
         &:not([data-shape]),
         &[data-shape="circle"] {
-            border-radius: 50%;
+            border-radius: 50cqmin;
+            aspect-ratio: 1 / 1;
             @supports (corner-shape: superellipse(1)) {
                 corner-shape: superellipse(1);
             }
@@ -488,6 +520,54 @@
             border-radius: 12%;
             @supports (corner-shape: square) {
                 corner-shape: square;
+            }
+        }
+
+        &[data-shape="shapeless"] {
+            overflow: visible !important;
+            contain: none;
+            background: transparent !important;
+            box-shadow: none !important;
+            backdrop-filter: none !important;
+            -webkit-backdrop-filter: none !important;
+            border-radius: 0 !important;
+
+            @supports (corner-shape: squircle) {
+                corner-shape: unset;
+            }
+
+            img[data-launcher-icon],
+            .ui-ws-item-icon-img,
+            .env-shell-app-menu__tile-favicon,
+            ui-icon {
+                object-fit: contain;
+            }
+
+            img.sd-icon-silhouette,
+            ui-icon.sd-icon-silhouette {
+                position: absolute;
+                inset: 0;
+                z-index: 0;
+                pointer-events: none;
+                object-fit: contain;
+                opacity: 0.4;
+                filter: brightness(0) blur(6px);
+                transform: translateY(10%);
+            }
+
+            img[data-launcher-icon]:not(.sd-icon-silhouette),
+            .ui-ws-item-icon-img:not(.sd-icon-silhouette) {
+                object-fit: contain;
+                z-index: 2;
+                filter: none;
+            }
+
+            &[data-icon-display="glyph"] ui-icon:not(.sd-icon-silhouette) {
+                filter: drop-shadow(0 2px 5px rgb(0 0 0 / 0.4));
+            }
+
+            &[data-icon-display="glyph"] .sd-icon-silhouette {
+                display: none;
             }
         }
 

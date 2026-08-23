@@ -434,8 +434,8 @@
         overflow: hidden;
         contain: layout style;
 
-        @supports (corner-shape: superellipse(1)) {
-            corner-shape: superellipse(1);
+        @supports (corner-shape: round) {
+            corner-shape: round;
         }
 
         img[data-icon-pending],
@@ -492,13 +492,13 @@
         display: grid;
         place-content: center;
         place-items: center;
-        inline-size: 2.5rem;
-        block-size: 2.5rem;
-        min-inline-size: 2.5rem;
-        min-block-size: 2.5rem;
-        padding: 0;
-        aspect-ratio: 1 / 1;
-        border-radius: 50cqmin;
+        inline-size: 2.5rem !important;
+        block-size: 2.5rem !important;
+        min-inline-size: 2.5rem !important;
+        min-block-size: 2.5rem !important;
+        padding: 0 !important;
+        aspect-ratio: 1 / 1 !important;
+        border-radius: 50% !important;
         border: none;
         background: var(--env-app-menu-plate);
         box-shadow: 0 6px 24px -8px color-mix(in oklab, #000 38%, transparent);
@@ -509,25 +509,31 @@
         color: var(--color-on-primary-container, var(--env-app-menu-ink));
         --icon-color: var(--color-on-primary-container, var(--env-app-menu-ink));
 
-        /* Capacitor App Menu — circular plates by default (override via data-shape). */
+        /* WHY: `.shaped` stretch/fit-content + 1.5rem beat 50% — plate was not a disk. */
         &:not([data-shape]),
         &[data-shape="circle"] {
-            border-radius: 50cqmin;
-            aspect-ratio: 1 / 1;
-            @supports (corner-shape: superellipse(1)) {
-                corner-shape: superellipse(1);
+            aspect-ratio: 1 / 1 !important;
+            border-radius: 50% !important;
+
+            @supports (corner-shape: round) {
+                corner-shape: round;
             }
         }
 
         &[data-shape="squircle"] {
-            border-radius: 22%;
+            border-radius: 1.5rem !important;
+
             @supports (corner-shape: squircle) {
-                corner-shape: squircle;
+                corner-shape: unset;
+            }
+
+            @supports (corner-shape: round) {
+                corner-shape: round;
             }
         }
 
         &[data-shape="square"] {
-            border-radius: 12%;
+            border-radius: 12% !important;
             @supports (corner-shape: square) {
                 corner-shape: square;
             }

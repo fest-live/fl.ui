@@ -1,8 +1,10 @@
 /*
  * Filename: Windows2.ts
  * FullPath: modules/projects/fl.ui/src/ui/containers/window/Windows2.ts
- * Change date and time: 17.50.00_08.08.2026
- * Reason for changes: title/resizer live in shadow — use query-shadow so drag/resize get real HTMLElements.
+ * Change date and time: 23.10.00_23.08.2026
+ * Reason for changes: Chrome-wire does not re-probe theme; title-button observer only.
+ * FIND:win-footer
+ * TAG:hang-open
  */
 import { defineElement, property, H, numberRef, bindStyle, S } from "@fest-lib/lure";
 import { preloadStyle, addEvent } from "@fest-lib/dom";
@@ -78,6 +80,8 @@ export class Windows2 extends UIElement {
     #wireAttempts = 0;
     #lastChromeActionAt = 0;
     #lastNativeProbe: NativeWindowChromeProbe | null = null;
+    #footerSlotUnbind: (() => void) | null = null;
+    #lastThemeCover: boolean | null = null;
 
     // WHY: UIElement defines `render`/`styles` as instance fields; subclass methods would be shadowed.
     styles = function () { return styled; };
@@ -163,42 +167,73 @@ export class Windows2 extends UIElement {
     }
 
     disconnectedCallback(): void {
-        this.#nativeUnbind?.();
-        this.#nativeUnbind = null;
-        this.#attrObserver?.disconnect();
-        this.#attrObserver = null;
-        this.#controlsMo?.disconnect();
-        this.#controlsMo = null;
-        // WHY: re-connect must re-bind title controls; otherwise close/max/min go dead.
-        this.#controlsUnbind?.();
-        this.#controlsUnbind = null;
-        this.#controlsReady = false;
-        this.#wireAttempts = 0;
-        this.#focusUnbind?.();
-        this.#focusUnbind = null;
-        this.#dragUnbind?.();
-        this.#dragUnbind = null;
-        this.#resizeUnbind?.();
-        this.#resizeUnbind = null;
-        // WHY: oxc rejects `(super as T).fn()` — only `super.prop` / `super()` forms are valid.
-        super.disconnectedCallback?.();
+        // WHY: elevateModel `appendChild` reparents — sync teardown + 8-frame rewire froze opens.
+        queueMicrotask(() => {
+            if (this.isConnected) return;
+            this.#nativeUnbind?.();
+            this.#nativeUnbind = null;
+            this.#attrObserver?.disconnect();
+            this.#attrObserver = null;
+            this.#controlsMo?.disconnect();
+            this.#controlsMo = null;
+            this.#controlsUnbind?.();
+            this.#controlsUnbind = null;
+            this.#controlsReady = false;
+            this.#wireAttempts = 0;
+            this.#focusUnbind?.();
+            this.#focusUnbind = null;
+            this.#dragUnbind?.();
+            this.#dragUnbind = null;
+            this.#resizeUnbind?.();
+            this.#resizeUnbind = null;
+            this.#footerSlotUnbind?.();
+            this.#footerSlotUnbind = null;
+            this.#lastThemeCover = null;
+            super.disconnectedCallback?.();
+        });
     }
 
     #scheduleChromeWire(): void {
         const run = (): void => {
             this.#wireControls();
             this.#wireFocus();
-            this.#wireDrag();
-            this.#wireResize();
-            this.#syncNativeChrome();
-            // WHY: first microtask can race shadow paint; retry until control host exists.
-            // Even after ready, keep stamping button props a few frames (lure late replace).
-            if (this.#wireAttempts < 20) {
-                this.#wireAttempts += 1;
-                if (!this.#controlsReady || this.#wireAttempts < 8) requestAnimationFrame(run);
-            }
+            if (!this.#dragUnbind) this.#wireDrag();
+            if (!this.#resizeUnbind) this.#wireResize();
+            this.#bindEmptyFooter();
+            if (this.#controlsReady) return;
+            if (this.#wireAttempts++ < 12) requestAnimationFrame(run);
         };
         queueMicrotask(run);
+    }
+
+    /**
+     * WHY: `<footer><slot name="footer"></slot></footer>` is never `:empty`, so unused
+     * chrome painted a 2.25rem slab under Settings / Explorer.
+     */
+    #bindEmptyFooter(): void {
+        if (this.#footerSlotUnbind) {
+            this.#syncEmptyFooter();
+            return;
+        }
+        const slot = this.shadowRoot?.querySelector?.('slot[name="footer"]');
+        if (!(slot instanceof HTMLSlotElement)) return;
+        const onChange = (): void => this.#syncEmptyFooter();
+        slot.addEventListener("slotchange", onChange);
+        this.#footerSlotUnbind = () => slot.removeEventListener("slotchange", onChange);
+        this.#syncEmptyFooter();
+    }
+
+    #syncEmptyFooter(): void {
+        const slot = this.shadowRoot?.querySelector?.('slot[name="footer"]');
+        const footer = this.shadowRoot?.querySelector?.(".footer-handler");
+        if (!(slot instanceof HTMLSlotElement) || !(footer instanceof HTMLElement)) return;
+        const assigned = slot.assignedNodes({ flatten: true });
+        const empty = !assigned.some((node) => {
+            if (node.nodeType === Node.ELEMENT_NODE) return true;
+            return node.nodeType === Node.TEXT_NODE && Boolean(node.textContent?.trim());
+        });
+        footer.toggleAttribute("data-empty", empty);
+        footer.hidden = empty;
     }
 
     #bindNativeChrome(): void {
@@ -236,6 +271,20 @@ export class Windows2 extends UIElement {
     }
 
     #applyNativeProbe(probe: NativeWindowChromeProbe): void {
+        const covers =
+            this.nativeMode ||
+            this.hasAttribute("data-desk-max") ||
+            this.hasAttribute("maximized") ||
+            this.hasAttribute("data-mobile-max");
+        if (
+            this.#lastNativeProbe?.surface === probe.surface &&
+            this.#lastThemeCover === covers &&
+            this.#dragUnbind
+        ) {
+            this.#lastNativeProbe = probe;
+            return;
+        }
+
         this.#lastNativeProbe = probe;
         const host = this as HTMLElement;
         host.toggleAttribute("data-native-wco", probe.surface === "wco");
@@ -267,20 +316,17 @@ export class Windows2 extends UIElement {
         this.#syncMaximizeIcon();
 
         /*
-         * WHY: WCO / PWA title strip uses meta theme-color — match `.title-handler`.
-         * Also own theme-color when this window fills the viewport (desk-max), so
-         * DynamicEngine cannot sample the wallpaper behind it.
+         * WHY: chrome-wire retries this ~20 rAFs. Re-sampling theme-color every frame
+         * (canvas + DOM probes) froze the launcher on Settings/Explorer open (`Loading …`).
          */
-        const covers =
-            this.nativeMode ||
-            this.hasAttribute("data-desk-max") ||
-            this.hasAttribute("maximized") ||
-            this.hasAttribute("data-mobile-max");
-        if (covers) {
-            syncThemeColorFromNativeWindow(this);
-        } else {
-            restoreThemeColorAfterNativeWindow(this);
-            syncAmbientThemeColor();
+        if (covers !== this.#lastThemeCover) {
+            this.#lastThemeCover = covers;
+            if (covers) {
+                syncThemeColorFromNativeWindow(this);
+            } else {
+                restoreThemeColorAfterNativeWindow(this);
+                syncAmbientThemeColor();
+            }
         }
 
         this.dispatchEvent(
@@ -619,7 +665,7 @@ export class Windows2 extends UIElement {
                 this.#syncExitNativeButton();
                 this.#syncMaximizeIcon();
             });
-            this.#controlsMo.observe(root, { childList: true, subtree: true });
+            this.#controlsMo.observe(buttons, { childList: true, subtree: true });
         }
 
         this.#controlsUnbind = () => {
@@ -634,7 +680,6 @@ export class Windows2 extends UIElement {
             this.#controlsReady = false;
         };
         this.#controlsReady = true;
-        this.#wireAttempts = 0;
         this.#syncExitNativeButton();
         this.#syncMaximizeIcon();
     }

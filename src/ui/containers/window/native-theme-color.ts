@@ -1,8 +1,10 @@
 /*
  * Filename: native-theme-color.ts
  * FullPath: modules/projects/fl.ui/src/ui/containers/window/native-theme-color.ts
- * Change date and time: 10.50.00_02.08.2026
- * Reason for changes: Titlebar-only theme-color — never elementsFromPoint into wallpaper.
+ * Change date and time: 23.10.00_23.08.2026
+ * Reason for changes: Sample theme-color off the click path — no getBoundingClientRect / 400ms resample.
+ * FIND:theme-color
+ * TAG:hang-open
  */
 
 /**
@@ -22,11 +24,13 @@ let themeColorBeforeNative: string | null = null;
 let themeAttrWatch: MutationObserver | null = null;
 let metaContentWatch: MutationObserver | null = null;
 let paintProbe: HTMLCanvasElement | null = null;
-let resyncTimers: Array<ReturnType<typeof setTimeout>> = [];
 let ownedNativeHost: HTMLElement | null = null;
-let applyGeneration = 0;
 /** Last hex we intentionally wrote — used to fight ambient overwrites. */
 let lastAppliedHex: string | null = null;
+/** PERF: one token resolve per theme; paintVarOnHost + getComputedStyle froze opens. */
+let cachedSurfaceHex: string | null = null;
+let themeSampleHandle = 0;
+let themeSampleHost: HTMLElement | null = null;
 
 /** Warm light surface — matches `index.html` default (not VS Code blue). */
 const FALLBACK_WARM = "#cbb8a4";
@@ -71,21 +75,13 @@ const setOwned = (host: HTMLElement | null): void => {
 export const isViewportCoveringWindow = (host: HTMLElement | null | undefined): boolean => {
     if (!host || !host.isConnected || host.hasAttribute("minimized")) return false;
     if (host.hasAttribute("native-mode")) return true;
-    const maxed =
+    // WHY: attrs are enough — getBoundingClientRect during open forced a full launcher reflow.
+    return (
         host.hasAttribute("maximized") ||
         host.hasAttribute("data-desk-max") ||
         host.hasAttribute("data-mobile-max") ||
-        host.hasAttribute("data-native-active");
-    if (!maxed) return false;
-    try {
-        const r = host.getBoundingClientRect();
-        const vw = Math.max(1, globalThis.innerWidth || 1);
-        const vh = Math.max(1, globalThis.innerHeight || 1);
-        /* Cover most of the viewport and sit at/near the top (WCO / title strip). */
-        return r.top <= 8 && r.left <= 8 && r.width >= vw * 0.92 && r.height >= vh * 0.85;
-    } catch {
-        return maxed;
-    }
+        host.hasAttribute("data-native-active")
+    );
 };
 
 /** Prefer focused/native covering window for theme-color ownership. */
@@ -113,6 +109,7 @@ export const findThemeColorOwnerWindow = (): HTMLElement | null => {
 const ensureThemeAttrWatch = (): void => {
     if (themeAttrWatch || typeof MutationObserver === "undefined" || typeof document === "undefined") return;
     themeAttrWatch = new MutationObserver(() => {
+        cachedSurfaceHex = null;
         const host = findThemeColorOwnerWindow();
         if (host?.isConnected) syncThemeColorFromNativeWindow(host);
         else syncAmbientThemeColor();
@@ -140,7 +137,7 @@ const ensureMetaContentWatch = (meta: HTMLMetaElement): void => {
 
 /** Resolve any CSS color (oklch / color-mix / var-resolved) to opaque #rrggbb via canvas. */
 const resolveCssColorToHex = (css: string): string | null => {
-    /*const t = String(css || "").trim();
+    const t = String(css || "").trim();
     if (!t || t === "transparent" || t === "rgba(0, 0, 0, 0)") return null;
 
     const hexMatch = t.match(/^#([0-9a-f]{3}|[0-9a-f]{6}|[0-9a-f]{8})$/i);
@@ -199,9 +196,7 @@ const resolveCssColorToHex = (css: string): string | null => {
         return resolveCssColorToHex(resolved);
     } catch {
         return null;
-    }*/
-
-    return css;
+    }
 };
 
 const ensureThemeColorMeta = (): HTMLMetaElement | null => {
@@ -245,42 +240,39 @@ const paintVarOnHost = (host: HTMLElement, cssBackground: string): string | null
     }
 };
 
+/** Resolve `--color-surface-container` once — later opens reuse the hex. */
+const surfaceTokenHex = (): string | null => {
+    if (cachedSurfaceHex) return cachedSurfaceHex;
+    try {
+        const raw = getComputedStyle(document.documentElement)
+            .getPropertyValue("--color-surface-container")
+            .trim();
+        cachedSurfaceHex =
+            resolveCssColorToHex(raw) ||
+            paintVarOnHost(document.documentElement, "var(--color-surface-container, Canvas)") ||
+            FALLBACK_WARM;
+    } catch {
+        cachedSurfaceHex = FALLBACK_WARM;
+    }
+    return cachedSurfaceHex;
+};
+
 /**
  * Sample the window titlebar — CSS only.
  * WHY: never `elementsFromPoint` — hits fall through to wallpaper under WCO / thin bars.
  */
 const sampleTitlebarHex = (host: HTMLElement): string | null => {
-    const title = host.shadowRoot?.querySelector(".title-handler") as HTMLElement | null;
-    if (title) {
-        const fromProbe = paintVarOnHost(
-            title,
-            "var(--ui-win-titlebar-bg, var(--color-surface-container, Canvas))"
-        );
-        if (fromProbe) return fromProbe;
-
-        const fromTitle = resolveCssColorToHex(getComputedStyle(title).backgroundColor);
-        if (fromTitle) return fromTitle;
+    // WHY: Capacitor hides `.title-handler` (`data-no-titlebar`); sampling a `display:none`
+    // node returns transparent → Android paints a black status strip.
+    const body = host.querySelector(".env-ui-window__body") as HTMLElement | null;
+    const chrome = (body?.querySelector(
+        ".settings-screen__top, .view-settings, .view-explorer, .cw-view-viewer-shell"
+    ) || body) as HTMLElement | null;
+    if (chrome) {
+        const fromChrome = resolveCssColorToHex(getComputedStyle(chrome).backgroundColor);
+        if (fromChrome) return fromChrome;
     }
-
-    const cs = getComputedStyle(host);
-    for (const prop of ["--ui-win-titlebar-bg", "--color-surface-container", "--color-surface"]) {
-        const painted = paintVarOnHost(host, `var(${prop})`);
-        if (painted) return painted;
-        const raw = cs.getPropertyValue(prop).trim();
-        if (!raw) continue;
-        const viaCanvas = resolveCssColorToHex(raw);
-        if (viaCanvas) return viaCanvas;
-    }
-
-    const rootCs = getComputedStyle(document.documentElement);
-    for (const prop of ["--color-surface-container", "--color-surface", "--color-surface-container-low"]) {
-        const hex =
-            paintVarOnHost(document.documentElement, `var(${prop})`) ||
-            resolveCssColorToHex(rootCs.getPropertyValue(prop).trim());
-        if (hex) return hex;
-    }
-
-    return null;
+    return surfaceTokenHex();
 };
 
 const applyMetaHex = (hex: string, forceReinsert = false): void => {
@@ -345,6 +337,41 @@ const isMaxChrome = (host: HTMLElement): boolean =>
     host.hasAttribute("data-mobile-max") ||
     host.hasAttribute("data-native-active");
 
+const cancelThemeSample = (): void => {
+    if (!themeSampleHandle) return;
+    if (typeof cancelIdleCallback === "function") {
+        try {
+            cancelIdleCallback(themeSampleHandle);
+        } catch {
+            clearTimeout(themeSampleHandle);
+        }
+    } else {
+        clearTimeout(themeSampleHandle);
+    }
+    themeSampleHandle = 0;
+    themeSampleHost = null;
+};
+
+const scheduleThemeSample = (host: HTMLElement): void => {
+    themeSampleHost = host;
+    if (themeSampleHandle) return;
+    const run = (): void => {
+        themeSampleHandle = 0;
+        const h = themeSampleHost;
+        themeSampleHost = null;
+        if (!h?.isConnected) return;
+        if (h.hasAttribute("minimized")) return;
+        if (!h.hasAttribute("native-mode") && !isMaxChrome(h)) return;
+        applyMetaHex(sampleTitlebarHex(h) || FALLBACK_WARM, false);
+        ensureThemeAttrWatch();
+    };
+    if (typeof requestIdleCallback === "function") {
+        themeSampleHandle = requestIdleCallback(run, { timeout: 120 }) as unknown as number;
+    } else {
+        themeSampleHandle = setTimeout(run, 0) as unknown as number;
+    }
+};
+
 /** Push **this** window's titlebar fill into meta theme-color (native or viewport-covering). */
 export const syncThemeColorFromNativeWindow = (host: HTMLElement | null | undefined): void => {
     if (!host || typeof document === "undefined") return;
@@ -367,33 +394,17 @@ export const syncThemeColorFromNativeWindow = (host: HTMLElement | null | undefi
      * DynamicEngine tick cannot leave #007acc while sample is still settling.
      */
     if (isForbiddenThemeColor(String(meta.getAttribute("content") || ""))) {
-        applyMetaHex(FALLBACK_WARM, true);
+        applyMetaHex(FALLBACK_WARM, false);
     }
 
-    const gen = ++applyGeneration;
-    const apply = (force = false): void => {
-        if (gen !== applyGeneration) return;
-        if (!host.isConnected) return;
-        if (!host.hasAttribute("native-mode") && !isMaxChrome(host) && !isViewportCoveringWindow(host)) {
-            return;
-        }
-        const hex = sampleTitlebarHex(host) || FALLBACK_WARM;
-        applyMetaHex(hex, force);
-    };
-    apply(true);
-    requestAnimationFrame(() => {
-        apply(false);
-        requestAnimationFrame(() => apply(true));
-    });
-    for (const t of resyncTimers) clearTimeout(t);
-    resyncTimers = [];
-    /* WHY: wallpaper / veela tokens may settle a frame after native geometry. */
-    resyncTimers.push(
-        setTimeout(() => apply(true), 50),
-        setTimeout(() => apply(true), 160),
-        setTimeout(() => apply(true), 400)
-    );
-    ensureThemeAttrWatch();
+    if (lastAppliedHex && !isForbiddenThemeColor(lastAppliedHex)) {
+        applyMetaHex(lastAppliedHex, false);
+        ensureThemeAttrWatch();
+        return;
+    }
+
+    // PERF: do not sample (getComputedStyle) on the click / chrome-wire stack.
+    scheduleThemeSample(host);
 };
 
 /**
@@ -423,9 +434,7 @@ export const restoreThemeColorAfterNativeWindow = (exitingHost?: HTMLElement | n
 
     setOwned(null);
     lastAppliedHex = null;
-    applyGeneration += 1;
-    for (const t of resyncTimers) clearTimeout(t);
-    resyncTimers = [];
+    cancelThemeSample();
 
     if (themeColorBeforeNative != null && themeColorBeforeNative && !isForbiddenThemeColor(themeColorBeforeNative)) {
         applyMetaHex(themeColorBeforeNative, true);

@@ -1,8 +1,10 @@
 /*
  * Filename: mount-ui-window.ts
  * FullPath: modules/shells/environment-shell/src/mount-ui-window.ts
- * Change date and time: 23.10.00_22.08.2026
- * Reason for changes: Desk-max sits on the chrome reserve — no 8px + titlebar gap above the taskbar.
+ * Change date and time: 23.10.00_23.08.2026
+ * Reason for changes: One applyChrome on mount; cache z-boost so open does not force layout.
+ * FIND:mobile-dock
+ * TAG:hang-open
  */
 /**
  * WHY: Replaces `.wf-frame` / {@link mountWindowFrame} for environment-shell floating views.
@@ -28,13 +30,19 @@ function isNativeCapacitorShell(): boolean {
     }
 }
 
+let zBoostCache: { shell: HTMLElement; n: number } | null = null;
+
 /** When mounted under `.env-shell-root`, add this boost so windows stack above the home layer. */
-function readEnvWindowZBoost(host: HTMLElement | null | undefined): number {
+export function readEnvWindowZBoost(host: HTMLElement | null | undefined): number {
     const shell = host?.closest?.(".env-shell-root") ?? host?.closest?.("env-shell-container");
     if (!(shell instanceof HTMLElement)) return 0;
-    const raw = getComputedStyle(shell).getPropertyValue("--env-window-z-boost").trim();
+    if (zBoostCache?.shell === shell) return zBoostCache.n;
+    const inline = shell.style.getPropertyValue("--env-window-z-boost").trim();
+    const raw = inline || getComputedStyle(shell).getPropertyValue("--env-window-z-boost").trim();
     const n = Number.parseInt(raw, 10);
-    return Number.isFinite(n) ? n : 0;
+    const val = Number.isFinite(n) ? n : 0;
+    zBoostCache = { shell, n: val };
+    return val;
 }
 
 function resolveEnvShellRoot(host: HTMLElement): HTMLElement | null {
@@ -220,8 +228,8 @@ export function mountUiWindow(
             win.style.left = "0";
             win.style.top = "0";
             win.style.right = "0";
-            // WHY: leave room for mobile Home dock (see `--env-mobile-dock-reserve`).
-            win.style.bottom = "var(--env-mobile-dock-reserve, 3.25rem)";
+            // WHY: mobile Home is a floating FAB — a dock reserve painted a dead strip under Settings/Explorer.
+            win.style.bottom = "0";
             win.style.width = "100%";
             win.style.height = "auto";
             syncEnvNativeTaskAttr(host);
@@ -263,6 +271,11 @@ export function mountUiWindow(
         notifyChrome();
     };
 
+    /* WHY: set mobile-max before the effect so the first applyChrome is the only one. */
+    if (isMobileMq.matches && !nativeMode.value && !minimized.value) {
+        maximizedMobile.value = true;
+    }
+
     const stopFx = effect(
         () => {
             applyChrome();
@@ -283,7 +296,6 @@ export function mountUiWindow(
     );
 
     isMobileMq.addEventListener("change", onMq);
-    onMq();
 
     const onChromeSurface = (): void => {
         applyChrome();

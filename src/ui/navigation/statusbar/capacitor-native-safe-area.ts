@@ -1,8 +1,9 @@
 /*
  * Filename: capacitor-native-safe-area.ts
  * FullPath: modules/projects/subsystem/shells/environment/components/statusbar/capacitor-native-safe-area.ts
- * Change date and time: 05.45.00_20.08.2026
- * Reason for changes: Android WebView often reports env(safe-area-inset-*) as 0 — inject OS insets.
+ * Change date and time: 23.09.25_23.08.2026
+ * Reason for changes: Do not inject 3-button nav height — OS already reserves that slab.
+ * FIND:navbar
  */
 
 import type { CwsShellInfo } from "com/routing/native/cws-bridge";
@@ -59,26 +60,34 @@ function applyInsets(topPx: number, bottomPx: number): void {
 
 function stampLateShellRoots(): void {
     if (lastTopPx <= 0 && lastBottomPx <= 0) return;
-    applyInsets(lastTopPx, lastBottomPx);
+    const top = `${lastTopPx}px`;
+    const bottom = `${lastBottomPx}px`;
+    for (const node of document.querySelectorAll(".env-shell-root, env-shell-container")) {
+        if (!(node instanceof HTMLElement)) continue;
+        if (node.style.getPropertyValue(CSS_TOP) === top) continue;
+        node.style.setProperty(CSS_TOP, top);
+        node.style.setProperty(CSS_BOTTOM, bottom);
+        node.toggleAttribute("data-capacitor-native", true);
+    }
 }
 
 async function resolveNativeInsets(): Promise<{ top: number; bottom: number }> {
     let top = 0;
-    let bottom = 0;
     try {
         const info = (await CwsBridge.getShellInfo()) as CwsShellInfo & {
             statusBarHeightCss?: number;
             navigationBarHeightCss?: number;
         };
         top = Number(info.statusBarHeightCss) || 0;
-        bottom = Number(info.navigationBarHeightCss) || 0;
     } catch {
         /* bridge optional during early boot */
     }
 
     const env = readEnvSafeAreaProbe();
     top = Math.max(top, env.top);
-    bottom = Math.max(bottom, env.bottom);
+    // WHY: 3-button nav is OS-owned (Capacitor SystemBars black pad, or hidden).
+    // `navigation_bar_height` + env(safe-area-inset-bottom) painted a second slab above it.
+    const bottom = 0;
 
     if (top <= 0) top = androidFallbackTopPx();
     return { top, bottom };
@@ -104,8 +113,8 @@ export async function installCapacitorNativeSafeAreaInsets(): Promise<void> {
     window.visualViewport?.addEventListener("resize", () => void sync());
     document.addEventListener("orientationchange", () => void sync());
 
-    if (typeof MutationObserver === "function") {
-        const mo = new MutationObserver(() => stampLateShellRoots());
-        mo.observe(document.documentElement, { childList: true, subtree: true });
-    }
+    // WHY: a document-wide subtree observer recorded every Settings/Explorer node insert
+    // and kept the main thread busy while `Loading …` was on screen.
+    stampLateShellRoots();
+    globalThis.setTimeout?.(stampLateShellRoots, 400);
 }

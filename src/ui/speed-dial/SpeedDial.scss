@@ -1,8 +1,8 @@
 /*
  * Filename: SpeedDial.scss
  * FullPath: modules/projects/fl.ui/src/ui/speed-dial/SpeedDial.scss
- * Change date and time: 22.30.00_22.08.2026
- * Reason for changes: Clock widget ink follows wallpaper luminance, not app light theme.
+ * Change date and time: 09.04.00_23.08.2026
+ * Reason for changes: Circle 50% !important + square plate; squircle keeps 1.5rem arc (no flattening keyword).
  */
 
 @use "../design/_wavy-runtime.scss" as *;
@@ -211,14 +211,19 @@
     }
 
     .sd-widget--clock {
+        --sd-clock-seed: var(--base-color, var(--color-primary, #5a9ec8));
         align-items: center;
         justify-content: center;
         text-align: center;
         gap: 0.12em;
         overflow: hidden;
         padding-block-start: 1.35rem;
-        /* INVARIANT: wallpaper overlay — do not inherit light-theme on-surface (dark). */
-        color: var(--env-launcher-fg, #f7f7f8);
+        /* WHY: Material You — keep wallpaper-luma ink, mix in seed/accent (not theme on-surface). */
+        color: color-mix(
+            in oklab,
+            var(--env-launcher-fg, #f7f7f8) 68%,
+            var(--sd-clock-seed) 32%
+        );
     }
 
     .sd-widget__time {
@@ -233,7 +238,11 @@
         overflow: hidden;
         text-overflow: ellipsis;
         max-inline-size: 100%;
-        color: inherit;
+        color: color-mix(
+            in oklab,
+            var(--env-launcher-fg, #f7f7f8) 42%,
+            var(--sd-clock-seed, var(--base-color, var(--color-primary, #5a9ec8))) 58%
+        );
         text-shadow:
             0 1px 2px var(--env-launcher-fg-shadow, rgb(0 0 0 / 0.88)),
             0 0 12px var(--env-launcher-fg-glow, rgb(0 0 0 / 0.45));
@@ -241,13 +250,17 @@
 
     .sd-widget__date {
         font-size: clamp(0.75rem, min(10cqi, 12cqb), 2.75rem);
-        opacity: 0.78;
+        opacity: 0.86;
         text-align: center;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
         max-inline-size: 100%;
-        color: inherit;
+        color: color-mix(
+            in oklab,
+            var(--env-launcher-fg, #f7f7f8) 76%,
+            var(--sd-clock-seed, var(--base-color, var(--color-primary, #5a9ec8))) 24%
+        );
         text-shadow:
             0 1px 2px var(--env-launcher-fg-shadow, rgb(0 0 0 / 0.88)),
             0 0 8px var(--env-launcher-fg-glow, rgb(0 0 0 / 0.45));
@@ -633,6 +646,13 @@
                 grid-row: 1 / -1;*/
                 aspect-ratio: 1 / 1;
 
+                /* WHY: `.shaped` later-layer stretch/fit-content made icon plates non-square. */
+                &.shaped:not(.sd-widget-host) {
+                    aspect-ratio: 1 / 1 !important;
+                    inline-size: min(100%, var(--tile-size, 4rem)) !important;
+                    block-size: min(100%, var(--tile-size, 4rem)) !important;
+                }
+
                 pointer-events: auto;
                 position: relative;
                 text-align: center;
@@ -683,36 +703,49 @@
                 filter: none;
 
                 &:not([data-shape]) {
-                    @supports (cornet-shape: squircle) {
-                        corner-shape: squircle;
-                    }
+                    border-radius: 1.5rem !important;
 
-                    border-radius: 22%;
+                    @supports (corner-shape: round) {
+                        corner-shape: round;
+                    }
                 }
 
+                /*
+                 * WHY: `@layer ux-shapes` `.shaped` is a later implicit layer — 1.5rem +
+                 * stretch/fit-content beat `@layer views` and kept circle as a rounded square.
+                 * INVARIANT: `corner-shape: squircle` flattens the 1.5rem arc (looks less round).
+                 */
                 &[data-shape="circle"] {
-                    border-radius: 50cqmin;
-                    aspect-ratio: 1 / 1;
+                    aspect-ratio: 1 / 1 !important;
+                    inline-size: min(100%, var(--tile-size, 4rem)) !important;
+                    block-size: min(100%, var(--tile-size, 4rem)) !important;
+                    max-inline-size: var(--tile-size, 4rem);
+                    max-block-size: var(--tile-size, 4rem);
+                    border-radius: 50% !important;
 
-                    @supports (cornet-shape: superellipse(1)) {
-                        corner-shape: superellipse(1);
+                    @supports (corner-shape: round) {
+                        corner-shape: round;
                     }
                 }
 
                 &[data-shape="square"] {
-                    border-radius: max(0.55rem, 14%);
+                    border-radius: max(0.55rem, 14%) !important;
 
-                    @supports (cornet-shape: square) {
+                    @supports (corner-shape: square) {
                         corner-shape: square;
                     }
                 }
 
                 &[data-shape="squircle"] {
-                    @supports (cornet-shape: squircle) {
-                        corner-shape: squircle;
+                    border-radius: 1.5rem !important;
+
+                    @supports (corner-shape: squircle) {
+                        corner-shape: unset;
                     }
 
-                    border-radius: 22%;
+                    @supports (corner-shape: round) {
+                        corner-shape: round;
+                    }
                 }
 
                 &[data-shape="wavy"] {

@@ -61,20 +61,31 @@ function readWco(): WindowControlsOverlayLike | null {
     }
 }
 
+let cachedDisplayMode: NativeDisplayMode | null = null;
+
 function matchDisplayMode(): NativeDisplayMode {
+    if (cachedDisplayMode) return cachedDisplayMode;
     if (typeof globalThis.matchMedia !== "function") return "unknown";
     try {
         if (globalThis.matchMedia("(display-mode: window-controls-overlay)").matches) {
-            return "window-controls-overlay";
+            return (cachedDisplayMode = "window-controls-overlay");
         }
-        if (globalThis.matchMedia("(display-mode: fullscreen)").matches) return "fullscreen";
-        if (globalThis.matchMedia("(display-mode: standalone)").matches) return "standalone";
-        if (globalThis.matchMedia("(display-mode: minimal-ui)").matches) return "minimal-ui";
-        if (globalThis.matchMedia("(display-mode: browser)").matches) return "browser";
+        if (globalThis.matchMedia("(display-mode: fullscreen)").matches) {
+            return (cachedDisplayMode = "fullscreen");
+        }
+        if (globalThis.matchMedia("(display-mode: standalone)").matches) {
+            return (cachedDisplayMode = "standalone");
+        }
+        if (globalThis.matchMedia("(display-mode: minimal-ui)").matches) {
+            return (cachedDisplayMode = "minimal-ui");
+        }
+        if (globalThis.matchMedia("(display-mode: browser)").matches) {
+            return (cachedDisplayMode = "browser");
+        }
     } catch {
         /* ignore */
     }
-    return "unknown";
+    return (cachedDisplayMode = "unknown");
 }
 
 function readTitlebarRect(wco: WindowControlsOverlayLike | null): NativeWindowChromeProbe["titlebarRect"] {
@@ -131,6 +142,7 @@ export type NativeChromeSubscribeOptions = {
  */
 export function subscribeNativeWindowChrome(options: NativeChromeSubscribeOptions): () => void {
     const emit = (): void => {
+        cachedDisplayMode = null;
         options.onChange(probeNativeWindowChrome(options.getRequested()));
     };
 

@@ -1,8 +1,9 @@
 /*
  * Filename: TaskBar.scss
  * FullPath: modules/projects/fl.ui/src/ui/navigation/taskbar/scss/TaskBar.scss
- * Change date and time: 23.15.00_22.08.2026
- * Reason for changes: Desktop chrome elevation on `.env-shell-chrome` — drop lure under-slab.
+ * Change date and time: 23.09.10_23.08.2026
+ * Reason for changes: Mobile dock is pointer-transparent except Home FAB (apps go full-bleed).
+ * FIND:mobile-dock
  */
 /* Taskbar / env chrome (document + host). Former environment-shell/scss/chrome.scss. */
 //@use "veela-lib" as m;
@@ -392,7 +393,8 @@
         block-size: 3rem;
         min-block-size: 3rem;
         padding: 0.15rem 0.75rem;
-        padding-block-end: calc(0.15rem + env(safe-area-inset-bottom, 0px));
+        /* WHY: 3-button nav is already OS-reserved; extra safe-area made a second dock slab. */
+        padding-block-end: 0.15rem;
         background: transparent;
         border-block-start: none;
         backdrop-filter: none;
@@ -400,6 +402,8 @@
         box-shadow: none;
         color: var(--env-status-fg, var(--env-taskbar-ink));
         --icon-color: currentColor;
+        /* WHY: chrome z-index sits above apps; a full-width hit slab ate Save / explorer rows. */
+        pointer-events: none;
     }
     
     .env-shell-chrome:not([data-desktop]) .env-shell-taskbar::part(taskbar) {
@@ -431,13 +435,14 @@
         top: auto;
         left: auto;
         right: calc(0.7rem + env(safe-area-inset-right, 0px));
-        bottom: calc(0.22rem + env(safe-area-inset-bottom, 0px));
+        bottom: 0.22rem;
         min-inline-size: 2.5rem;
         min-block-size: 2.5rem;
         padding: 0;
         margin: 0;
         border-radius: 999px;
         z-index: 6;
+        pointer-events: auto;
         background: color-mix(
             in oklab,
             var(--color-surface-container-high, --u2-color-mod(var(--base-color, #5a9ec8), 980)) 88%,

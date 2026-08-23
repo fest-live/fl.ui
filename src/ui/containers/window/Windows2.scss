@@ -1,8 +1,9 @@
 /*
  * Filename: Windows2.scss
  * FullPath: modules/projects/fl.ui/src/ui/containers/window/Windows2.scss
- * Change date and time: 23.10.00_22.08.2026
- * Reason for changes: Desk-max filled to the dock — titlebar-height gap + shadow looked like a PWA bar.
+ * Change date and time: 23.09.20_23.08.2026
+ * Reason for changes: Empty footer-handler collapsed — slot child broke :empty / :has-slotted.
+ * FIND:win-footer
  */
 
 /* COMPAT: Adopted shadow sheet cannot see document --u2-color-mod; body matches veela SoT. */
@@ -116,7 +117,9 @@
         box-sizing: border-box;
     }
 
-    :where(.footer-handler:empty, .footer-handler:not(:has-slotted)) {
+    /* WHY: footer always contains <slot>, so :empty / :has-slotted never hid the slab. */
+    .footer-handler[data-empty],
+    .footer-handler[hidden] {
         display: none !important;
     }
 }
@@ -180,8 +183,7 @@
 }
 
 /*
- * Mobile (env shell): full-bleed except bottom dock reserve; no min/max/close —
- * Home on the mobile taskbar replaces Close.
+ * Mobile (env shell): full-bleed; Home FAB overlays the window (no dock slab).
  * Titlebar becomes an empty spacer under the transparent overlay statusband
  * (`--env-status-inset-top`) unless standalone (`data-no-titlebar`).
  */
@@ -189,16 +191,11 @@
     --ui-win-radius: 0;
     /* Spacer height matches overlay status / notch when status-gap is on. */
     --ui-win-titlebar-height: var(--env-status-inset-top, max(2rem, env(safe-area-inset-top, 0px)));
-    /*inset: 0 0 var(--env-mobile-dock-reserve, 0rem) 0 !important;*/
-    inset: 0px;
+    inset: 0 !important;
     inline-size: 100% !important;
-    block-size: calc(100% - var(--env-mobile-dock-reserve)) !important;
+    block-size: 100% !important;
     border-radius: 0;
     transform: none !important;
-
-    @media screen and (pointer: fine) and ((min-width: 480px) or (hover: hover)) {
-        inset: 0 0 var(--env-mobile-dock-reserve, 0rem) 0 !important;
-    }
 
     @media screen and (pointer: coarse) and (hover: none) {
         block-size: stretch !important;
@@ -371,7 +368,9 @@
     display: none !important;
 }
 
-:host(ui-window[data-native-active]) :where(.footer-handler:empty, .footer-handler:not(:has-slotted)) {
+:host(ui-window[data-native-active]) .footer-handler[data-empty],
+:host(ui-window[data-native-active]) .footer-handler[hidden],
+:host(ui-window[data-mobile-max]) .footer-handler {
     display: none !important;
 }
 
@@ -583,8 +582,8 @@
     border-block-start: 1px solid var(--ui-win-border);
     color: var(--ui-win-muted);
 
-    &:empty,
-    &:not(:has(*)):not(:has(::slotted(*))) {
+    &[data-empty],
+    &[hidden] {
         display: none;
     }
 }

@@ -46,7 +46,10 @@ $bp-desktop-min: 641px;
         border: none;
         outline: none;
         box-shadow: none;
-        background: transparent;
+        background: none;
+        background-color: transparent;
+        border: none 0px transparent;
+        outline: none 0px transparent;
     }
 
     /* Extra-standalone: `<main>` is the only host (no wf-mounted-view on child) — nothing frames the launcher */

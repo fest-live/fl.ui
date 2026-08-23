@@ -21,7 +21,8 @@ export const initializeAppCanvasLayer = (container: HTMLElement): CanvasLayerSta
     root.style.position = "absolute";
     root.style.inset = "0";
     root.style.overflow = "hidden";
-    root.style.background = "radial-gradient(circle at 18% 12%, #1b2a45 0%, #0f1728 42%, #060910 100%)";
+    root.style.background = "none";
+    root.style.backgroundColor = "transparent";
 
     const glow = document.createElement("div");
     glow.className = "app-canvas__glow";
@@ -29,19 +30,20 @@ export const initializeAppCanvasLayer = (container: HTMLElement): CanvasLayerSta
     glow.style.inset = "-20%";
     glow.style.pointerEvents = "none";
     glow.style.opacity = "0.7";
-    glow.style.background =
-        "radial-gradient(circle at 15% 20%, rgba(145,185,255,0.45) 0%, transparent 40%), radial-gradient(circle at 75% 72%, rgba(91,134,235,0.35) 0%, transparent 43%)";
-
+    root.style.background = "none";
+    root.style.backgroundColor = "transparent";
+    
     const canvas = document.createElement("canvas", { is: "ui-canvas" }) as HTMLCanvasElement;
     canvas.className = "app-canvas__image";
-    canvas.style.position = "absolute";
+    canvas.style.position = "fixed";
     canvas.style.inset = "0";
+    canvas.style.insetBlockEnd = "auto";
     canvas.style.pointerEvents = "none";
     canvas.style.inlineSize = "100%";
     canvas.style.blockSize = "100%";
     canvas.style.maxInlineSize = "100%";
     canvas.style.maxBlockSize = "100%";
-    canvas.style.opacity = "0.88";
+    canvas.style.opacity = "1";
     canvas.style.mixBlendMode = "normal";
     canvas.setAttribute("is", "ui-canvas");
 

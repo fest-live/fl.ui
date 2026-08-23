@@ -1,4 +1,4 @@
-[**@fest-lib/fl-ui v0.1.14**](../README.md)
+[**@fest-lib/fl-ui v0.1.15**](../README.md)
 
 ***
 
@@ -6,7 +6,7 @@
 
 # Class: StatusBar
 
-Defined in: fl.ui/src/ui/navigation/statusbar/statusbar.ts:306
+Defined in: fl.ui/src/ui/navigation/statusbar/statusbar.ts:282
 
 ## Extends
 
@@ -20,7 +20,7 @@ Defined in: fl.ui/src/ui/navigation/statusbar/statusbar.ts:306
 new StatusBar(): StatusBar;
 ```
 
-Defined in: fl.ui/src/ui/navigation/statusbar/statusbar.ts:307
+Defined in: fl.ui/src/ui/navigation/statusbar/statusbar.ts:283
 
 #### Returns
 
@@ -307,7 +307,7 @@ Defined in: fl.ui/src/ui/base/UIElement.ts:17
 render(): any;
 ```
 
-Defined in: fl.ui/src/ui/navigation/statusbar/statusbar.ts:311
+Defined in: fl.ui/src/ui/navigation/statusbar/statusbar.ts:287
 
 #### Returns
 
@@ -345,7 +345,7 @@ Defined in: lur.e/src/lure/misc/Glit.ts:144
 styles(): any;
 ```
 
-Defined in: fl.ui/src/ui/navigation/statusbar/statusbar.ts:310
+Defined in: fl.ui/src/ui/navigation/statusbar/statusbar.ts:286
 
 #### Returns
 

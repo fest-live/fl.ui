@@ -1,4 +1,4 @@
-[**@fest-lib/fl-ui v0.1.14**](../README.md)
+[**@fest-lib/fl-ui v0.1.15**](../README.md)
 
 ***
 
@@ -10,7 +10,7 @@
 function attachStatusBarContrast(target): () => void;
 ```
 
-Defined in: fl.ui/src/ui/navigation/statusbar/statusbar.ts:118
+Defined in: fl.ui/src/ui/navigation/statusbar/statusbar.ts:120
 
 Sample wallpaper + open-window chrome → status/launcher fg.
 WHY: Overlay status sits on wallpaper OR on light window title spacers (`data-status-gap`);

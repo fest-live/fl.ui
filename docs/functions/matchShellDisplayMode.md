@@ -1,4 +1,4 @@
-[**@fest-lib/fl-ui v0.1.14**](../README.md)
+[**@fest-lib/fl-ui v0.1.15**](../README.md)
 
 ***
 
@@ -10,7 +10,7 @@
 function matchShellDisplayMode(): ShellDisplayMode;
 ```
 
-Defined in: fl.ui/src/ui/navigation/statusbar/statusbar.ts:35
+Defined in: fl.ui/src/ui/navigation/statusbar/statusbar.ts:37
 
 ## Returns
 

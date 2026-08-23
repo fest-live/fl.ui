@@ -1,4 +1,4 @@
-[**@fest-lib/fl-ui v0.1.14**](../README.md)
+[**@fest-lib/fl-ui v0.1.15**](../README.md)
 
 ***
 
@@ -13,7 +13,7 @@ function mountEnvironmentStatusBar(
    device): MountStatusBarResult;
 ```
 
-Defined in: fl.ui/src/ui/navigation/statusbar/statusbar.ts:464
+Defined in: fl.ui/src/ui/navigation/statusbar/statusbar.ts:440
 
 `ui-statusbar`:
 - Desktop footer: intro (left), shell meta (center), device tray (right; often CSS-hidden).

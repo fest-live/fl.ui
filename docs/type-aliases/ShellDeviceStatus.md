@@ -1,4 +1,4 @@
-[**@fest-lib/fl-ui v0.1.14**](../README.md)
+[**@fest-lib/fl-ui v0.1.15**](../README.md)
 
 ***
 
@@ -10,7 +10,7 @@
 type ShellDeviceStatus = object;
 ```
 
-Defined in: fl.ui/src/ui/navigation/statusbar/statusbar.ts:346
+Defined in: fl.ui/src/ui/navigation/statusbar/statusbar.ts:322
 
 Single subscription for battery + network; bind into multiple `H` trays with the same refs.
 
@@ -22,7 +22,7 @@ Single subscription for battery + network; bind into multiple `H` trays with the
 batteryIcon: refType<string>;
 ```
 
-Defined in: fl.ui/src/ui/navigation/statusbar/statusbar.ts:349
+Defined in: fl.ui/src/ui/navigation/statusbar/statusbar.ts:325
 
 ***
 
@@ -32,7 +32,7 @@ Defined in: fl.ui/src/ui/navigation/statusbar/statusbar.ts:349
 batteryPct: refType<string>;
 ```
 
-Defined in: fl.ui/src/ui/navigation/statusbar/statusbar.ts:351
+Defined in: fl.ui/src/ui/navigation/statusbar/statusbar.ts:327
 
 ***
 
@@ -42,7 +42,7 @@ Defined in: fl.ui/src/ui/navigation/statusbar/statusbar.ts:351
 batteryTitle: refType<string>;
 ```
 
-Defined in: fl.ui/src/ui/navigation/statusbar/statusbar.ts:350
+Defined in: fl.ui/src/ui/navigation/statusbar/statusbar.ts:326
 
 ***
 
@@ -52,7 +52,7 @@ Defined in: fl.ui/src/ui/navigation/statusbar/statusbar.ts:350
 dispose: () => void;
 ```
 
-Defined in: fl.ui/src/ui/navigation/statusbar/statusbar.ts:352
+Defined in: fl.ui/src/ui/navigation/statusbar/statusbar.ts:328
 
 #### Returns
 
@@ -66,7 +66,7 @@ Defined in: fl.ui/src/ui/navigation/statusbar/statusbar.ts:352
 networkIcon: refType<string>;
 ```
 
-Defined in: fl.ui/src/ui/navigation/statusbar/statusbar.ts:347
+Defined in: fl.ui/src/ui/navigation/statusbar/statusbar.ts:323
 
 ***
 
@@ -76,4 +76,4 @@ Defined in: fl.ui/src/ui/navigation/statusbar/statusbar.ts:347
 networkTitle: refType<string>;
 ```
 
-Defined in: fl.ui/src/ui/navigation/statusbar/statusbar.ts:348
+Defined in: fl.ui/src/ui/navigation/statusbar/statusbar.ts:324

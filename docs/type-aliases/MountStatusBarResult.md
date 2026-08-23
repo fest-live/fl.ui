@@ -1,4 +1,4 @@
-[**@fest-lib/fl-ui v0.1.14**](../README.md)
+[**@fest-lib/fl-ui v0.1.15**](../README.md)
 
 ***
 
@@ -10,7 +10,7 @@
 type MountStatusBarResult = object;
 ```
 
-Defined in: fl.ui/src/ui/navigation/statusbar/statusbar.ts:454
+Defined in: fl.ui/src/ui/navigation/statusbar/statusbar.ts:430
 
 ## Properties
 
@@ -20,7 +20,7 @@ Defined in: fl.ui/src/ui/navigation/statusbar/statusbar.ts:454
 dispose: () => void;
 ```
 
-Defined in: fl.ui/src/ui/navigation/statusbar/statusbar.ts:456
+Defined in: fl.ui/src/ui/navigation/statusbar/statusbar.ts:432
 
 #### Returns
 
@@ -34,4 +34,4 @@ Defined in: fl.ui/src/ui/navigation/statusbar/statusbar.ts:456
 element: HTMLElement;
 ```
 
-Defined in: fl.ui/src/ui/navigation/statusbar/statusbar.ts:455
+Defined in: fl.ui/src/ui/navigation/statusbar/statusbar.ts:431

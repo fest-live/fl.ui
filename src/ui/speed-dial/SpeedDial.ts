@@ -1,8 +1,8 @@
 /*
  * Filename: SpeedDial.ts
  * FullPath: modules/projects/fl.ui/src/ui/speed-dial/SpeedDial.ts
- * Change date and time: 21.35.00_23.08.2026
- * Reason for changes: File-shortcut tiles hydrate via launcher:shortcut-icon; folder stays until the bitmap lands.
+ * Change date and time: 22.28.00_23.08.2026
+ * Reason for changes: Remove must drop sibling under-shadows (MutationObserver childList+subtree).
  * FIND:pin-shortcut
  */
 
@@ -41,6 +41,8 @@ import {
     emitSpeedDialMutation,
     persistSpeedDialItems,
     persistSpeedDialMeta,
+    persistSpeedDialIconBlob,
+    resolveSpeedDialIconUrl,
     findSpeedDialItem,
     getSpeedDialMeta,
     ensureSpeedDialMeta,
@@ -274,10 +276,72 @@ const ensureShapedUnderSibling = (icon: HTMLElement, item: { id: string }): void
         } else if (under.nextElementSibling !== icon) {
             icon.before(under);
         }
+        bindUnderDisconnect(icon, under);
         stampShapedUnderCell(icon);
     } catch {
         /* pin/add must not take down Capacitor WebView */
     }
+};
+
+/*
+ * WHY: under is not an M() child. When M() removes/reparents the tile, the
+ * sibling shadow stays. Same params as lure UnderlyingShadow.attachToDOM.
+ */
+const bindUnderDisconnect = (icon: HTMLElement, under: HTMLElement): void => {
+    if (under.dataset.disconnectBound === "1") return;
+    const parent = icon.parentElement;
+    if (!parent) return;
+    under.dataset.disconnectBound = "1";
+    const observer = new MutationObserver((mutations) => {
+        for (const mutation of mutations) {
+            for (const node of mutation.removedNodes) {
+                if (node === icon || (node instanceof Node && node.contains?.(icon))) {
+                    under.remove();
+                    observer.disconnect();
+                    return;
+                }
+            }
+        }
+    });
+    observer.observe(parent, { childList: true, subtree: true });
+};
+
+const pruneOrphanUnders = (scope: ParentNode | null | undefined): void => {
+    if (!scope?.querySelectorAll) return;
+    const grids = scope.querySelectorAll<HTMLElement>(".speed-dial-grid[data-grid-layer='icons']");
+    const roots: ParentNode[] = grids.length ? [...grids] : [scope];
+    for (const grid of roots) {
+        const live = new Map<string, HTMLElement>();
+        grid.querySelectorAll<HTMLElement>(':scope > [data-speed-dial-item][data-layer="icons"]').forEach((el) => {
+            if (el.dataset.id && isLiveSpeedDialNode(el)) live.set(el.dataset.id, el);
+        });
+        grid.querySelectorAll<HTMLElement>(":scope > .ui-ws-item-icon-under").forEach((under) => {
+            const icon = live.get(under.dataset.id || "");
+            if (!icon || shouldHideShapedUnder(icon)) under.remove();
+        });
+    }
+};
+
+const bindIconGridShadowJanitor = (root: HTMLElement): void => {
+    root.querySelectorAll<HTMLElement>(".speed-dial-grid[data-grid-layer='icons']").forEach((grid) => {
+        if (grid.dataset.shadowMo === "1") return;
+        grid.dataset.shadowMo = "1";
+        const sweep = (): void => pruneOrphanUnders(grid);
+        const observer = new MutationObserver(sweep);
+        observer.observe(grid, { childList: true, subtree: true });
+        sweep();
+    });
+};
+
+const syncWidgetsAfterGridChange = (root?: HTMLElement | null): void => {
+    const host = root || currentHomeRoot();
+    if (!host) return;
+    pruneOrphanUnders(host);
+    const liveAndroid = host.querySelector(
+        '[data-speed-dial-item][data-widget="android"][data-layer="icons"]'
+    );
+    if (!liveAndroid) hideAndroidWidgetHosts();
+    else syncAndroidWidgetHosts(host);
 };
 
 const isLiveSpeedDialNode = (node: Element): boolean =>
@@ -587,6 +651,8 @@ const bindRootOrientation = (root: HTMLElement): void => {
     }
     bindEmptySpaceSwipeOpenAppMenu(root);
     mountWorkspacePager(root);
+    bindIconGridShadowJanitor(root);
+    queueMicrotask(() => bindIconGridShadowJanitor(root));
     const observer = new MutationObserver((records) => {
         if (records.some((record) => record.attributeName === "orient")) {
             syncGridLayout(root);
@@ -607,6 +673,7 @@ const bindRootOrientation = (root: HTMLElement): void => {
 };
 
 const refreshRootCells = (root: HTMLElement): void => {
+    pruneOrphanUnders(root);
     root.querySelectorAll<HTMLElement>("[data-speed-dial-item]").forEach((node) => {
         if (!isLiveSpeedDialNode(node)) return;
         const item = findSpeedDialItem(node.dataset.id);
@@ -728,7 +795,7 @@ const paintSpeedDialTileIcon = (el: HTMLElement, item: SpeedDialItem): void => {
     }
     const bookmarkIconUrl = resolveSpeedDialBookmarkIconUrl(metaRec);
     const fallbackIcon = String(getRefValue(item.icon, "link") || "link");
-    const customUrl = durableIconUrl(metaRec.iconUrl);
+    const customUrl = durableIconUrl(resolveSpeedDialIconUrl(item.id, metaRec.iconUrl));
     const cachedAndroidIcon =
         customUrl && isAndroidIconRef(customUrl)
             ? getCachedIconResourceObjectUrl(customUrl, fetchSize)
@@ -1010,16 +1077,17 @@ const attachItemNode = (item: SpeedDialItem, el?: HTMLElement | null, interactiv
                 .trim()
                 .toLowerCase();
             const customUrl = durableIconUrl(
-                getRefValue((meta as { iconUrl?: unknown } | null)?.iconUrl, "")
+                resolveSpeedDialIconUrl(
+                    item.id,
+                    getRefValue((meta as { iconUrl?: unknown } | null)?.iconUrl, "")
+                )
             );
-            // Glyph / durable custom Icon resource already painted — don't let hydrate overwrite.
-            // WHY: launch-shortcut starts as a folder glyph; hydrate still fetches the file icon.
+            /* WHY: user glyph/shape must survive reload — do not refetch Files icon over it. */
             if (
-                (isShortcut && !customUrl) ||
-                (display !== "glyph" &&
-                    display !== "phosphor" &&
-                    display !== "name" &&
-                    !customUrl)
+                display !== "glyph" &&
+                display !== "phosphor" &&
+                display !== "name" &&
+                !customUrl
             ) {
                 void hydrateLauncherAppTileIcon(el, {
                     id: item.id,
@@ -1861,22 +1929,26 @@ export function SpeedDial(makeView: any) {
     bootWorkspacePages();
     installLauncherBackStack();
     bindWorkspacePageHotkeys();
-    queueMicrotask(() => syncAndroidWidgetHosts());
-    window.addEventListener(WORKSPACE_PAGE_EVENT, () => {
-        hideAndroidWidgetHosts();
-        scheduleRootCellRefresh();
-        requestAnimationFrame(() => syncAndroidWidgetHosts());
-    });
-    if (typeof ResizeObserver === "function") {
-        const ro = new ResizeObserver(() => syncAndroidWidgetHosts());
-        queueMicrotask(() => {
-            const home = document.getElementById("home");
-            if (home) ro.observe(home);
+    const hostEvents = globalThis as { __CWSP_SD_HOST_EVENTS_V1__?: boolean };
+    if (!hostEvents.__CWSP_SD_HOST_EVENTS_V1__) {
+        hostEvents.__CWSP_SD_HOST_EVENTS_V1__ = true;
+        queueMicrotask(() => syncWidgetsAfterGridChange());
+        window.addEventListener(WORKSPACE_PAGE_EVENT, () => {
+            hideAndroidWidgetHosts();
+            scheduleRootCellRefresh();
+            requestAnimationFrame(() => syncWidgetsAfterGridChange());
         });
+        if (typeof ResizeObserver === "function") {
+            const ro = new ResizeObserver(() => syncAndroidWidgetHosts());
+            queueMicrotask(() => {
+                const home = document.getElementById("home");
+                if (home) ro.observe(home);
+            });
+        }
+        window.addEventListener("resize", () => syncAndroidWidgetHosts());
+        document.addEventListener("env-app-menu-open", () => hideAndroidWidgetHosts());
+        document.addEventListener("env-app-menu-close", () => syncWidgetsAfterGridChange());
     }
-    window.addEventListener("resize", () => syncAndroidWidgetHosts());
-    document.addEventListener("env-app-menu-open", () => hideAndroidWidgetHosts());
-    document.addEventListener("env-app-menu-close", () => syncAndroidWidgetHosts());
     const columnsRef = propRef(gridLayoutState, "columns", 4);
     const rowsRef = propRef(gridLayoutState, "rows", 8);
     const shapeRef = propRef(gridLayoutState, "shape", "square");
@@ -1917,7 +1989,7 @@ export function SpeedDial(makeView: any) {
             (meta as { iconUrl?: string }).iconUrl = "";
             metaRec.iconUrl = "";
         }
-        const customUrl = durableIconUrl(metaRec.iconUrl);
+        const customUrl = durableIconUrl(resolveSpeedDialIconUrl(item.id, metaRec.iconUrl));
         const cachedAndroidIcon =
             customUrl && isAndroidIconRef(customUrl)
                 ? getCachedIconResourceObjectUrl(customUrl, fetchSize)
@@ -2044,16 +2116,34 @@ export function SpeedDial(makeView: any) {
         </div>
     </div>`;
 
-    //
-    affected(speedDialItems, (_items, _index, prev, operation) => {
-        if (operation === "remove" || operation === "delete") {
-            const id = prev?.id;
-            if (id) {
-                document.body?.querySelectorAll?.(`[data-id="${CSS.escape(String(id))}"][data-layer]`)?.forEach?.((el) => el.remove?.());
+    const itemsAffected = globalThis as { __CWSP_SD_ITEMS_AFFECTED_V1__?: boolean };
+    if (!itemsAffected.__CWSP_SD_ITEMS_AFFECTED_V1__) {
+        itemsAffected.__CWSP_SD_ITEMS_AFFECTED_V1__ = true;
+        affected(speedDialItems, (_items, _index, prev, operation) => {
+            if (operation === "remove" || operation === "delete") {
+                const id = String(prev?.id || "").trim();
+                if (id) {
+                    document.querySelectorAll(`[data-id="${CSS.escape(id)}"]`).forEach((node) => {
+                        if (!(node instanceof HTMLElement)) return;
+                        if (
+                            node.classList.contains("ui-ws-item-icon-under") ||
+                            node.dataset.layer === "shadows"
+                        ) {
+                            node.remove();
+                            return;
+                        }
+                        if (!findSpeedDialItem(id) && node.hasAttribute("data-speed-dial-item")) {
+                            node.remove();
+                        }
+                    });
+                }
+                const home = currentHomeRoot();
+                pruneOrphanUnders(home);
+                requestAnimationFrame(() => syncWidgetsAfterGridChange(home));
             }
-        }
-        scheduleRootCellRefresh();
-    });
+            scheduleRootCellRefresh();
+        });
+    }
 
     //
     return box;
@@ -2104,7 +2194,7 @@ const openItemEditor = (item?: SpeedDialItem, opts?: {
                 })
         ),
         // Never prefill ephemeral blob: cache URLs into the editor (they die on reload).
-        iconUrl: durableIconUrl(workingMeta?.iconUrl),
+        iconUrl: durableIconUrl(resolveSpeedDialIconUrl(workingItem.id, workingMeta?.iconUrl)),
         iconScale: String(workingMeta?.iconScale || "auto"),
         openLinkTarget: resolveItemOpenLinkTarget(workingMeta),
         packageName: String(workingMeta?.packageName || workingMeta?.iconCacheKey || ""),
@@ -2169,7 +2259,9 @@ const openItemEditor = (item?: SpeedDialItem, opts?: {
                 workingMeta.iconUrl =
                     workingMeta.iconDisplay === "glyph" || !isDurableIconResourceUrl(rawUrl)
                         ? ""
-                        : rawUrl;
+                        : /^data:/i.test(rawUrl)
+                          ? persistSpeedDialIconBlob(workingItem.id, rawUrl)
+                          : rawUrl;
             }
             {
                 const v = String(next.openLinkTarget || "").toLowerCase();

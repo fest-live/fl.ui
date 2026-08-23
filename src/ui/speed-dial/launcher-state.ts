@@ -1,8 +1,8 @@
 /*
  * Filename: launcher-state.ts
  * FullPath: modules/projects/fl.ui/src/ui/speed-dial/launcher-state.ts
- * Change date and time: 17.45.00_22.08.2026
- * Reason for changes: Shortcut copy/paste envelope + new ids so clones do not collide across sides.
+ * Change date and time: 22.36.00_23.08.2026
+ * Reason for changes: Keep tile appearance across Side switch / reload (do not wipe inactive metas).
  *
  * Speed-dial / launcher persistence for fl.ui only (no core).
  * Storage keys match CWSP-shell `StateStorage` so shells sharing one origin keep one grid.
@@ -319,6 +319,94 @@ const fallbackClone = <T>(value: T): T => {
     }
 };
 
+const ICON_BLOB_LS = "cw::speed-dial::icon-blob::";
+const ICON_PTR = "sd-icon:";
+const APPEARANCE_META_KEYS = ["shape", "iconDisplay", "iconUrl", "iconScale", "iconCacheKey"] as const;
+
+const isInlineIconUrl = (url: string): boolean => /^data:/i.test(url);
+const isEphemeralIconUrl = (url: string): boolean => /^blob:/i.test(url);
+
+/** Plain meta for persist/snapshots — observe proxies must not leak into LS/catalog. */
+export const packSpeedDialMetaPlain = (meta?: SpeedDialItemMeta | null): SpeedDialItemMeta => {
+    const src = (meta ? (safe(meta) as Record<string, unknown>) : {}) || {};
+    const out: Record<string, unknown> = {};
+    for (const [key, raw] of Object.entries(src)) {
+        if (raw == null || raw === "") continue;
+        let value: unknown = raw;
+        if (typeof raw === "object" && raw && "value" in (raw as object)) {
+            value = (raw as { value: unknown }).value;
+            if (value == null || value === "") continue;
+        }
+        out[key] = value;
+    }
+    const url = String(out.iconUrl || "");
+    if (isEphemeralIconUrl(url)) delete out.iconUrl;
+    return out as SpeedDialItemMeta;
+};
+
+export const persistSpeedDialIconBlob = (id: string, iconUrl: string): string => {
+    const itemId = String(id || "").trim();
+    const url = String(iconUrl || "").trim();
+    if (!itemId || !isInlineIconUrl(url)) return url;
+    try {
+        localStorage.setItem(ICON_BLOB_LS + itemId, url);
+        return ICON_PTR + itemId;
+    } catch {
+        return ICON_PTR + itemId;
+    }
+};
+
+export const resolveSpeedDialIconUrl = (id: string, iconUrl?: string): string => {
+    const url = String(iconUrl || "").trim();
+    const itemId = (url.startsWith(ICON_PTR) ? url.slice(ICON_PTR.length) : String(id || "")).trim();
+    if (url.startsWith(ICON_PTR) || (!url && itemId)) {
+        try {
+            const stored = localStorage.getItem(ICON_BLOB_LS + itemId);
+            if (stored) return stored;
+        } catch {
+            /* private mode */
+        }
+    }
+    return url;
+};
+
+export const forgetSpeedDialIconBlob = (id: string): void => {
+    const itemId = String(id || "").trim();
+    if (!itemId) return;
+    try {
+        localStorage.removeItem(ICON_BLOB_LS + itemId);
+    } catch {
+        /* ignore */
+    }
+};
+
+const mergeMetaKeepingAppearance = (
+    existing: SpeedDialItemMeta | null | undefined,
+    incoming: SpeedDialItemMeta
+): SpeedDialItemMeta => {
+    const prev = packSpeedDialMetaPlain(existing);
+    const next = packSpeedDialMetaPlain(incoming);
+    const out: SpeedDialItemMeta = { ...prev, ...next };
+    for (const key of APPEARANCE_META_KEYS) {
+        const keep = String((prev as Record<string, unknown>)[key] || "").trim();
+        const put = String((next as Record<string, unknown>)[key] || "").trim();
+        if (!put && keep) (out as Record<string, unknown>)[key] = keep;
+    }
+    const prevUrl = String(prev.iconUrl || "");
+    const nextUrl = String(next.iconUrl || "");
+    if (prevUrl && (!nextUrl || nextUrl.startsWith(ICON_PTR)) && !nextUrl.startsWith("android-icon:")) {
+        if (isInlineIconUrl(prevUrl) || prevUrl.startsWith(ICON_PTR)) out.iconUrl = prevUrl;
+    }
+    return out;
+};
+
+const durableMetaForPersist = (id: string, meta?: SpeedDialItemMeta | null): SpeedDialItemMeta => {
+    const packed = packSpeedDialMetaPlain(meta);
+    const url = String(packed.iconUrl || "");
+    if (isInlineIconUrl(url)) packed.iconUrl = persistSpeedDialIconBlob(id, url);
+    return packed;
+};
+
 const generateItemId = () => {
     if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
         return crypto.randomUUID();
@@ -476,7 +564,7 @@ const normalizeMetaEntries = (raw?: any): Array<[string, SpeedDialItemMeta]> => 
 const packMetaRegistry = (registry: SpeedDialMetaRegistry) => {
     const payload: Record<string, SpeedDialItemMeta> = {};
     registry?.forEach((meta, id) => {
-        payload[id] = fallbackClone(meta ?? {});
+        payload[id] = durableMetaForPersist(id, meta);
     });
     return payload;
 };
@@ -783,7 +871,7 @@ const getLsLike = (): { getItem(k: string): string | null; setItem(k: string, v:
 const packMetaFileFromState = (): LinkStoreMetaFile => {
     const perId: Record<string, Record<string, unknown>> = {};
     speedDialMeta?.forEach((meta, id) => {
-        perId[id] = fallbackClone(meta ?? {}) as Record<string, unknown>;
+        perId[id] = durableMetaForPersist(id, meta) as Record<string, unknown>;
     });
     (speedDialItems || []).forEach((item) => {
         const id = String(item?.id || "");
@@ -916,14 +1004,25 @@ const hydrateFromOpfs = async (io: LinkStoreIo): Promise<void> => {
             return;
         }
         boot.opfsHydrated = true;
-        // WHY: never splice-to-empty first — a throw mid-loop used to persist an empty grid.
-        speedDialItems.splice(0, speedDialItems.length, ...nextItems);
-        speedDialMeta.clear();
         if (got.meta.mirrorPath != null) {
             mirrorPathState.value = String(got.meta.mirrorPath || "");
         }
+        /*
+         * WHY: LS already painted appearance. OPFS is often a first-import
+         * without iconDisplay/shape — splicing it reset tiles after reload.
+         */
+        if (speedDialItems?.length) {
+            for (const [id, meta] of nextMeta) {
+                if (!getSpeedDialMeta(id)) ensureSpeedDialMeta(id, packSpeedDialMetaPlain(meta));
+            }
+            stripCoreRailTilesFromGrid({ markDirty: true });
+            return;
+        }
+        // WHY: never splice-to-empty first — a throw mid-loop used to persist an empty grid.
+        speedDialItems.splice(0, speedDialItems.length, ...nextItems);
         for (const [id, meta] of nextMeta) {
-            ensureSpeedDialMeta(id, meta);
+            const merged = mergeMetaKeepingAppearance(getSpeedDialMeta(id), meta);
+            ensureSpeedDialMeta(id, merged);
         }
         /* Defense in depth — strip any that slipped past the filter (label-only legacy). */
         stripCoreRailTilesFromGrid({ markDirty: true });
@@ -1011,6 +1110,78 @@ export const findSpeedDialShortcutItem = (
 };
 
 /*
+ * WHY: Android keeps Files pins on this launcher after Home Remove, so
+ * `list-pinned` would recreate the tile (and reset iconDisplay). Persist the
+ * user's delete; only a fresh CONFIRM_PIN forgets it.
+ */
+const DISMISSED_PINS_KEY = "cw::launcher::dismissed-pins";
+const DISMISSED_PINS_BOOT = "__CWSP_DISMISSED_PINS_V1__";
+
+type DismissedPinsSlot = { at: Map<string, number> };
+
+const dismissedPinKey = (pkg: string, sid: string): string =>
+    `${String(pkg || "").trim()}::${String(sid || "").trim()}`;
+
+const dismissedPinsSlot = (): DismissedPinsSlot => {
+    const g = globalThis as Record<string, DismissedPinsSlot | undefined>;
+    if (g[DISMISSED_PINS_BOOT]) return g[DISMISSED_PINS_BOOT]!;
+    const at = new Map<string, number>();
+    try {
+        const raw = localStorage.getItem(DISMISSED_PINS_KEY);
+        const parsed = raw ? JSON.parse(raw) : [];
+        if (Array.isArray(parsed)) {
+            for (const row of parsed) {
+                if (typeof row === "string") {
+                    const k = row.trim();
+                    if (k && k !== "::") at.set(k, 1);
+                    continue;
+                }
+                const k = String((row as { k?: string })?.k || "").trim();
+                const t = Number((row as { t?: number })?.t || 0);
+                if (k && k !== "::") at.set(k, t || 1);
+            }
+        }
+    } catch {
+        /* ignore */
+    }
+    g[DISMISSED_PINS_BOOT] = { at };
+    return g[DISMISSED_PINS_BOOT]!;
+};
+
+const persistDismissedPins = (): void => {
+    try {
+        const rows = [...dismissedPinsSlot().at.entries()].map(([k, t]) => ({ k, t }));
+        localStorage.setItem(DISMISSED_PINS_KEY, JSON.stringify(rows));
+    } catch {
+        /* quota / private mode */
+    }
+};
+
+export const isAndroidShortcutDismissed = (pkg: string, sid: string): boolean =>
+    androidShortcutDismissedAt(pkg, sid) > 0;
+
+export const androidShortcutDismissedAt = (pkg: string, sid: string): number => {
+    const key = dismissedPinKey(pkg, sid);
+    if (key === "::") return 0;
+    return Number(dismissedPinsSlot().at.get(key) || 0);
+};
+
+export const rememberDismissedAndroidShortcut = (pkg: string, sid: string): void => {
+    const key = dismissedPinKey(pkg, sid);
+    if (key === "::") return;
+    dismissedPinsSlot().at.set(key, Date.now());
+    persistDismissedPins();
+    (globalThis as { __CWSP_ACK_PIN_AFTER_REMOVE__?: boolean }).__CWSP_ACK_PIN_AFTER_REMOVE__ = true;
+};
+
+export const forgetDismissedAndroidShortcut = (pkg: string, sid: string): void => {
+    const key = dismissedPinKey(pkg, sid);
+    if (key === "::") return;
+    if (!dismissedPinsSlot().at.delete(key)) return;
+    persistDismissedPins();
+};
+
+/*
  * WHY: hydrate mirrorPath from the LS backup key synchronously so the grid
  * renders in mirror mode before OPFS hydration resolves (OPFS path overrides
  * this value when it lands). Then trigger the initial mirror listing fetch.
@@ -1059,7 +1230,7 @@ export const packSpeedDialItem = (item: SpeedDialItem): SpeedDialPersistedItem =
     const meta = getSpeedDialMeta(item.id);
     return {
         ...packed,
-        ...(meta ? { meta: fallbackClone(meta) } : {})
+        ...(meta ? { meta: durableMetaForPersist(item.id, meta) } : {})
     };
 };
 
@@ -1071,10 +1242,8 @@ export const applySpeedDialSnapshot = (snapshot: SpeedDialSnapshot | null | unde
     markUserEditedBeforeHydrate();
     const rows = Array.isArray(snapshot?.items) ? snapshot!.items : [];
     const nextItems: SpeedDialItem[] = [];
-    const keepIds = new Set<string>();
     for (const raw of rows) {
         if (!raw?.id) continue;
-        keepIds.add(String(raw.id));
         const item = createStatefulItem({
             id: raw.id,
             cell: observe([Number((raw.cell as any)?.[0]) || 0, Number((raw.cell as any)?.[1]) || 0]),
@@ -1086,11 +1255,19 @@ export const applySpeedDialSnapshot = (snapshot: SpeedDialSnapshot | null | unde
     }
     speedDialItems.splice(0, speedDialItems.length, ...nextItems);
     if (!nextItems.length) markIntentionalEmptyGrid();
-    const stale = [...(speedDialMeta?.keys?.() || [])].filter((id) => !keepIds.has(String(id)));
-    for (const id of stale) removeSpeedDialMeta(id);
+    /*
+     * WHY: other Sides keep their metas in this registry. Deleting "stale"
+     * ids wiped iconDisplay/shape/iconUrl; persist then sealed the reset.
+     */
     for (const raw of rows) {
         if (!raw?.id) continue;
-        ensureSpeedDialMeta(raw.id, { action: raw.action, ...(raw.meta || {}) });
+        const incoming: SpeedDialItemMeta = {
+            action: raw.action,
+            ...packSpeedDialMetaPlain(raw.meta)
+        };
+        incoming.iconUrl = persistSpeedDialIconBlob(raw.id, String(incoming.iconUrl || ""));
+        const merged = mergeMetaKeepingAppearance(getSpeedDialMeta(raw.id), incoming);
+        ensureSpeedDialMeta(raw.id, merged);
     }
     persistSpeedDialItems();
     persistSpeedDialMeta();
@@ -1192,6 +1369,7 @@ export const ensureSpeedDialMeta = (id: string, defaults: SpeedDialItemMeta = {}
 export const removeSpeedDialMeta = (id: string) => {
     const removed = speedDialMeta?.delete?.(id);
     if (removed) {
+        forgetSpeedDialIconBlob(id);
         persistSpeedDialMeta();
     }
     return removed;
@@ -1734,8 +1912,15 @@ export const removeSpeedDialItem = (id: string) => {
     markUserEditedBeforeHydrate();
     const index = speedDialItems?.findIndex?.((entry) => entry?.id === id) ?? -1;
     if (index === -1) return false;
+    const meta = getSpeedDialMeta(id);
+    const dismissPkg = String(meta?.packageName || "").trim();
+    const dismissSid = String(meta?.shortcutId || "").trim();
+    const dismissAction = String(meta?.action || speedDialItems[index]?.action || "").trim();
     speedDialItems.splice(index, 1);
     if (!speedDialItems.length) markIntentionalEmptyGrid();
+    if ((dismissAction === "launch-shortcut" || Boolean(dismissSid)) && dismissPkg && dismissSid) {
+        rememberDismissedAndroidShortcut(dismissPkg, dismissSid);
+    }
     removeSpeedDialMeta(id);
     persistSpeedDialItems();
     emitSpeedDialMutation("remove", id);
@@ -1748,7 +1933,7 @@ export const markSpeedDialUserEditBeforeHydrate = markUserEditedBeforeHydrate;
 export const snapshotSpeedDialItem = (item: SpeedDialItem) => {
     const meta = getSpeedDialMeta(item.id);
     const resolvedAction = meta?.action || item.action;
-    const metaSnapshot = fallbackClone((meta ?? {}) as SpeedDialItemMeta) as SpeedDialItemMeta;
+    const metaSnapshot = packSpeedDialMetaPlain((meta ?? {}) as SpeedDialItemMeta);
     if (!metaSnapshot.action) {
         metaSnapshot.action = resolvedAction;
     }
@@ -1769,11 +1954,14 @@ export const snapshotSpeedDialItem = (item: SpeedDialItem) => {
 /** Clone a tile without keeping the source id (paste / Side B/C must not collide). */
 export const cloneSpeedDialItemPacked = (item: SpeedDialItem, cell?: GridCell): SpeedDialPersistedItem => {
     const snap = snapshotSpeedDialItem(item);
-    const meta = fallbackClone((snap.desc?.meta || {}) as SpeedDialItemMeta);
+    const meta = packSpeedDialMetaPlain((snap.desc?.meta || {}) as SpeedDialItemMeta);
     const action = String(snap.desc?.action || item.action || "open-view");
     meta.action = action;
+    const nextId = generateItemId();
+    const resolved = resolveSpeedDialIconUrl(item.id, String(meta.iconUrl || ""));
+    if (isInlineIconUrl(resolved)) meta.iconUrl = persistSpeedDialIconBlob(nextId, resolved);
     return {
-        id: generateItemId(),
+        id: nextId,
         cell: cell
             ? [Number(cell[0]) || 0, Number(cell[1]) || 0]
             : [Number(item.cell?.[0]) || 0, Number(item.cell?.[1]) || 0],

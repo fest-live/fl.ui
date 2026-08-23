@@ -1,8 +1,8 @@
 /*
  * Filename: workspace-pages.ts
  * FullPath: modules/projects/fl.ui/src/ui/speed-dial/workspace-pages.ts
- * Change date and time: 21.50.00_23.08.2026
- * Reason for changes: Boot must not apply a stale Side snapshot over a live pin.
+ * Change date and time: 22.36.00_23.08.2026
+ * Reason for changes: Side snapshots keep appearance; data: icons go to a pointer store.
  * FIND:workspace-pages
  */
 
@@ -12,6 +12,7 @@ import {
     applySpeedDialSnapshot,
     captureSpeedDialSnapshot,
     cloneSpeedDialItemPacked,
+    persistSpeedDialIconBlob,
     findNextFreeCellInSnapshot,
     SPEED_DIAL_MUTATION_EVENT,
     wasSpeedDialUserEdited,
@@ -78,7 +79,12 @@ const slimSnapshot = (snap: SpeedDialSnapshot | null | undefined): SpeedDialSnap
         const iconUrl = String((row.meta as { iconUrl?: string } | undefined)?.iconUrl || "");
         if (!/^(data:|blob:)/i.test(iconUrl)) return row;
         const meta = { ...(row.meta || {}) };
-        delete (meta as { iconUrl?: string }).iconUrl;
+        /* WHY: catalog JSON + data: PNG crashed Cap WebView; keep a pointer, not a wipe. */
+        if (/^data:/i.test(iconUrl) && row.id) {
+            (meta as { iconUrl?: string }).iconUrl = persistSpeedDialIconBlob(String(row.id), iconUrl);
+        } else {
+            delete (meta as { iconUrl?: string }).iconUrl;
+        }
         return { ...row, meta };
     })
 });
@@ -359,12 +365,14 @@ export const bootWorkspacePages = (): void => {
         g.__CWSP_WS_BOOT_APPLIED__ = true;
         const storedIds = snapshotIds(stored);
         const liveHasExtra = [...snapshotIds(live)].some((id) => !storedIds.has(id));
+        const liveHasItems = (live.items || []).length > 0;
         /*
          * WHY: pin/share often lands before SpeedDial mounts. Applying a stale
-         * Side A/B/C snapshot splices the live grid; persist then seals the wipe.
-         * Keep live when this session already edited, or LS has ids the snapshot lacks.
+         * Side snapshot splices the live grid; persist then seals the wipe.
+         * Catalog snapshots also slim data:/blob: iconUrl — applying them over LS
+         * resets customized icons. Keep live whenever LS already has a grid.
          */
-        if (wasSpeedDialUserEdited() || liveHasExtra) {
+        if (wasSpeedDialUserEdited() || liveHasExtra || liveHasItems) {
             cat.snapshots[cat.activeId] = live;
             writeCatalog(cat);
         } else {

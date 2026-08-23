@@ -129,6 +129,11 @@
         line-height: 1;
         color: inherit;
         color: contrast-color(inherit(background-color));
+        font-variant-numeric: tabular-nums;
+
+        span {
+            font-variant-numeric: tabular-nums;
+        }
     }
 
     .env-status-bar__chip ui-icon {

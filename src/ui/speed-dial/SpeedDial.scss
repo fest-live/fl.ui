@@ -1,8 +1,8 @@
 /*
  * Filename: SpeedDial.scss
  * FullPath: modules/projects/fl.ui/src/ui/speed-dial/SpeedDial.scss
- * Change date and time: 17.55.00_23.08.2026
- * Reason for changes: Figure/widget cast shadows stay black (do not follow light wallpaper halo).
+ * Change date and time: 19.32.00_23.08.2026
+ * Reason for changes: Label dock is zero-height below the plate; long titles do not climb onto icons.
  */
 
 @use "../design/_wavy-runtime.scss" as *;
@@ -243,6 +243,7 @@
         overflow: hidden;
         padding-block-start: 1.35rem;
         color: var(--sd-you-ink);
+        font-variant-numeric: tabular-nums;
     }
 
     .sd-widget__time {
@@ -264,6 +265,7 @@
     }
 
     .sd-widget__date {
+        font-variant-numeric: tabular-nums;
         font-size: clamp(0.75rem, min(10cqi, 12cqb), 2.75rem);
         opacity: 0.86;
         text-align: center;
@@ -540,7 +542,9 @@
             background: transparent !important;
             pointer-events: none;
             isolation: isolate;
-            contain: layout style;
+            /* WHY: layout contain + CSS-anchor left under-glow 0×0; blur must paint past the cell. */
+            contain: style;
+            overflow: visible;
 
             &:has([data-dragging]) {
                 z-index: 3;
@@ -555,6 +559,10 @@
             /* WHY: avoid paint/size contain so wide captions can overflow cells. */
             contain: layout style;
             overflow: visible;
+            transition: none !important;
+            transition-duration: 0ms !important;
+            animation: none !important;
+            animation-duration: 0ms !important;
         }
 
         .sd-drop-ghost {
@@ -963,6 +971,10 @@
             }
 
             &.ui-ws-item-label {
+                transition: none !important;
+                transition-duration: 0ms !important;
+                animation: none !important;
+                animation-duration: 0ms !important;
                 position: absolute;
                 inset-inline: 0;
                 inset-block-start: 100%;
@@ -979,6 +991,11 @@
                 filter: none;
 
                 span {
+                    transition: none !important;
+                    transition-duration: 0ms !important;
+                    animation: none !important;
+                    animation-duration: 0ms !important;
+
                     display: inline-flex;
                     place-content: center;
                     place-items: center;
@@ -1091,10 +1108,12 @@
                 inline-size: var(--sd-label-max);
                 min-inline-size: var(--sd-label-max);
                 max-inline-size: var(--sd-label-max);
-                block-size: auto;
+                /* WHY: auto-height + place-self:center grew long titles into the plate. */
+                block-size: 0;
                 min-block-size: 0;
                 max-block-size: none;
                 place-self: center;
+                overflow: visible;
                 transform: translate3d(0, var(--sd-label-shift), 0);
 
                 &.ui-ws-item-label {
@@ -1122,7 +1141,7 @@
                     max-inline-size: 100%;
                     margin-inline: auto;
                     text-align: center;
-                    white-space: nowrap;
+                    white-space: nowrap !important;
                     overflow: hidden;
                     text-overflow: ellipsis;
                     font-family: inherit;
@@ -1144,7 +1163,12 @@
                 }
 
                 &[data-label-placement="above"] {
-                    --sd-label-shift: calc((var(--tile-size, 4rem) * -0.5) - var(--sd-label-gap) - 1.15em);
+                    --sd-label-shift: calc((var(--tile-size, 4rem) * -0.5) - var(--sd-label-gap));
+                    align-items: end;
+
+                    &.ui-ws-item-label span {
+                        transform: translateY(-100%);
+                    }
                 }
             }
 
@@ -1179,25 +1203,43 @@
             background-color: transparent !important;
             pointer-events: none !important;
             overflow: visible !important;
-            z-index: 0 !important;
-            /* WHY: CSS-anchor abspos must not consume a grid auto-placement cell. */
-            grid-column: unset !important;
-            grid-row: unset !important;
+            z-index: 0;
+            /* INVARIANT: same cell as the plate — WebView has no CSS-anchor fill. */
+            position: relative !important;
+            inset: auto !important;
+            grid-column: var(--cell-column) / span 1 !important;
+            grid-row: var(--cell-row) / span 1 !important;
+            place-self: center;
+            inline-size: min(100%, var(--tile-size, 4rem));
+            block-size: min(100%, var(--tile-size, 4rem));
             filter: blur(12px) !important;
+            padding: 0px !important;
+            contain: none !important;
+            visibility: visible !important;
+            content-visibility: visible !important;
+            opacity: 1 !important;
         }
 
         & > .ui-ws-item-icon-under .underlying-shadow-geometry {
+            inline-size: 100%;
+            block-size: 100%;
             background: #000000af !important;
             transition: filter 200ms ease, box-shadow 200ms ease;
-            color: contrast-color(inherit(background-color));
+            padding: 0px !important;
+            visibility: visible !important;
         }
 
         & > .ui-ws-item-icon-under:has(+ .ui-ws-item:hover) .underlying-shadow-geometry {
-            filter: blur(8px) !important;
+            /*filter: blur(8px) !important;*/
+            padding: 0px !important;
+            visibility: visible !important;
         }
 
-        /* WHY: shapeless shadow is the icon clone, not the plate under-glow. */
-        & > .ui-ws-item-icon-under:has(+ .ui-ws-item[data-shape="shapeless"]) {
+        /* WHY: shapeless / widgets have no plate under-glow. */
+        & > .ui-ws-item-icon-under[data-shape="shapeless"],
+        & > .ui-ws-item-icon-under[data-shape="none"],
+        & > .ui-ws-item-icon-under:has(+ .ui-ws-item[data-shape="shapeless"]),
+        & > .ui-ws-item-icon-under:has(+ .ui-ws-item[data-shape="none"]) {
             display: none !important;
         }
     }
@@ -1211,8 +1253,7 @@
             pointer-events: none;
             touch-action: auto;
             scale: 1;
-            transform: none;
-            transition: none;
+            /* WHY: do not zero `transform` — label dock is `translate3d(0, --sd-label-shift, 0)`. */
             z-index: 0;
             grid-column: var(
                 --cell-column,
@@ -1223,12 +1264,15 @@
                 clamp(1, calc(1 + round(nearest, var(--cs-grid-r, 0), 1)), 16)
             ) / span 1 !important;
             position: relative;
+            transition: none !important;
+            transition-duration: 0ms !important;
+            animation: none !important;
+            animation-duration: 0ms !important;
         }
 
         .ui-ws-item:hover,
         .ui-ws-item:active {
             scale: 1;
-            transform: none;
         }
     }
 

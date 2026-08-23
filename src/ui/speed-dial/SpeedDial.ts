@@ -1,12 +1,12 @@
 /*
  * Filename: SpeedDial.ts
  * FullPath: modules/projects/fl.ui/src/ui/speed-dial/SpeedDial.ts
- * Change date and time: 20.52.00_22.08.2026
- * Reason for changes: Keep shortcut labels on their own cell — 0,0 and lure style= wipe no longer auto-flow to neighbors.
+ * Change date and time: 19.42.00_23.08.2026
+ * Reason for changes: Local shaped under sibling — lure shadow observer was deleting it.
  */
 
 import { observe, numberRef, propRef, stringRef, affected } from "@fest-lib/object";
-import { E, H, orientRef, M, provide, handleIncomingEntries, createShapedTileShadow } from "@fest-lib/lure";
+import { E, H, orientRef, M, provide, handleIncomingEntries } from "@fest-lib/lure";
 import { pointerAnchorRef } from "@fest-lib/lure";
 import { bindPointerInteraction } from "./pointer-interaction";
 import {
@@ -210,6 +210,30 @@ const labelLayerStyle = (item: { cell?: unknown }): string => {
     ].join(";");
 };
 
+/**
+ * WHY: `createShapedTileShadow` + `observeDisconnect` removes the under when M()
+ * reparents the tile. Local sibling — no lure attach/destroy.
+ */
+const createShapedUnder = (item: { id: string; cell?: unknown }, host: HTMLElement): HTMLElement => {
+    const under = document.createElement("div");
+    under.className = "ui-ws-item-icon-under underlying-shadow-container";
+    under.setAttribute("aria-hidden", "true");
+    under.dataset.id = String(item.id || "");
+    under.dataset.layer = "shadows";
+    const geo = document.createElement("div");
+    geo.className = "underlying-shadow-geometry shaped";
+    under.append(geo);
+    for (const part of labelLayerStyle(item).split(";")) {
+        const i = part.indexOf(":");
+        if (i < 0) continue;
+        under.style.setProperty(part.slice(0, i).trim(), part.slice(i + 1).trim());
+    }
+    const shape = host.getAttribute("data-shape") || "";
+    under.setAttribute("data-shape", shape);
+    geo.setAttribute("data-shape", shape);
+    return under;
+};
+
 const isLiveSpeedDialNode = (node: Element): boolean =>
     !node.closest(".speed-dial-grid--turn-ghost");
 
@@ -233,6 +257,45 @@ const stampItemGridLine = (el: HTMLElement, visualCell: GridCell): void => {
     /* WHY: stylesheet `auto` packed captions into the top rows; inline !important pins 1×1. */
     el.style.setProperty("grid-column", `${col} / span 1`, "important");
     el.style.setProperty("grid-row", `${row} / span 1`, "important");
+};
+
+/** WHY: under-glow is a grid sibling — CSS-anchor + `grid-column:unset` left it 0×0 on WebView. */
+const stampShapedUnderCell = (icon: HTMLElement): void => {
+    if (icon.dataset.layer !== "icons") return;
+    const id = icon.dataset.id;
+    const parent = icon.parentElement;
+    if (!id || !parent) return;
+    const col = usedGridLine(icon, "column");
+    const row = usedGridLine(icon, "row");
+    if (!col && !row) return;
+    parent.querySelectorAll<HTMLElement>(":scope > .ui-ws-item-icon-under").forEach((under) => {
+        if (under.dataset.id !== id) return;
+        const shape = icon.getAttribute("data-shape") || "";
+        under.setAttribute("data-shape", shape);
+        const geo = under.querySelector<HTMLElement>(".underlying-shadow-geometry");
+        if (geo) {
+            geo.setAttribute("data-shape", shape);
+            const cs = getComputedStyle(icon);
+            if (cs.clipPath && cs.clipPath !== "none") geo.style.clipPath = cs.clipPath;
+            if (cs.borderRadius) geo.style.borderRadius = cs.borderRadius;
+        }
+        if (col) {
+            under.style.setProperty("--cell-column", col);
+            under.style.setProperty("grid-column", `${col} / span 1`, "important");
+            under.dataset.cellColumn = col;
+        }
+        if (row) {
+            under.style.setProperty("--cell-row", row);
+            under.style.setProperty("grid-row", `${row} / span 1`, "important");
+            under.dataset.cellRow = row;
+        }
+        const x = icon.style.getPropertyValue("--cell-x");
+        const y = icon.style.getPropertyValue("--cell-y");
+        if (x) under.style.setProperty("--cell-x", x);
+        if (y) under.style.setProperty("--cell-y", y);
+        const tile = getComputedStyle(icon).getPropertyValue("--tile-size").trim();
+        if (tile) under.style.setProperty("--tile-size", tile);
+    });
 };
 
 const applyVisualCell = (el: HTMLElement, item: SpeedDialItem, root?: HTMLElement | null): void => {
@@ -262,31 +325,11 @@ const applyVisualCell = (el: HTMLElement, item: SpeedDialItem, root?: HTMLElemen
     if (widgetKind) el.setAttribute("data-widget", widgetKind);
     else el.removeAttribute("data-widget");
     if (el.dataset.layer === "labels") {
-        const [, visualRows] = visualLayout(layout, orient);
-        let placement: "above" | "below" = "below";
-        const rootRect = root?.getBoundingClientRect();
-        const itemRect = el.getBoundingClientRect();
-        const labelHeight = el.querySelector("span")?.getBoundingClientRect().height || 28;
-        const nearLastRow = visualCell[1] >= visualRows - 1;
-        if (rootRect && itemRect.height > 0) {
-            const viewportBottom = Number(globalThis.innerHeight) || rootRect.bottom;
-            const visibleTop = Math.max(rootRect.top, 0);
-            const visibleBottom = Math.min(rootRect.bottom, viewportBottom);
-            const itemId = String(item.id || "");
-            let iconSibling: HTMLElement | null = null;
-            root?.querySelectorAll<HTMLElement>('[data-speed-dial-item][data-layer="icons"]').forEach((node) => {
-                if (!isLiveSpeedDialNode(node)) return;
-                if (!iconSibling && node.dataset.id === itemId) iconSibling = node;
-            });
-            const anchorRect = iconSibling?.getBoundingClientRect() || itemRect;
-            const fitsBelow = anchorRect.bottom + labelHeight <= visibleBottom + 1;
-            const fitsAbove = anchorRect.top - labelHeight >= visibleTop - 1;
-            placement = !fitsBelow && fitsAbove ? "above" : "below";
-        } else if (nearLastRow) {
-            placement = "below";
-        }
-        el.dataset.labelPlacement = placement;
+        /* INVARIANT: captions stay under the plate. Measuring wrap height vs dock
+         * flipped long titles (`Edge`, `Messages`) to `above` and onto the icon. */
+        el.dataset.labelPlacement = "below";
     }
+    if (el.dataset.layer === "icons") stampShapedUnderCell(el);
 };
 
 const scheduleLabelPlacementSync = (root: HTMLElement): void => {
@@ -319,6 +362,7 @@ const scheduleLabelPlacementSync = (root: HTMLElement): void => {
                 node.style.setProperty("grid-row", `${row} / span 1`, "important");
                 node.dataset.cellRow = row;
             }
+            stampShapedUnderCell(icon);
         });
     };
     if (typeof globalThis.requestAnimationFrame === "function") {
@@ -1713,11 +1757,7 @@ const renderMirrorIconItem = (item: any, makeView?: any) => {
     const element = H`<div data-shape="squircle" data-id=${item.id} class="ui-ws-item ui-ws-item-icon shaped" data-speed-dial-item data-layer="icons" data-mirror-item ref=${(el: HTMLElement) => attachMirrorItemNode(item, el, makeView)}>
         ${iconNode}
     </div>`;
-    const shadow = createShapedTileShadow(element);
-    const SE = shadow.getShadowElement();
-    SE?.setAttribute?.("data-id", item.id);
-    SE?.setAttribute?.("data-layer", "shadows");
-    return H`${element}${SE}`;
+    return H`${createShapedUnder(item, element)}${element}`;
 };
 
 const renderMirrorLabelItem = (item: any, makeView?: any) => {
@@ -1896,11 +1936,7 @@ export function SpeedDial(makeView: any) {
         const element = H`<div data-shape=${tileShapeForItem(item)} data-id=${item.id} class="ui-ws-item ui-ws-item-icon shaped" data-speed-dial-item data-layer="icons" data-icon-display=${display} ref=${(el) => attachItemNode(item, el as HTMLElement, true, makeView)}>
             ${iconNode}
         </div>`;
-        const shadow = createShapedTileShadow(element);
-        const SE = shadow.getShadowElement();
-        SE?.setAttribute?.("data-id", item.id);
-        SE?.setAttribute?.("data-layer", "shadows");
-        return H`${element}${SE}`;
+        return H`${createShapedUnder(item, element)}${element}`;
     };
 
     const renderLabelItem = (item: SpeedDialItem) => {

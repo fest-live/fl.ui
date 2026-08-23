@@ -255,6 +255,15 @@
         pointer-events: auto;
         cursor: pointer;
         border-radius: 0.35rem;
+        font-variant-numeric: tabular-nums;
+
+        .env-shell-taskbar__clock-date {
+            font-variant-numeric: tabular-nums;
+        }
+
+        .env-shell-taskbar__clock-time {
+            font-variant-numeric: tabular-nums;
+        }
     }
 
     .env-shell-taskbar__clock:hover,

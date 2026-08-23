@@ -1,8 +1,9 @@
 /*
  * Filename: statusbar.ts
  * FullPath: modules/projects/fl.ui/src/ui/navigation/statusbar/statusbar.ts
- * Change date and time: 09.15.00_02.08.2026
- * Reason for changes: Status fg follows open light windows (not wallpaper-only white icons).
+ * Change date and time: 15.35.00_23.08.2026
+ * Reason for changes: Early wallpaper paper/ink from canvas luma (WallpaperTheme overwrites).
+ * FIND:wallpaper-ink
  */
 /**
  * WHY: Uses FL-UI `ui-statusbar` (left/center/right slots) — not a parallel component.
@@ -11,6 +12,7 @@
  */
 import { E, H, defineElement } from "@fest-lib/lure";
 import { effect, ref, type refType } from "@fest-lib/object";
+import { applyWallpaperPaperFromLuma } from "@fest-lib/image";
 import { toggleCalendarFlyout } from "../calendar/CalendarFlyout";
 import { toggleQuickSettingsFlyout } from "../settings/QuickSettings";
 
@@ -133,29 +135,34 @@ export function attachStatusBarContrast(target: HTMLElement): () => void {
     };
 
     const applyStatusFg = (luma: number): void => {
-        // WHY: light backdrop → dark status icons; dark backdrop → light icons.
+        // WHY: window chrome under the overlay — not wallpaper paper.
         const darkFg = luma > 0.55;
         target.style.setProperty("--env-status-fg", darkFg ? "#1c1c1e" : "#f5f5f7");
         target.style.setProperty("--env-status-fg-muted", darkFg ? "rgba(28,28,30,0.72)" : "rgba(245,245,247,0.78)");
         target.dataset.statusContrast = darkFg ? "dark" : "light";
     };
 
+    const applyStatusFgFromWallpaper = (): void => {
+        /*
+         * INVARIANT: PWA/overlay status sits on the photo — same ink as labels/rail.
+         * Do not use prefers-color-scheme (dark UI + white wallpaper ⇒ white glyphs).
+         */
+        target.style.setProperty("--env-status-fg", "var(--wallpaper-contrast-color)");
+        target.style.setProperty(
+            "--env-status-fg-muted",
+            "color-mix(in oklab, var(--wallpaper-contrast-color) 78%, transparent)"
+        );
+        target.dataset.statusContrast = "wallpaper";
+    };
+
     const applyLauncherFg = (luma: number): void => {
         /*
          * WHY: Speed-dial captions sit on the wallpaper, not on UI chrome — must follow
          * wallpaper luminance, not `html[data-theme]` (light theme + dark wood = invisible labels).
+         * Same token names as WallpaperTheme KMeans (photo paper + contrast).
          */
-        const darkFg = luma > 0.52;
-        target.style.setProperty("--env-launcher-fg", darkFg ? "#141416" : "#f7f7f8");
-        target.style.setProperty(
-            "--env-launcher-fg-shadow",
-            darkFg ? "rgb(255 255 255 / 0.72)" : "rgb(0 0 0 / 0.88)"
-        );
-        target.style.setProperty(
-            "--env-launcher-fg-glow",
-            darkFg ? "rgb(255 255 255 / 0.35)" : "rgb(0 0 0 / 0.45)"
-        );
-        target.dataset.launcherContrast = darkFg ? "dark" : "light";
+        applyWallpaperPaperFromLuma(luma, [target]);
+        target.dataset.launcherContrast = luma > 0.52 ? "dark" : "light";
     };
 
     /** Open managed windows that reserve the top status inset (title under overlay). */
@@ -198,39 +205,7 @@ export function attachStatusBarContrast(target: HTMLElement): () => void {
         } else if (windowsUnderStatus && appTheme === "dark") {
             applyStatusFg(0.15);
         } else {
-            try {
-                const h = Math.max(
-                    8,
-                    Math.round(parseFloat(getComputedStyle(target).getPropertyValue("--env-status-inset-top")) || 32)
-                );
-                const canvas =
-                    target.querySelector(".env-shell-wallpaper canvas") ||
-                    document.querySelector(".env-shell-wallpaper canvas");
-                if (canvas instanceof HTMLCanvasElement && canvas.width > 0 && canvas.height > 0) {
-                    const ctx = canvas.getContext("2d", { willReadFrequently: true });
-                    if (ctx) {
-                        const sw = canvas.width;
-                        const shTop = Math.max(
-                            1,
-                            Math.round((h / Math.max(1, canvas.clientHeight || h)) * canvas.height)
-                        );
-                        const topLuma = lumaOf(
-                            ctx.getImageData(0, 0, sw, Math.min(shTop, canvas.height)).data
-                        );
-                        if (topLuma != null) applyStatusFg(topLuma);
-                        else {
-                            const darkUi = matchMedia?.("(prefers-color-scheme: dark)")?.matches ?? true;
-                            applyStatusFg(darkUi ? 0.2 : 0.85);
-                        }
-                    }
-                } else {
-                    const darkUi = matchMedia?.("(prefers-color-scheme: dark)")?.matches ?? true;
-                    applyStatusFg(darkUi ? 0.2 : 0.85);
-                }
-            } catch {
-                const darkUi = matchMedia?.("(prefers-color-scheme: dark)")?.matches ?? true;
-                applyStatusFg(darkUi ? 0.2 : 0.85);
-            }
+            applyStatusFgFromWallpaper();
         }
 
         /* Launcher labels always track wallpaper mid-frame (not window chrome). */
@@ -249,15 +224,14 @@ export function attachStatusBarContrast(target: HTMLElement): () => void {
                     );
                     if (midLuma != null) {
                         applyLauncherFg(midLuma);
+                        if (!windowsUnderStatus) applyStatusFgFromWallpaper();
                         return;
                     }
                 }
             }
         } catch {
-            /* fall through */
+            /* tainted canvas / missing pixels — keep WallpaperTheme tokens */
         }
-        const darkUi = matchMedia?.("(prefers-color-scheme: dark)")?.matches ?? true;
-        applyLauncherFg(darkUi ? 0.2 : 0.85);
     };
 
     const schedule = (): void => {
@@ -283,6 +257,7 @@ export function attachStatusBarContrast(target: HTMLElement): () => void {
     window.addEventListener("resize", schedule);
     document.addEventListener("visibilitychange", schedule);
     document.addEventListener("env-chrome-surface", schedule as EventListener);
+    document.addEventListener("u2-theme-change", schedule as EventListener);
     const mq = typeof matchMedia === "function" ? matchMedia("(prefers-color-scheme: dark)") : null;
     mq?.addEventListener?.("change", schedule);
     const interval = setInterval(sample, 8000);
@@ -296,6 +271,7 @@ export function attachStatusBarContrast(target: HTMLElement): () => void {
         window.removeEventListener("resize", schedule);
         document.removeEventListener("visibilitychange", schedule);
         document.removeEventListener("env-chrome-surface", schedule as EventListener);
+        document.removeEventListener("u2-theme-change", schedule as EventListener);
         mq?.removeEventListener?.("change", schedule);
     };
 }

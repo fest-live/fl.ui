@@ -39,6 +39,8 @@
 
     /* Native Explorer / Settings / Markdown — collapsible right rail. */
     .speed-dial-core-rail {
+        /* INVARIANT: rail glyphs sit on the photo — wallpaper ink, not CanvasText / data-theme. */
+        --sd-rail-ink: var(--wallpaper-contrast-color, var(--env-launcher-fg, CanvasText));
         position: fixed;
         inset-block: 12%;
         inset-inline-end: 0;
@@ -51,6 +53,7 @@
         padding: 0px;
         border: none 0px transparent;
         outline: none 0px transparent;
+        color: var(--sd-rail-ink);
     }
 
     .speed-dial-core-rail__toggle {
@@ -68,8 +71,8 @@
         border-inline-end: none;
         border-radius: 10px 0 0 10px;
         background: transparent;//color-mix(in oklab, Canvas 78%, transparent);
-        color: color-mix(in oklab, CanvasText 78%, transparent);
-        --icon-color: color-mix(in oklab, CanvasText 78%, transparent);
+        color: color-mix(in oklab, var(--sd-rail-ink) 78%, transparent);
+        --icon-color: color-mix(in oklab, var(--sd-rail-ink) 78%, transparent);
         /*backdrop-filter: blur(10px);
         -webkit-backdrop-filter: blur(10px);*/
         cursor: pointer;
@@ -77,7 +80,7 @@
 
     .speed-dial-core-rail__toggle ui-icon {
         --icon-size: 1.1rem;
-        --icon-color: color-mix(in oklab, CanvasText 78%, transparent);
+        --icon-color: color-mix(in oklab, var(--sd-rail-ink) 78%, transparent);
         pointer-events: none;
     }
 
@@ -90,13 +93,13 @@
         min-inline-size: 3.4rem;
         max-inline-size: 5.2rem;
         overflow: auto;
-        border: 1px solid color-mix(in oklab, CanvasText 16%, transparent);
+        border: 1px solid color-mix(in oklab, var(--sd-rail-ink) 16%, transparent);
         border-inline-end: none;
         border-radius: 14px 0 0 14px;
-        background: color-mix(in oklab, Canvas 82%, transparent);
+        background: color-mix(in oklab, var(--wallpaper-underlying-color, Canvas) 82%, transparent);
         backdrop-filter: blur(14px);
         -webkit-backdrop-filter: blur(14px);
-        color: CanvasText;
+        color: var(--sd-rail-ink);
     }
 
     .speed-dial-core-rail[data-open] .speed-dial-core-rail__panel {
@@ -121,12 +124,14 @@
 
     .speed-dial-core-rail__item:hover,
     .speed-dial-core-rail__item:focus-visible {
-        background: color-mix(in oklab, CanvasText 10%, transparent);
+        background: color-mix(in oklab, var(--sd-rail-ink) 10%, transparent);
         outline: none;
     }
 
     .speed-dial-core-rail__item ui-icon {
         --icon-size: 1.55rem;
+        --icon-color: var(--sd-rail-ink);
+        color: var(--sd-rail-ink);
         pointer-events: none;
     }
 
@@ -148,13 +153,13 @@
         padding: 0;
         border: none;
         border-radius: var(--radius-full);
-        background: color-mix(in oklab, CanvasText 35%, transparent);
+        background: color-mix(in oklab, var(--wallpaper-contrast-color, var(--env-launcher-fg, CanvasText)) 35%, transparent);
         cursor: pointer;
     }
 
     .speed-dial-workspace-pager__dot[data-active] {
         inline-size: 0.85rem;
-        background: CanvasText;
+        background: var(--wallpaper-contrast-color, var(--env-launcher-fg, CanvasText));
     }
 
     .sd-widget-host {
@@ -213,20 +218,25 @@
         cursor: grabbing;
     }
 
+    .sd-widget--clock,
+    .sd-widget--search {
+        /* WHY: Material You — wallpaper ink for L, `--base-color` for hue. Contrast stays majority. */
+        --sd-widget-seed: var(--base-color, var(--color-primary, #5a9ec8));
+        --sd-you-ink: color-mix(
+            in oklab,
+            var(--wallpaper-contrast-color, var(--env-launcher-fg)) 72%,
+            var(--sd-widget-seed) 28%
+        );
+    }
+
     .sd-widget--clock {
-        --sd-clock-seed: var(--base-color, var(--color-primary, #5a9ec8));
         align-items: center;
         justify-content: center;
         text-align: center;
         gap: 0.12em;
         overflow: hidden;
         padding-block-start: 1.35rem;
-        /* WHY: Material You — keep wallpaper-luma ink, mix in seed/accent (not theme on-surface). */
-        color: color-mix(
-            in oklab,
-            var(--env-launcher-fg, #f7f7f8) 68%,
-            var(--sd-clock-seed) 32%
-        );
+        color: var(--sd-you-ink);
     }
 
     .sd-widget__time {
@@ -241,11 +251,7 @@
         overflow: hidden;
         text-overflow: ellipsis;
         max-inline-size: 100%;
-        color: color-mix(
-            in oklab,
-            var(--env-launcher-fg, #f7f7f8) 42%,
-            var(--sd-clock-seed, var(--base-color, var(--color-primary, #5a9ec8))) 58%
-        );
+        color: color-mix(in oklab, var(--sd-you-ink) 78%, var(--sd-widget-seed) 22%);
         text-shadow:
             0 1px 2px var(--env-launcher-fg-shadow, rgb(0 0 0 / 0.88)),
             0 0 12px var(--env-launcher-fg-glow, rgb(0 0 0 / 0.45));
@@ -259,11 +265,7 @@
         overflow: hidden;
         text-overflow: ellipsis;
         max-inline-size: 100%;
-        color: color-mix(
-            in oklab,
-            var(--env-launcher-fg, #f7f7f8) 76%,
-            var(--sd-clock-seed, var(--base-color, var(--color-primary, #5a9ec8))) 24%
-        );
+        color: color-mix(in oklab, var(--sd-you-ink) 88%, var(--wallpaper-contrast-color, var(--env-launcher-fg)) 12%);
         text-shadow:
             0 1px 2px var(--env-launcher-fg-shadow, rgb(0 0 0 / 0.88)),
             0 0 8px var(--env-launcher-fg-glow, rgb(0 0 0 / 0.45));
@@ -280,8 +282,8 @@
     .sd-widget-chrome,
     .sd-widget-resize {
         pointer-events: auto;
-        /* INVARIANT: `--env-launcher-fg` + Canvas ring — readable on light and dark wallpaper. */
-        --sd-widget-ink: var(--env-launcher-fg, CanvasText);
+        /* INVARIANT: wallpaper contrast + Canvas ring — readable on light and dark wallpaper. */
+        --sd-widget-ink: var(--wallpaper-contrast-color, var(--env-launcher-fg, CanvasText));
         --sd-widget-chip: color-mix(in oklab, Canvas 72%, var(--sd-widget-ink) 28%);
         --sd-widget-ring: color-mix(in oklab, var(--sd-widget-ink) 55%, Canvas 45%);
     }
@@ -392,10 +394,15 @@
     .sd-widget__search {
         inline-size: 100%;
         min-block-size: clamp(2rem, 28cqb, 3.1rem);
-        border: 1px solid color-mix(in oklab, var(--color-on-surface, CanvasText) 18%, transparent);
+        border: 1px solid color-mix(in oklab, var(--sd-you-ink, var(--wallpaper-contrast-color)) 32%, transparent);
         border-radius: var(--radius-full);
-        background: color-mix(in oklab, var(--color-surface-container-highest, Canvas) 82%, transparent);
-        color: var(--color-on-surface, CanvasText);
+        background: color-mix(
+            in oklab,
+            color-mix(in oklab, var(--wallpaper-underlying-color, Canvas) 78%, var(--sd-widget-seed, var(--base-color)) 22%) 70%,
+            transparent
+        );
+        color: var(--sd-you-ink, var(--wallpaper-contrast-color));
+        caret-color: var(--sd-you-ink, currentColor);
         padding: 0.35rem 0.85rem;
         font: inherit;
         font-size: clamp(0.85rem, 8cqi, 1.2rem);
@@ -403,6 +410,10 @@
         user-select: text;
         -webkit-user-select: text;
         cursor: text;
+    }
+
+    .sd-widget__search::placeholder {
+        color: color-mix(in oklab, var(--sd-you-ink, var(--wallpaper-contrast-color)) 62%, transparent);
     }
 
     .speed-dial-core-rail__label {
@@ -598,7 +609,11 @@
                 scale: 1.06;
 
                 .ui-ws-item-icon:not([data-shape="shapeless"]) {
-                    background: color-mix(in oklab, var(--color-surface-container-high, #1f2937) 60%, transparent);
+                    background: color-mix(
+                        in oklab,
+                        var(--color-surface-container-high, #1f2937) 72%,
+                        var(--wallpaper-underlying-color, #121214) 28%
+                    );
                     box-shadow: 0 10px 36px -10px color-mix(in oklab, #000 40%, transparent);
                 }
             }
@@ -654,6 +669,9 @@
                     aspect-ratio: 1 / 1 !important;
                     inline-size: min(100%, var(--tile-size, 4rem)) !important;
                     block-size: min(100%, var(--tile-size, 4rem)) !important;
+                    /* WHY: `@layer ux-shapes` `contain:strict` + 1.25rem pad boxes the glyph on WebView. */
+                    contain: none !important;
+                    padding: 0.35rem !important;
                 }
 
                 pointer-events: auto;
@@ -698,12 +716,28 @@
                     }
                 }
 
-                background: color-mix(in oklab, var(--color-surface-container, #111827) 80%, transparent);
+                /*
+                 * WHY: mix two opaque colors — `… 80%, transparent` showed crisp wallpaper
+                 * through the plate. `backdrop-filter` dies on Capacitor WebView and also
+                 * inside `.speed-dial-root` `perspective` / `preserve-3d`.
+                 */
+                background: color-mix(
+                    in oklab,
+                    var(--color-surface-container, #1a1a1e) 78%,
+                    var(--wallpaper-underlying-color, #121214) 22%
+                );
+                /* INVARIANT: glyph vs plate — not wallpaper ink (white-on-cream). JS luma may overwrite. */
+                --sd-figure-ink: var(--color-on-surface, light-dark(#1a1c1f, #e8eaed));
                 border: none;
                 box-shadow: 0 6px 24px -8px color-mix(in oklab, #000 38%, transparent);
                 backdrop-filter: blur(16px) saturate(1.2);
                 -webkit-backdrop-filter: blur(16px) saturate(1.2);
                 filter: none;
+
+                :where(html[data-cwsp-native-shell="capacitor"]) & {
+                    backdrop-filter: none;
+                    -webkit-backdrop-filter: none;
+                }
 
                 &:not([data-shape]) {
                     border-radius: 1.5rem !important;
@@ -812,6 +846,8 @@
                         filter: none;
                     }
 
+                    --sd-figure-ink: var(--wallpaper-contrast-color, var(--env-launcher-fg, #f7f7f8));
+
                     &[data-icon-display="glyph"] ui-icon:not(.sd-icon-silhouette) {
                         filter: drop-shadow(0 3px 6px rgb(0 0 0 / 0.42));
                     }
@@ -903,8 +939,9 @@
                     &:not([data-launcher-icon]) {
                         --icon-padding: 0.55rem;
                         --icon-size: 1.72rem;
-                        --icon-color: var(--color-on-surface, light-dark(#1a1c1f, #e8eaed));
+                        --icon-color: var(--sd-figure-ink, var(--color-on-surface, light-dark(#1a1c1f, #e8eaed)));
                         color: var(--icon-color);
+                        background: transparent !important;
                     }
 
                     &[data-launcher-icon] {
@@ -929,7 +966,7 @@
                 justify-content: center;
                 align-items: flex-start;
                 padding-block-start: 0.35rem;
-                color: var(--on-surface-color, currentColor);
+                color: var(--wallpaper-contrast-color, var(--env-launcher-fg, #f7f7f8));
                 background: transparent;
                 white-space: nowrap;
                 overflow: visible;
@@ -944,7 +981,7 @@
                     font-size: 0.72rem;
                     font-weight: 500;
                     letter-spacing: 0.01em;
-                    color: color-mix(in oklab, var(--on-surface-color, #e5e7eb) 90%, transparent);
+                    color: var(--wallpaper-contrast-color, var(--env-launcher-fg, #f7f7f8));
 
                     white-space: nowrap;
                     text-overflow: ellipsis;
@@ -958,7 +995,9 @@
                     text-align: center;
                     line-height: 1.25;
 
-                    text-shadow: 0 1px 4px #0006;
+                    text-shadow:
+                        0 1px 2px var(--env-launcher-fg-shadow, rgb(0 0 0 / 0.88)),
+                        0 0 12px var(--env-launcher-fg-glow, rgb(0 0 0 / 0.45));
                     border: none;
                     background: transparent;
                     backdrop-filter: none;
@@ -1036,7 +1075,9 @@
                  * `--sd-label-max` so long titles can center + ellipsize instead of clipping.
                  */
                 --sd-label-gap: 0.8rem;
-                --sd-label-max: min(calc(var(--tile-size, 3.5rem) * 2.85), min(94dvi, 10.5rem));
+                --sd-label-max: min(calc(var(--tile-size, 3.5rem) * 2.85), min(94vw, 10.5rem));
+                /* WHY: Capacitor WebView has no CSS `translate` — `transform: none` parked captions under tiles. */
+                --sd-label-shift: calc((var(--tile-size, 4rem) * 0.5) + var(--sd-label-gap));
                 aspect-ratio: auto;
                 display: grid;
                 justify-items: center;
@@ -1048,24 +1089,24 @@
                 min-block-size: 0;
                 max-block-size: none;
                 place-self: center;
-                translate: 0 calc((var(--tile-size) * 0.5) + var(--sd-label-gap));
+                transform: translate3d(0, var(--sd-label-shift), 0);
 
                 &.ui-ws-item-label {
                     background: transparent !important;
                     pointer-events: none !important;
-                    position: relative;
-                    inset: unset;
-                    transform: none;
-                    inline-size: 100%;
-                    max-inline-size: 100%;
+                    /* INVARIANT: undo icon-layer `position:absolute; inset-block-start:100%` or letters sit in gutters. */
+                    position: relative !important;
+                    inset: unset !important;
+                    inline-size: var(--sd-label-max);
+                    min-inline-size: var(--sd-label-max);
+                    max-inline-size: var(--sd-label-max);
                     margin-inline: 0;
                     padding-block-start: 0;
                     display: grid;
                     justify-items: center;
                     text-align: center;
                     overflow: visible;
-                    /* INVARIANT: label ink follows wallpaper luminance (`--env-launcher-fg`), not app theme. */
-                    color: var(--env-launcher-fg, #f7f7f8);
+                    color: var(--wallpaper-contrast-color, var(--env-launcher-fg, #f7f7f8));
                 }
 
                 &.ui-ws-item-label span {
@@ -1082,7 +1123,7 @@
                     font-size: clamp(0.68rem, calc(0.09 * var(--tile-size, 3.75rem)), 0.82rem);
                     font-weight: 650;
                     letter-spacing: 0.02em;
-                    color: var(--env-launcher-fg, #f7f7f8);
+                    color: var(--wallpaper-contrast-color, var(--env-launcher-fg, #f7f7f8));
                     padding-block: 0.04rem 0.08rem;
                     padding-inline: 0.22rem;
                     border-radius: var(--radius-full);
@@ -1097,12 +1138,12 @@
                 }
 
                 &[data-label-placement="above"] {
-                    translate: 0 calc((var(--tile-size) * -0.5) - var(--sd-label-gap) - 1.15em);
+                    --sd-label-shift: calc((var(--tile-size, 4rem) * -0.5) - var(--sd-label-gap) - 1.15em);
                 }
             }
 
             &[data-layer="labels"][data-interaction-state="onLabelDocked"] {
-                transform: none !important;
+                transform: translate3d(0, var(--sd-label-shift), 0) !important;
                 transition: none !important;
                 cursor: default;
             }

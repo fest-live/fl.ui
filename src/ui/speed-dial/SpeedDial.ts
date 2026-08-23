@@ -124,6 +124,7 @@ import {
     inferIconDisplay,
     normalizeIconDisplay,
     normalizeTileShape,
+    syncPlateGlyphInk,
     syncShapelessIconShadow,
     type IconDisplayMode
 } from "./tile-icon";
@@ -673,6 +674,7 @@ const paintSpeedDialTileIcon = (el: HTMLElement, item: SpeedDialItem): void => {
     const finishPaint = (): void => {
         applyIconScaleToPaintedNodes(el);
         syncShapelessIconShadow(el);
+        requestAnimationFrame(() => syncPlateGlyphInk(el));
     };
 
     if (display === "glyph") {
@@ -1909,7 +1911,7 @@ export function SpeedDial(makeView: any) {
         </div>`;
     };
 
-    const box = H`<div slot="underlay" style="pointer-events: auto; position: relative; contain: strict; overflow: hidden; display: grid;" id="home" class="speed-dial-root" tabindex="-1" ref=${(el: HTMLElement) => {
+    const box = H`<div slot="underlay" style="pointer-events: auto; position: relative; contain: none; overflow: visible; display: grid;" id="home" class="speed-dial-root" tabindex="-1" ref=${(el: HTMLElement) => {
         bindRootOrientation(el);
         mountCoreRail(el);
     }} on:dragover=${(ev: DragEvent) => acceptHomeLinkDragOver(ev)} on:drop=${(ev: DragEvent) => handleWallpaperDropOrPaste(ev)} on:paste=${(ev: ClipboardEvent) => void handleWallpaperDropOrPaste(ev)} prop:onPaste=${async (ev: ClipboardEvent) => await handleWallpaperDropOrPaste(ev)}>

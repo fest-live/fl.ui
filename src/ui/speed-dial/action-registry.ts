@@ -1,8 +1,9 @@
 /*
  * Filename: action-registry.ts
  * FullPath: modules/projects/fl.ui/src/ui/speed-dial/action-registry.ts
- * Change date and time: 18.15.00_22.08.2026
- * Reason for changes: Hide launcher icon hosts until the bitmap is ready (no phone/square flash).
+ * Change date and time: 21.35.00_23.08.2026
+ * Reason for changes: File-shortcut tiles hydrate via launcher:shortcut-icon (pkg::id), never the app icon.
+ * FIND:pin-shortcut
  */
 
 import { navigate } from "@fest-lib/lure";
@@ -112,6 +113,29 @@ async function dataUrlToObjectUrl(dataUrl: string): Promise<string> {
 }
 
 /** Cached blob URL for an Android launcher icon, if already fetched this session. */
+/**
+ * Parse `shortcut:pkg::id` (current) or `shortcut:pkg/id` (COMPAT).
+ * WHY: Material Files ids are file paths (`/storage/...`); first-slash split is fragile.
+ */
+function parseShortcutCacheKey(cacheKey: string): { packageName: string; shortcutId: string } | null {
+    const raw = String(cacheKey || "").trim();
+    if (!raw.startsWith("shortcut:")) return null;
+    const rest = raw.slice("shortcut:".length);
+    const sep = rest.indexOf("::");
+    if (sep > 0) {
+        const packageName = rest.slice(0, sep).trim();
+        const shortcutId = rest.slice(sep + 2).trim();
+        return packageName && shortcutId ? { packageName, shortcutId } : null;
+    }
+    const slash = rest.indexOf("/");
+    if (slash > 0) {
+        const packageName = rest.slice(0, slash).trim();
+        const shortcutId = rest.slice(slash + 1).trim();
+        return packageName && shortcutId ? { packageName, shortcutId } : null;
+    }
+    return null;
+}
+
 export function getCachedLauncherIconObjectUrl(
     cacheKey: string,
     size = 96,
@@ -121,13 +145,9 @@ export function getCachedLauncherIconObjectUrl(
 ): string {
     const pkg = String(cacheKey || "").trim();
     if (!pkg) return "";
-    if (pkg.startsWith("shortcut:")) {
-        const rest = pkg.slice("shortcut:".length);
-        const slash = rest.indexOf("/");
-        if (slash > 0) {
-            return getCachedShortcutIconObjectUrl(rest.slice(0, slash), rest.slice(slash + 1), size);
-        }
-        return "";
+    const shortcut = parseShortcutCacheKey(pkg);
+    if (shortcut) {
+        return getCachedShortcutIconObjectUrl(shortcut.packageName, shortcut.shortcutId, size);
     }
     return (
         launcherIconObjectUrlCache.get(
@@ -136,19 +156,34 @@ export function getCachedLauncherIconObjectUrl(
     );
 }
 
-export function getLauncherAppTileCacheKey(item: { id: string; action?: string }): string {
+/** Publisher package + pinned ShortcutInfo id for file / app shortcuts. */
+export function getLauncherShortcutRef(
+    item: { id: string; action?: string }
+): { packageName: string; shortcutId: string } | null {
     const meta = getSpeedDialMeta(item.id);
-    const action = String(meta?.action || item.action || "").trim();
+    const shortcutId = String(meta?.shortcutId || "").trim();
+    const packageName = String(
+        meta?.packageName || (meta as { publisherPackage?: string } | null)?.publisherPackage || ""
+    ).trim();
+    /*
+     * WHY: Material Files pins may persist as launch-shortcut, launch-app, or open-link
+     * but always carry package + shortcutId. Any of those need the file icon, not Files.app.
+     */
+    if (!packageName || !shortcutId) return null;
+    return { packageName, shortcutId };
+}
+
+export function getLauncherAppTileCacheKey(item: { id: string; action?: string }): string {
+    const shortcut = getLauncherShortcutRef(item);
     /*
      * WHY: launch-shortcut must never use the publisher app package as icon cache key —
      * that paints Material Files instead of the document shortcut icon.
+     * INVARIANT: separator is `::` so file-path ids (`/storage/...`) survive parse.
      */
-    if (action === "launch-shortcut" || meta?.entityType === "android-shortcut") {
-        const pkg = String(meta?.packageName || "").trim();
-        const sid = String((meta as { shortcutId?: string } | null)?.shortcutId || "").trim();
-        if (pkg && sid) return `shortcut:${pkg}/${sid}`;
-        return "";
-    }
+    if (shortcut) return `shortcut:${shortcut.packageName}::${shortcut.shortcutId}`;
+    const meta = getSpeedDialMeta(item.id);
+    const action = String(meta?.action || item.action || "").trim();
+    if (action === "launch-shortcut" || meta?.entityType === "android-shortcut") return "";
     if (action !== "launch-app" && meta?.entityType !== "android-app") {
         return "";
     }
@@ -228,13 +263,9 @@ export async function ensureLauncherIconObjectUrl(
 ): Promise<string> {
     const pkg = String(cacheKey || "").trim();
     if (!pkg) return "";
-    if (pkg.startsWith("shortcut:")) {
-        const rest = pkg.slice("shortcut:".length);
-        const slash = rest.indexOf("/");
-        if (slash > 0) {
-            return ensureShortcutIconObjectUrl(rest.slice(0, slash), rest.slice(slash + 1), size);
-        }
-        return "";
+    const shortcut = parseShortcutCacheKey(pkg);
+    if (shortcut) {
+        return ensureShortcutIconObjectUrl(shortcut.packageName, shortcut.shortcutId, size);
     }
     const v = normalizeAndroidIconVariant(variant);
     const packPkg = String(pack || "").trim();
@@ -437,11 +468,12 @@ export function createLauncherIconMaskElement(): HTMLElement {
     return host;
 }
 
-/** Load Android app icon into a SpeedDial tile (`launch-app` meta). */
+/** Load Android app / pinned-shortcut icon into a SpeedDial tile. */
 export async function hydrateLauncherAppTileIcon(
     el: HTMLElement,
     item: { id: string; action?: string; iconDisplay?: string; iconUrl?: string }
 ): Promise<void> {
+    const shortcut = getLauncherShortcutRef(item);
     const cacheKey = getLauncherAppTileCacheKey(item);
     if (!cacheKey) return;
 
@@ -453,7 +485,8 @@ export async function hydrateLauncherAppTileIcon(
     const isGlyph = (d: string): boolean =>
         d === "glyph" || d === "phosphor" || d === "name";
 
-    if (isGlyph(readDisplay())) return;
+    /* WHY: launch-shortcut starts as a folder glyph; skip would leave no file icon. */
+    if (!shortcut && isGlyph(readDisplay())) return;
 
     const meta = getSpeedDialMeta(item.id);
     const fetchSize = tileIconFetchSize((meta as { iconScale?: unknown } | undefined)?.iconScale);
@@ -475,12 +508,13 @@ export async function hydrateLauncherAppTileIcon(
             el.prepend(img);
         }
         applyLauncherIconToImg(img, url);
+        el.setAttribute("data-icon-display", "colored");
     };
 
     if (explicitUrl) {
         const display = readDisplay();
         const applyResolved = (url: string): void => {
-            if (!url || isGlyph(readDisplay())) return;
+            if (!url || (!shortcut && isGlyph(readDisplay()))) return;
             if (display === "masked" || display === "masked-inverse") {
                 let icon = el.querySelector<HTMLElement>("ui-icon[data-launcher-icon]");
                 if (!icon) {
@@ -505,11 +539,19 @@ export async function hydrateLauncherAppTileIcon(
         return;
     }
 
-    const objectUrl = await ensureLauncherIconObjectUrl(cacheKey, fetchSize);
-    if (!objectUrl || !el.isConnected) return;
+    const objectUrl = shortcut
+        ? await ensureShortcutIconObjectUrl(shortcut.packageName, shortcut.shortcutId, fetchSize)
+        : await ensureLauncherIconObjectUrl(cacheKey, fetchSize);
+    if (!objectUrl || !el.isConnected) {
+        /* Failed shortcut fetch — drop invisible pending img; keep the folder glyph. */
+        if (shortcut) {
+            el.querySelectorAll("img[data-icon-pending]").forEach((n) => n.remove());
+        }
+        return;
+    }
 
     const display = readDisplay();
-    if (isGlyph(display)) return;
+    if (!shortcut && isGlyph(display)) return;
     if (String(item.iconUrl || "").trim() && !String(item.iconUrl).startsWith("blob:")) return;
 
     if (display === "masked" || display === "masked-inverse") {

@@ -1,8 +1,8 @@
 /*
  * Filename: SpeedDial.scss
  * FullPath: modules/projects/fl.ui/src/ui/speed-dial/SpeedDial.scss
- * Change date and time: 19.32.00_23.08.2026
- * Reason for changes: Label dock is zero-height below the plate; long titles do not climb onto icons.
+ * Change date and time: 21.20.00_23.08.2026
+ * Reason for changes: Under geometry clips via data-shape (no getComputedStyle copy).
  */
 
 @use "../design/_wavy-runtime.scss" as *;
@@ -1246,6 +1246,24 @@
             transition: filter 200ms ease, box-shadow 200ms ease;
             padding: 0px !important;
             visibility: visible !important;
+
+            /* WHY: match plate clip without copying getComputedStyle (WebView crash on pin). */
+            &[data-shape="circle"] {
+                border-radius: 50% !important;
+            }
+
+            &[data-shape="square"] {
+                border-radius: max(0.55rem, 14%) !important;
+            }
+
+            &[data-shape="squircle"] {
+                border-radius: 1.5rem !important;
+            }
+
+            &[data-shape="wavy"] {
+                @include wavy-shaped(100);
+                clip-path: var(--clip-path);
+            }
         }
 
         & > .ui-ws-item-icon-under:has(+ .ui-ws-item:hover) .underlying-shadow-geometry {

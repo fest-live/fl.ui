@@ -103,8 +103,10 @@ export interface SpeedDialItemMeta {
      * - `new-tab` — new browser tab (http/https/www and app deep links)
      */
     openLinkTarget?: OpenLinkTarget | string;
-    /** Android package id for `launch-app` tiles (launcher SKU). */
+    /** Android package id for `launch-app` / `launch-shortcut` tiles (launcher SKU). */
     packageName?: string;
+    /** Pinned ShortcutInfo id (`launch-shortcut`) — often a file path. */
+    shortcutId?: string;
     /** Android activity component for `launch-app` tiles. */
     componentName?: string;
     /** Launcher icon cache key (matches AppMenu / launcher-bridge). */
@@ -758,6 +760,12 @@ const markUserEditedBeforeHydrate = (): void => {
     boot.editGen = (boot.editGen || 0) + 1;
 };
 
+/** True when pin/share/edit landed this session — Side snapshots must not splice over it. */
+export const wasSpeedDialUserEdited = (): boolean => {
+    const boot = linkStoreBoot();
+    return boot.userEditedBeforeHydrate === true || (boot.editGen || 0) > 0;
+};
+
 const getLsLike = (): { getItem(k: string): string | null; setItem(k: string, v: string): void } | null => {
     try {
         if (typeof localStorage === "undefined") return null;
@@ -932,7 +940,13 @@ const initLinkStore = (): Promise<void> => {
     boot.opfsReady = (async () => {
         const ls = getLsLike();
         try {
-            boot.opfsIo = await createOpfsLinkStoreIo();
+            /* WHY: Cap WebView getDirectory() can hang forever; pin/home must not wait. */
+            boot.opfsIo = await Promise.race([
+                createOpfsLinkStoreIo(),
+                new Promise<LinkStoreIo>((_, reject) => {
+                    setTimeout(() => reject(new Error("[link-store] OPFS getDirectory timeout")), 800);
+                })
+            ]);
         } catch (e) {
             console.warn("[link-store] OPFS unavailable; using localStorage", e);
             boot.opfsIo = null;
@@ -975,6 +989,26 @@ export const flushSpeedDialLinkStore = (): Promise<void> => flushLinkStoreToOpfs
 /** True when `id` is still in the shared Speed Dial array (post-hydrate race check). */
 export const hasSpeedDialItemId = (id: string): boolean =>
     Boolean(id && speedDialItems?.some?.((item) => String(item?.id) === id));
+
+/** Live tile that already represents this Android pinned shortcut. */
+export const findSpeedDialShortcutItem = (
+    pkg: string,
+    shortcutId: string
+): SpeedDialItem | null => {
+    const packageName = String(pkg || "").trim();
+    const id = String(shortcutId || "").trim();
+    if (!packageName || !id) return null;
+    for (const item of speedDialItems || []) {
+        const meta = getSpeedDialMeta(item.id);
+        if (
+            String(meta?.packageName || "").trim() === packageName &&
+            String(meta?.shortcutId || "").trim() === id
+        ) {
+            return item;
+        }
+    }
+    return null;
+};
 
 /*
  * WHY: hydrate mirrorPath from the LS backup key synchronously so the grid
@@ -2628,8 +2662,13 @@ export function pinSpeedDialLinkFromIntent(
     const actionHint = String(raw?.action || "").trim().toLowerCase();
     const shortcutId = String(raw?.shortcutId || "").trim();
     const mimeType = String(raw?.mimeType || "").trim() || guessMimeFromLabelOrHref(label, href);
-    const iconUrl = String((raw as { iconUrl?: string })?.iconUrl || "").trim();
-    const iconDisplay = String((raw as { iconDisplay?: string })?.iconDisplay || "").trim() || (iconUrl ? "colored" : "");
+    const rawIconUrl = String((raw as { iconUrl?: string })?.iconUrl || "").trim();
+    /* WHY: data:/blob: in meta + Capacitor persist/img src took down WebView on .txt pins.
+     * launch-shortcut hydrates via launcher:shortcut-icon. */
+    const iconUrl = rawIconUrl && !/^(data:|blob:)/i.test(rawIconUrl) ? rawIconUrl : "";
+    const iconDisplay =
+        String((raw as { iconDisplay?: string })?.iconDisplay || "").trim() ||
+        (rawIconUrl || iconUrl ? "colored" : "");
 
     /*
      * WHY: Material Files pin often has package+shortcutId and no content:// (Intent redacted).
@@ -2637,9 +2676,11 @@ export function pinSpeedDialLinkFromIntent(
      */
     if (
         actionHint === "launch-shortcut" ||
-        (shortcutId && pkg && !href && actionHint !== "launch-app")
+        (shortcutId && pkg && actionHint !== "launch-app")
     ) {
         if (!pkg || !shortcutId) return null;
+        const existing = findSpeedDialShortcutItem(pkg, shortcutId);
+        if (existing) return existing;
         const item = createStatefulItem({
             id: generateItemId(),
             cell: targetCell,
@@ -2654,8 +2695,9 @@ export function pinSpeedDialLinkFromIntent(
             entityType: "android-shortcut",
             /* WHY: never iconCacheKey=pkg — that duplicates the Files app icon. */
             description: label || shortcutId,
+            iconDisplay: iconDisplay || "colored",
             ...(mimeType ? { mimeType } : {}),
-            ...(iconUrl ? { iconUrl, iconDisplay: iconDisplay || "colored" } : {})
+            ...(iconUrl ? { iconUrl } : {})
         });
         addSpeedDialItem(item);
         return item;
@@ -2740,7 +2782,8 @@ export function pinSpeedDialLinkFromIntent(
         ...(mimeType ? { mimeType } : {}),
         ...(shortcutId ? { shortcutId } : {}),
         ...(pkg ? { publisherPackage: pkg } : {}),
-        ...(iconUrl ? { iconUrl, iconDisplay: iconDisplay || "colored" } : {})
+        ...(iconDisplay ? { iconDisplay } : {}),
+        ...(iconUrl ? { iconUrl } : {})
     });
     addSpeedDialItem(item);
     return item;

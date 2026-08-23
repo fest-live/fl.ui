@@ -1,8 +1,9 @@
 /*
  * Filename: SpeedDial.ts
  * FullPath: modules/projects/fl.ui/src/ui/speed-dial/SpeedDial.ts
- * Change date and time: 19.42.00_23.08.2026
- * Reason for changes: Local shaped under sibling — lure shadow observer was deleting it.
+ * Change date and time: 21.35.00_23.08.2026
+ * Reason for changes: File-shortcut tiles hydrate via launcher:shortcut-icon; folder stays until the bitmap lands.
+ * FIND:pin-shortcut
  */
 
 import { observe, numberRef, propRef, stringRef, affected } from "@fest-lib/object";
@@ -109,6 +110,7 @@ import {
     getCachedIconResourceObjectUrl,
     isLauncherAppSpeedDialItem,
     getLauncherAppTileCacheKey,
+    getLauncherShortcutRef,
     applyLauncherIconToUiIcon,
     applyLauncherIconToImg,
     createLauncherIconImgElement,
@@ -213,8 +215,9 @@ const labelLayerStyle = (item: { cell?: unknown }): string => {
 /**
  * WHY: `createShapedTileShadow` + `observeDisconnect` removes the under when M()
  * reparents the tile. Local sibling — no lure attach/destroy.
+ * INVARIANT: M() maps 1 item → 1 node. Do not return under+icon as a fragment.
  */
-const createShapedUnder = (item: { id: string; cell?: unknown }, host: HTMLElement): HTMLElement => {
+const createShapedUnder = (item: { id: string }, host: HTMLElement): HTMLElement => {
     const under = document.createElement("div");
     under.className = "ui-ws-item-icon-under underlying-shadow-container";
     under.setAttribute("aria-hidden", "true");
@@ -223,15 +226,58 @@ const createShapedUnder = (item: { id: string; cell?: unknown }, host: HTMLEleme
     const geo = document.createElement("div");
     geo.className = "underlying-shadow-geometry shaped";
     under.append(geo);
-    for (const part of labelLayerStyle(item).split(";")) {
-        const i = part.indexOf(":");
-        if (i < 0) continue;
-        under.style.setProperty(part.slice(0, i).trim(), part.slice(i + 1).trim());
-    }
     const shape = host.getAttribute("data-shape") || "";
     under.setAttribute("data-shape", shape);
     geo.setAttribute("data-shape", shape);
     return under;
+};
+
+const shouldHideShapedUnder = (icon: HTMLElement): boolean => {
+    const shape = icon.getAttribute("data-shape") || "";
+    return (
+        shape === "shapeless" ||
+        shape === "none" ||
+        icon.classList.contains("sd-widget-host") ||
+        Boolean(icon.dataset.widget)
+    );
+};
+
+const findShapedUnder = (icon: HTMLElement): HTMLElement | null => {
+    const id = icon.dataset.id;
+    const parent = icon.parentElement;
+    if (!id || !parent) return null;
+    for (const child of parent.children) {
+        if (
+            child instanceof HTMLElement &&
+            child.classList.contains("ui-ws-item-icon-under") &&
+            child.dataset.id === id
+        ) {
+            return child;
+        }
+    }
+    return null;
+};
+
+/** WHY: attach after the icon is in the grid — H`${under}${icon}` crashed Capacitor on pin/add. */
+const ensureShapedUnderSibling = (icon: HTMLElement, item: { id: string }): void => {
+    try {
+        if (icon.dataset.layer !== "icons") return;
+        if (shouldHideShapedUnder(icon)) {
+            findShapedUnder(icon)?.remove();
+            return;
+        }
+        if (!icon.parentElement) return;
+        let under = findShapedUnder(icon);
+        if (!under) {
+            under = createShapedUnder(item, icon);
+            icon.before(under);
+        } else if (under.nextElementSibling !== icon) {
+            icon.before(under);
+        }
+        stampShapedUnderCell(icon);
+    } catch {
+        /* pin/add must not take down Capacitor WebView */
+    }
 };
 
 const isLiveSpeedDialNode = (node: Element): boolean =>
@@ -268,17 +314,14 @@ const stampShapedUnderCell = (icon: HTMLElement): void => {
     const col = usedGridLine(icon, "column");
     const row = usedGridLine(icon, "row");
     if (!col && !row) return;
+    /* WHY: do not getComputedStyle here — forced layout mid-M() insert crashed Capacitor. */
+    const tile = icon.style.getPropertyValue("--tile-size").trim();
+    const shape = icon.getAttribute("data-shape") || "";
     parent.querySelectorAll<HTMLElement>(":scope > .ui-ws-item-icon-under").forEach((under) => {
         if (under.dataset.id !== id) return;
-        const shape = icon.getAttribute("data-shape") || "";
         under.setAttribute("data-shape", shape);
         const geo = under.querySelector<HTMLElement>(".underlying-shadow-geometry");
-        if (geo) {
-            geo.setAttribute("data-shape", shape);
-            const cs = getComputedStyle(icon);
-            if (cs.clipPath && cs.clipPath !== "none") geo.style.clipPath = cs.clipPath;
-            if (cs.borderRadius) geo.style.borderRadius = cs.borderRadius;
-        }
+        if (geo) geo.setAttribute("data-shape", shape);
         if (col) {
             under.style.setProperty("--cell-column", col);
             under.style.setProperty("grid-column", `${col} / span 1`, "important");
@@ -293,7 +336,6 @@ const stampShapedUnderCell = (icon: HTMLElement): void => {
         const y = icon.style.getPropertyValue("--cell-y");
         if (x) under.style.setProperty("--cell-x", x);
         if (y) under.style.setProperty("--cell-y", y);
-        const tile = getComputedStyle(icon).getPropertyValue("--tile-size").trim();
         if (tile) under.style.setProperty("--tile-size", tile);
     });
 };
@@ -329,7 +371,7 @@ const applyVisualCell = (el: HTMLElement, item: SpeedDialItem, root?: HTMLElemen
          * flipped long titles (`Edge`, `Messages`) to `above` and onto the icon. */
         el.dataset.labelPlacement = "below";
     }
-    if (el.dataset.layer === "icons") stampShapedUnderCell(el);
+    if (el.dataset.layer === "icons") ensureShapedUnderSibling(el, item);
 };
 
 const scheduleLabelPlacementSync = (root: HTMLElement): void => {
@@ -362,7 +404,7 @@ const scheduleLabelPlacementSync = (root: HTMLElement): void => {
                 node.style.setProperty("grid-row", `${row} / span 1`, "important");
                 node.dataset.cellRow = row;
             }
-            stampShapedUnderCell(icon);
+            ensureShapedUnderSibling(icon, item || { id: icon.dataset.id || "" });
         });
     };
     if (typeof globalThis.requestAnimationFrame === "function") {
@@ -664,6 +706,7 @@ const paintSpeedDialTileIcon = (el: HTMLElement, item: SpeedDialItem): void => {
     }
 
     const launchApp = isLauncherAppSpeedDialItem(item);
+    const shortcutRef = getLauncherShortcutRef(item);
     const cacheKey = launchApp ? getLauncherAppTileCacheKey(item) : "";
     const meta = getSpeedDialMeta(item.id) || {};
     const metaRec = {
@@ -734,6 +777,23 @@ const paintSpeedDialTileIcon = (el: HTMLElement, item: SpeedDialItem): void => {
     const mode = display as "colored" | "masked" | "masked-inverse";
 
     if (display === "colored") {
+        /* Visible folder until launcher:shortcut-icon lands — pending <img> is CSS-hidden. */
+        if (shortcutRef && !resourceUrl && !cachedLauncherIcon && !isAndroidIconRef(customUrl)) {
+            const host = document.createElement("ui-icon");
+            host.setAttribute("icon", fallbackIcon);
+            host.setAttribute("icon-style", "duotone");
+            host.setAttribute("aria-hidden", "true");
+            el.prepend(host);
+            finishPaint();
+            void hydrateLauncherAppTileIcon(el, {
+                id: item.id,
+                action: item.action,
+                iconDisplay: "colored"
+            }).then(() => {
+                if (el.isConnected) finishPaint();
+            });
+            return;
+        }
         const img = createLauncherIconImgElement();
         const paintUrl = String(resourceUrl || "").trim();
         const favicon =
@@ -935,7 +995,12 @@ const attachItemNode = (item: SpeedDialItem, el?: HTMLElement | null, interactiv
         });
         el.addEventListener("dragstart", (ev)=>ev.preventDefault());
         bindSpeedDialTileIconChrome(el, item);
-        if (resolveItemAction(item) === "launch-app" || resolveItemAction(item) === "launch-shortcut") {
+        const isShortcut = Boolean(getLauncherShortcutRef(item));
+        if (
+            isShortcut ||
+            resolveItemAction(item) === "launch-app" ||
+            resolveItemAction(item) === "launch-shortcut"
+        ) {
             const meta = getSpeedDialMeta(item.id);
             const display = String(
                 getRefValue((meta as { iconDisplay?: unknown } | null)?.iconDisplay, "") ||
@@ -948,16 +1013,18 @@ const attachItemNode = (item: SpeedDialItem, el?: HTMLElement | null, interactiv
                 getRefValue((meta as { iconUrl?: unknown } | null)?.iconUrl, "")
             );
             // Glyph / durable custom Icon resource already painted — don't let hydrate overwrite.
+            // WHY: launch-shortcut starts as a folder glyph; hydrate still fetches the file icon.
             if (
-                display !== "glyph" &&
-                display !== "phosphor" &&
-                display !== "name" &&
-                !customUrl
+                (isShortcut && !customUrl) ||
+                (display !== "glyph" &&
+                    display !== "phosphor" &&
+                    display !== "name" &&
+                    !customUrl)
             ) {
                 void hydrateLauncherAppTileIcon(el, {
                     id: item.id,
                     action: item.action,
-                    iconDisplay: display,
+                    iconDisplay: isShortcut ? "colored" : display,
                     iconUrl: customUrl
                 });
             }
@@ -1055,6 +1122,13 @@ const attachItemNode = (item: SpeedDialItem, el?: HTMLElement | null, interactiv
             bindCell(el, args);
         } else {
             applyVisualCell(el, item, root);
+        }
+        ensureShapedUnderSibling(el, item);
+        if (!shouldHideShapedUnder(el) && !findShapedUnder(el)) {
+            queueMicrotask(() => ensureShapedUnderSibling(el, item));
+            if (typeof globalThis.requestAnimationFrame === "function") {
+                globalThis.requestAnimationFrame(() => ensureShapedUnderSibling(el, item));
+            }
         }
     }
 };
@@ -1727,6 +1801,7 @@ const attachMirrorItemNode = (item: any, el?: HTMLElement | null, makeView?: any
         }
     };
     sync();
+    if (el.dataset.layer === "icons") ensureShapedUnderSibling(el, item);
     if (!el.dataset.mirrorActionBound) {
         el.dataset.mirrorActionBound = "1";
         el.addEventListener("click", (ev) => {
@@ -1754,10 +1829,9 @@ const renderMirrorIconItem = (item: any, makeView?: any) => {
                   resourceUrl: iconUrl,
                   className: "ui-ws-item-icon-native"
               });
-    const element = H`<div data-shape="squircle" data-id=${item.id} class="ui-ws-item ui-ws-item-icon shaped" data-speed-dial-item data-layer="icons" data-mirror-item ref=${(el: HTMLElement) => attachMirrorItemNode(item, el, makeView)}>
+    return H`<div data-shape="squircle" data-id=${item.id} class="ui-ws-item ui-ws-item-icon shaped" data-speed-dial-item data-layer="icons" data-mirror-item ref=${(el: HTMLElement) => attachMirrorItemNode(item, el, makeView)}>
         ${iconNode}
     </div>`;
-    return H`${createShapedUnder(item, element)}${element}`;
 };
 
 const renderMirrorLabelItem = (item: any, makeView?: any) => {
@@ -1822,6 +1896,7 @@ export function SpeedDial(makeView: any) {
             </div>`;
         }
         const launchApp = isLauncherAppSpeedDialItem(item);
+        const shortcutRef = getLauncherShortcutRef(item);
         const cacheKey = launchApp ? getLauncherAppTileCacheKey(item) : "";
         const meta = getSpeedDialMeta(item.id) || {};
         const metaRec = {
@@ -1863,6 +1938,15 @@ export function SpeedDial(makeView: any) {
 
         let iconNode: HTMLElement | ReturnType<typeof H>;
         if (display === "glyph") {
+            iconNode = H`<ui-icon icon=${fallbackIcon}></ui-icon>`;
+        } else if (
+            display === "colored" &&
+            shortcutRef &&
+            !resourceUrl &&
+            !cachedLauncherIcon &&
+            !isAndroidIconRef(customUrl)
+        ) {
+            /* Pending <img> is CSS-hidden; show folder until launcher:shortcut-icon lands. */
             iconNode = H`<ui-icon icon=${fallbackIcon}></ui-icon>`;
         } else if (display === "colored") {
             const img = createLauncherIconImgElement();
@@ -1933,10 +2017,9 @@ export function SpeedDial(makeView: any) {
                 }
             }
         }
-        const element = H`<div data-shape=${tileShapeForItem(item)} data-id=${item.id} class="ui-ws-item ui-ws-item-icon shaped" data-speed-dial-item data-layer="icons" data-icon-display=${display} ref=${(el) => attachItemNode(item, el as HTMLElement, true, makeView)}>
+        return H`<div data-shape=${tileShapeForItem(item)} data-id=${item.id} class="ui-ws-item ui-ws-item-icon shaped" data-speed-dial-item data-layer="icons" data-icon-display=${display} ref=${(el) => attachItemNode(item, el as HTMLElement, true, makeView)}>
             ${iconNode}
         </div>`;
-        return H`${createShapedUnder(item, element)}${element}`;
     };
 
     const renderLabelItem = (item: SpeedDialItem) => {

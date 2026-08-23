@@ -1,8 +1,9 @@
 /*
  * Filename: workspace-pages.ts
  * FullPath: modules/projects/fl.ui/src/ui/speed-dial/workspace-pages.ts
- * Change date and time: 17.45.00_22.08.2026
- * Reason for changes: Clone tiles onto other sides; clear leftover page-turn ghost icons.
+ * Change date and time: 21.50.00_23.08.2026
+ * Reason for changes: Boot must not apply a stale Side snapshot over a live pin.
+ * FIND:workspace-pages
  */
 
 import { resolveFsBackend } from "#fl-ui/explorer/path-router";
@@ -13,6 +14,7 @@ import {
     cloneSpeedDialItemPacked,
     findNextFreeCellInSnapshot,
     SPEED_DIAL_MUTATION_EVENT,
+    wasSpeedDialUserEdited,
     type SpeedDialItem,
     type SpeedDialSnapshot
 } from "./launcher-state";
@@ -71,11 +73,24 @@ const readCatalog = (): WorkspaceCatalog => {
     }
 };
 
+const slimSnapshot = (snap: SpeedDialSnapshot | null | undefined): SpeedDialSnapshot => ({
+    items: (snap?.items || []).map((row) => {
+        const iconUrl = String((row.meta as { iconUrl?: string } | undefined)?.iconUrl || "");
+        if (!/^(data:|blob:)/i.test(iconUrl)) return row;
+        const meta = { ...(row.meta || {}) };
+        delete (meta as { iconUrl?: string }).iconUrl;
+        return { ...row, meta };
+    })
+});
+
+const snapshotIds = (snap: SpeedDialSnapshot | null | undefined): Set<string> =>
+    new Set((snap?.items || []).map((row) => String(row?.id || "")).filter(Boolean));
+
 const writeCatalog = (catalog: WorkspaceCatalog): void => {
     try {
         localStorage.setItem(CATALOG_KEY, JSON.stringify(catalog));
-    } catch {
-        /* private mode */
+    } catch (e) {
+        console.warn("[workspace-pages] catalog persist failed", e);
     }
 };
 
@@ -102,7 +117,7 @@ export const getActiveWorkspace = (): WorkspacePage => {
 const syncActiveWorkspaceSnapshot = (): void => {
     const cat = readCatalog();
     if (!cat.pages.some((page) => page.id === cat.activeId)) return;
-    cat.snapshots[cat.activeId] = captureSpeedDialSnapshot();
+    cat.snapshots[cat.activeId] = slimSnapshot(captureSpeedDialSnapshot());
     writeCatalog(cat);
 };
 
@@ -308,7 +323,7 @@ export const switchWorkspacePage = (id: string): boolean => {
     if (Math.abs(turnDir) > cat.pages.length / 2) {
         turnDir += turnDir > 0 ? -cat.pages.length : cat.pages.length;
     }
-    cat.snapshots[currentId] = captureSpeedDialSnapshot();
+    cat.snapshots[currentId] = slimSnapshot(captureSpeedDialSnapshot());
     cat.activeId = next.id;
     writeCatalog(cat);
     hideAndroidWidgetHosts();
@@ -335,17 +350,26 @@ export const switchWorkspaceByDelta = (delta: number): boolean => {
 export const bootWorkspacePages = (): void => {
     const cat = readCatalog();
     const g = globalThis as typeof globalThis & { __CWSP_WS_BOOT_APPLIED__?: boolean };
-    if (!cat.snapshots[cat.activeId]) {
-        cat.snapshots[cat.activeId] = captureSpeedDialSnapshot();
+    const live = slimSnapshot(captureSpeedDialSnapshot());
+    const stored = cat.snapshots[cat.activeId];
+    if (!stored) {
+        cat.snapshots[cat.activeId] = live;
         writeCatalog(cat);
     } else if (!g.__CWSP_WS_BOOT_APPLIED__) {
-        /*
-         * WHY: OPFS hydrate can resurrect a deleted last tile (Network + sparkle)
-         * after an empty write was skipped. Apply the active snapshot once per
-         * tab so a cleared grid stays cleared without resetting later remounts.
-         */
         g.__CWSP_WS_BOOT_APPLIED__ = true;
-        applySpeedDialSnapshot(cat.snapshots[cat.activeId]);
+        const storedIds = snapshotIds(stored);
+        const liveHasExtra = [...snapshotIds(live)].some((id) => !storedIds.has(id));
+        /*
+         * WHY: pin/share often lands before SpeedDial mounts. Applying a stale
+         * Side A/B/C snapshot splices the live grid; persist then seals the wipe.
+         * Keep live when this session already edited, or LS has ids the snapshot lacks.
+         */
+        if (wasSpeedDialUserEdited() || liveHasExtra) {
+            cat.snapshots[cat.activeId] = live;
+            writeCatalog(cat);
+        } else {
+            applySpeedDialSnapshot(stored);
+        }
     }
     for (const page of cat.pages) void ensureWorkspaceExplorerDir(page);
 };

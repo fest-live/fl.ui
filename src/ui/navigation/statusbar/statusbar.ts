@@ -124,14 +124,21 @@ export function attachStatusBarContrast(target: HTMLElement): () => void {
     const lumaOf = (data: Uint8ClampedArray, step = 48): number | null => {
         let sum = 0;
         let n = 0;
+        let maxChan = 0;
         for (let i = 0; i < data.length; i += 4 * step) {
+            const a = data[i + 3] ?? 255;
+            if (a < 16) continue;
             const r = data[i]! / 255;
             const g = data[i + 1]! / 255;
             const b = data[i + 2]! / 255;
+            maxChan = Math.max(maxChan, r, g, b);
             sum += 0.2126 * r + 0.7152 * g + 0.0722 * b;
             n++;
         }
-        return n > 0 ? sum / n : null;
+        if (n < 8) return null;
+        /* WHY: cleared / undrawn canvas is ~0 — must not stamp white ink after a good probe. */
+        if (maxChan < 0.02) return null;
+        return sum / n;
     };
 
     const applyStatusFg = (luma: number): void => {

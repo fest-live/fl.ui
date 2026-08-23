@@ -1,4 +1,4 @@
-[**@fest-lib/fl-ui v0.1.12**](../README.md)
+[**@fest-lib/fl-ui v0.1.13**](../README.md)
 
 ***
 
@@ -10,7 +10,7 @@
 function probeNativeWindowChrome(requested): NativeWindowChromeProbe;
 ```
 
-Defined in: fl.ui/src/ui/containers/window/native-window-chrome.ts:94
+Defined in: fl.ui/src/ui/containers/window/native-window-chrome.ts:105
 
 Snapshot of native chrome capability for a host that requested `native-mode`.
 

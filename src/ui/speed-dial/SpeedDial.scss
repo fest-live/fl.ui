@@ -63,18 +63,21 @@
         block-size: 2.6rem;
         margin: 0;
         padding: 0;
-        border: 1px solid color-mix(in oklab, CanvasText 18%, transparent);
+        //border: 1px solid color-mix(in oklab, CanvasText 18%, transparent);
+        border: 0px none transparent;
         border-inline-end: none;
         border-radius: 10px 0 0 10px;
-        background: color-mix(in oklab, Canvas 78%, transparent);
-        color: CanvasText;
-        backdrop-filter: blur(10px);
-        -webkit-backdrop-filter: blur(10px);
+        background: transparent;//color-mix(in oklab, Canvas 78%, transparent);
+        color: color-mix(in oklab, CanvasText 78%, transparent);
+        --icon-color: color-mix(in oklab, CanvasText 78%, transparent);
+        /*backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);*/
         cursor: pointer;
     }
 
     .speed-dial-core-rail__toggle ui-icon {
         --icon-size: 1.1rem;
+        --icon-color: color-mix(in oklab, CanvasText 78%, transparent);
         pointer-events: none;
     }
 

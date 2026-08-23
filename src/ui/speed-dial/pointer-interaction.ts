@@ -1,8 +1,8 @@
 /*
  * Filename: pointer-interaction.ts
  * FullPath: modules/projects/fl.ui/src/ui/speed-dial/pointer-interaction.ts
- * Change date and time: 14.45.00_22.08.2026
- * Reason for changes: Drop ghost + nearby snap so widgets stay where the pointer puts them.
+ * Change date and time: 20.26.00_23.08.2026
+ * Reason for changes: Drag --drag-x/y also drives the shaped under-glow sibling.
  */
 
 import {
@@ -180,6 +180,10 @@ export const bindPointerInteraction = (
         const extra: HTMLElement[] = [];
         if (id) {
             options.root.querySelectorAll<HTMLElement>('[data-speed-dial-item][data-layer="labels"]').forEach((el) => {
+                if (el.dataset.id === id && !el.closest(".speed-dial-grid--turn-ghost")) extra.push(el);
+            });
+            /* INVARIANT: under is a grid sibling, not a child — copy drag/FLIP with the plate. */
+            options.root.querySelectorAll<HTMLElement>(".ui-ws-item-icon-under").forEach((el) => {
                 if (el.dataset.id === id && !el.closest(".speed-dial-grid--turn-ghost")) extra.push(el);
             });
         }

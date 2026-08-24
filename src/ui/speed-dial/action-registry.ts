@@ -1,8 +1,8 @@
 /*
  * Filename: action-registry.ts
  * FullPath: modules/projects/fl.ui/src/ui/speed-dial/action-registry.ts
- * Change date and time: 21.35.00_23.08.2026
- * Reason for changes: File-shortcut tiles hydrate via launcher:shortcut-icon (pkg::id), never the app icon.
+ * Change date and time: 08.48.00_24.08.2026
+ * Reason for changes: Hydrate paints launcher bitmaps onto ui-icon — no light-DOM img.
  * FIND:pin-shortcut
  */
 
@@ -498,17 +498,21 @@ export async function hydrateLauncherAppTileIcon(
         return u;
     })();
 
-    const paintColored = (url: string): void => {
-        el.querySelectorAll("ui-icon").forEach((n) => n.remove());
-        let img = el.querySelector<HTMLImageElement>(
-            "img.ui-ws-item-icon-img, img[data-launcher-icon]"
+    const paintOnUiIcon = (
+        url: string,
+        mode: "colored" | "masked" | "masked-inverse"
+    ): void => {
+        el.querySelectorAll("img.ui-ws-item-icon-img, img[data-launcher-icon], .ui-ws-item-icon-mask").forEach(
+            (n) => n.remove()
         );
-        if (!img) {
-            img = createLauncherIconImgElement();
-            el.prepend(img);
+        let icon = el.querySelector<HTMLElement>("ui-icon");
+        if (!icon) {
+            icon = createLauncherUiIconElement();
+            el.prepend(icon);
         }
-        applyLauncherIconToImg(img, url);
-        el.setAttribute("data-icon-display", "colored");
+        icon.setAttribute("resource", url);
+        applyLauncherIconToUiIcon(icon, url, mode);
+        if (!isGlyph(readDisplay())) el.setAttribute("data-icon-display", mode);
     };
 
     if (explicitUrl) {
@@ -516,18 +520,10 @@ export async function hydrateLauncherAppTileIcon(
         const applyResolved = (url: string): void => {
             if (!url || (!shortcut && isGlyph(readDisplay()))) return;
             if (display === "masked" || display === "masked-inverse") {
-                let icon = el.querySelector<HTMLElement>("ui-icon[data-launcher-icon]");
-                if (!icon) {
-                    icon = createLauncherUiIconElement();
-                    el.querySelectorAll("img.ui-ws-item-icon-img, img[data-launcher-icon]").forEach((n) =>
-                        n.remove()
-                    );
-                    el.prepend(icon);
-                }
-                applyLauncherIconToUiIcon(icon, url, display);
+                paintOnUiIcon(url, display);
                 return;
             }
-            paintColored(url);
+            paintOnUiIcon(url, "colored");
         };
         if (isAndroidIconRef(explicitUrl)) {
             const cached = getCachedIconResourceObjectUrl(explicitUrl, fetchSize);
@@ -543,9 +539,10 @@ export async function hydrateLauncherAppTileIcon(
         ? await ensureShortcutIconObjectUrl(shortcut.packageName, shortcut.shortcutId, fetchSize)
         : await ensureLauncherIconObjectUrl(cacheKey, fetchSize);
     if (!objectUrl || !el.isConnected) {
-        /* Failed shortcut fetch — drop invisible pending img; keep the folder glyph. */
         if (shortcut) {
-            el.querySelectorAll("img[data-icon-pending]").forEach((n) => n.remove());
+            el.querySelectorAll("ui-icon[data-icon-pending]").forEach((n) =>
+                n.removeAttribute("data-icon-pending")
+            );
         }
         return;
     }
@@ -555,19 +552,11 @@ export async function hydrateLauncherAppTileIcon(
     if (String(item.iconUrl || "").trim() && !String(item.iconUrl).startsWith("blob:")) return;
 
     if (display === "masked" || display === "masked-inverse") {
-        el.querySelectorAll("img.ui-ws-item-icon-img, img[data-launcher-icon]").forEach((n) =>
-            n.remove()
-        );
-        let icon = el.querySelector<HTMLElement>("ui-icon[data-launcher-icon]");
-        if (!icon) {
-            icon = createLauncherUiIconElement();
-            el.prepend(icon);
-        }
-        applyLauncherIconToUiIcon(icon, objectUrl, display);
+        paintOnUiIcon(objectUrl, display);
         return;
     }
 
-    paintColored(objectUrl);
+    paintOnUiIcon(objectUrl, "colored");
 }
 
 /*

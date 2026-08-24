@@ -1,8 +1,8 @@
 /*
  * Filename: tile-icon.ts
  * FullPath: modules/projects/fl.ui/src/ui/speed-dial/tile-icon.ts
- * Change date and time: 22.17.00_22.08.2026
- * Reason for changes: FIND hub for shapeless tile shadow clone.
+ * Change date and time: 08.48.00_24.08.2026
+ * Reason for changes: Tile icons stamp registry attrs + resource on ui-icon at create.
  * FIND:shapeless
  * TAG:speed-dial,tile-icon
  */
@@ -162,6 +162,7 @@ export function createTileUiIconElement(opts: TileIconPaintOptions): HTMLElement
     if (display === "glyph") {
         host.setAttribute("icon", glyph);
         host.setAttribute("icon-source", "phosphor");
+        host.removeAttribute("resource");
         host.removeAttribute("data-icon-bitmap");
         host.removeAttribute("data-icon-bitmap-mode");
         host.removeAttribute("data-icon-bitmap-locked");
@@ -173,6 +174,7 @@ export function createTileUiIconElement(opts: TileIconPaintOptions): HTMLElement
     if (!resource) {
         host.removeAttribute("icon");
         host.setAttribute("icon-source", "resource");
+        host.removeAttribute("resource");
         host.toggleAttribute("data-icon-pending", true);
         host.removeAttribute("data-icon-bitmap");
         host.removeAttribute("data-icon-bitmap-mode");
@@ -185,6 +187,8 @@ export function createTileUiIconElement(opts: TileIconPaintOptions): HTMLElement
     const bitmapMode = iconDisplayToBitmapMode(display) || "colored";
     host.setAttribute("data-icon-bitmap-mode", bitmapMode);
     host.toggleAttribute("data-icon-bitmap-locked", true);
+    /* INVARIANT: `resource` is the reactive SoT — ui-icon paints on create/upgrade. */
+    host.setAttribute("resource", resource);
 
     const apply = (): void => {
         const icon = host as HTMLElement & {

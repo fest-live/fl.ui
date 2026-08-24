@@ -1,8 +1,8 @@
 /*
  * Filename: SpeedDial.ts
  * FullPath: modules/projects/fl.ui/src/ui/speed-dial/SpeedDial.ts
- * Change date and time: 22.28.00_23.08.2026
- * Reason for changes: Remove must drop sibling under-shadows (MutationObserver childList+subtree).
+ * Change date and time: 08.48.00_24.08.2026
+ * Reason for changes: Tile chrome + ui-icon resource stamp at create; no light-DOM img.
  * FIND:pin-shortcut
  */
 
@@ -29,7 +29,7 @@ import {
     WALLPAPER_IDB_MARKER
 } from "@fest-lib/image";
 import { openUnifiedContextMenu, type ContextMenuEntry } from "fl-ui/explorer/ContextMenu";
-import { resolveSpeedDialBookmarkIconUrl, isBookmarkFaviconResourceUrl } from "../navigation/app-menu/bookmarks-menu";
+import { resolveSpeedDialBookmarkIconUrl } from "../navigation/app-menu/bookmarks-menu";
 import {
     speedDialMeta,
     speedDialItems,
@@ -114,12 +114,9 @@ import {
     getLauncherAppTileCacheKey,
     getLauncherShortcutRef,
     applyLauncherIconToUiIcon,
-    applyLauncherIconToImg,
-    createLauncherIconImgElement,
     ensureLauncherIconObjectUrl,
     hydrateLauncherAppTileIcon,
     isAndroidIconRef,
-    parseAndroidIconRef,
     resolveIconResourceUrl
 } from "./action-registry";
 import {
@@ -435,7 +432,10 @@ const applyVisualCell = (el: HTMLElement, item: SpeedDialItem, root?: HTMLElemen
          * flipped long titles (`Edge`, `Messages`) to `above` and onto the icon. */
         el.dataset.labelPlacement = "below";
     }
-    if (el.dataset.layer === "icons") ensureShapedUnderSibling(el, item);
+    if (el.dataset.layer === "icons") {
+        stampTileHostAttrs(el, item);
+        ensureShapedUnderSibling(el, item);
+    }
 };
 
 const scheduleLabelPlacementSync = (root: HTMLElement): void => {
@@ -757,6 +757,127 @@ const durableIconUrl = (raw: unknown): string => {
     return isDurableIconResourceUrl(u) ? u : "";
 };
 
+type TileIconModel = {
+    display: ReturnType<typeof inferIconDisplay>;
+    shape: string;
+    iconScale: string;
+    fallbackIcon: string;
+    customUrl: string;
+    resourceUrl: string;
+    launchApp: boolean;
+    shortcutRef: ReturnType<typeof getLauncherShortcutRef>;
+    cacheKey: string;
+    fetchSize: number;
+    cachedAndroid: string;
+};
+
+const readTileIconModel = (item: SpeedDialItem): TileIconModel => {
+    const launchApp = isLauncherAppSpeedDialItem(item);
+    const shortcutRef = getLauncherShortcutRef(item);
+    const cacheKey = launchApp ? getLauncherAppTileCacheKey(item) : "";
+    const meta = getSpeedDialMeta(item.id) || {};
+    const iconUrl = getRefValue((meta as { iconUrl?: unknown }).iconUrl, "");
+    const iconDisplay = getRefValue((meta as { iconDisplay?: unknown }).iconDisplay, "");
+    const iconScale = getRefValue((meta as { iconScale?: unknown }).iconScale, "");
+    const href = getRefValue((meta as { href?: unknown }).href, "");
+    const entityType = getRefValue((meta as { entityType?: unknown }).entityType, "");
+    const bookmarkId = getRefValue((meta as { bookmarkId?: unknown }).bookmarkId, "");
+    if (String(iconUrl || "").startsWith("blob:") && meta && "iconUrl" in meta) {
+        (meta as { iconUrl?: string }).iconUrl = "";
+    }
+    const fetchSize = tileIconFetchSize(iconScale);
+    const cachedLauncherIcon = cacheKey ? getCachedLauncherIconObjectUrl(cacheKey, fetchSize) : "";
+    const bookmarkIconUrl = resolveSpeedDialBookmarkIconUrl({
+        iconUrl: String(iconUrl || "").startsWith("blob:") ? "" : iconUrl,
+        href,
+        entityType,
+        bookmarkId
+    });
+    const customUrl = durableIconUrl(
+        resolveSpeedDialIconUrl(item.id, String(iconUrl || "").startsWith("blob:") ? "" : iconUrl)
+    );
+    const cachedAndroid =
+        customUrl && isAndroidIconRef(customUrl)
+            ? getCachedIconResourceObjectUrl(customUrl, fetchSize)
+            : "";
+    const resourceUrl = String(
+        cachedAndroid || (isAndroidIconRef(customUrl) ? "" : customUrl) || cachedLauncherIcon || bookmarkIconUrl || ""
+    ).trim();
+    const display = inferIconDisplay({
+        iconDisplay,
+        iconUrl: resourceUrl || customUrl,
+        isLauncherApp: launchApp,
+        isBookmarkFavicon: Boolean(bookmarkIconUrl)
+    });
+    return {
+        display,
+        shape: normalizeTileShape(getRefValue((meta as { shape?: unknown }).shape, ""), getDefaultTileShape()),
+        iconScale,
+        fallbackIcon: String(getRefValue(item.icon, "link") || "link"),
+        customUrl,
+        resourceUrl,
+        launchApp,
+        shortcutRef,
+        cacheKey,
+        fetchSize,
+        cachedAndroid
+    };
+};
+
+/** INVARIANT: host attrs come from meta before the first paint / under-shadow. */
+const stampTileHostAttrs = (el: HTMLElement, item: SpeedDialItem, model?: TileIconModel): TileIconModel => {
+    const next = model || readTileIconModel(item);
+    if (getSpeedDialWidgetKind(item)) {
+        el.setAttribute("data-shape", "none");
+        el.removeAttribute("data-icon-display");
+        return next;
+    }
+    el.setAttribute("data-shape", next.shape);
+    el.setAttribute("data-icon-display", next.display);
+    applyItemIconScaleToElement(el, defaultIconScaleForDisplay(next.display, next.iconScale));
+    return next;
+};
+
+const bindTileIconResource = (
+    el: HTMLElement,
+    iconNode: HTMLElement,
+    item: SpeedDialItem,
+    model: TileIconModel,
+    onReady?: () => void
+): void => {
+    const mode = model.display === "glyph" ? null : model.display;
+    if (!mode) return;
+    const apply = (url: string): void => {
+        if (!url || !iconNode.isConnected) return;
+        if (el.getAttribute("data-icon-display") === "glyph") return;
+        iconNode.setAttribute("resource", url);
+        applyLauncherIconToUiIcon(iconNode, url, mode);
+        onReady?.();
+    };
+    if (model.resourceUrl) {
+        apply(model.resourceUrl);
+        if (isAndroidIconRef(model.customUrl) && !model.cachedAndroid) {
+            void resolveIconResourceUrl(model.customUrl, model.fetchSize).then(apply);
+        }
+        return;
+    }
+    if (isAndroidIconRef(model.customUrl)) {
+        void resolveIconResourceUrl(model.customUrl, model.fetchSize).then(apply);
+        return;
+    }
+    if (model.launchApp && model.cacheKey) {
+        void ensureLauncherIconObjectUrl(model.cacheKey, model.fetchSize).then(apply);
+        return;
+    }
+    if (model.shortcutRef) {
+        void hydrateLauncherAppTileIcon(el, {
+            id: item.id,
+            action: item.action,
+            iconDisplay: mode
+        }).then(() => onReady?.());
+    }
+};
+
 /**
  * Rebuild icon host for a SpeedDial tile from current item + meta.
  * WHY: ShortcutEditor saves iconDisplay/iconUrl/shape on meta in-place; M() does not
@@ -772,55 +893,7 @@ const paintSpeedDialTileIcon = (el: HTMLElement, item: SpeedDialItem): void => {
         return;
     }
 
-    const launchApp = isLauncherAppSpeedDialItem(item);
-    const shortcutRef = getLauncherShortcutRef(item);
-    const cacheKey = launchApp ? getLauncherAppTileCacheKey(item) : "";
-    const meta = getSpeedDialMeta(item.id) || {};
-    const metaRec = {
-        iconUrl: getRefValue((meta as { iconUrl?: unknown }).iconUrl, ""),
-        iconDisplay: getRefValue((meta as { iconDisplay?: unknown }).iconDisplay, ""),
-        href: getRefValue((meta as { href?: unknown }).href, ""),
-        entityType: getRefValue((meta as { entityType?: unknown }).entityType, ""),
-        bookmarkId: getRefValue((meta as { bookmarkId?: unknown }).bookmarkId, ""),
-        iconScale: getRefValue((meta as { iconScale?: unknown }).iconScale, "")
-    };
-    const fetchSize = tileIconFetchSize(metaRec.iconScale);
-    const cachedLauncherIcon = cacheKey
-        ? getCachedLauncherIconObjectUrl(cacheKey, fetchSize)
-        : "";
-    // Drop stale blob: persisted by an earlier editor prefill/save.
-    if (String(metaRec.iconUrl || "").startsWith("blob:") && meta && "iconUrl" in meta) {
-        (meta as { iconUrl?: string }).iconUrl = "";
-        metaRec.iconUrl = "";
-    }
-    const bookmarkIconUrl = resolveSpeedDialBookmarkIconUrl(metaRec);
-    const fallbackIcon = String(getRefValue(item.icon, "link") || "link");
-    const customUrl = durableIconUrl(resolveSpeedDialIconUrl(item.id, metaRec.iconUrl));
-    const cachedAndroidIcon =
-        customUrl && isAndroidIconRef(customUrl)
-            ? getCachedIconResourceObjectUrl(customUrl, fetchSize)
-            : "";
-    const resourceUrl = String(
-        cachedAndroidIcon || (isAndroidIconRef(customUrl) ? "" : customUrl) || cachedLauncherIcon || bookmarkIconUrl || ""
-    ).trim();
-    const display = inferIconDisplay({
-        iconDisplay: metaRec.iconDisplay,
-        iconUrl: resourceUrl || customUrl,
-        isLauncherApp: launchApp,
-        isBookmarkFavicon: Boolean(bookmarkIconUrl)
-    });
-    const shape = normalizeTileShape(
-        getRefValue((meta as { shape?: unknown }).shape, ""),
-        getDefaultTileShape()
-    );
-
-    el.setAttribute("data-icon-display", display);
-    el.setAttribute("data-shape", shape);
-    applyItemIconScaleToElement(
-        el,
-        defaultIconScaleForDisplay(display, getRefValue((meta as { iconScale?: unknown }).iconScale, ""))
-    );
-
+    const model = stampTileHostAttrs(el, item);
     el.querySelectorAll(
         "ui-icon, .ui-ws-item-icon-native, img[data-launcher-icon], .ui-ws-item-icon-img, .ui-ws-item-icon-mask, .sd-icon-silhouette"
     ).forEach((node) => node.remove());
@@ -831,125 +904,23 @@ const paintSpeedDialTileIcon = (el: HTMLElement, item: SpeedDialItem): void => {
         requestAnimationFrame(() => syncPlateGlyphInk(el));
     };
 
-    if (display === "glyph") {
-        const host = document.createElement("ui-icon");
-        host.setAttribute("icon", fallbackIcon);
-        host.setAttribute("icon-style", "duotone");
-        host.setAttribute("aria-hidden", "true");
-        el.prepend(host);
-        finishPaint();
-        return;
-    }
-
-    const mode = display as "colored" | "masked" | "masked-inverse";
-
-    if (display === "colored") {
-        /* Visible folder until launcher:shortcut-icon lands — pending <img> is CSS-hidden. */
-        if (shortcutRef && !resourceUrl && !cachedLauncherIcon && !isAndroidIconRef(customUrl)) {
-            const host = document.createElement("ui-icon");
-            host.setAttribute("icon", fallbackIcon);
-            host.setAttribute("icon-style", "duotone");
-            host.setAttribute("aria-hidden", "true");
-            el.prepend(host);
-            finishPaint();
-            void hydrateLauncherAppTileIcon(el, {
-                id: item.id,
-                action: item.action,
-                iconDisplay: "colored"
-            }).then(() => {
-                if (el.isConnected) finishPaint();
-            });
-            return;
-        }
-        const img = createLauncherIconImgElement();
-        const paintUrl = String(resourceUrl || "").trim();
-        const favicon =
-            Boolean(bookmarkIconUrl) ||
-            isBookmarkFaviconResourceUrl(paintUrl) ||
-            isBookmarkFaviconResourceUrl(customUrl);
-        if (favicon) {
-            img.removeAttribute("data-launcher-icon");
-            img.toggleAttribute("data-bookmark-favicon", true);
-        } else if (!launchApp) {
-            img.removeAttribute("data-launcher-icon");
-        }
-        const packRef = parseAndroidIconRef(customUrl);
-        if (packRef?.pack || packRef?.drawable) {
-            img.toggleAttribute("data-icon-pack", true);
-            /* Pack bitmaps use the same full-plate paint path as launcher icons. */
-            if (!favicon) img.toggleAttribute("data-launcher-icon", true);
-        }
-        el.prepend(img);
-        finishPaint();
-        if (resourceUrl) {
-            applyLauncherIconToImg(img, resourceUrl);
-            finishPaint();
-            if (isAndroidIconRef(customUrl) && !cachedAndroidIcon) {
-                void resolveIconResourceUrl(customUrl, fetchSize).then((fetched) => {
-                    if (!fetched || !img.isConnected) return;
-                    if (el.getAttribute("data-icon-display") === "glyph") return;
-                    applyLauncherIconToImg(img, fetched);
-                    finishPaint();
-                });
-            }
-            return;
-        }
-        if (isAndroidIconRef(customUrl)) {
-            void resolveIconResourceUrl(customUrl, fetchSize).then((fetched) => {
-                if (!fetched || !img.isConnected) return;
-                if (el.getAttribute("data-icon-display") === "glyph") return;
-                applyLauncherIconToImg(img, fetched);
-                finishPaint();
-            });
-            return;
-        }
-        if (launchApp && cacheKey) {
-            void ensureLauncherIconObjectUrl(cacheKey, fetchSize).then((fetched) => {
-                if (!fetched || !img.isConnected) return;
-                if (el.getAttribute("data-icon-display") === "glyph") return;
-                applyLauncherIconToImg(img, fetched);
-                finishPaint();
-            });
-        }
-        return;
-    }
-
-    const url = resourceUrl;
+    const pendingShortcut =
+        model.display !== "glyph" &&
+        Boolean(model.shortcutRef) &&
+        !model.resourceUrl &&
+        !isAndroidIconRef(model.customUrl);
     const iconNode = createTileUiIconElement({
-        display,
-        glyph: fallbackIcon,
-        resourceUrl: url || undefined,
-        launcher: launchApp,
+        display: pendingShortcut ? "glyph" : model.display,
+        glyph: model.fallbackIcon,
+        resourceUrl: pendingShortcut ? undefined : model.resourceUrl || undefined,
+        launcher: model.launchApp || Boolean(model.shortcutRef),
         className: "ui-ws-item-icon-native"
     });
     el.prepend(iconNode);
     finishPaint();
-
-    if (iconNode instanceof HTMLElement && url) {
-        applyLauncherIconToUiIcon(iconNode, url, mode);
-        if (isAndroidIconRef(customUrl) && !cachedAndroidIcon) {
-            void resolveIconResourceUrl(customUrl, fetchSize).then((fetched) => {
-                if (!fetched || !iconNode.isConnected) return;
-                if (el.getAttribute("data-icon-display") === "glyph") return;
-                applyLauncherIconToUiIcon(iconNode, fetched, mode);
-                finishPaint();
-            });
-        }
-    } else if (isAndroidIconRef(customUrl) && iconNode instanceof HTMLElement) {
-        void resolveIconResourceUrl(customUrl, fetchSize).then((fetched) => {
-            if (!fetched || !iconNode.isConnected) return;
-            if (el.getAttribute("data-icon-display") === "glyph") return;
-            applyLauncherIconToUiIcon(iconNode, fetched, mode);
-            finishPaint();
-        });
-    } else if (launchApp && cacheKey && iconNode instanceof HTMLElement) {
-        void ensureLauncherIconObjectUrl(cacheKey, fetchSize).then((fetched) => {
-            if (!fetched || !iconNode.isConnected) return;
-            if (el.getAttribute("data-icon-display") === "glyph") return;
-            applyLauncherIconToUiIcon(iconNode, fetched, mode);
-            finishPaint();
-        });
-    }
+    bindTileIconResource(el, iconNode, item, model, () => {
+        if (el.isConnected) finishPaint();
+    });
 };
 
 const bindSpeedDialTileIconChrome = (el: HTMLElement, item: SpeedDialItem): void => {
@@ -1056,6 +1027,7 @@ const attachItemNode = (item: SpeedDialItem, el?: HTMLElement | null, interactiv
         || el.ownerDocument?.getElementById("home");
     el.dataset.id = item.id;
     el.dataset.speedDialItem = "true";
+    if (el.dataset.layer === "icons") stampTileHostAttrs(el, item);
     if (interactive) {
         el.addEventListener("pointerdown", () => {
             lastFocusedSpeedDialId = item.id;
@@ -1967,129 +1939,27 @@ export function SpeedDial(makeView: any) {
                 ${widget}
             </div>`;
         }
-        const launchApp = isLauncherAppSpeedDialItem(item);
-        const shortcutRef = getLauncherShortcutRef(item);
-        const cacheKey = launchApp ? getLauncherAppTileCacheKey(item) : "";
-        const meta = getSpeedDialMeta(item.id) || {};
-        const metaRec = {
-            iconUrl: getRefValue((meta as { iconUrl?: unknown }).iconUrl, ""),
-            iconDisplay: getRefValue((meta as { iconDisplay?: unknown }).iconDisplay, ""),
-            href: getRefValue((meta as { href?: unknown }).href, ""),
-            entityType: getRefValue((meta as { entityType?: unknown }).entityType, ""),
-            bookmarkId: getRefValue((meta as { bookmarkId?: unknown }).bookmarkId, ""),
-            iconScale: getRefValue((meta as { iconScale?: unknown }).iconScale, "")
-        };
-        const fetchSize = tileIconFetchSize(metaRec.iconScale);
-        const cachedLauncherIcon = cacheKey
-            ? getCachedLauncherIconObjectUrl(cacheKey, fetchSize)
-            : "";
-        const bookmarkIconUrl = resolveSpeedDialBookmarkIconUrl(metaRec);
-        const fallbackIcon = String(getRefValue(item.icon, "link") || "link");
-        if (String(metaRec.iconUrl || "").startsWith("blob:") && meta && "iconUrl" in meta) {
-            (meta as { iconUrl?: string }).iconUrl = "";
-            metaRec.iconUrl = "";
-        }
-        const customUrl = durableIconUrl(resolveSpeedDialIconUrl(item.id, metaRec.iconUrl));
-        const cachedAndroidIcon =
-            customUrl && isAndroidIconRef(customUrl)
-                ? getCachedIconResourceObjectUrl(customUrl, fetchSize)
-                : "";
-        const resourceUrl = String(
-            cachedAndroidIcon ||
-                (isAndroidIconRef(customUrl) ? "" : customUrl) ||
-                cachedLauncherIcon ||
-                bookmarkIconUrl ||
-                ""
-        ).trim();
-        const display = inferIconDisplay({
-            iconDisplay: metaRec.iconDisplay,
-            iconUrl: resourceUrl || customUrl,
-            isLauncherApp: launchApp,
-            isBookmarkFavicon: Boolean(bookmarkIconUrl)
+        const model = readTileIconModel(item);
+        const pendingShortcut =
+            model.display !== "glyph" &&
+            Boolean(model.shortcutRef) &&
+            !model.resourceUrl &&
+            !isAndroidIconRef(model.customUrl);
+        const iconNode = createTileUiIconElement({
+            display: pendingShortcut ? "glyph" : model.display,
+            glyph: model.fallbackIcon,
+            resourceUrl: pendingShortcut ? undefined : model.resourceUrl || undefined,
+            launcher: model.launchApp || Boolean(model.shortcutRef),
+            className: "ui-ws-item-icon-native"
         });
-
-        let iconNode: HTMLElement | ReturnType<typeof H>;
-        if (display === "glyph") {
-            iconNode = H`<ui-icon icon=${fallbackIcon}></ui-icon>`;
-        } else if (
-            display === "colored" &&
-            shortcutRef &&
-            !resourceUrl &&
-            !cachedLauncherIcon &&
-            !isAndroidIconRef(customUrl)
-        ) {
-            /* Pending <img> is CSS-hidden; show folder until launcher:shortcut-icon lands. */
-            iconNode = H`<ui-icon icon=${fallbackIcon}></ui-icon>`;
-        } else if (display === "colored") {
-            const img = createLauncherIconImgElement();
-            const favicon =
-                Boolean(bookmarkIconUrl) ||
-                isBookmarkFaviconResourceUrl(resourceUrl) ||
-                isBookmarkFaviconResourceUrl(customUrl);
-            if (favicon) {
-                img.removeAttribute("data-launcher-icon");
-                img.toggleAttribute("data-bookmark-favicon", true);
-            } else if (!launchApp) {
-                img.removeAttribute("data-launcher-icon");
-            }
-            const packRef = parseAndroidIconRef(customUrl);
-            if (packRef?.pack || packRef?.drawable) {
-                img.toggleAttribute("data-icon-pack", true);
-                if (!favicon) img.toggleAttribute("data-launcher-icon", true);
-            }
-            if (resourceUrl) {
-                applyLauncherIconToImg(img, resourceUrl);
-                if (isAndroidIconRef(customUrl) && !cachedAndroidIcon) {
-                    void resolveIconResourceUrl(customUrl, fetchSize).then((fetched) => {
-                        if (!fetched || !img.isConnected) return;
-                        applyLauncherIconToImg(img, fetched);
-                    });
-                }
-            } else if (isAndroidIconRef(customUrl)) {
-                void resolveIconResourceUrl(customUrl, fetchSize).then((fetched) => {
-                    if (!fetched || !img.isConnected) return;
-                    applyLauncherIconToImg(img, fetched);
-                });
-            } else if (launchApp && cacheKey) {
-                void ensureLauncherIconObjectUrl(cacheKey, fetchSize).then((fetched) => {
-                    if (!fetched || !img.isConnected) return;
-                    applyLauncherIconToImg(img, fetched);
-                });
-            }
-            iconNode = img;
-        } else {
-            const url = resourceUrl;
-            iconNode = createTileUiIconElement({
-                display,
-                glyph: fallbackIcon,
-                resourceUrl: url || undefined,
-                launcher: launchApp,
-                className: "ui-ws-item-icon-native"
-            });
-            const mode = display as "colored" | "masked" | "masked-inverse";
+        return H`<div data-shape=${tileShapeForItem(item)} data-id=${item.id} class="ui-ws-item ui-ws-item-icon shaped" data-speed-dial-item data-layer="icons" data-icon-display=${model.display} ref=${(el) => {
+            const host = el as HTMLElement;
+            stampTileHostAttrs(host, item, model);
+            attachItemNode(item, host, true, makeView);
             if (iconNode instanceof HTMLElement) {
-                if (url) {
-                    applyLauncherIconToUiIcon(iconNode, url, mode);
-                    if (isAndroidIconRef(customUrl) && !cachedAndroidIcon) {
-                        void resolveIconResourceUrl(customUrl, fetchSize).then((fetched) => {
-                            if (!fetched || !iconNode.isConnected) return;
-                            applyLauncherIconToUiIcon(iconNode as HTMLElement, fetched, mode);
-                        });
-                    }
-                } else if (isAndroidIconRef(customUrl)) {
-                    void resolveIconResourceUrl(customUrl, fetchSize).then((fetched) => {
-                        if (!fetched || !iconNode.isConnected) return;
-                        applyLauncherIconToUiIcon(iconNode as HTMLElement, fetched, mode);
-                    });
-                } else if (launchApp && cacheKey) {
-                    void ensureLauncherIconObjectUrl(cacheKey, fetchSize).then((fetched) => {
-                        if (!fetched || !iconNode.isConnected) return;
-                        applyLauncherIconToUiIcon(iconNode as HTMLElement, fetched, mode);
-                    });
-                }
+                bindTileIconResource(host, iconNode, item, model);
             }
-        }
-        return H`<div data-shape=${tileShapeForItem(item)} data-id=${item.id} class="ui-ws-item ui-ws-item-icon shaped" data-speed-dial-item data-layer="icons" data-icon-display=${display} ref=${(el) => attachItemNode(item, el as HTMLElement, true, makeView)}>
+        }}>
             ${iconNode}
         </div>`;
     };

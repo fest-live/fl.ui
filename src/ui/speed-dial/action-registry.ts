@@ -376,6 +376,34 @@ export async function getLauncherBridgeForSpeedDial(): Promise<LauncherBridgeSpe
     return resolveLauncherBridgeForSpeedDial();
 }
 
+/** Launch a sibling ecosystem APK by SKU (launcher HOME only). */
+export async function launchEcosystemSku(sku: string): Promise<boolean> {
+    const { androidPackageForSku, isCwspSku } = await import(
+        "../../../../subsystem/src/other/config/ecosystem-skus.ts"
+    );
+    if (!isCwspSku(sku)) return false;
+    const pkg = androidPackageForSku(sku);
+    if (!pkg) return false;
+    const bridge = await resolveLauncherBridgeForSpeedDial();
+    if (!bridge?.launcherLaunch) return false;
+    return bridge.launcherLaunch(pkg);
+}
+
+/** On launcher SKU, explorer/viewer/network open sibling APKs instead of in-process views. */
+export async function tryLaunchSiblingView(view: string): Promise<boolean> {
+    try {
+        const { readCwspSku, siblingSkuForView } = await import(
+            "../../../../subsystem/src/other/config/ecosystem-skus.ts"
+        );
+        if (readCwspSku() !== "launcher") return false;
+        const sibling = siblingSkuForView(view);
+        if (!sibling) return false;
+        return launchEcosystemSku(sibling);
+    } catch {
+        return false;
+    }
+}
+
 /** Apply fetched Android icon to a launcher `ui-icon` via resource + presentation mode. */
 export function applyLauncherIconToUiIcon(
     host: HTMLElement,
@@ -803,6 +831,7 @@ const installBuiltins = (): void => {
             showError("No view target");
             return;
         }
+        if (await tryLaunchSiblingView(targetView)) return;
         const viewMaker = context?.viewMaker ?? getSpeedDialViewOpener();
         /*
          * Explicit per-tile / menu Native → new PWA/app window (same as open-link native).

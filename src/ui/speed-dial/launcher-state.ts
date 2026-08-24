@@ -278,8 +278,8 @@ export interface SpeedDialItem {
 const NAVIGATION_SHORTCUTS_ALL = [
     { view: "home", label: "Home", icon: "house-line" },
     { view: "network", label: "Network", icon: "wifi-high" },
-    { view: "viewer", label: "Markdown", icon: "article" },
-    { view: "explorer", label: "Explorer", icon: "books" },
+    { view: "viewer", label: "Markdown", icon: "books" },
+    { view: "explorer", label: "Explorer", icon: "folder" },
     { view: "workcenter", label: "Work Center", icon: "briefcase" },
     { view: "history", label: "History", icon: "clock-counter-clockwise" },
     { view: "settings", label: "Settings", icon: "gear-six" },

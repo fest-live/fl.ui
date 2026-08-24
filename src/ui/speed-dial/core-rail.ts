@@ -5,7 +5,7 @@
  * Reason for changes: Tap outside the open core rail dismisses it.
  */
 
-import { getSpeedDialActionRegistry } from "./action-registry";
+import { getSpeedDialActionRegistry, tryLaunchSiblingView } from "./action-registry";
 import {
     NAVIGATION_SHORTCUTS,
     speedDialItems,
@@ -23,12 +23,29 @@ export type CoreRailView = (typeof CORE_RAIL_VIEWS)[number];
 const isCoreRailView = (view: string): view is CoreRailView =>
     (CORE_RAIL_VIEWS as readonly string[]).includes(view);
 
-export const getCoreRailEntries = (): Array<{ view: string; label: string; icon: string }> =>
-    NAVIGATION_SHORTCUTS.filter((s) => isCoreRailView(String(s.view || ""))).map((s) => ({
+export const getCoreRailEntries = (): Array<{ view: string; label: string; icon: string }> => {
+    try {
+        const sku = String(document.documentElement?.dataset?.cwspSku || "");
+        if (sku === "launcher") {
+            // WHY: launcher APK no longer enables explorer/viewer/network views — rail launches sibling SKUs.
+            return [
+                { view: "apps", label: "Apps", icon: "squares-four" },
+                { view: "explorer", label: "Explorer", icon: "folder" },
+                { view: "viewer", label: "Documents", icon: "books" },
+                { view: "workcenter", label: "Process", icon: "magic-wand" },
+                { view: "network", label: "Transfer", icon: "drone" },
+                { view: "settings", label: "Settings", icon: "gear-six" }
+            ];
+        }
+    } catch {
+        /* tests */
+    }
+    return NAVIGATION_SHORTCUTS.filter((s) => isCoreRailView(String(s.view || ""))).map((s) => ({
         view: String(s.view),
         label: String(s.label || s.view),
         icon: String(s.icon || "sparkle")
     }));
+};
 
 export const isCoreRailOpen = (): boolean => {
     try {
@@ -70,6 +87,13 @@ const runCoreView = (view: string): void => {
             return;
         }
     }
+    void tryLaunchSiblingView(view).then((launched) => {
+        if (launched) return;
+        runCoreViewInProcess(view);
+    });
+};
+
+const runCoreViewInProcess = (view: string): void => {
     const opener = getSpeedDialViewOpener();
     const registry = getSpeedDialActionRegistry();
     const action = registry.get(`open-view-${view}`) || registry.get("open-view");

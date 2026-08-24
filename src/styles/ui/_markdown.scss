@@ -857,6 +857,7 @@ $_h-sizes: (
     /* ── Viewer components (вне markdown-selector) ── */
     .markdown-viewer-content {
         animation: fade-in .3s ease-out;
+        min-block-size: 100%;
     }
 
     .markdown-viewer-raw {

@@ -10,21 +10,24 @@
     .env-shell-app-menu[data-page] .env-shell-app-menu__panel {
         inline-size: 100%;
         block-size: 100%;
-        max-inline-size: none;
-        max-block-size: none;
+        max-inline-size: stretch;
+        max-block-size: stretch;
         border-radius: 0;
         /* WHY: 1fr clamps the grid; panel overflow never fires — scroll on the grid. */
         overflow: hidden;
+        overflow-y: auto !important;
+        overscroll-behavior: contain;
+        touch-action: pan-y;
+        -webkit-overflow-scrolling: touch;
     }
 
     /* WHY: All Apps is a 1fr grid child — without a scrollport, rows squash to fit the viewport. */
     .env-shell-app-menu__panel > .env-shell-app-menu__grid {
         align-self: stretch;
-        block-size: 100%;
-        max-block-size: 100%;
-        min-block-size: 0;
-        overflow-x: hidden;
-        overflow-y: auto;
+        block-size: max-content;
+        max-block-size: max-content;
+        min-block-size: fit-content;
+        overflow: visible;
         overscroll-behavior: contain;
         align-content: start;
         justify-content: start;
@@ -108,7 +111,9 @@
         box-shadow:
             0 20px 48px -20px light-dark(rgba(0, 0, 0, 0.22), rgba(0, 0, 0, 0.45)),
             0 2px 8px -2px light-dark(rgba(0, 0, 0, 0.12), rgba(0, 0, 0, 0.25));
-        overflow: auto;
+        overflow: hidden;
+        overflow-y: auto !important;
+        overscroll-behavior: contain;
         touch-action: pan-y;
         -webkit-overflow-scrolling: touch;
         animation: env-app-menu-in 140ms cubic-bezier(0.22, 0.8, 0.3, 1);
@@ -116,6 +121,8 @@
         backdrop-filter: blur(22px) saturate(1.35);
         -webkit-backdrop-filter: blur(22px) saturate(1.35);
         grid-template-rows: auto auto minmax(0, 1fr);
+        min-block-size: max(60dvb, 60cqb);
+        block-size: fit-content;
     }
 
     /* Win7-style Start: recent | folders/grid */
@@ -138,7 +145,7 @@
         display: flex;
         flex-direction: column;
         gap: 0.4rem;
-        min-block-size: 0;
+        min-block-size: fit-content;
         min-inline-size: 0;
         overflow: auto;
         padding: 0.45rem;
@@ -157,7 +164,7 @@
         display: grid;
         grid-template-rows: auto minmax(0, 1fr);
         gap: 0.4rem;
-        min-block-size: 0;
+        min-block-size: fit-content;
         min-inline-size: 0;
         overflow: hidden;
     }
@@ -215,7 +222,7 @@
             flex-wrap: nowrap;
             gap: 0.2rem;
             overflow: auto;
-            min-block-size: 0;
+            min-block-size: fit-content;
             align-content: start;
             grid-template-columns: none;
         }
@@ -340,6 +347,9 @@
         color: inherit;
         font: 400 0.9rem/1.2 ui-sans-serif, system-ui, sans-serif;
         box-sizing: border-box;
+        position: sticky;
+        inset-block-start: 0;
+        z-index: 99;
     }
 
     .env-shell-app-menu__search[hidden] {
@@ -350,11 +360,13 @@
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(4.5rem, 1fr));
         gap: 0.5rem;
-        min-block-size: 0;
+        min-block-size: fit-content;
         align-content: start;
         grid-auto-rows: max-content;
+        block-size: max-content;
         touch-action: pan-y;
         -webkit-overflow-scrolling: touch;
+        overflow: visible;
     }
 
     .env-shell-app-menu__grid[hidden] {
@@ -366,7 +378,7 @@
         gap: 0.35rem;
         justify-items: center;
         align-content: start;
-        min-block-size: max-content;
+        min-block-size: fit-content;
         flex-shrink: 0;
         padding: 0.45rem 0.25rem;
         border: 0;

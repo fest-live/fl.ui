@@ -389,12 +389,13 @@ export async function launchEcosystemSku(sku: string): Promise<boolean> {
     return bridge.launcherLaunch(pkg);
 }
 
-/** On launcher SKU, explorer/viewer/network open sibling APKs instead of in-process views. */
+/** Native launcher APK only — web `u2re.space` opens explorer/document/process in-process. */
 export async function tryLaunchSiblingView(view: string): Promise<boolean> {
     try {
-        const { readCwspSku, siblingSkuForView } = await import(
+        const { isCwspNativeHost, readCwspSku, siblingSkuForView } = await import(
             "../../../../subsystem/src/other/config/ecosystem-skus.ts"
         );
+        if (!isCwspNativeHost()) return false;
         if (readCwspSku() !== "launcher") return false;
         const sibling = siblingSkuForView(view);
         if (!sibling) return false;

@@ -423,7 +423,9 @@
     padding-inline: var(--ui-win-pad-inline);
     padding-block: 0.35rem;
     background: var(--ui-win-titlebar-bg);
-    border-block-end: 1px solid var(--ui-win-border);
+    /*border-block-end: 1px solid var(--ui-win-border);*/
+    border: 0px none transparent;
+    border-block-end: 0px none transparent;
     cursor: grab;
     user-select: none;
     touch-action: none;

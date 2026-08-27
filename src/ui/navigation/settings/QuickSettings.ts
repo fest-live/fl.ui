@@ -571,12 +571,17 @@ export function isQuickSettingsOpen(): boolean {
 }
 
 Promise.try(() => {
-    if (typeof requestAnimationFrame === "function") requestAnimationFrame(() => {
-        void Promise.try(() => {
-            screen?.orientation?.lock?.("natural");
-        }).catch(console.warn.bind(console));
+    if (typeof requestAnimationFrame !== "function") return;
+    requestAnimationFrame(() => {
+        void Promise.try(async () => {
+            const lock = screen?.orientation?.lock;
+            if (typeof lock !== "function") return;
+            // Desktop CRX / browsers expose lock() but reject with NotSupportedError.
+            const locked = lock.call(screen.orientation, "natural");
+            if (locked && typeof locked.catch === "function") await locked.catch(() => {});
+        }).catch(() => {});
     });
-}).catch(console.warn.bind(console));
+}).catch(() => {});
 
 /* WHY: Cap/Android auto theme must repaint when the system light↔dark flips. */
 try {

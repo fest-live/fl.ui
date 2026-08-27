@@ -1033,11 +1033,28 @@ const hydrateFromOpfs = async (io: LinkStoreIo): Promise<void> => {
     }
 };
 
+const skipLinkStoreOpfs = (): boolean => {
+    try {
+        const sku = String(document.documentElement?.dataset?.cwspSku || "").toLowerCase();
+        if (sku === "document") return true;
+        const host = String(location.hostname || "").toLowerCase();
+        if (/(^|\.)md\.u2re\.space$/.test(host)) return true;
+    } catch { /* no document */ }
+    return false;
+};
+
 const initLinkStore = (): Promise<void> => {
     const boot = linkStoreBoot();
     if (boot.opfsReady) return boot.opfsReady;
     boot.opfsReady = (async () => {
         const ls = getLsLike();
+        // WHY: md.u2re.space / document SKU has no Speed Dial; getDirectory hang
+        // (800ms timeout) was racing markdown FSA bind and spamming the console.
+        if (skipLinkStoreOpfs()) {
+            boot.opfsIo = null;
+            boot.opfsHydrated = true;
+            return;
+        }
         try {
             /* WHY: Cap WebView getDirectory() can hang forever; pin/home must not wait. */
             boot.opfsIo = await Promise.race([

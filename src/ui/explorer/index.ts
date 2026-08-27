@@ -25,6 +25,16 @@ export type { FsBackend, FileEntryLike, EntryKind } from "./fs-backend";
 export { setExplorerStorageApi, isNativeStorageAvailable } from "./storage-bridge";
 export type { ExplorerStorageApi, StorageEntry, AllFilesStatus } from "./storage-bridge";
 export {
+    createChromeDownloadsBackend,
+    DOWNLOADS_ROOT
+} from "./backends/chrome-downloads-backend";
+export {
+    createNeutralinoFsBackend,
+    isNeutralinoFilesystemAvailable,
+    resolveNeutralinoHome,
+    DESKTOP_ROOT
+} from "./backends/neutralino-fs-backend";
+export {
     addDirectoryMount,
     removeDirectoryMount,
     listExplorerMounts,

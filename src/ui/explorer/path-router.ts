@@ -2,7 +2,7 @@
  * Filename: path-router.ts
  * FullPath: modules/projects/fl.ui/src/ui/explorer/path-router.ts
  * Change date and time: 08.45.00_19.08.2026
- * Reason for changes: Register `/bookmarks/` when chrome.bookmarks exists (CRX dual-registry fix).
+ * Reason for changes: Register `/bookmarks/` + `/downloads/` on CRX; `/desktop/` on Neutralino.
  */
 
 import {
@@ -11,7 +11,13 @@ import {
   type FileEntryLike
 } from "./fs-backend.ts";
 import { createChromeBookmarksBackend } from "./backends/chrome-bookmarks-backend.ts";
+import { createChromeDownloadsBackend } from "./backends/chrome-downloads-backend.ts";
 import { createNativeFsBackend } from "./backends/native-fs-backend.ts";
+import {
+    createNeutralinoFsBackend,
+    isNeutralinoFilesystemAvailable,
+    resolveNeutralinoHome
+} from "./backends/neutralino-fs-backend.ts";
 import { ensureMountsRootBackend } from "./mounts.ts";
 import { isNativeStorageAvailable } from "./storage-bridge.ts";
 
@@ -213,6 +219,13 @@ export function ensureDefaultFsBackends(): void {
       if (backend) registerFsBackend(backend);
     }
   }
+  if (!resolveFsBackend("/downloads/")) {
+    const chromeAny: any = (globalThis as any)?.chrome;
+    if (chromeAny?.downloads) {
+      const backend = createChromeDownloadsBackend(chromeAny.downloads);
+      if (backend) registerFsBackend(backend);
+    }
+  }
   /*
    * WHY: /sdcard/ and /saf/ are native-only. PWA mounts live under /mounts/
    * from showDirectoryPicker. Registering here (not only in Operative) keeps
@@ -221,6 +234,17 @@ export function ensureDefaultFsBackends(): void {
   if (isNativeStorageAvailable()) {
     if (!resolveFsBackend("/sdcard/")) registerFsBackend(createNativeFsBackend("/sdcard/"));
     if (!resolveFsBackend("/saf/")) registerFsBackend(createNativeFsBackend("/saf/"));
+  }
+  /*
+   * WHY: Neutralino desktop has no OPFS / SAF. `/desktop/` is the user home tree.
+   * Register async after `os.getPath("home")` so the virtual root appears once ready.
+   */
+  if (isNeutralinoFilesystemAvailable() && !resolveFsBackend("/desktop/")) {
+    void resolveNeutralinoHome().then((home) => {
+      if (!home || resolveFsBackend("/desktop/")) return;
+      const backend = createNeutralinoFsBackend(home);
+      if (backend) registerFsBackend(backend);
+    });
   }
   if (!resolveFsBackend("/mounts/")) ensureMountsRootBackend();
   observeUserFileSystem();

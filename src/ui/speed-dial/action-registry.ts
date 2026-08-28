@@ -26,6 +26,7 @@ import {
     type SpeedDialMetaRegistry
 } from "./launcher-state";
 import { showSuccess, showError } from "./toast";
+import { isLauncherLaunchSpecEmpty, resolveAppLaunchSpec } from "./app-launch";
 import { getSpeedDialViewOpener } from "./view-opener";
 import {
     androidIconCacheKey,
@@ -38,7 +39,11 @@ import {
 
 /** Minimal launcher IPC surface — host registers at boot (Capacitor entry). */
 export type LauncherBridgeSpeedDialApi = {
-    launcherLaunch: (pkg: string, component?: string) => Promise<boolean>;
+    launcherLaunch: (
+        pkg: string,
+        component?: string,
+        launch?: import("./app-launch").LauncherLaunchSpec
+    ) => Promise<boolean>;
     launcherStartShortcut?: (pkg: string, shortcutId: string) => Promise<boolean>;
     launcherShortcutIcon?: (pkg: string, shortcutId: string, size?: number) => Promise<string>;
     launcherOpenUri?: (
@@ -1072,8 +1077,16 @@ const installBuiltins = (): void => {
             showError("Unable to launch app");
             return;
         }
-        const component = String(meta?.componentName || entityDesc?.componentName || "").trim() || undefined;
-        const ok = await bridge.launcherLaunch(pkg, component);
+        const spec = resolveAppLaunchSpec(pkg);
+        const component =
+            spec.componentName ||
+            String(meta?.componentName || entityDesc?.componentName || "").trim() ||
+            undefined;
+        const ok = await bridge.launcherLaunch(
+            pkg,
+            component,
+            isLauncherLaunchSpecEmpty(spec) ? undefined : spec
+        );
         if (!ok) showError("Unable to launch app");
     });
 

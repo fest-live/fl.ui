@@ -1,8 +1,9 @@
 /*
  * Filename: AppMenu.ts
  * FullPath: modules/projects/fl.ui/src/ui/navigation/app-menu/AppMenu.ts
- * Change date and time: 20.50.00_22.08.2026
- * Reason for changes: Empty-surface tap dismisses the full-page All Apps drawer.
+ * FIND:app-menu
+ * Change date and time: 12.21.00_28.08.2026
+ * Reason for changes: Separate App Menu item opens native Android APPLICATION_DETAILS_SETTINGS.
  */
 /**
  * WHY: `.env-shell-app-menu` slide-over host for launcher SKU.
@@ -21,7 +22,21 @@ import {
     tileIconFetchSize,
     type LauncherAppPinPayload
 } from "fl-ui/speed-dial/launcher-state";
-import { showSuccess } from "fl-ui/speed-dial/toast";
+import { showError, showSuccess } from "fl-ui/speed-dial/toast";
+import {
+    isLauncherLaunchSpecEmpty,
+    resolveAppLaunchSpec,
+    type LauncherLaunchSpec
+} from "fl-ui/speed-dial/app-launch";
+import {
+    confirmUninstall,
+    openAppInfoDialog,
+    openAppLaunchEditor,
+    openBookmarkInfoDialog,
+    openBookmarkLaunchEditor,
+    refreshWhenVisible,
+    type LauncherAppInfo
+} from "./app-actions";
 import {
     applyLauncherIconToUiIcon,
     ensureLauncherIconObjectUrl,
@@ -89,7 +104,10 @@ export type LauncherBridgeApi = {
     launcherIsDefault: () => Promise<boolean>;
     launcherRequestDefault: () => Promise<boolean>;
     launcherList: (query?: string) => Promise<LauncherAppEntry[]>;
-    launcherLaunch: (pkg: string, component?: string) => Promise<boolean>;
+    launcherLaunch: (pkg: string, component?: string, launch?: LauncherLaunchSpec) => Promise<boolean>;
+    launcherAppInfo?: (pkg: string) => Promise<LauncherAppInfo | null>;
+    launcherOpenAppInfo?: (pkg: string) => Promise<boolean>;
+    launcherUninstall?: (pkg: string) => Promise<boolean>;
     launcherIcon: (
         cacheKey: string,
         size?: number,
@@ -174,6 +192,7 @@ type TileDragHooks = {
     /** After a successful pin/place — close menu / refresh. Do NOT use for gesture begin. */
     onPinned?: () => void;
     onStartPinsChanged?: () => void;
+    onAppsChanged?: () => void;
 };
 
 function createDragGhost(iconPlate: HTMLElement, label: string): HTMLElement {
@@ -519,6 +538,17 @@ function bindLauncherAppTileDrag(
     );
 }
 
+async function launchListedApp(bridge: LauncherBridgeApi, app: LauncherAppEntry): Promise<void> {
+    const spec = resolveAppLaunchSpec(app.packageName);
+    const component = spec.componentName || app.componentName;
+    const ok = await bridge.launcherLaunch(
+        app.packageName,
+        component,
+        isLauncherLaunchSpecEmpty(spec) ? undefined : spec
+    );
+    if (!ok) showError(`Unable to open “${app.label}”`);
+}
+
 function renderAppTile(
     app: LauncherAppEntry,
     bridge: LauncherBridgeApi,
@@ -530,7 +560,7 @@ function renderAppTile(
     tile.type = "button";
     tile.className = "env-shell-app-menu__tile";
     tile.setAttribute("data-package", app.packageName);
-    tile.title = `${app.label} — right-click: desktop; hold and drag`;
+    tile.title = `${app.label} — right-click: info / uninstall / launch; hold and drag`;
 
     const chromeKey = appMenuChromeKeyForPackage(app.packageName);
     const iconPlate = document.createElement("span");
@@ -633,12 +663,90 @@ function renderAppTile(
                     icon: "arrow-square-out",
                     action: async () => {
                         try {
-                            await bridge.launcherLaunch(app.packageName, app.componentName);
+                            await launchListedApp(bridge, app);
                         } catch {
                             /* ignore */
                         }
                     }
-                }
+                },
+                {
+                    id: "app-info",
+                    label: "App info",
+                    icon: "info",
+                    action: async () => {
+                        let info: LauncherAppInfo | null = null;
+                        try {
+                            info = (await bridge.launcherAppInfo?.(app.packageName)) || null;
+                        } catch {
+                            info = null;
+                        }
+                        openAppInfoDialog({
+                            title: app.label,
+                            fallback: {
+                                packageName: app.packageName,
+                                componentName: app.componentName,
+                                label: app.label
+                            },
+                            info,
+                            onOpenSystem: bridge.launcherOpenAppInfo
+                                ? () => bridge.launcherOpenAppInfo!(app.packageName)
+                                : undefined
+                        });
+                    }
+                },
+                ...(bridge.launcherOpenAppInfo
+                    ? [
+                          {
+                              id: "android-settings",
+                              label: "Android settings",
+                              icon: "gear",
+                              action: async () => {
+                                  try {
+                                      const ok = await bridge.launcherOpenAppInfo!(app.packageName);
+                                      if (!ok) showError(`Cannot open Android settings for “${app.label}”`);
+                                  } catch {
+                                      showError(`Cannot open Android settings for “${app.label}”`);
+                                  }
+                              }
+                          }
+                      ]
+                    : []),
+                {
+                    id: "edit-launch",
+                    label: "Edit launch…",
+                    icon: "sliders",
+                    action: () => {
+                        openAppLaunchEditor({
+                            title: app.label,
+                            packageName: app.packageName,
+                            defaultComponent: app.componentName
+                        });
+                    }
+                },
+                ...(bridge.launcherUninstall
+                    ? [
+                          {
+                              id: "uninstall",
+                              label: "Uninstall",
+                              icon: "trash",
+                              danger: true,
+                              action: async () => {
+                                  if (!confirmUninstall(app.label, "Uninstall")) return;
+                                  try {
+                                      const ok = await bridge.launcherUninstall!(app.packageName);
+                                      if (!ok) {
+                                          showError(`Cannot uninstall “${app.label}”`);
+                                          return;
+                                      }
+                                      showSuccess(`Uninstall started for “${app.label}”`);
+                                      refreshWhenVisible(() => hooks.onAppsChanged?.());
+                                  } catch {
+                                      showError(`Cannot uninstall “${app.label}”`);
+                                  }
+                              }
+                          }
+                      ]
+                    : [])
             ]
         });
     });
@@ -647,7 +755,7 @@ function renderAppTile(
         ev.preventDefault();
         ev.stopPropagation();
         try {
-            await bridge.launcherLaunch(app.packageName, app.componentName);
+            await launchListedApp(bridge, app);
         } catch {
             /* ignore */
         }
@@ -807,7 +915,40 @@ function bindBookmarkTileContextMenu(
                         action: () => {
                             tile.click();
                         }
-                    }
+                    },
+                    {
+                        id: "bm-info",
+                        label: "Info",
+                        icon: "info",
+                        action: () => {
+                            openBookmarkInfoDialog(entry);
+                        }
+                    },
+                    ...(api.remove
+                        ? [
+                              {
+                                  id: "bm-delete",
+                                  label: "Delete folder",
+                                  icon: "trash",
+                                  danger: true,
+                                  action: async () => {
+                                      if (!confirmUninstall(entry.title, "Delete")) return;
+                                      try {
+                                          const ok = await api.remove!(entry);
+                                          if (!ok) {
+                                              showError(`Could not delete “${entry.title}”`);
+                                              return;
+                                          }
+                                          showSuccess(`Deleted “${entry.title}”`);
+                                          unpinBookmarkFromStart(entry.id);
+                                          hooks.onAppsChanged?.();
+                                      } catch {
+                                          showError(`Could not delete “${entry.title}”`);
+                                      }
+                                  }
+                              }
+                          ]
+                        : [])
                 ]
             });
             return;
@@ -900,7 +1041,56 @@ function bindBookmarkTileContextMenu(
                             /* ignore */
                         }
                     }
-                }
+                },
+                {
+                    id: "bm-info",
+                    label: "Info",
+                    icon: "info",
+                    action: () => {
+                        openBookmarkInfoDialog(entry);
+                    }
+                },
+                ...(api.update && !entry.folder
+                    ? [
+                          {
+                              id: "bm-edit",
+                              label: "Edit launch…",
+                              icon: "sliders",
+                              action: () => {
+                                  openBookmarkLaunchEditor({
+                                      entry,
+                                      api,
+                                      onSaved: () => hooks.onAppsChanged?.()
+                                  });
+                              }
+                          }
+                      ]
+                    : []),
+                ...(api.remove
+                    ? [
+                          {
+                              id: "bm-delete",
+                              label: entry.folder ? "Delete folder" : "Delete",
+                              icon: "trash",
+                              danger: true,
+                              action: async () => {
+                                  if (!confirmUninstall(entry.title, "Delete")) return;
+                                  try {
+                                      const ok = await api.remove!(entry);
+                                      if (!ok) {
+                                          showError(`Could not delete “${entry.title}”`);
+                                          return;
+                                      }
+                                      showSuccess(`Deleted “${entry.title}”`);
+                                      unpinBookmarkFromStart(entry.id);
+                                      hooks.onAppsChanged?.();
+                                  } catch {
+                                      showError(`Could not delete “${entry.title}”`);
+                                  }
+                              }
+                          }
+                      ]
+                    : [])
             ]
         });
     });
@@ -919,7 +1109,7 @@ function renderBookmarkTile(
     if (entry.folder) tile.setAttribute("data-folder", "");
     tile.title = entry.folder
         ? `${entry.title} — open folder`
-        : `${entry.title} — right-click: desktop / pin; hold to drag`;
+        : `${entry.title} — right-click: info / edit / delete; hold to drag`;
 
     const chromeKey = appMenuChromeKeyForBookmark(entry.id);
     const iconPlate = document.createElement("span");
@@ -1168,6 +1358,9 @@ export function mountEnvironmentAppMenu(): MountAppMenuResult {
             close();
         },
         onStartPinsChanged: () => {
+            void refresh();
+        },
+        onAppsChanged: () => {
             void refresh();
         }
     };

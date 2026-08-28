@@ -10,7 +10,7 @@
 function isAppMenuEnabled(): boolean;
 ```
 
-Defined in: fl.ui/src/ui/navigation/app-menu/AppMenu.ts:132
+Defined in: fl.ui/src/ui/navigation/app-menu/AppMenu.ts:150
 
 App Menu mounts for Android launcher SKU or CRX bookmarks Start.
 

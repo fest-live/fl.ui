@@ -10,7 +10,7 @@
 function createChromeBookmarksMenuApi(raw?): BookmarksMenuApi | null;
 ```
 
-Defined in: fl.ui/src/ui/navigation/app-menu/bookmarks-menu.ts:134
+Defined in: fl.ui/src/ui/navigation/app-menu/bookmarks-menu.ts:139
 
 Build BookmarksMenuApi from `chrome.bookmarks` (CRX extension pages).
 

@@ -10,7 +10,7 @@
 function setLauncherBridgeForAppMenu(api): void;
 ```
 
-Defined in: fl.ui/src/ui/navigation/app-menu/AppMenu.ts:116
+Defined in: fl.ui/src/ui/navigation/app-menu/AppMenu.ts:134
 
 Host may inject launcher IPC when `com/routing/native/launcher-bridge` is unavailable to fl.ui.
 

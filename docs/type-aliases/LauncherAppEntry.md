@@ -10,4 +10,4 @@
 type LauncherAppEntry = LauncherAppPinPayload;
 ```
 
-Defined in: fl.ui/src/ui/navigation/app-menu/AppMenu.ts:86
+Defined in: fl.ui/src/ui/navigation/app-menu/AppMenu.ts:101

@@ -10,7 +10,7 @@
 function buildLauncherAppDragEnvelope(app): string;
 ```
 
-Defined in: fl.ui/src/ui/speed-dial/launcher-state.ts:1800
+Defined in: fl.ui/src/ui/speed-dial/launcher-state.ts:1817
 
 JSON drag envelope for AppMenu → SpeedDial (launcher design spec).
 

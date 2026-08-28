@@ -10,7 +10,7 @@
 function hasBookmarksMenuApi(): boolean;
 ```
 
-Defined in: fl.ui/src/ui/navigation/app-menu/bookmarks-menu.ts:221
+Defined in: fl.ui/src/ui/navigation/app-menu/bookmarks-menu.ts:255
 
 ## Returns
 

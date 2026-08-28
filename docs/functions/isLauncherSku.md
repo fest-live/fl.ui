@@ -10,7 +10,7 @@
 function isLauncherSku(): boolean;
 ```
 
-Defined in: fl.ui/src/ui/navigation/app-menu/AppMenu.ts:124
+Defined in: fl.ui/src/ui/navigation/app-menu/AppMenu.ts:142
 
 Matches BootLoader + launcher design spec.
 

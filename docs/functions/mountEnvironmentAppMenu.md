@@ -10,7 +10,7 @@
 function mountEnvironmentAppMenu(): MountAppMenuResult;
 ```
 
-Defined in: fl.ui/src/ui/navigation/app-menu/AppMenu.ts:997
+Defined in: fl.ui/src/ui/navigation/app-menu/AppMenu.ts:1187
 
 Mount `.env-shell-app-menu` beside the shell chrome.
 Launcher SKU → Android apps grid; CRX bookmarks API → Win7-style Start (recent | folders).

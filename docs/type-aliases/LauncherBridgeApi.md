@@ -10,9 +10,29 @@
 type LauncherBridgeApi = object;
 ```
 
-Defined in: fl.ui/src/ui/navigation/app-menu/AppMenu.ts:88
+Defined in: fl.ui/src/ui/navigation/app-menu/AppMenu.ts:103
 
 ## Properties
+
+### launcherAppInfo?
+
+```ts
+optional launcherAppInfo?: (pkg) => Promise<LauncherAppInfo | null>;
+```
+
+Defined in: fl.ui/src/ui/navigation/app-menu/AppMenu.ts:108
+
+#### Parameters
+
+##### pkg
+
+`string`
+
+#### Returns
+
+`Promise`\<`LauncherAppInfo` \| `null`\>
+
+***
 
 ### launcherIcon
 
@@ -20,7 +40,7 @@ Defined in: fl.ui/src/ui/navigation/app-menu/AppMenu.ts:88
 launcherIcon: (cacheKey, size?, variant?, pack?, drawable?) => Promise<string>;
 ```
 
-Defined in: fl.ui/src/ui/navigation/app-menu/AppMenu.ts:93
+Defined in: fl.ui/src/ui/navigation/app-menu/AppMenu.ts:111
 
 #### Parameters
 
@@ -56,7 +76,7 @@ Defined in: fl.ui/src/ui/navigation/app-menu/AppMenu.ts:93
 optional launcherIconPackIcons?: (pack, query?, limit?) => Promise<object[]>;
 ```
 
-Defined in: fl.ui/src/ui/navigation/app-menu/AppMenu.ts:106
+Defined in: fl.ui/src/ui/navigation/app-menu/AppMenu.ts:124
 
 #### Parameters
 
@@ -84,7 +104,7 @@ Defined in: fl.ui/src/ui/navigation/app-menu/AppMenu.ts:106
 optional launcherIconPacks?: () => Promise<object[]>;
 ```
 
-Defined in: fl.ui/src/ui/navigation/app-menu/AppMenu.ts:103
+Defined in: fl.ui/src/ui/navigation/app-menu/AppMenu.ts:121
 
 #### Returns
 
@@ -98,7 +118,7 @@ Defined in: fl.ui/src/ui/navigation/app-menu/AppMenu.ts:103
 optional launcherIconVariants?: (cacheKey) => Promise<object[]>;
 ```
 
-Defined in: fl.ui/src/ui/navigation/app-menu/AppMenu.ts:100
+Defined in: fl.ui/src/ui/navigation/app-menu/AppMenu.ts:118
 
 #### Parameters
 
@@ -118,7 +138,7 @@ Defined in: fl.ui/src/ui/navigation/app-menu/AppMenu.ts:100
 launcherIsDefault: () => Promise<boolean>;
 ```
 
-Defined in: fl.ui/src/ui/navigation/app-menu/AppMenu.ts:89
+Defined in: fl.ui/src/ui/navigation/app-menu/AppMenu.ts:104
 
 #### Returns
 
@@ -129,10 +149,10 @@ Defined in: fl.ui/src/ui/navigation/app-menu/AppMenu.ts:89
 ### launcherLaunch
 
 ```ts
-launcherLaunch: (pkg, component?) => Promise<boolean>;
+launcherLaunch: (pkg, component?, launch?) => Promise<boolean>;
 ```
 
-Defined in: fl.ui/src/ui/navigation/app-menu/AppMenu.ts:92
+Defined in: fl.ui/src/ui/navigation/app-menu/AppMenu.ts:107
 
 #### Parameters
 
@@ -143,6 +163,10 @@ Defined in: fl.ui/src/ui/navigation/app-menu/AppMenu.ts:92
 ##### component?
 
 `string`
+
+##### launch?
+
+`LauncherLaunchSpec`
 
 #### Returns
 
@@ -156,7 +180,7 @@ Defined in: fl.ui/src/ui/navigation/app-menu/AppMenu.ts:92
 launcherList: (query?) => Promise<LauncherAppEntry[]>;
 ```
 
-Defined in: fl.ui/src/ui/navigation/app-menu/AppMenu.ts:91
+Defined in: fl.ui/src/ui/navigation/app-menu/AppMenu.ts:106
 
 #### Parameters
 
@@ -170,13 +194,53 @@ Defined in: fl.ui/src/ui/navigation/app-menu/AppMenu.ts:91
 
 ***
 
+### launcherOpenAppInfo?
+
+```ts
+optional launcherOpenAppInfo?: (pkg) => Promise<boolean>;
+```
+
+Defined in: fl.ui/src/ui/navigation/app-menu/AppMenu.ts:109
+
+#### Parameters
+
+##### pkg
+
+`string`
+
+#### Returns
+
+`Promise`\<`boolean`\>
+
+***
+
 ### launcherRequestDefault
 
 ```ts
 launcherRequestDefault: () => Promise<boolean>;
 ```
 
-Defined in: fl.ui/src/ui/navigation/app-menu/AppMenu.ts:90
+Defined in: fl.ui/src/ui/navigation/app-menu/AppMenu.ts:105
+
+#### Returns
+
+`Promise`\<`boolean`\>
+
+***
+
+### launcherUninstall?
+
+```ts
+optional launcherUninstall?: (pkg) => Promise<boolean>;
+```
+
+Defined in: fl.ui/src/ui/navigation/app-menu/AppMenu.ts:110
+
+#### Parameters
+
+##### pkg
+
+`string`
 
 #### Returns
 

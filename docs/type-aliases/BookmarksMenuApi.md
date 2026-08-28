@@ -54,6 +54,26 @@ Defined in: fl.ui/src/ui/navigation/app-menu/bookmarks-menu.ts:49
 
 ***
 
+### remove?
+
+```ts
+optional remove?: (entry) => Promise<boolean>;
+```
+
+Defined in: fl.ui/src/ui/navigation/app-menu/bookmarks-menu.ts:52
+
+#### Parameters
+
+##### entry
+
+[`BookmarkMenuEntry`](BookmarkMenuEntry.md)
+
+#### Returns
+
+`Promise`\<`boolean`\>
+
+***
+
 ### resolveIconUrl?
 
 ```ts
@@ -97,3 +117,33 @@ Defined in: fl.ui/src/ui/navigation/app-menu/bookmarks-menu.ts:48
 #### Returns
 
 `Promise`\<[`BookmarkMenuEntry`](BookmarkMenuEntry.md)[]\>
+
+***
+
+### update?
+
+```ts
+optional update?: (id, patch) => Promise<BookmarkMenuEntry | null>;
+```
+
+Defined in: fl.ui/src/ui/navigation/app-menu/bookmarks-menu.ts:53
+
+#### Parameters
+
+##### id
+
+`string`
+
+##### patch
+
+###### title?
+
+`string`
+
+###### url?
+
+`string`
+
+#### Returns
+
+`Promise`\<[`BookmarkMenuEntry`](BookmarkMenuEntry.md) \| `null`\>

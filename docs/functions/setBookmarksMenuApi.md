@@ -10,7 +10,7 @@
 function setBookmarksMenuApi(api): void;
 ```
 
-Defined in: fl.ui/src/ui/navigation/app-menu/bookmarks-menu.ts:61
+Defined in: fl.ui/src/ui/navigation/app-menu/bookmarks-menu.ts:63
 
 ## Parameters
 

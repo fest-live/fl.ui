@@ -10,7 +10,7 @@
 function resolveAppMenuMode(): AppMenuMode | null;
 ```
 
-Defined in: fl.ui/src/ui/navigation/app-menu/AppMenu.ts:138
+Defined in: fl.ui/src/ui/navigation/app-menu/AppMenu.ts:156
 
 ## Returns
 

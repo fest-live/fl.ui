@@ -10,4 +10,4 @@
 type AppMenuMode = "launcher" | "bookmarks";
 ```
 
-Defined in: fl.ui/src/ui/navigation/app-menu/AppMenu.ts:136
+Defined in: fl.ui/src/ui/navigation/app-menu/AppMenu.ts:154

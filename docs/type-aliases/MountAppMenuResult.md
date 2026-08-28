@@ -10,7 +10,7 @@
 type MountAppMenuResult = object;
 ```
 
-Defined in: fl.ui/src/ui/navigation/app-menu/AppMenu.ts:981
+Defined in: fl.ui/src/ui/navigation/app-menu/AppMenu.ts:1171
 
 ## Properties
 
@@ -20,7 +20,7 @@ Defined in: fl.ui/src/ui/navigation/app-menu/AppMenu.ts:981
 close: () => void;
 ```
 
-Defined in: fl.ui/src/ui/navigation/app-menu/AppMenu.ts:987
+Defined in: fl.ui/src/ui/navigation/app-menu/AppMenu.ts:1177
 
 #### Returns
 
@@ -34,7 +34,7 @@ Defined in: fl.ui/src/ui/navigation/app-menu/AppMenu.ts:987
 dispose: () => void;
 ```
 
-Defined in: fl.ui/src/ui/navigation/app-menu/AppMenu.ts:990
+Defined in: fl.ui/src/ui/navigation/app-menu/AppMenu.ts:1180
 
 #### Returns
 
@@ -48,7 +48,7 @@ Defined in: fl.ui/src/ui/navigation/app-menu/AppMenu.ts:990
 element: HTMLElement;
 ```
 
-Defined in: fl.ui/src/ui/navigation/app-menu/AppMenu.ts:982
+Defined in: fl.ui/src/ui/navigation/app-menu/AppMenu.ts:1172
 
 ***
 
@@ -58,7 +58,7 @@ Defined in: fl.ui/src/ui/navigation/app-menu/AppMenu.ts:982
 isOpen: () => boolean;
 ```
 
-Defined in: fl.ui/src/ui/navigation/app-menu/AppMenu.ts:988
+Defined in: fl.ui/src/ui/navigation/app-menu/AppMenu.ts:1178
 
 #### Returns
 
@@ -72,7 +72,7 @@ Defined in: fl.ui/src/ui/navigation/app-menu/AppMenu.ts:988
 open: () => void;
 ```
 
-Defined in: fl.ui/src/ui/navigation/app-menu/AppMenu.ts:984
+Defined in: fl.ui/src/ui/navigation/app-menu/AppMenu.ts:1174
 
 #### Returns
 
@@ -86,7 +86,7 @@ Defined in: fl.ui/src/ui/navigation/app-menu/AppMenu.ts:984
 openPage: () => void;
 ```
 
-Defined in: fl.ui/src/ui/navigation/app-menu/AppMenu.ts:986
+Defined in: fl.ui/src/ui/navigation/app-menu/AppMenu.ts:1176
 
 Full-page Apps surface (same drawer, page chrome).
 
@@ -102,7 +102,7 @@ Full-page Apps surface (same drawer, page chrome).
 refresh: () => Promise<void>;
 ```
 
-Defined in: fl.ui/src/ui/navigation/app-menu/AppMenu.ts:989
+Defined in: fl.ui/src/ui/navigation/app-menu/AppMenu.ts:1179
 
 #### Returns
 
@@ -116,7 +116,7 @@ Defined in: fl.ui/src/ui/navigation/app-menu/AppMenu.ts:989
 toggle: () => void;
 ```
 
-Defined in: fl.ui/src/ui/navigation/app-menu/AppMenu.ts:983
+Defined in: fl.ui/src/ui/navigation/app-menu/AppMenu.ts:1173
 
 #### Returns
 

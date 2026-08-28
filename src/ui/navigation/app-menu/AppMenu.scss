@@ -19,6 +19,7 @@
         overscroll-behavior: contain;
         touch-action: pan-y;
         -webkit-overflow-scrolling: touch;
+        pointer-events: auto;
     }
 
     /* WHY: All Apps is a 1fr grid child — without a scrollport, rows squash to fit the viewport. */
@@ -54,7 +55,7 @@
         justify-items: start;
         padding: 0.5rem;
         padding-inline-start: max(0.5rem, env(safe-area-inset-left, 0px));
-        pointer-events: none;
+        pointer-events: auto;
         box-sizing: border-box;
         /* WHY: match TaskBar — light-dark() follows used color-scheme (QS/Theme pin). */
         color-scheme: inherit;
@@ -367,6 +368,7 @@
         touch-action: pan-y;
         -webkit-overflow-scrolling: touch;
         overflow: visible;
+        pointer-events: auto;
     }
 
     .env-shell-app-menu__grid[hidden] {

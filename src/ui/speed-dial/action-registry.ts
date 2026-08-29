@@ -401,7 +401,8 @@ export async function tryLaunchSiblingView(view: string): Promise<boolean> {
             "../../../../subsystem/src/other/config/ecosystem-skus.ts"
         );
         if (!isCwspNativeHost()) return false;
-        if (readCwspSku() !== "launcher") return false;
+        const sku = readCwspSku();
+        if (sku !== "launcher" && sku !== "explorer") return false;
         const sibling = siblingSkuForView(view);
         if (!sibling) return false;
         return launchEcosystemSku(sibling);
@@ -409,6 +410,21 @@ export async function tryLaunchSiblingView(view: string): Promise<boolean> {
         return false;
     }
 }
+
+const viewIdForLinkTarget = (target: string): string => {
+    if (target === "document") return "viewer";
+    if (target === "transfer") return "network";
+    return target;
+};
+
+/** Launch CWSP-document / process / transfer / explorer APK when the tile asks for that SKU. */
+const tryLaunchLinkTargetSku = async (target: string): Promise<boolean> => {
+    if (target === "viewer") return false;
+    if (target === "document") return tryLaunchSiblingView("viewer");
+    if (target === "transfer") return tryLaunchSiblingView("network");
+    if (target === "workcenter" || target === "explorer") return tryLaunchSiblingView(target);
+    return false;
+};
 
 /** Apply fetched Android icon to a launcher `ui-icon` via resource + presentation mode. */
 export function applyLauncherIconToUiIcon(
@@ -849,6 +865,17 @@ const installBuiltins = (): void => {
                 : meta?.openLinkTarget != null && String(meta.openLinkTarget).trim()
                   ? normalizeOpenLinkTarget(meta.openLinkTarget)
                   : "inline";
+        if (
+            linkTarget === "viewer" ||
+            linkTarget === "document" ||
+            linkTarget === "explorer" ||
+            linkTarget === "workcenter" ||
+            linkTarget === "transfer"
+        ) {
+            if (await tryLaunchLinkTargetSku(linkTarget)) return;
+            ensureHashNavigation(viewIdForLinkTarget(linkTarget), viewMaker, {});
+            return;
+        }
         if (linkTarget === "native-window") {
             const href = buildSpeedDialViewPathHref(targetView, true, { native: true });
             if (!href) {
@@ -942,6 +969,44 @@ const installBuiltins = (): void => {
                 return false;
             }
         };
+
+        if (
+            linkTarget === "viewer" ||
+            linkTarget === "document" ||
+            linkTarget === "explorer" ||
+            linkTarget === "workcenter" ||
+            linkTarget === "transfer"
+        ) {
+            const src = externalHref || normalizeSpeedDialOpenHref(String(raw || ""));
+            const viewId = viewIdForLinkTarget(linkTarget);
+            if (src) {
+                try {
+                    const { stashSkuHandoff } = await import(
+                        "../../../../subsystem/src/other/config/ecosystem-skus.ts"
+                    );
+                    stashSkuHandoff({ dest: viewId, src, filename: String(item?.label || "") });
+                } catch {
+                    /* web / no session */
+                }
+            }
+            if (await tryLaunchLinkTargetSku(linkTarget)) return;
+            if (typeof opener === "function") {
+                try {
+                    opener(viewId, {
+                        src,
+                        url: src,
+                        href: src,
+                        path: src,
+                        filename: String(item?.label || meta?.description || "")
+                    });
+                    return;
+                } catch (e) {
+                    console.warn("[speed-dial] view-sink open failed", e);
+                }
+            }
+            ensureHashNavigation(viewId, opener, { src, url: src, href: src, path: src });
+            return;
+        }
 
         /* Android/Cap: system chooser (Chrome, YouTube, …). Web → new tab. */
         if (linkTarget === "external-app") {

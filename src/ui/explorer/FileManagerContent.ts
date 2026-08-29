@@ -1,8 +1,8 @@
 /*
  * Filename: FileManagerContent.ts
  * FullPath: modules/projects/fl.ui/src/ui/explorer/FileManagerContent.ts
- * Change date and time: 01.15.00_29.07.2026
- * Reason for changes: Bind drop inside shadowRoot (DragEvent is not composed) and keep list rows in sync.
+ * Change date and time: 22.30.00_29.08.2026
+ * Reason for changes: List rows honor Explorer sort prefs (name / date / type / size).
  */
 
 import { property, defineElement, H, bindWith, initGlobalClipboard } from "@fest-lib/lure";
@@ -21,6 +21,7 @@ import { createItemCtxMenu } from "./ContextMenu";
 
 //
 import { entryKey, entryKind, iconFor, formatDate, formatSize } from "./utils";
+import { EXPLORER_SORT_EVENT, peekExplorerSort, sortExplorerEntries } from "./entry-sort";
 import { resolveEntryIcon } from "./fs-backend.ts";
 
 //
@@ -160,6 +161,7 @@ export class FileManagerContent extends UIElement {
         this.operativeInstance ??= new FileOperative();
         this.operativeInstance.host = this as any;
         this.addEventListener("entries-updated", () => this.syncRows());
+        addEvent(window, EXPLORER_SORT_EVENT, () => this.syncRows());
         // WHY: bookmarks ingress rejects (file bytes dropped/pasted/uploaded
         // into `/bookmarks/**`) are dispatched on the operative's host. Surface
         // them as a console warning + a lightweight toast so the user sees the
@@ -234,12 +236,7 @@ export class FileManagerContent extends UIElement {
 
         // WHY: Filesystem enumeration order is not stable across OPFS/FSA backends.
         // Sorting once here keeps visual order and row identity deterministic.
-        const safeEntries = Array.from(uniqueEntries.values()).sort((left, right) => {
-            const kindOrder = Number(entryKind(left) === "file") - Number(entryKind(right) === "file");
-            return kindOrder
-                || left.name.localeCompare(right.name, undefined, { numeric: true, sensitivity: "base" })
-                || left.name.localeCompare(right.name);
-        });
+        const safeEntries = sortExplorerEntries(Array.from(uniqueEntries.values()), peekExplorerSort());
 
         rows.replaceChildren();
         const fragment = document.createDocumentFragment();

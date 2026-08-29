@@ -123,9 +123,20 @@ export interface SpeedDialItemMeta {
  * - `inline` — same tab, floating `ui-window` (app views or iframe for http(s))
  * - `new-tab` — ordinary browser **tab** (`target=_blank`) for http(s)/www or app URL
  * - `external-app` — Android/Cap: ACTION_VIEW chooser (Chrome, YouTube, …); web: same as new-tab
+ * - `viewer` — Markdown in this shell
+ * - `document` / `explorer` / `workcenter` / `transfer` — sibling CWSP SKU (or in-process view)
  * COMPAT: persisted `in-shell` → `inline`. Literal `new-tab` is the browser-tab mode again.
  */
-export type OpenLinkTarget = "native-window" | "inline" | "new-tab" | "external-app";
+export type OpenLinkTarget =
+    | "native-window"
+    | "inline"
+    | "new-tab"
+    | "external-app"
+    | "viewer"
+    | "document"
+    | "explorer"
+    | "workcenter"
+    | "transfer";
 
 const OPEN_LINK_TARGET_KEY = "rs-open-link-target";
 
@@ -156,6 +167,11 @@ export const normalizeOpenLinkTarget = (raw: unknown): OpenLinkTarget => {
     ) {
         return "external-app";
     }
+    if (v === "viewer" || v === "markdown") return "viewer";
+    if (v === "document" || v === "cwsp-document") return "document";
+    if (v === "explorer" || v === "files") return "explorer";
+    if (v === "workcenter" || v === "process" || v === "cwsp-process") return "workcenter";
+    if (v === "transfer" || v === "cwsp" || v === "cwsp-transfer" || v === "network") return "transfer";
     if (v === "native-window" || v === "native" || v === "window" || v === "app-window") {
         return "native-window";
     }

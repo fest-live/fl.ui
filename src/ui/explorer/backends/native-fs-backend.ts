@@ -6,7 +6,7 @@
  */
 
 import { normalizeVirtualPath, type FileEntryLike, type FsBackend } from "../fs-backend.ts";
-import { listNativeStorage, type StorageEntry } from "../storage-bridge.ts";
+import { listNativeStorage, readNativeStorageFile, type StorageEntry } from "../storage-bridge.ts";
 
 const toEntries = (path: string, rows: StorageEntry[]): FileEntryLike[] => {
     const base = normalizeVirtualPath(path, true);
@@ -30,5 +30,8 @@ export const createNativeFsBackend = (root: "/sdcard/" | "/saf/"): FsBackend => 
         const rel = normalizeVirtualPath(path, true).slice(root.length - 1) || "/";
         const rows = await listNativeStorage(root === "/saf/" ? "saf" : "sdcard", rel);
         return toEntries(path, rows);
+    },
+    async readFile(path: string) {
+        return readNativeStorageFile(path);
     }
 });

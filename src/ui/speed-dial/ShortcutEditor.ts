@@ -250,7 +250,12 @@ export const openShortcutEditor = (options: ShortcutEditorOptions): void => {
                     <label for="sd-edit-open-target">Open link in</label>
                     <select id="sd-edit-open-target" name="openLinkTarget">
                         <option value="inline">Open Inline (iframe window, same tab)</option>
-                        <option value="external-app">Open in app (Android chooser)</option>
+                        <option value="external-app">Android / system chooser</option>
+                        <option value="viewer">Markdown (in this app)</option>
+                        <option value="document">CWSP-document</option>
+                        <option value="explorer">CWSP-explorer</option>
+                        <option value="workcenter">CWSP-process</option>
+                        <option value="transfer">CWSP-transfer</option>
                         <option value="native-window">Native window (new browser window)</option>
                         <option value="new-tab">Open in new tab</option>
                     </select>
@@ -388,7 +393,17 @@ export const openShortcutEditor = (options: ShortcutEditorOptions): void => {
                       olt === "open-with" ||
                       olt === "open-in-app"
                     ? "external-app"
-                    : "inline";
+                    : olt === "viewer" || olt === "markdown"
+                      ? "viewer"
+                      : olt === "document" || olt === "cwsp-document"
+                        ? "document"
+                        : olt === "explorer" || olt === "files"
+                          ? "explorer"
+                          : olt === "workcenter" || olt === "process"
+                            ? "workcenter"
+                            : olt === "transfer" || olt === "cwsp" || olt === "network"
+                              ? "transfer"
+                              : "inline";
     }
     if (hrefInput) {
         fillTextControl(hrefInput, hrefValue);
@@ -410,7 +425,8 @@ export const openShortcutEditor = (options: ShortcutEditorOptions): void => {
         if (hrefField) hrefField.hidden = !isHrefAction(action) || widgetOn;
         /* Show target mode for Open link (and when Open view also exposes Link). */
         if (openLinkTargetField) {
-            openLinkTargetField.hidden = widgetOn || !(action === "open-link" || isHrefAction(action));
+            openLinkTargetField.hidden =
+                widgetOn || !(action === "open-link" || action === "open-view" || isHrefAction(action));
         }
         const toggleField = (node: HTMLElement | null, show: boolean): void => {
             if (!node) return;
@@ -540,6 +556,11 @@ export const openShortcutEditor = (options: ShortcutEditorOptions): void => {
                 ) {
                     return "external-app";
                 }
+                if (v === "viewer" || v === "markdown") return "viewer";
+                if (v === "document" || v === "cwsp-document") return "document";
+                if (v === "explorer" || v === "files") return "explorer";
+                if (v === "workcenter" || v === "process") return "workcenter";
+                if (v === "transfer" || v === "cwsp" || v === "network") return "transfer";
                 return "inline";
             })()
         });

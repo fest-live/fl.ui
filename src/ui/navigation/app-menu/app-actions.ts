@@ -3,8 +3,9 @@
  * FullPath: modules/projects/fl.ui/src/ui/navigation/app-menu/app-actions.ts
  * FIND:app-menu
  * TAG:sku
- * Change date and time: 12.10.00_28.08.2026
- * Reason for changes: App Menu dialogs — app info, uninstall confirm, edit launch / bookmark URL.
+ * FIND:bookmarks
+ * Change date and time: 22.50.00_29.08.2026
+ * Reason for changes: App Menu dialogs — app info, uninstall confirm, edit launch / Chrome bookmark fields.
  */
 
 import { showError, showSuccess } from "fl-ui/speed-dial/toast";
@@ -16,7 +17,12 @@ import {
     setAppLaunchSpec,
     type LauncherLaunchSpec
 } from "fl-ui/speed-dial/app-launch";
-import type { BookmarkMenuEntry, BookmarksMenuApi } from "./bookmarks-menu";
+import {
+    normalizeBookmarkHref,
+    syncStoredBookmark,
+    type BookmarkMenuEntry,
+    type BookmarksMenuApi
+} from "./bookmarks-menu";
 
 export type LauncherAppInfo = {
     packageName?: string;
@@ -361,63 +367,122 @@ export function openBookmarkInfoDialog(entry: BookmarkMenuEntry): void {
     });
 }
 
+export type BookmarkFields = {
+    title: string;
+    url?: string;
+};
+
+export function openBookmarkFieldsDialog(opts: {
+    heading: string;
+    description?: string;
+    initialTitle?: string;
+    initialUrl?: string;
+    showUrl?: boolean;
+    submitLabel?: string;
+}): Promise<BookmarkFields | null> {
+    const showUrl = opts.showUrl !== false;
+    return new Promise((resolve) => {
+        let settled = false;
+        const modal = openEditorDialog(`
+        <form class="speed-dial-editor__form" autocomplete="off">
+            <header class="modal-header">
+                <h2 class="modal-title">${esc(opts.heading)}</h2>
+                ${opts.description ? `<p class="modal-description">${esc(opts.description)}</p>` : ""}
+            </header>
+            <div class="modal-fields">
+                <div class="modal-field">
+                    <label for="am-bm-title">Title</label>
+                    <input id="am-bm-title" name="title" type="text" value="${esc(opts.initialTitle || "")}" />
+                </div>
+                ${
+                    showUrl
+                        ? `<div class="modal-field">
+                    <label for="am-bm-url">URL</label>
+                    <input id="am-bm-url" name="url" type="url" value="${esc(opts.initialUrl || "")}" placeholder="https://" />
+                </div>`
+                        : ""
+                }
+            </div>
+            <div class="modal-actions" role="group">
+                <span></span>
+                <button type="button" data-action="cancel" class="btn secondary">Cancel</button>
+                <button type="submit" class="btn save">${esc(opts.submitLabel || "Save")}</button>
+            </div>
+        </form>
+    `);
+        const close = (modal as HTMLDialogElement & { __cwspClose?: () => void }).__cwspClose;
+        const finish = (value: BookmarkFields | null): void => {
+            if (settled) return;
+            settled = true;
+            close?.();
+            resolve(value);
+        };
+        const form = modal.querySelector("form");
+        form?.addEventListener("click", (ev) => {
+            const action = (ev.target as HTMLElement | null)?.closest?.("[data-action]")?.getAttribute("data-action");
+            if (action === "cancel") {
+                ev.preventDefault();
+                finish(null);
+            }
+        });
+        modal.addEventListener("cancel", () => finish(null));
+        form?.addEventListener("submit", (ev) => {
+            ev.preventDefault();
+            const title = String(
+                (modal.querySelector('[name="title"]') as HTMLInputElement | null)?.value || ""
+            ).trim();
+            if (!title) {
+                showError("Title is required");
+                return;
+            }
+            if (!showUrl) {
+                finish({ title });
+                return;
+            }
+            const href = normalizeBookmarkHref(
+                (modal.querySelector('[name="url"]') as HTMLInputElement | null)?.value || ""
+            );
+            if (!href) {
+                showError("URL is required");
+                return;
+            }
+            finish({ title, url: href });
+        });
+    });
+}
+
 export function openBookmarkLaunchEditor(opts: {
     entry: BookmarkMenuEntry;
     api: BookmarksMenuApi;
     onSaved?: (entry: BookmarkMenuEntry) => void;
 }): void {
     const entry = opts.entry;
-    const modal = openEditorDialog(`
-        <form class="speed-dial-editor__form" autocomplete="off">
-            <header class="modal-header">
-                <h2 class="modal-title">Edit launch</h2>
-                <p class="modal-description">${esc(entry.title)} — title and URL</p>
-            </header>
-            <div class="modal-fields">
-                <div class="modal-field">
-                    <label for="am-bm-title">Title</label>
-                    <input id="am-bm-title" name="title" type="text" value="${esc(entry.title)}" />
-                </div>
-                <div class="modal-field">
-                    <label for="am-bm-url">URL</label>
-                    <input id="am-bm-url" name="url" type="text" value="${esc(entry.url || "")}" />
-                </div>
-            </div>
-            <div class="modal-actions" role="group">
-                <span></span>
-                <button type="button" data-action="cancel" class="btn secondary">Cancel</button>
-                <button type="submit" class="btn save">Save</button>
-            </div>
-        </form>
-    `);
-    const close = (modal as HTMLDialogElement & { __cwspClose?: () => void }).__cwspClose;
-    const form = modal.querySelector("form");
-    form?.addEventListener("click", (ev) => {
-        const action = (ev.target as HTMLElement | null)?.closest?.("[data-action]")?.getAttribute("data-action");
-        if (action === "cancel") {
-            ev.preventDefault();
-            close?.();
+    void (async () => {
+        const fields = await openBookmarkFieldsDialog({
+            heading: entry.folder ? "Rename folder" : "Edit bookmark",
+            description: entry.folder ? entry.title : `${entry.title} — Chrome bookmark`,
+            initialTitle: entry.title,
+            initialUrl: entry.url || "",
+            showUrl: !entry.folder,
+            submitLabel: "Save"
+        });
+        if (!fields) return;
+        if (!opts.api.update) {
+            showError("Bookmark edit unavailable");
+            return;
         }
-    });
-    form?.addEventListener("submit", (ev) => {
-        ev.preventDefault();
-        const title = String((modal.querySelector('[name="title"]') as HTMLInputElement | null)?.value || "").trim();
-        const url = String((modal.querySelector('[name="url"]') as HTMLInputElement | null)?.value || "").trim();
-        void (async () => {
-            if (!opts.api.update) {
-                showError("Bookmark edit unavailable");
-                return;
-            }
-            const next = await opts.api.update(entry.id, { title, url });
-            if (!next) {
-                showError("Could not update bookmark");
-                return;
-            }
-            showSuccess("Bookmark updated");
-            opts.onSaved?.(next);
-            close?.();
-        })();
-    });
+        const next = await opts.api.update(
+            entry.id,
+            entry.folder ? { title: fields.title } : { title: fields.title, url: fields.url }
+        );
+        if (!next) {
+            showError(entry.folder ? "Could not rename folder" : "Could not update bookmark");
+            return;
+        }
+        syncStoredBookmark(next);
+        showSuccess(entry.folder ? "Folder renamed" : "Bookmark updated");
+        opts.onSaved?.(next);
+    })();
 }
 
 export { type LauncherLaunchSpec };

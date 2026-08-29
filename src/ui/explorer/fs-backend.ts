@@ -34,8 +34,12 @@ export interface FsBackend {
   rename?(path: string, newName: string): Promise<void>;
   move?(fromPath: string, toDirPath: string): Promise<void>;
   createUrl?(parentPath: string, title: string, url: string): Promise<void>;
+  /** Title and/or URL patch (Chrome bookmarks). Folders ignore `url`. */
+  update?(path: string, patch: { title?: string; url?: string }): Promise<void>;
   // byte write only for OPFS-capable backends
   writeFile?(parentPath: string, file: File): Promise<void>;
+  /** Capacitor `/sdcard/` `/saf/` — list() rows have no `File` until this runs. */
+  readFile?(path: string): Promise<File | null>;
 }
 
 export function normalizeVirtualPath(path: string, asDirectory = true): string {

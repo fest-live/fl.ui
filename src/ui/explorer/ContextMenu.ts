@@ -1,8 +1,9 @@
 /*
  * Filename: ContextMenu.ts
  * FullPath: modules/projects/fl.ui/src/ui/explorer/ContextMenu.ts
- * Change date and time: 17.45.00_22.08.2026
- * Reason for changes: Clamp submenus to the viewport (JS placement + max-height), not CSS-anchor overflow.
+ * FIND:bookmarks
+ * Change date and time: 22.50.00_29.08.2026
+ * Reason for changes: Chrome bookmarks empty/item menus — create, edit URL, delete; submenu clamp unchanged.
  */
 
 import { MOCElement } from "@fest-lib/dom";
@@ -14,7 +15,7 @@ import {
     type PlacementHandle,
 } from "@fest-lib/lure";
 import type { FileEntryItem } from "./Operative";
-import { canReceiveIncomingPath } from "./Operative";
+import { canReceiveIncomingPath, isBookmarksPath } from "./Operative";
 import { entryKey, entryKind } from "./utils";
 
 
@@ -684,11 +685,25 @@ export const openUnifiedContextMenu = (request: ContextMenuOpenRequest): void =>
 export type { ContextMenuEntry, ContextMenuOpenRequest };
 
 //
+const hideInAppViewerActions = (): boolean => {
+    try {
+        const root = document.documentElement;
+        return root?.dataset?.cwspSku === "explorer" && root?.dataset?.cwspNativeShell === "capacitor";
+    } catch {
+        return false;
+    }
+};
+
 const makeFileActionOps = () => {
     return [
         { id: "open", label: "Open", icon: "function" },
-        { id: "view", label: "View", icon: "eye" },
-        { id: "view-base", label: "View (Base tab)", icon: "arrow-square-out" },
+        ...(!hideInAppViewerActions()
+            ? [
+                  { id: "view", label: "View", icon: "eye" },
+                  { id: "view-base", label: "View (Base tab)", icon: "arrow-square-out" }
+              ]
+            : []),
+        { id: "send-transfer", label: "Send to Transfer", icon: "paper-plane-tilt" },
         { id: "attach-workcenter", label: "Attach to Work Center", icon: "lightning" },
         { id: "attach-workcenter-queued", label: "Queue attach (pending)", icon: "clock-counter-clockwise" },
         { id: "attach-workcenter-headless", label: "Queue attach (headless)", icon: "wave-sine" },
@@ -712,8 +727,31 @@ const makeDirectoryOps = () => {
     return [...makeFileActionOps(), ...makeFileSystemOps()].filter((item) => allowed.has(item.id));
 };
 
+const makeBookmarkFileOps = () => [
+    { id: "open", label: "Open", icon: "arrow-square-out" },
+    { id: "edit-bookmark", label: "Edit bookmark…", icon: "pencil" },
+    { id: "delete", label: "Delete", icon: "trash" },
+    { id: "copyPath", label: "Copy Path", icon: "copy" },
+    { id: "movePath", label: "Move", icon: "hand-withdraw" }
+];
+
+const makeBookmarkDirOps = () => [
+    { id: "open", label: "Open", icon: "folder-open" },
+    { id: "edit-bookmark", label: "Rename folder…", icon: "pencil" },
+    { id: "delete", label: "Delete folder", icon: "trash" },
+    { id: "copyPath", label: "Copy Path", icon: "copy" },
+    { id: "movePath", label: "Move", icon: "hand-withdraw" }
+];
+
 const makeEmptyOps = (path: string) => {
     if (!canReceiveIncomingPath(path)) return [];
+    if (isBookmarksPath(path)) {
+        return [
+            { id: "new-bookmark", label: "New bookmark…", icon: "bookmark-simple" },
+            { id: "new-folder", label: "New folder…", icon: "folder-plus" },
+            { id: "paste", label: "Paste", icon: "clipboard" }
+        ];
+    }
     return [{ id: "paste", label: "Paste", icon: "clipboard" }];
 };
 
@@ -740,8 +778,11 @@ export const createItemCtxMenu = (
 
         const operative = getExplorerOperative(fileManager);
         const currentPath = String(operative?.path || "/");
+        const bookmarkItem = Boolean(item && (isBookmarksPath(item.path) || isBookmarksPath(currentPath)));
         const baseItems = item
-            ? entryKind(item) === "directory" ? makeDirectoryOps() : [...makeFileActionOps(), ...makeFileSystemOps()]
+            ? bookmarkItem
+                ? entryKind(item) === "directory" ? makeBookmarkDirOps() : makeBookmarkFileOps()
+                : entryKind(item) === "directory" ? makeDirectoryOps() : [...makeFileActionOps(), ...makeFileSystemOps()]
             : makeEmptyOps(currentPath);
         if (baseItems.length === 0) return;
 

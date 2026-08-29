@@ -204,6 +204,16 @@ export function createChromeBookmarksBackend(api?: ChromeBookmarksApi): ChromeBo
         await bookmarks.update(id, { title: newName });
     };
 
+    const update = async (path: string, patch: { title?: string; url?: string }): Promise<void> => {
+        const id = lastId(path);
+        if (!id) return;
+        const body: { title?: string; url?: string } = {};
+        if (patch.title != null) body.title = String(patch.title || "").trim();
+        if (patch.url != null && !isFolderPath(path)) body.url = String(patch.url || "").trim();
+        if (!Object.keys(body).length) return;
+        await bookmarks.update(id, body);
+    };
+
     const move = async (fromPath: string, toDirPath: string): Promise<void> => {
         const id = lastId(fromPath);
         const parentId = lastId(toDirPath) || "0";
@@ -260,6 +270,7 @@ export function createChromeBookmarksBackend(api?: ChromeBookmarksApi): ChromeBo
         mkdir,
         createUrl,
         rename,
+        update,
         move,
         remove,
         writeFile,

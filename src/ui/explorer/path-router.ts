@@ -190,6 +190,30 @@ export function ensureDefaultFsBackends(): void {
       writable: true,
       async list(path: string) {
         return listOpfsUserDirectory(path);
+      },
+      async readFile(path: string) {
+        const nav: any = typeof navigator !== "undefined" ? (navigator as any) : null;
+        const getDir = nav?.storage?.getDirectory;
+        if (typeof getDir !== "function") return null;
+        const root = await getDir.call(nav.storage).catch(() => null);
+        if (!root) return null;
+        const relative = stripUserPrefix(path);
+        const segments = relative.split("/").filter(Boolean);
+        if (!segments.length) return null;
+        let dir: any = root;
+        for (const seg of segments.slice(0, -1)) {
+          try {
+            dir = await dir.getDirectoryHandle(seg, { create: false });
+          } catch {
+            return null;
+          }
+        }
+        try {
+          const handle = await dir.getFileHandle(segments[segments.length - 1], { create: false });
+          return await handle.getFile();
+        } catch {
+          return null;
+        }
       }
     });
   }

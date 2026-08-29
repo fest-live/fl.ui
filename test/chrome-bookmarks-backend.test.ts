@@ -133,6 +133,14 @@ test("rename updates node title", async () => {
     assert.ok(entries.some((e) => e.bookmarkId === "10" && e.name === "Renamed"));
 });
 
+test("update patches URL and title on a bookmark node", async () => {
+    const api = mockBookmarks();
+    const backend = createChromeBookmarksBackend(api as any);
+    await backend.update!("/bookmarks/10", { title: "Docs", url: "https://docs.example" });
+    const entries = await backend.list("/bookmarks/1/");
+    assert.ok(entries.some((e) => e.bookmarkId === "10" && e.name === "Docs" && e.href === "https://docs.example"));
+});
+
 test("remove deletes a URL entry", async () => {
     const api = mockBookmarks();
     const backend = createChromeBookmarksBackend(api as any);

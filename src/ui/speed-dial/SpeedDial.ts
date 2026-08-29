@@ -1641,7 +1641,21 @@ const handleWallpaperDropOrPaste = (event: DragEvent | ClipboardEvent) => {
     if (imageFile) {
         event.preventDefault();
         event.stopPropagation();
-        applyWallpaperFromImageFile(imageFile);
+        /*
+         * WHY: CWSP-shell Open & share may send the photo to the viewer instead of wallpaper.
+         * Host listens for `cwsp:shell-image-open` and preventDefault when it owns the file.
+         */
+        const policyEv = new CustomEvent("cwsp:shell-image-open", {
+            bubbles: true,
+            cancelable: true,
+            detail: { file: imageFile, source: isPaste ? "paste" : "drop" }
+        });
+        try {
+            window.dispatchEvent(policyEv);
+        } catch {
+            /* ignore */
+        }
+        if (!policyEv.defaultPrevented) applyWallpaperFromImageFile(imageFile);
         // Best-effort OPFS mirror (non-blocking); IDB is the source of truth for paint.
         queueMicrotask(() => {
             try {
@@ -1710,7 +1724,17 @@ const handleWallpaperDropOrPaste = (event: DragEvent | ClipboardEvent) => {
             if (!droppedOnItem) {
                 const apiImage = await readImageFileFromClipboardApi();
                 if (apiImage) {
-                    applyWallpaperFromImageFile(apiImage);
+                    const policyEv = new CustomEvent("cwsp:shell-image-open", {
+                        bubbles: true,
+                        cancelable: true,
+                        detail: { file: apiImage, source: "paste" }
+                    });
+                    try {
+                        window.dispatchEvent(policyEv);
+                    } catch {
+                        /* ignore */
+                    }
+                    if (!policyEv.defaultPrevented) applyWallpaperFromImageFile(apiImage);
                     return;
                 }
             }

@@ -8,7 +8,7 @@
 export { FileManager, FileManagerContent } from "./FileManager";
 export { default as FileManagerDefault } from "./FileManager";
 export { default as FileManagerContentDefault } from "./FileManagerContent";
-export { FileOperative } from "./Operative";
+export { FileOperative, isBookmarksPath, canReceiveIncomingPath } from "./Operative";
 export { default as FileOperativeDefault } from "./Operative";
 export { ExplorerSettings, openExplorerSettings, closeExplorerSettings } from "./ExplorerSettings";
 export {

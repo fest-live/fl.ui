@@ -267,8 +267,50 @@
         display: flex;
         flex-wrap: wrap;
         align-items: center;
-        gap: 0.2rem;
+        gap: 0.35rem 0.55rem;
         min-block-size: 1.4rem;
+    }
+
+    .env-shell-app-menu__crumb-nav {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.2rem;
+        min-inline-size: 0;
+        flex: 1 1 auto;
+    }
+
+    .env-shell-app-menu__crumb-actions {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.3rem;
+        margin-inline-start: auto;
+    }
+
+    .env-shell-app-menu__crumb-actions[hidden] {
+        display: none !important;
+    }
+
+    .env-shell-app-menu__crumb-action {
+        appearance: none;
+        border: 1px solid light-dark(
+            color-mix(in oklab, #000 12%, transparent),
+            color-mix(in oklab, #fff 14%, transparent)
+        );
+        background: var(--env-app-menu-surface-raised);
+        color: inherit;
+        font: 600 0.72rem/1.2 ui-sans-serif, system-ui, sans-serif;
+        padding: 0.28rem 0.5rem;
+        border-radius: 8px;
+        cursor: pointer;
+    }
+
+    .env-shell-app-menu__crumb-action:hover {
+        background: light-dark(
+            color-mix(in oklab, #000 8%, transparent),
+            color-mix(in oklab, #fff 10%, transparent)
+        );
     }
 
     .env-shell-app-menu__crumb-item {
@@ -302,6 +344,19 @@
     }
 
     @media (max-width: 520px) {
+        .env-shell-app-menu__tools {
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .env-shell-app-menu__search {
+            grid-column: 1 / -1;
+        }
+
+        .env-shell-app-menu__sort,
+        .env-shell-app-menu__sort-dir {
+            max-inline-size: none;
+        }
+
         .env-shell-app-menu__start-body {
             grid-template-columns: 1fr;
             grid-template-rows: minmax(0, 8rem) minmax(0, 1fr);
@@ -336,8 +391,23 @@
         justify-self: start;
     }
 
-    .env-shell-app-menu__search {
-        inline-size: 100%;
+    .env-shell-app-menu__tools {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto auto;
+        gap: 0.4rem;
+        align-items: stretch;
+        position: sticky;
+        inset-block-start: 0;
+        z-index: 99;
+    }
+
+    .env-shell-app-menu__tools[hidden] {
+        display: none !important;
+    }
+
+    .env-shell-app-menu__search,
+    .env-shell-app-menu__sort,
+    .env-shell-app-menu__sort-dir {
         padding: 0.55rem 0.65rem;
         border-radius: 10px;
         border: 1px solid light-dark(
@@ -348,9 +418,16 @@
         color: inherit;
         font: 400 0.9rem/1.2 ui-sans-serif, system-ui, sans-serif;
         box-sizing: border-box;
-        position: sticky;
-        inset-block-start: 0;
-        z-index: 99;
+    }
+
+    .env-shell-app-menu__search {
+        inline-size: 100%;
+        min-inline-size: 0;
+    }
+
+    .env-shell-app-menu__sort,
+    .env-shell-app-menu__sort-dir {
+        max-inline-size: 11rem;
     }
 
     .env-shell-app-menu__search[hidden] {

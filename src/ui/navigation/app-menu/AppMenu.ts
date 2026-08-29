@@ -2,8 +2,9 @@
  * Filename: AppMenu.ts
  * FullPath: modules/projects/fl.ui/src/ui/navigation/app-menu/AppMenu.ts
  * FIND:app-menu
- * Change date and time: 12.21.00_28.08.2026
- * Reason for changes: Separate App Menu item opens native Android APPLICATION_DETAILS_SETTINGS.
+ * FIND:bookmarks
+ * Change date and time: 22.50.00_29.08.2026
+ * Reason for changes: CRX bookmarks — create / edit / delete in Start menu; sort controls unchanged.
  */
 /**
  * WHY: `.env-shell-app-menu` slide-over host for launcher SKU.
@@ -32,6 +33,7 @@ import {
     confirmUninstall,
     openAppInfoDialog,
     openAppLaunchEditor,
+    openBookmarkFieldsDialog,
     openBookmarkInfoDialog,
     openBookmarkLaunchEditor,
     refreshWhenVisible,
@@ -65,6 +67,7 @@ import {
 import {
     applyBookmarkIconToPlate,
     createChromeBookmarksMenuApi,
+    forgetBookmarkFromLists,
     hasBookmarksMenuApi,
     isBookmarkFaviconResourceUrl,
     isBookmarkPinnedToStart,
@@ -80,6 +83,16 @@ import {
     type BookmarkMenuEntry,
     type BookmarksMenuApi,
 } from "./bookmarks-menu";
+import {
+    APP_MENU_SORT_EVENT,
+    APP_MENU_SORT_OPTIONS,
+    defaultDirForAppSort,
+    hydrateAppColorKeys,
+    peekAppMenuSort,
+    sortLauncherApps,
+    writeAppMenuSort,
+    type AppMenuSortBy
+} from "fl-ui/navigation/app-menu/app-sort";
 
 // @ts-ignore — Vite inline SCSS → adopted stylesheet
 import styles from "./AppMenu.scss?inline";
@@ -98,7 +111,13 @@ let documentStylesApplied = false;
 const LONG_PRESS_MS = 420;
 const PRE_DRAG_MOVE_PX = 10;
 
-export type LauncherAppEntry = LauncherAppPinPayload;
+export type LauncherAppEntry = LauncherAppPinPayload & {
+    firstInstallTime?: number;
+    lastUpdateTime?: number;
+    category?: string;
+    installer?: string;
+    system?: boolean;
+};
 
 export type LauncherBridgeApi = {
     launcherIsDefault: () => Promise<boolean>;
@@ -924,6 +943,22 @@ function bindBookmarkTileContextMenu(
                             openBookmarkInfoDialog(entry);
                         }
                     },
+                    ...(api.update
+                        ? [
+                              {
+                                  id: "bm-edit",
+                                  label: "Rename folder…",
+                                  icon: "pencil",
+                                  action: () => {
+                                      openBookmarkLaunchEditor({
+                                          entry,
+                                          api,
+                                          onSaved: () => hooks.onAppsChanged?.()
+                                      });
+                                  }
+                              }
+                          ]
+                        : []),
                     ...(api.remove
                         ? [
                               {
@@ -940,7 +975,7 @@ function bindBookmarkTileContextMenu(
                                               return;
                                           }
                                           showSuccess(`Deleted “${entry.title}”`);
-                                          unpinBookmarkFromStart(entry.id);
+                                          forgetBookmarkFromLists(entry.id);
                                           hooks.onAppsChanged?.();
                                       } catch {
                                           showError(`Could not delete “${entry.title}”`);
@@ -1054,8 +1089,8 @@ function bindBookmarkTileContextMenu(
                     ? [
                           {
                               id: "bm-edit",
-                              label: "Edit launch…",
-                              icon: "sliders",
+                              label: "Edit bookmark…",
+                              icon: "pencil",
                               action: () => {
                                   openBookmarkLaunchEditor({
                                       entry,
@@ -1082,7 +1117,7 @@ function bindBookmarkTileContextMenu(
                                           return;
                                       }
                                       showSuccess(`Deleted “${entry.title}”`);
-                                      unpinBookmarkFromStart(entry.id);
+                                      forgetBookmarkFromLists(entry.id);
                                       hooks.onAppsChanged?.();
                                   } catch {
                                       showError(`Could not delete “${entry.title}”`);
@@ -1257,6 +1292,37 @@ export function mountEnvironmentAppMenu(): MountAppMenuResult {
     search.autocomplete = "off";
     search.setAttribute("aria-label", mode === "bookmarks" ? "Search bookmarks" : "Search apps");
 
+    const tools = document.createElement("div");
+    tools.className = "env-shell-app-menu__tools";
+    const sortBySelect = document.createElement("select");
+    sortBySelect.className = "env-shell-app-menu__sort";
+    sortBySelect.setAttribute("aria-label", "Sort apps");
+    for (const [value, label] of APP_MENU_SORT_OPTIONS) {
+        const opt = document.createElement("option");
+        opt.value = value;
+        opt.textContent = label;
+        sortBySelect.appendChild(opt);
+    }
+    const sortDirSelect = document.createElement("select");
+    sortDirSelect.className = "env-shell-app-menu__sort-dir";
+    sortDirSelect.setAttribute("aria-label", "Sort order");
+    for (const [value, label] of [
+        ["asc", "A–Z / oldest"],
+        ["desc", "Z–A / newest"]
+    ] as const) {
+        const opt = document.createElement("option");
+        opt.value = value;
+        opt.textContent = label;
+        sortDirSelect.appendChild(opt);
+    }
+    const syncSortControls = (): void => {
+        const prefs = peekAppMenuSort();
+        sortBySelect.value = prefs.sortBy;
+        sortDirSelect.value = prefs.sortDir;
+    };
+    syncSortControls();
+    tools.append(search, sortBySelect, sortDirSelect);
+
     const startBody = document.createElement("div");
     startBody.className = "env-shell-app-menu__start-body";
     startBody.hidden = mode !== "bookmarks";
@@ -1287,6 +1353,14 @@ export function mountEnvironmentAppMenu(): MountAppMenuResult {
     const crumb = document.createElement("div");
     crumb.className = "env-shell-app-menu__crumb";
 
+    const crumbNav = document.createElement("div");
+    crumbNav.className = "env-shell-app-menu__crumb-nav";
+
+    const crumbActions = document.createElement("div");
+    crumbActions.className = "env-shell-app-menu__crumb-actions";
+
+    crumb.append(crumbNav, crumbActions);
+
     const gridHost = document.createElement("div");
     gridHost.className = "env-shell-app-menu__grid";
     gridHost.setAttribute("data-part", "grid");
@@ -1296,9 +1370,9 @@ export function mountEnvironmentAppMenu(): MountAppMenuResult {
     startBody.append(leftCol, rightCol);
 
     if (mode === "bookmarks") {
-        panel.append(banner, search, startBody);
+        panel.append(banner, tools, startBody);
     } else {
-        panel.append(banner, search, gridHost);
+        panel.append(banner, tools, gridHost);
     }
     root.appendChild(panel);
 
@@ -1365,8 +1439,89 @@ export function mountEnvironmentAppMenu(): MountAppMenuResult {
         }
     };
 
+    const beginCreateBookmark = (kind: "url" | "folder"): void => {
+        const api = resolveBookmarksMenuApi();
+        if (!api?.create) {
+            showError("Cannot create bookmark here");
+            return;
+        }
+        const parent = folderStack.length ? folderStack[folderStack.length - 1] : null;
+        const parentId = parent?.id || "0";
+        const parentTitle = parent?.title || "Bookmarks";
+        void (async () => {
+            const fields = await openBookmarkFieldsDialog({
+                heading: kind === "folder" ? "New folder" : "New bookmark",
+                description: `Add to “${parentTitle}” (Chrome bookmarks)`,
+                showUrl: kind === "url",
+                initialTitle: kind === "folder" ? "New folder" : "",
+                initialUrl: kind === "url" ? "https://" : "",
+                submitLabel: "Create"
+            });
+            if (!fields) return;
+            const created = await api.create(parentId, {
+                title: fields.title,
+                url: kind === "url" ? fields.url : undefined
+            });
+            if (!created) {
+                showError(kind === "folder" ? "Could not create folder" : "Could not create bookmark");
+                return;
+            }
+            showSuccess(
+                kind === "folder" ? `Created folder “${created.title}”` : `Created “${created.title}”`
+            );
+            void refresh();
+        })();
+    };
+
+    const makeCrumbAction = (label: string, onClick: () => void): HTMLButtonElement => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "env-shell-app-menu__crumb-action";
+        btn.textContent = label;
+        btn.addEventListener("click", (ev) => {
+            ev.preventDefault();
+            ev.stopPropagation();
+            onClick();
+        });
+        return btn;
+    };
+
+    crumbActions.append(
+        makeCrumbAction("New bookmark", () => beginCreateBookmark("url")),
+        makeCrumbAction("New folder", () => beginCreateBookmark("folder"))
+    );
+
+    gridHost.addEventListener("contextmenu", (ev) => {
+        if ((ev.target as HTMLElement | null)?.closest?.("[data-bookmark-id]")) return;
+        if (resolveAppMenuMode() !== "bookmarks") return;
+        const api = resolveBookmarksMenuApi();
+        if (!api?.create) return;
+        ev.preventDefault();
+        ev.stopPropagation();
+        openUnifiedContextMenu({
+            x: ev.clientX,
+            y: ev.clientY,
+            compact: true,
+            items: [
+                {
+                    id: "new-bookmark",
+                    label: "New bookmark…",
+                    icon: "bookmark-simple",
+                    action: () => beginCreateBookmark("url")
+                },
+                {
+                    id: "new-folder",
+                    label: "New folder…",
+                    icon: "folder-plus",
+                    action: () => beginCreateBookmark("folder")
+                }
+            ]
+        });
+    });
+
     const paintCrumb = (): void => {
-        crumb.replaceChildren();
+        crumbNav.replaceChildren();
+        crumbActions.hidden = mode !== "bookmarks" || !resolveBookmarksMenuApi()?.create;
         if (mode !== "bookmarks") return;
         const rootBtn = document.createElement("button");
         rootBtn.type = "button";
@@ -1376,7 +1531,7 @@ export function mountEnvironmentAppMenu(): MountAppMenuResult {
             folderStack = [];
             void refresh();
         });
-        crumb.appendChild(rootBtn);
+        crumbNav.appendChild(rootBtn);
         folderStack.forEach((seg, idx) => {
             const sep = document.createElement("span");
             sep.className = "env-shell-app-menu__crumb-sep";
@@ -1389,7 +1544,7 @@ export function mountEnvironmentAppMenu(): MountAppMenuResult {
                 folderStack = folderStack.slice(0, idx + 1);
                 void refresh();
             });
-            crumb.append(sep, btn);
+            crumbNav.append(sep, btn);
         });
     };
 
@@ -1403,6 +1558,13 @@ export function mountEnvironmentAppMenu(): MountAppMenuResult {
         if (gen !== refreshGen) return;
 
         gridHost.replaceChildren();
+        const prefs = peekAppMenuSort();
+        if (prefs.sortBy === "color") {
+            await hydrateAppColorKeys(apps, gridHost);
+            if (gen !== refreshGen) return;
+        }
+        apps = sortLauncherApps(apps, prefs);
+
         if (apps.length === 0) {
             const empty = document.createElement("p");
             empty.className = "env-shell-app-menu__empty";
@@ -1472,9 +1634,16 @@ export function mountEnvironmentAppMenu(): MountAppMenuResult {
         }
 
         const frag = document.createDocumentFragment();
+        const prefs = peekAppMenuSort();
+        const dir = prefs.sortDir === "desc" ? -1 : 1;
         const folders = entries.filter((e) => e.folder);
         const links = entries.filter((e) => !e.folder);
-        for (const entry of [...folders, ...links]) {
+        const byTitle = (a: BookmarkMenuEntry, b: BookmarkMenuEntry) =>
+            String(a.title || "").localeCompare(String(b.title || ""), undefined, {
+                numeric: true,
+                sensitivity: "base"
+            }) * dir;
+        for (const entry of [...folders.sort(byTitle), ...links.sort(byTitle)]) {
             frag.appendChild(renderBookmarkTile(entry, api, tileDragHooks, enterFolder));
         }
         gridHost.appendChild(frag);
@@ -1483,6 +1652,7 @@ export function mountEnvironmentAppMenu(): MountAppMenuResult {
     const refresh = async (): Promise<void> => {
         const gen = ++refreshGen;
         banner.hidden = true;
+        tools.hidden = false;
         search.hidden = false;
 
         const activeMode = resolveAppMenuMode();
@@ -1496,7 +1666,7 @@ export function mountEnvironmentAppMenu(): MountAppMenuResult {
             panel.setAttribute("data-layout", "start-split");
             startBody.hidden = false;
             if (!panel.contains(startBody)) {
-                panel.append(banner, search, startBody);
+                panel.append(banner, tools, startBody);
                 if (gridHost.parentElement !== rightCol) rightCol.append(crumb, gridHost);
             }
             const api = resolveBookmarksMenuApi();
@@ -1505,6 +1675,7 @@ export function mountEnvironmentAppMenu(): MountAppMenuResult {
                 bannerText.textContent = "Bookmarks API unavailable in this context";
                 bannerAction.hidden = true;
                 search.hidden = true;
+                tools.hidden = true;
                 startBody.hidden = true;
                 return;
             }
@@ -1525,6 +1696,7 @@ export function mountEnvironmentAppMenu(): MountAppMenuResult {
             bannerText.textContent = "Launcher bridge unavailable — rebuild the Capacitor APK";
             bannerAction.hidden = true;
             search.hidden = true;
+            tools.hidden = true;
             gridHost.hidden = true;
             return;
         }
@@ -1546,9 +1718,24 @@ export function mountEnvironmentAppMenu(): MountAppMenuResult {
         }
 
         search.hidden = false;
+        tools.hidden = false;
         gridHost.hidden = false;
         await populateLauncherGrid(bridge, gen);
     };
+
+    sortBySelect.addEventListener("change", () => {
+        const sortBy = sortBySelect.value as AppMenuSortBy;
+        writeAppMenuSort({ sortBy, sortDir: defaultDirForAppSort(sortBy) });
+        syncSortControls();
+    });
+    sortDirSelect.addEventListener("change", () => {
+        writeAppMenuSort({ sortDir: sortDirSelect.value === "desc" ? "desc" : "asc" });
+    });
+    const onSortPrefs = (): void => {
+        syncSortControls();
+        if (open) void refresh();
+    };
+    window.addEventListener(APP_MENU_SORT_EVENT, onSortPrefs);
 
     search.addEventListener("input", () => {
         searchQuery = search.value.trim();
@@ -1594,6 +1781,9 @@ export function mountEnvironmentAppMenu(): MountAppMenuResult {
     const APP_MENU_KEEP_OPEN_SEL = [
         ".env-shell-app-menu__tile",
         ".env-shell-app-menu__search",
+        ".env-shell-app-menu__sort",
+        ".env-shell-app-menu__sort-dir",
+        ".env-shell-app-menu__tools",
         ".env-shell-app-menu__banner",
         ".env-shell-app-menu__pin-menu",
         ".env-shell-app-menu__crumb-item",
@@ -1644,6 +1834,7 @@ export function mountEnvironmentAppMenu(): MountAppMenuResult {
         root.removeEventListener("pointerup", onEmptySurfacePointerUp);
         root.removeEventListener("pointercancel", onEmptySurfacePointerCancel);
         document.removeEventListener("u2-theme-change", onThemeChange);
+        window.removeEventListener(APP_MENU_SORT_EVENT, onSortPrefs);
         try {
             themeAttrObserver.disconnect();
         } catch {

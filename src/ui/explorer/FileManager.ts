@@ -37,16 +37,20 @@ export class FileManager extends UIElement {
     // refs/state
     styles = () => styled;
     #pathWatcherDisposer: (() => void) | null = null;
+    /** WHY: `wireExplorerSubtree` sets `path` before `onInitialize` creates the operative. */
+    #pendingPath: string | null = null;
     constructor() { super(); }
 
     //
     get content() { return (this as any)?.querySelector?.("ui-file-manager-content") as any; }
     get operative() { return this.content?.operativeInstance; }
     get pathRef() { return this.operative?.pathRef; }
-    get path() { return this.content?.path || this.operative?.path || "/"; }
+    get path() { return this.content?.path || this.operative?.path || this.#pendingPath || "/"; }
     set path(value: string) {
-        if (this.content) this.content.path = value || "/";
-        if (this.operative) this.operative.path = value || "/";
+        const next = value || "/";
+        if (this.content) this.content.path = next;
+        if (this.operative) this.operative.path = next;
+        else this.#pendingPath = next;
     }
 
     //
@@ -71,6 +75,12 @@ export class FileManager extends UIElement {
             for (const extra of existingContents.slice(1)) {
                 (extra as HTMLElement)?.remove?.();
             }
+        }
+
+        if (this.#pendingPath) {
+            const staged = this.#pendingPath;
+            this.#pendingPath = null;
+            this.path = staged;
         }
 
         //

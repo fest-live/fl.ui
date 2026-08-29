@@ -46,6 +46,27 @@
     font: 0.78rem/1.4 ui-monospace, monospace;
 }
 
+.explorer-settings__field {
+    display: grid;
+    gap: 0.25rem;
+    font-size: 0.88rem;
+}
+
+.explorer-settings__field select {
+    padding: 0.4rem 0.5rem;
+    border-radius: 0.5rem;
+    border: 1px solid color-mix(in srgb, currentColor 18%, transparent);
+    background: inherit;
+    color: inherit;
+}
+
+.explorer-settings__check {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    font-size: 0.88rem;
+}
+
 .explorer-settings__actions {
     display: flex;
     flex-wrap: wrap;

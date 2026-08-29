@@ -63,6 +63,53 @@ export const listNativeStorage = async (
     return Array.isArray(rows) ? rows : [];
 };
 
+const dataUrlToFile = async (dataUrl: string, name: string, mime: string): Promise<File | null> => {
+    const src = String(dataUrl || "").trim();
+    if (!src) return null;
+    try {
+        const blob = await (await fetch(src)).blob();
+        return new File([blob], name || "file", { type: blob.type || mime || "application/octet-stream" });
+    } catch {
+        return null;
+    }
+};
+
+/** Read one `/sdcard/` or `/saf/` file through CwsBridge (`storage:read`). */
+export const readNativeStorageFile = async (virtualPath: string): Promise<File | null> => {
+    const raw = String(virtualPath || "").trim();
+    if (!raw) return null;
+    const root: "sdcard" | "saf" | "" = raw === "/saf" || raw.startsWith("/saf/")
+        ? "saf"
+        : raw === "/sdcard" || raw.startsWith("/sdcard/")
+            ? "sdcard"
+            : "";
+    if (!root) return null;
+    const prefix = root === "saf" ? "/saf/" : "/sdcard/";
+    const rel = raw.startsWith(prefix) ? raw.slice(prefix.length - 1) : raw;
+    const echo = await capacitorInvoke("storage:read", { root, path: rel || "/" });
+    const data = String(echo.data || echo.dataUrl || "");
+    if (!data) return null;
+    const name = String(echo.name || raw.split("/").filter(Boolean).pop() || "file");
+    const mime = String(echo.mime || echo.mimeType || "application/octet-stream");
+    return dataUrlToFile(data, name, mime);
+};
+
+/** content:// or file:// for Document ACTION_VIEW — do not read bytes. */
+export const resolveNativeStorageUri = async (virtualPath: string): Promise<string> => {
+    const raw = String(virtualPath || "").trim();
+    if (!raw) return "";
+    const root: "sdcard" | "saf" | "" = raw === "/saf" || raw.startsWith("/saf/")
+        ? "saf"
+        : raw === "/sdcard" || raw.startsWith("/sdcard/")
+            ? "sdcard"
+            : "";
+    if (!root) return "";
+    const prefix = root === "saf" ? "/saf/" : "/sdcard/";
+    const rel = raw.startsWith(prefix) ? raw.slice(prefix.length - 1) : raw;
+    const echo = await capacitorInvoke("storage:uri", { root, path: rel || "/" });
+    return String(echo.uri || echo.url || "").trim();
+};
+
 export const pickSafTree = async (): Promise<string> => {
     if (api?.pickSaf) return api.pickSaf();
     const echo = await capacitorInvoke("storage:pick-saf", {});

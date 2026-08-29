@@ -174,7 +174,9 @@ export type MenuAction =
     | "paste"
     | "attach-workcenter"
     | "new-folder"
-    | "new-file";
+    | "new-file"
+    | "new-bookmark"
+    | "edit-bookmark";
 
 // ============================================================================
 // CONTEXT MENU CONFIGURATION

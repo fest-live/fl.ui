@@ -1,8 +1,8 @@
 /*
  * Filename: ExplorerSettings.ts
  * FullPath: modules/projects/fl.ui/src/ui/explorer/ExplorerSettings.ts
- * Change date: 16.55.00_21.08.2026
- * Reason: Explorer settings page — SAF, /sdcard/ all-files, PWA directory mounts.
+ * Change date: 22.30.00_29.08.2026
+ * Reason: Explorer settings — list sort plus SAF / all-files / PWA mounts.
  */
 
 import { H, defineElement } from "@fest-lib/lure";
@@ -13,6 +13,7 @@ import {
     listExplorerMounts,
     removeDirectoryMount
 } from "./mounts.ts";
+import { peekExplorerSort, writeExplorerSort, type ExplorerSortBy } from "./entry-sort";
 import {
     canShowDirectoryPicker,
     getAllFilesStatus,
@@ -55,6 +56,16 @@ const paintMounts = (host: HTMLElement): void => {
     }
 };
 
+const paintSort = (host: HTMLElement): void => {
+    const prefs = peekExplorerSort();
+    const by = host.querySelector("[data-explorer-sort-by]") as HTMLSelectElement | null;
+    const dir = host.querySelector("[data-explorer-sort-dir]") as HTMLSelectElement | null;
+    const folders = host.querySelector("[data-explorer-folders-first]") as HTMLInputElement | null;
+    if (by) by.value = prefs.sortBy;
+    if (dir) dir.value = prefs.sortDir;
+    if (folders) folders.checked = prefs.foldersFirst;
+};
+
 const paintStatus = (host: HTMLElement, status: AllFilesStatus | null, note = ""): void => {
     const el = host.querySelector("[data-explorer-status]") as HTMLElement | null;
     if (!el) return;
@@ -73,6 +84,7 @@ export class ExplorerSettings extends UIElement {
     onInitialize(): this {
         const result = super.onInitialize();
         queueMicrotask(() => {
+            paintSort(this);
             paintMounts(this);
             if (isNativeStorageAvailable()) {
                 void getAllFilesStatus().then((s) => paintStatus(this, s));
@@ -92,6 +104,40 @@ export class ExplorerSettings extends UIElement {
                 <h2>Explorer</h2>
                 <p>Mounts sit beside <code>/user/</code> and <code>/assets/</code>. Android all-files is <code>/sdcard/</code>; SAF trees are <code>/saf/</code>.</p>
             </header>
+            <section class="explorer-settings__card">
+                <h3>List sort</h3>
+                <p>Name, date, type, size, or kind. Folders can stay on top.</p>
+                <label class="explorer-settings__field">
+                    <span>Sort by</span>
+                    <select data-explorer-sort-by on:change=${(ev: Event) => {
+                        const v = (ev.currentTarget as HTMLSelectElement).value as ExplorerSortBy;
+                        writeExplorerSort({ sortBy: v });
+                    }}>
+                        <option value="name">Name</option>
+                        <option value="date">Date modified</option>
+                        <option value="type">Type</option>
+                        <option value="size">Size</option>
+                        <option value="kind">Kind (file / folder)</option>
+                    </select>
+                </label>
+                <label class="explorer-settings__field">
+                    <span>Order</span>
+                    <select data-explorer-sort-dir on:change=${(ev: Event) => {
+                        writeExplorerSort({
+                            sortDir: (ev.currentTarget as HTMLSelectElement).value === "desc" ? "desc" : "asc"
+                        });
+                    }}>
+                        <option value="asc">Ascending</option>
+                        <option value="desc">Descending</option>
+                    </select>
+                </label>
+                <label class="explorer-settings__check">
+                    <input type="checkbox" data-explorer-folders-first on:change=${(ev: Event) => {
+                        writeExplorerSort({ foldersFirst: (ev.currentTarget as HTMLInputElement).checked });
+                    }} />
+                    <span>Folders first</span>
+                </label>
+            </section>
             <section class="explorer-settings__card">
                 <h3>Android storage</h3>
                 <pre data-explorer-status class="explorer-settings__status">Checking…</pre>

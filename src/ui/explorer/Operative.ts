@@ -1,8 +1,9 @@
 /*
  * Filename: Operative.ts
  * FullPath: modules/projects/fl.ui/src/ui/explorer/Operative.ts
- * Change date and time: 01.20.00_29.07.2026
- * Reason for changes: Serialize path loads so OPFS listings refresh after drop/paste/upload.
+ * FIND:bookmarks
+ * Change date and time: 22.50.00_29.08.2026
+ * Reason for changes: Chrome bookmarks create / edit / delete via FsBackend; OPFS path loads stay serialized.
  */
 
 import { observe, iterated, ref, affected } from "@fest-lib/object";
@@ -19,6 +20,7 @@ import {
     type FsBackend
 } from "./path-router";
 import { buildExplorerDragPayload } from "./fs-backend";
+import { openBookmarkFieldsDialog } from "fl-ui/navigation/app-menu/app-actions";
 
 // OPFS helpers
 import {
@@ -144,7 +146,7 @@ const isUserPath = (path?: string): boolean => isUserScopePath(normalizeDirector
 
 const BOOKMARKS_ROOT = "/bookmarks/";
 
-const isBookmarksPath = (path?: string): boolean =>
+export const isBookmarksPath = (path?: string): boolean =>
     normalizeDirectoryPath(path).startsWith(BOOKMARKS_ROOT);
 
 /**
@@ -813,7 +815,7 @@ export class FileOperative {
     }
 
     //
-    async itemAction(item: FileEntryItem) {
+    async itemAction(item: FileEntryItem, how: "click" | "dblclick" = "click") {
         const self: any = this;
         const itemPath: string = (item as any)?.path || "";
         // WHY: bookmarks entries carry a stable id-based absolute `path`
@@ -822,7 +824,7 @@ export class FileOperative {
         // contain slashes/spaces and rename would break navigation. Prefer
         // `item.path` when present; fall back to name-append for OPFS/assets.
         const detailPath = itemPath || ((self.path || "/") + (item?.name || ""));
-        const detail = { path: detailPath, item, originalEvent: null };
+        const detail = { path: detailPath, item, originalEvent: null, how };
         const event = new CustomEvent("open-item", { detail, bubbles: true, composed: true, cancelable: true });
         this.host?.dispatchEvent(event);
         if (event.defaultPrevented) return;
@@ -862,7 +864,13 @@ export class FileOperative {
             const abs = (self.path || "/") + (item?.name || "");
             if (!item?.file) {
                 const loadPath = itemPath || abs;
-                item.file = await provide(loadPath).catch(() => null);
+                const backend = resolveFsBackend(loadPath);
+                if (typeof backend?.readFile === "function") {
+                    item.file = await backend.readFile(loadPath).catch(() => null);
+                }
+                if (!item.file) {
+                    item.file = await provide(loadPath).catch(() => null);
+                }
                 if (item.file) {
                     item.size = item.file.size;
                     item.lastModified = item.file.lastModified;
@@ -1004,8 +1012,8 @@ export class FileOperative {
     }
 
     //
-    protected onRowClick = (item: FileEntryItem, ev: MouseEvent) => { ev.preventDefault(); void this.itemAction(item); };
-    protected onRowDblClick = (item: FileEntryItem, ev: MouseEvent) => { ev.preventDefault(); void this.itemAction(item); };
+    protected onRowClick = (item: FileEntryItem, ev: MouseEvent) => { ev.preventDefault(); void this.itemAction(item, "click"); };
+    protected onRowDblClick = (item: FileEntryItem, ev: MouseEvent) => { ev.preventDefault(); void this.itemAction(item, "dblclick"); };
     protected onRowDragStart = (item: FileEntryItem, ev: DragEvent) => {
         if (!ev.dataTransfer) return;
         ev.dataTransfer.effectAllowed = "copyMove";
@@ -1021,6 +1029,10 @@ export class FileOperative {
             ev.dataTransfer.items.add(item?.file as any);
         }
     };
+
+    async runMenuAction(item: FileEntryItem | null, actionId: string, ev?: MouseEvent): Promise<void> {
+        await this.onMenuAction(item, actionId, ev ?? new MouseEvent("contextmenu"));
+    }
 
     //
     protected async onMenuAction(item: FileEntryItem | null, actionId: string, ev: MouseEvent) {
@@ -1046,6 +1058,7 @@ export class FileOperative {
                     }
                     if (actionId === "delete") {
                         if (bmBackend?.remove) {
+                            if (globalThis.confirm?.(`Delete “${itemName || "bookmark"}”?`) !== true) break;
                             await bmBackend.remove(bmPath, true);
                         } else if (isUserPath(abs)) {
                             await this.removeUserEntry(abs, true);
@@ -1098,13 +1111,61 @@ export class FileOperative {
                         }));
                         break;
                     }
-                    const name = prompt("Folder name:", "New folder");
-                    if (!name) break;
                     const destBackend = this.bookmarksBackendFor(this.path);
                     if (destBackend?.mkdir) {
-                        await destBackend.mkdir(this.path, name);
-                    } else if (isUserPath(this.path)) {
-                        await this.getUserDirHandle(this.path, true);
+                        const fields = await openBookmarkFieldsDialog({
+                            heading: "New folder",
+                            description: "Chrome bookmarks folder",
+                            showUrl: false,
+                            initialTitle: "New folder",
+                            submitLabel: "Create"
+                        });
+                        if (!fields?.title) break;
+                        await destBackend.mkdir(this.path, fields.title);
+                    } else {
+                        const name = prompt("Folder name:", "New folder");
+                        if (!name) break;
+                        if (isUserPath(this.path)) {
+                            await this.getUserDirHandle(this.path, true);
+                        }
+                    }
+                    await this.refreshList(this.path);
+                    break;
+                }
+                case "new-bookmark": {
+                    const destBackend = this.bookmarksBackendFor(this.path);
+                    if (!destBackend?.createUrl) break;
+                    const fields = await openBookmarkFieldsDialog({
+                        heading: "New bookmark",
+                        description: "Saved to Chrome bookmarks",
+                        showUrl: true,
+                        initialUrl: "https://",
+                        submitLabel: "Create"
+                    });
+                    if (!fields?.url) break;
+                    await destBackend.createUrl(this.path, fields.title || fields.url, fields.url);
+                    await this.refreshList(this.path);
+                    break;
+                }
+                case "edit-bookmark": {
+                    if (!item || !bmBackend) break;
+                    const isFolder = item.kind === "directory";
+                    const fields = await openBookmarkFieldsDialog({
+                        heading: isFolder ? "Rename folder" : "Edit bookmark",
+                        description: "Chrome bookmarks",
+                        showUrl: !isFolder,
+                        initialTitle: item.name,
+                        initialUrl: item.href || "",
+                        submitLabel: "Save"
+                    });
+                    if (!fields) break;
+                    if (bmBackend.update) {
+                        await bmBackend.update(
+                            bmPath,
+                            isFolder ? { title: fields.title } : { title: fields.title, url: fields.url }
+                        );
+                    } else if (bmBackend.rename && fields.title && fields.title !== itemName) {
+                        await bmBackend.rename(bmPath, fields.title);
                     }
                     await this.refreshList(this.path);
                     break;
@@ -1119,6 +1180,11 @@ export class FileOperative {
                     // Dispatch custom event for unified messaging
                     this.dispatchEvent(new CustomEvent('context-action', {
                         detail: { action: 'view', item }
+                    }));
+                    break;
+                case "send-transfer":
+                    this.dispatchEvent(new CustomEvent("context-action", {
+                        detail: { action: "send-transfer", item }
                     }));
                     break;
                 case "attach-workcenter":

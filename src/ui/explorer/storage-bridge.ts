@@ -1,8 +1,8 @@
 /*
  * Filename: storage-bridge.ts
  * FullPath: modules/projects/fl.ui/src/ui/explorer/storage-bridge.ts
- * Change date: 16.40.00_21.08.2026
- * Reason: Explorer IPC for Android all-files / SAF + PWA directory picker.
+ * Change date: 01.20.00_30.08.2026
+ * Reason: storage:open for Capacitor /sdcard/ /saf/ (no JS byte hop).
  */
 
 export type StorageEntry = {
@@ -43,6 +43,24 @@ const capacitorInvoke = async (
     return (r?.echo || r || {}) as Record<string, unknown>;
 };
 
+const parseNativeStoragePath = (
+    virtualPath: string
+): { root: "sdcard" | "saf"; rel: string } | null => {
+    const raw = String(virtualPath || "").trim();
+    if (!raw) return null;
+    const root: "sdcard" | "saf" | "" =
+        raw === "/saf" || raw.startsWith("/saf/")
+            ? "saf"
+            : raw === "/sdcard" || raw.startsWith("/sdcard/")
+              ? "sdcard"
+              : "";
+    if (!root) return null;
+    if (raw === `/${root}`) return { root, rel: "/" };
+    const prefix = root === "saf" ? "/saf/" : "/sdcard/";
+    const rel = raw.startsWith(prefix) ? raw.slice(prefix.length - 1) : raw;
+    return { root, rel: rel || "/" };
+};
+
 export const isNativeStorageAvailable = (): boolean => {
     if (api?.list) return true;
     try {
@@ -76,38 +94,46 @@ const dataUrlToFile = async (dataUrl: string, name: string, mime: string): Promi
 
 /** Read one `/sdcard/` or `/saf/` file through CwsBridge (`storage:read`). */
 export const readNativeStorageFile = async (virtualPath: string): Promise<File | null> => {
-    const raw = String(virtualPath || "").trim();
-    if (!raw) return null;
-    const root: "sdcard" | "saf" | "" = raw === "/saf" || raw.startsWith("/saf/")
-        ? "saf"
-        : raw === "/sdcard" || raw.startsWith("/sdcard/")
-            ? "sdcard"
-            : "";
-    if (!root) return null;
-    const prefix = root === "saf" ? "/saf/" : "/sdcard/";
-    const rel = raw.startsWith(prefix) ? raw.slice(prefix.length - 1) : raw;
-    const echo = await capacitorInvoke("storage:read", { root, path: rel || "/" });
+    const parsed = parseNativeStoragePath(virtualPath);
+    if (!parsed) return null;
+    const echo = await capacitorInvoke("storage:read", { root: parsed.root, path: parsed.rel });
     const data = String(echo.data || echo.dataUrl || "");
     if (!data) return null;
-    const name = String(echo.name || raw.split("/").filter(Boolean).pop() || "file");
+    const name = String(echo.name || virtualPath.split("/").filter(Boolean).pop() || "file");
     const mime = String(echo.mime || echo.mimeType || "application/octet-stream");
     return dataUrlToFile(data, name, mime);
 };
 
 /** content:// or file:// for Document ACTION_VIEW — do not read bytes. */
 export const resolveNativeStorageUri = async (virtualPath: string): Promise<string> => {
-    const raw = String(virtualPath || "").trim();
-    if (!raw) return "";
-    const root: "sdcard" | "saf" | "" = raw === "/saf" || raw.startsWith("/saf/")
-        ? "saf"
-        : raw === "/sdcard" || raw.startsWith("/sdcard/")
-            ? "sdcard"
-            : "";
-    if (!root) return "";
-    const prefix = root === "saf" ? "/saf/" : "/sdcard/";
-    const rel = raw.startsWith(prefix) ? raw.slice(prefix.length - 1) : raw;
-    const echo = await capacitorInvoke("storage:uri", { root, path: rel || "/" });
+    const parsed = parseNativeStoragePath(virtualPath);
+    if (!parsed) return "";
+    const echo = await capacitorInvoke("storage:uri", { root: parsed.root, path: parsed.rel });
     return String(echo.uri || echo.url || "").trim();
+};
+
+/**
+ * WHY: Capacitor Explorer must open `/sdcard/` / `/saf/` in one native hop
+ * (FileProvider + SEND/VIEW). Reading bytes in JS then hopping URI often never launches.
+ */
+export const openNativeStorageFile = async (
+    virtualPath: string,
+    opts: { chooser?: boolean; packageName?: string; mimeType?: string; title?: string } = {}
+): Promise<boolean> => {
+    const parsed = parseNativeStoragePath(virtualPath);
+    if (!parsed) return false;
+    const packageName = String(opts.packageName || "").trim();
+    const mimeType = String(opts.mimeType || "").trim();
+    const title = String(opts.title || (packageName ? "Open" : "Open with")).trim();
+    const echo = await capacitorInvoke("storage:open", {
+        root: parsed.root,
+        path: parsed.rel,
+        chooser: packageName ? opts.chooser === true : opts.chooser !== false,
+        ...(packageName ? { packageName } : {}),
+        ...(mimeType ? { mimeType } : {}),
+        ...(title ? { title } : {})
+    });
+    return echo.opened === true || echo.sent === true;
 };
 
 export const pickSafTree = async (): Promise<string> => {

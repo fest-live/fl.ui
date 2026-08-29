@@ -125,10 +125,8 @@ export function listVirtualRootEntriesFromRouter(): FileEntryLike[] {
  * virtual `/user/` prefix is stripped, mirroring `createOpfsLinkStoreIo` in
  * link-store. In node/tests `navigator.storage` is absent → list returns [].
  *
- * `/assets/` is a lightweight read-only lister. In node/tests it returns []
- * (no Cache API). Explorer lists assets via its own `listAssetEntries`
- * branch, so an empty lister here is safe and keeps the root visible in
- * `listVirtualRootEntriesFromRouter`.
+ * `/assets/` lists via Explorer `listAssetEntries`. `readFile` fetches the
+ * same-origin path so open-item can load markdown/images without OPFS.
  *
  * INVARIANT: `ensureDefaultFsBackends` is self-healing — it re-registers any
  * missing default backend rather than no-op behind a one-shot flag, so it
@@ -222,10 +220,21 @@ export function ensureDefaultFsBackends(): void {
       root: "/assets/",
       writable: false,
       async list() {
-        // Lightweight read-only lister. Explorer lists assets via its own
-        // `listAssetEntries` branch; this backend only keeps the root visible
-        // in `listVirtualRootEntriesFromRouter` for SpeedDial/CRX callers.
+        // Explorer lists assets via `listAssetEntries`; this keeps the root visible.
         return [];
+      },
+      async readFile(path: string) {
+        const p = String(path || "").trim();
+        if (!p || p.endsWith("/")) return null;
+        try {
+          const r = await fetch(p);
+          if (!r?.ok) return null;
+          const blob = await r.blob();
+          const name = p.slice(p.lastIndexOf("/") + 1) || "asset";
+          return new File([blob], name, { type: blob.type || "" });
+        } catch {
+          return null;
+        }
       }
     });
   }

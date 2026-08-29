@@ -1,4 +1,4 @@
-[**@fest-lib/fl-ui v0.1.19**](../README.md)
+[**@fest-lib/fl-ui v0.1.20**](../README.md)
 
 ***
 
@@ -10,7 +10,7 @@
 type BookmarkMenuEntry = object;
 ```
 
-Defined in: fl.ui/src/ui/navigation/app-menu/bookmarks-menu.ts:38
+Defined in: fl.ui/src/ui/navigation/app-menu/bookmarks-menu.ts:41
 
 ## Properties
 
@@ -20,7 +20,7 @@ Defined in: fl.ui/src/ui/navigation/app-menu/bookmarks-menu.ts:38
 optional folder?: boolean;
 ```
 
-Defined in: fl.ui/src/ui/navigation/app-menu/bookmarks-menu.ts:42
+Defined in: fl.ui/src/ui/navigation/app-menu/bookmarks-menu.ts:45
 
 ***
 
@@ -30,7 +30,7 @@ Defined in: fl.ui/src/ui/navigation/app-menu/bookmarks-menu.ts:42
 id: string;
 ```
 
-Defined in: fl.ui/src/ui/navigation/app-menu/bookmarks-menu.ts:39
+Defined in: fl.ui/src/ui/navigation/app-menu/bookmarks-menu.ts:42
 
 ***
 
@@ -40,7 +40,7 @@ Defined in: fl.ui/src/ui/navigation/app-menu/bookmarks-menu.ts:39
 optional parentId?: string;
 ```
 
-Defined in: fl.ui/src/ui/navigation/app-menu/bookmarks-menu.ts:43
+Defined in: fl.ui/src/ui/navigation/app-menu/bookmarks-menu.ts:46
 
 ***
 
@@ -50,7 +50,7 @@ Defined in: fl.ui/src/ui/navigation/app-menu/bookmarks-menu.ts:43
 title: string;
 ```
 
-Defined in: fl.ui/src/ui/navigation/app-menu/bookmarks-menu.ts:40
+Defined in: fl.ui/src/ui/navigation/app-menu/bookmarks-menu.ts:43
 
 ***
 
@@ -60,4 +60,4 @@ Defined in: fl.ui/src/ui/navigation/app-menu/bookmarks-menu.ts:40
 optional url?: string;
 ```
 
-Defined in: fl.ui/src/ui/navigation/app-menu/bookmarks-menu.ts:41
+Defined in: fl.ui/src/ui/navigation/app-menu/bookmarks-menu.ts:44

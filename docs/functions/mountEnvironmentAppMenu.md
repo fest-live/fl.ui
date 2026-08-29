@@ -1,4 +1,4 @@
-[**@fest-lib/fl-ui v0.1.19**](../README.md)
+[**@fest-lib/fl-ui v0.1.20**](../README.md)
 
 ***
 
@@ -10,7 +10,7 @@
 function mountEnvironmentAppMenu(): MountAppMenuResult;
 ```
 
-Defined in: fl.ui/src/ui/navigation/app-menu/AppMenu.ts:1187
+Defined in: fl.ui/src/ui/navigation/app-menu/AppMenu.ts:1222
 
 Mount `.env-shell-app-menu` beside the shell chrome.
 Launcher SKU → Android apps grid; CRX bookmarks API → Win7-style Start (recent | folders).

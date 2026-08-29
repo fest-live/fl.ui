@@ -1,4 +1,4 @@
-[**@fest-lib/fl-ui v0.1.19**](../README.md)
+[**@fest-lib/fl-ui v0.1.20**](../README.md)
 
 ***
 
@@ -10,7 +10,7 @@
 function isAppMenuEnabled(): boolean;
 ```
 
-Defined in: fl.ui/src/ui/navigation/app-menu/AppMenu.ts:150
+Defined in: fl.ui/src/ui/navigation/app-menu/AppMenu.ts:169
 
 App Menu mounts for Android launcher SKU or CRX bookmarks Start.
 

@@ -1,4 +1,4 @@
-[**@fest-lib/fl-ui v0.1.19**](../README.md)
+[**@fest-lib/fl-ui v0.1.20**](../README.md)
 
 ***
 
@@ -10,9 +10,42 @@
 type BookmarksMenuApi = object;
 ```
 
-Defined in: fl.ui/src/ui/navigation/app-menu/bookmarks-menu.ts:46
+Defined in: fl.ui/src/ui/navigation/app-menu/bookmarks-menu.ts:49
 
 ## Properties
+
+### create?
+
+```ts
+optional create?: (parentId, spec) => Promise<BookmarkMenuEntry | null>;
+```
+
+Defined in: fl.ui/src/ui/navigation/app-menu/bookmarks-menu.ts:61
+
+Create a URL bookmark or folder under `parentId` (`"0"` = Chrome root).
+Omit `url` to create a folder.
+
+#### Parameters
+
+##### parentId
+
+`string` \| `undefined`
+
+##### spec
+
+###### title
+
+`string`
+
+###### url?
+
+`string`
+
+#### Returns
+
+`Promise`\<[`BookmarkMenuEntry`](BookmarkMenuEntry.md) \| `null`\>
+
+***
 
 ### listChildren
 
@@ -20,7 +53,7 @@ Defined in: fl.ui/src/ui/navigation/app-menu/bookmarks-menu.ts:46
 listChildren: (folderId?) => Promise<BookmarkMenuEntry[]>;
 ```
 
-Defined in: fl.ui/src/ui/navigation/app-menu/bookmarks-menu.ts:47
+Defined in: fl.ui/src/ui/navigation/app-menu/bookmarks-menu.ts:50
 
 #### Parameters
 
@@ -40,7 +73,7 @@ Defined in: fl.ui/src/ui/navigation/app-menu/bookmarks-menu.ts:47
 open: (entry) => Promise<void>;
 ```
 
-Defined in: fl.ui/src/ui/navigation/app-menu/bookmarks-menu.ts:49
+Defined in: fl.ui/src/ui/navigation/app-menu/bookmarks-menu.ts:52
 
 #### Parameters
 
@@ -60,7 +93,7 @@ Defined in: fl.ui/src/ui/navigation/app-menu/bookmarks-menu.ts:49
 optional remove?: (entry) => Promise<boolean>;
 ```
 
-Defined in: fl.ui/src/ui/navigation/app-menu/bookmarks-menu.ts:52
+Defined in: fl.ui/src/ui/navigation/app-menu/bookmarks-menu.ts:55
 
 #### Parameters
 
@@ -80,7 +113,7 @@ Defined in: fl.ui/src/ui/navigation/app-menu/bookmarks-menu.ts:52
 optional resolveIconUrl?: (href, size?) => string;
 ```
 
-Defined in: fl.ui/src/ui/navigation/app-menu/bookmarks-menu.ts:51
+Defined in: fl.ui/src/ui/navigation/app-menu/bookmarks-menu.ts:54
 
 Prefer Google S2; extension `_favicon` is a fallback.
 
@@ -106,7 +139,7 @@ Prefer Google S2; extension `_favicon` is a fallback.
 search: (query) => Promise<BookmarkMenuEntry[]>;
 ```
 
-Defined in: fl.ui/src/ui/navigation/app-menu/bookmarks-menu.ts:48
+Defined in: fl.ui/src/ui/navigation/app-menu/bookmarks-menu.ts:51
 
 #### Parameters
 
@@ -126,7 +159,7 @@ Defined in: fl.ui/src/ui/navigation/app-menu/bookmarks-menu.ts:48
 optional update?: (id, patch) => Promise<BookmarkMenuEntry | null>;
 ```
 
-Defined in: fl.ui/src/ui/navigation/app-menu/bookmarks-menu.ts:53
+Defined in: fl.ui/src/ui/navigation/app-menu/bookmarks-menu.ts:56
 
 #### Parameters
 

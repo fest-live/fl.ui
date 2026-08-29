@@ -1,4 +1,4 @@
-[**@fest-lib/fl-ui v0.1.19**](../README.md)
+[**@fest-lib/fl-ui v0.1.20**](../README.md)
 
 ***
 
@@ -10,7 +10,7 @@
 function createChromeBookmarksMenuApi(raw?): BookmarksMenuApi | null;
 ```
 
-Defined in: fl.ui/src/ui/navigation/app-menu/bookmarks-menu.ts:139
+Defined in: fl.ui/src/ui/navigation/app-menu/bookmarks-menu.ts:156
 
 Build BookmarksMenuApi from `chrome.bookmarks` (CRX extension pages).
 

@@ -1,4 +1,4 @@
-[**@fest-lib/fl-ui v0.1.19**](../README.md)
+[**@fest-lib/fl-ui v0.1.20**](../README.md)
 
 ***
 
@@ -7,7 +7,39 @@
 # Type Alias: LauncherAppEntry
 
 ```ts
-type LauncherAppEntry = LauncherAppPinPayload;
+type LauncherAppEntry = LauncherAppPinPayload & object;
 ```
 
-Defined in: fl.ui/src/ui/navigation/app-menu/AppMenu.ts:101
+Defined in: fl.ui/src/ui/navigation/app-menu/AppMenu.ts:114
+
+## Type Declaration
+
+### category?
+
+```ts
+optional category?: string;
+```
+
+### firstInstallTime?
+
+```ts
+optional firstInstallTime?: number;
+```
+
+### installer?
+
+```ts
+optional installer?: string;
+```
+
+### lastUpdateTime?
+
+```ts
+optional lastUpdateTime?: number;
+```
+
+### system?
+
+```ts
+optional system?: boolean;
+```

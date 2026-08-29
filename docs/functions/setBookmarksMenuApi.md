@@ -1,4 +1,4 @@
-[**@fest-lib/fl-ui v0.1.19**](../README.md)
+[**@fest-lib/fl-ui v0.1.20**](../README.md)
 
 ***
 
@@ -10,7 +10,7 @@
 function setBookmarksMenuApi(api): void;
 ```
 
-Defined in: fl.ui/src/ui/navigation/app-menu/bookmarks-menu.ts:63
+Defined in: fl.ui/src/ui/navigation/app-menu/bookmarks-menu.ts:79
 
 ## Parameters
 

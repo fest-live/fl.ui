@@ -1,8 +1,9 @@
 /*
  * Filename: ExplorerSettings.ts
  * FullPath: modules/projects/fl.ui/src/ui/explorer/ExplorerSettings.ts
- * Change date: 22.30.00_29.08.2026
- * Reason: Explorer settings — list sort plus SAF / all-files / PWA mounts.
+ * Change date: 09.05.00_30.08.2026
+ * Reason: Explorer in-list settings use the same Veela cards / fields as Settings.
+ * FIND:explorer-settings
  */
 
 import { H, defineElement } from "@fest-lib/lure";
@@ -35,9 +36,11 @@ const paintMounts = (host: HTMLElement): void => {
     const mounts = listExplorerMounts();
     list.replaceChildren();
     if (!mounts.length) {
+        list.dataset.empty = "1";
         list.textContent = "No mounted folders yet.";
         return;
     }
+    list.dataset.empty = "0";
     for (const mount of mounts) {
         const row = document.createElement("div");
         row.className = "explorer-settings__mount";
@@ -102,10 +105,13 @@ export class ExplorerSettings extends UIElement {
         return H`<div class="explorer-settings" part="root">
             <header class="explorer-settings__head">
                 <h2>Explorer</h2>
-                <p>Mounts sit beside <code>/user/</code> and <code>/assets/</code>. Android all-files is <code>/sdcard/</code>; SAF trees are <code>/saf/</code>.</p>
+                <p class="explorer-settings__hint">Sort this list and how Android or the browser reach files.</p>
             </header>
             <section class="explorer-settings__card">
-                <h3>List sort</h3>
+                <h3 class="explorer-settings__title">
+                    <ui-icon icon="sort-ascending" icon-style="duotone" size="20"></ui-icon>
+                    List sort
+                </h3>
                 <p>Name, date, type, size, or kind. Folders can stay on top.</p>
                 <label class="explorer-settings__field">
                     <span>Sort by</span>
@@ -138,11 +144,15 @@ export class ExplorerSettings extends UIElement {
                     <span>Folders first</span>
                 </label>
             </section>
-            <section class="explorer-settings__card">
-                <h3>Android storage</h3>
-                <pre data-explorer-status class="explorer-settings__status">Checking…</pre>
+            <section class="explorer-settings__card" hidden=${!native}>
+                <h3 class="explorer-settings__title">
+                    <ui-icon icon="hard-drives" icon-style="duotone" size="20"></ui-icon>
+                    Android storage
+                </h3>
+                <p>All-files is <code>/sdcard/</code>. A picked tree is <code>/saf/</code> in this Explorer only.</p>
+                <p data-explorer-status class="explorer-settings__status">Checking…</p>
                 <div class="explorer-settings__actions">
-                    <button class="btn" type="button" disabled=${!native} on:click=${() => {
+                    <button class="btn btn--primary" type="button" disabled=${!native} on:click=${() => {
                         void requestAllFilesAccess().then(() =>
                             getAllFilesStatus().then((s) => paintStatus(self, s, "Opened system all-files settings."))
                         );
@@ -155,9 +165,12 @@ export class ExplorerSettings extends UIElement {
                     }}>Pick SAF folder</button>
                 </div>
             </section>
-            <section class="explorer-settings__card">
-                <h3>Browser mounts</h3>
-                <p>Uses <code>showDirectoryPicker</code> (Chromium PWA). Handles stay in this session.</p>
+            <section class="explorer-settings__card" hidden=${native || !picker}>
+                <h3 class="explorer-settings__title">
+                    <ui-icon icon="folder-plus" icon-style="duotone" size="20"></ui-icon>
+                    Browser mounts
+                </h3>
+                <p>Chromium <code>showDirectoryPicker</code>. Handles stay in this session beside <code>/user/</code>.</p>
                 <div class="explorer-settings__actions">
                     <button class="btn" type="button" disabled=${!picker} on:click=${() => {
                         void pickBrowserDirectory().then((handle) => {
@@ -175,19 +188,24 @@ export class ExplorerSettings extends UIElement {
 }
 
 export const openExplorerSettings = (host?: HTMLElement | null): ExplorerSettings => {
-    const existing = document.querySelector("ui-explorer-settings") as ExplorerSettings | null;
+    const existing = (host?.querySelector("ui-explorer-settings")
+        ?? document.querySelector("ui-explorer-settings")) as ExplorerSettings | null;
     if (existing) {
         existing.hidden = false;
+        host?.classList.add("fm-root--settings");
         return existing;
     }
     const page = document.createElement("ui-explorer-settings") as ExplorerSettings;
     (host || document.body).append(page);
+    host?.classList.add("fm-root--settings");
     return page;
 };
 
 export const closeExplorerSettings = (): void => {
     document.querySelectorAll("ui-file-manager").forEach((fm) => {
-        fm.shadowRoot?.querySelector("ui-explorer-settings")?.remove();
+        const root = fm.shadowRoot?.querySelector(".fm-root");
+        root?.classList.remove("fm-root--settings");
+        root?.querySelector("ui-explorer-settings")?.remove();
     });
     document.querySelector("ui-explorer-settings")?.remove();
 };

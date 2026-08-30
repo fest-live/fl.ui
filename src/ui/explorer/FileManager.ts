@@ -8,6 +8,7 @@ import { UIElement } from "../base/UIElement";
 //
 import FileManagerContent from "./FileManagerContent";
 import { closeExplorerSettings, openExplorerSettings } from "./ExplorerSettings";
+import { toExplorerStoragePath } from "./path-router";
 
 // @ts-ignore
 import fmCss from "./FileManager.scss?inline";
@@ -47,7 +48,7 @@ export class FileManager extends UIElement {
     get pathRef() { return this.operative?.pathRef; }
     get path() { return this.content?.path || this.operative?.path || this.#pendingPath || "/"; }
     set path(value: string) {
-        const next = value || "/";
+        const next = toExplorerStoragePath(value) || value || "/";
         if (this.content) this.content.path = next;
         if (this.operative) this.operative.path = next;
         else this.#pendingPath = next;
@@ -131,7 +132,8 @@ export class FileManager extends UIElement {
 
     //
     async navigate(toPath: string) {
-        const clean = getDir(toPath);
+        const mapped = toExplorerStoragePath(toPath) || toPath;
+        const clean = getDir(mapped);
         this.path = clean || this.path || "/";
         const input = this?.shadowRoot?.querySelector?.("input[name=\"address\"]");
         if (input && input instanceof HTMLInputElement && input.value != this.path) { input.value = this.path || "/"; };

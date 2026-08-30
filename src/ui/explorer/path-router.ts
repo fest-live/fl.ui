@@ -7,6 +7,7 @@
 
 import {
   normalizeVirtualPath,
+  toExplorerStoragePath,
   type FsBackend,
   type FileEntryLike
 } from "./fs-backend.ts";
@@ -22,7 +23,7 @@ import { ensureMountsRootBackend } from "./mounts.ts";
 import { isNativeStorageAvailable } from "./storage-bridge.ts";
 
 // Re-export the shared helper so callers can import everything from path-router.
-export { normalizeVirtualPath };
+export { normalizeVirtualPath, toExplorerStoragePath };
 export type { FsBackend, FileEntryLike, EntryKind } from "./fs-backend.ts";
 
 /**

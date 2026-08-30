@@ -1,8 +1,8 @@
 /*
  * Filename: fs-backend.ts
  * FullPath: modules/projects/fl.ui/src/ui/explorer/fs-backend.ts
- * Change date and time: 08.15.00_19.08.2026
- * Reason for changes: Task 1 — extract FsBackend contract + shared path helpers used by PathRouter and Explorer Operative.
+ * Change date and time: 08.50.00_30.08.2026
+ * Reason for changes: toExplorerStoragePath — /storage/emulated/0 and primary: → /sdcard/.
  */
 
 /**
@@ -49,6 +49,41 @@ export function normalizeVirtualPath(path: string, asDirectory = true): string {
   if (p !== "/" && asDirectory && !p.endsWith("/")) p += "/";
   if (p !== "/" && !asDirectory && p.endsWith("/")) p = p.slice(0, -1);
   return p;
+}
+
+/**
+ * WHY: Transfer / Android send `/storage/emulated/0/…`, `file://`, or
+ * `content://…/primary:Download/…`. Explorer lists that as `/sdcard/…`.
+ * Do not map `/saf/` — that is Explorer's own tree, not Transfer landing.
+ */
+export function toExplorerStoragePath(path: string, asDirectory = true): string {
+  let p = String(path || "").trim();
+  if (!p) return "";
+  try {
+    if (/^file:/i.test(p)) {
+      const u = new URL(p);
+      p = decodeURIComponent(u.pathname || p);
+    }
+  } catch {
+    /* keep raw */
+  }
+  if (/^content:/i.test(p)) {
+    let decoded = p;
+    try {
+      decoded = decodeURIComponent(p);
+    } catch {
+      decoded = p;
+    }
+    const id = decoded.match(/(?:primary|home):([^?#]*)/i);
+    if (!id) return "";
+    const rel = String(id[1] || "").replace(/^\/+/, "");
+    p = rel ? `/sdcard/${rel}` : "/sdcard/";
+  }
+  p = p.replace(/\\/g, "/");
+  p = p.replace(/^(?:\/storage\/emulated\/0|\/mnt\/sdcard)(?=\/|$)/i, "/sdcard");
+  p = p.replace(/^\/sdcard\/sdcard(?=\/|$)/i, "/sdcard");
+  if (!p.startsWith("/")) p = `/${p}`;
+  return normalizeVirtualPath(p, asDirectory);
 }
 
 /*

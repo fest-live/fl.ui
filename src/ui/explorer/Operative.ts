@@ -2,8 +2,8 @@
  * Filename: Operative.ts
  * FullPath: modules/projects/fl.ui/src/ui/explorer/Operative.ts
  * FIND:bookmarks
- * Change date and time: 22.50.00_29.08.2026
- * Reason for changes: Chrome bookmarks create / edit / delete via FsBackend; OPFS path loads stay serialized.
+ * Change date and time: 08.30.00_30.08.2026
+ * Reason for changes: context-action must bubble to `ui-file-manager` (Transfer / View / pin).
  */
 
 import { observe, iterated, ref, affected } from "@fest-lib/object";
@@ -1467,8 +1467,22 @@ export class FileOperative {
     }
 
     //
+    /** WHY: host is `ui-file-manager-content`; runtime listens on `ui-file-manager`. */
     protected dispatchEvent(event: Event) {
-        this.host?.dispatchEvent(event);
+        const host = this.host;
+        if (!host) return;
+        if (event instanceof CustomEvent) {
+            host.dispatchEvent(
+                new CustomEvent(event.type, {
+                    detail: event.detail,
+                    bubbles: true,
+                    composed: true,
+                    cancelable: event.cancelable
+                })
+            );
+            return;
+        }
+        host.dispatchEvent(event);
     }
 }
 

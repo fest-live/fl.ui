@@ -215,6 +215,11 @@
             }
         }
 
+        .fm-root--settings .fm-content {
+            visibility: hidden;
+            pointer-events: none;
+        }
+
         .fm-content {
             grid-row: 2;
             grid-column: content-col;
@@ -242,6 +247,17 @@
             .fm-grid { grid-column: 1 / -1; }
             .fm-root[data-with-sidebar="true"] { grid-template-columns: [content-col] minmax(0px, 1fr); }
             .fm-sidebar { display: none !important; }
+            .fm-toolbar {
+                gap: 0.35rem;
+                padding-inline: 0.4rem;
+                .btn {
+                    inline-size: 2rem;
+                    block-size: 2rem;
+                }
+                & .fm-toolbar-center {
+                    min-inline-size: 0;
+                }
+            }
         }
     }
 }

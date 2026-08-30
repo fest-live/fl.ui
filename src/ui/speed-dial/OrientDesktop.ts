@@ -5,7 +5,7 @@
  * Reason for changes: Pass makeView through so SpeedDial does not clear the HomeView opener.
  */
 
-import { loadAsAdopted } from "@fest-lib/dom";
+import { loadAsAdopted } from "@fest-lib/style-lib";
 import { SpeedDial, createCtxMenu } from "./SpeedDial";
 
 // @ts-ignore Vite inline SCSS

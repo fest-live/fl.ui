@@ -1,5 +1,6 @@
 import { H, defineElement, property, getDir, valueLink } from "@fest-lib/lure";
-import { addEvent, preloadStyle } from "@fest-lib/dom";
+import { addEvent } from "@fest-lib/dom";
+import { preloadStyle } from "@fest-lib/style-lib";
 import { affected, propRef } from "@fest-lib/object";
 
 //

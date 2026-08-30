@@ -70,13 +70,15 @@
         "@fest-lib/core": "github:fest-live/core.ts#main",
         "@fest-lib/dom": "github:fest-live/dom.ts#main",
         "@fest-lib/object": "github:fest-live/object.ts#main",
-        "@fest-lib/lure": "github:fest-live/lur.e#main"
+        "@fest-lib/lure": "github:fest-live/lur.e#main",
+        "@fest-lib/style-lib": "github:fest-live/style.ts#main"
     },
     "peerDependencies": {
         "@fest-lib/core": ">=0.1.0",
         "@fest-lib/dom": ">=0.1.0",
         "@fest-lib/lure": ">=0.1.0",
         "@fest-lib/object": ">=0.1.0",
+        "@fest-lib/style-lib": ">=0.1.0",
         "@fest-lib/uniform": ">=0.1.0",
         "@fest-lib/veela": ">=0.1.0"
     },

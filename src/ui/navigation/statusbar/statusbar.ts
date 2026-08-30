@@ -22,7 +22,7 @@ import UIElement from "fl-ui/base/UIElement";
 //
 // @ts-ignore
 import styles from "./statusbar.scss?inline";
-import { preloadStyle } from "@fest-lib/dom";
+import { preloadStyle } from "@fest-lib/style-lib";
 const styled = preloadStyle(styles);
 
 /** Shell display surface for chrome / status overlay decisions. */

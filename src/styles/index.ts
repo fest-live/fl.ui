@@ -6,7 +6,7 @@
  */
 
 import { loadAllFonts, loadFontRegistry } from './font-loader';
-import { loadAsAdopted } from '@fest-lib/dom'; //@ts-ignore
+import { loadAsAdopted } from '@fest-lib/style-lib'; //@ts-ignore
 import styles from './index.scss?inline';
 import globalNativeControlStyles from './patch-global-native-controls.scss?inline';
 

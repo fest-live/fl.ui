@@ -10,21 +10,21 @@ import {
   toExplorerStoragePath,
   type FsBackend,
   type FileEntryLike
-} from "./fs-backend.ts";
-import { createChromeBookmarksBackend } from "./backends/chrome-bookmarks-backend.ts";
-import { createChromeDownloadsBackend } from "./backends/chrome-downloads-backend.ts";
-import { createNativeFsBackend } from "./backends/native-fs-backend.ts";
+} from "./fs-backend.js";
+import { createChromeBookmarksBackend } from "./backends/chrome-bookmarks-backend.js";
+import { createChromeDownloadsBackend } from "./backends/chrome-downloads-backend.js";
+import { createNativeFsBackend } from "./backends/native-fs-backend.js";
 import {
     createNeutralinoFsBackend,
     isNeutralinoFilesystemAvailable,
     resolveNeutralinoHome
-} from "./backends/neutralino-fs-backend.ts";
-import { ensureMountsRootBackend } from "./mounts.ts";
-import { isNativeStorageAvailable } from "./storage-bridge.ts";
+} from "./backends/neutralino-fs-backend.js";
+import { ensureMountsRootBackend } from "./mounts.js";
+import { isNativeStorageAvailable } from "./storage-bridge.js";
 
 // Re-export the shared helper so callers can import everything from path-router.
 export { normalizeVirtualPath, toExplorerStoragePath };
-export type { FsBackend, FileEntryLike, EntryKind } from "./fs-backend.ts";
+export type { FsBackend, FileEntryLike, EntryKind } from "./fs-backend.js";
 
 /**
  * INVARIANT: registry keys are normalized directory roots (trailing slash,

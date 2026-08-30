@@ -47,7 +47,7 @@ import {
  * instance — no dual PathRouter registry.
  */
 import { resolveFsBackend, subscribeFsBackendRegister } from "#fl-ui/explorer/path-router";
-import { defaultIconScaleForDisplay } from "./tile-icon";
+import { defaultIconScaleForDisplay } from "./tile-icon.ts";
 
 /*
  * WHY: fl.ui must stay standalone — it cannot import `core/routing/core/views`

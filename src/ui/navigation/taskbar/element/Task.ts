@@ -9,7 +9,7 @@
  *   so mobile Home showed letter "U" (from String(undefined)→"undefined") instead of house.
  */
 import UIElement from "fl-ui/base/UIElement";
-import { preloadStyle } from "@fest-lib/dom";
+import { preloadStyle } from "@fest-lib/style-lib";
 import { H, property, defineElement } from "@fest-lib/lure";
 
 // @ts-ignore

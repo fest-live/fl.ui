@@ -11,7 +11,7 @@
  * Avoids a static import of subsystem `launcher-bridge` (fl.ui ↔ subsystem cycle) — hosts
  * resolve `com/routing/native/launcher-bridge` at runtime, or register via {@link setLauncherBridgeForAppMenu}.
  */
-import { preloadStyle } from "@fest-lib/dom";
+import { preloadStyle } from "@fest-lib/style-lib";
 import "@fest-lib/icon";
 import {
     buildLauncherAppDragEnvelope,

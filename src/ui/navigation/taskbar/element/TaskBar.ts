@@ -45,7 +45,7 @@ import { H, defineElement } from "@fest-lib/lure";
 //
 // @ts-ignore
 import styles from "../scss/TaskBar.scss?inline";
-import { preloadStyle } from "@fest-lib/dom";
+import { preloadStyle } from "@fest-lib/style-lib";
 const styled = preloadStyle(styles);
 
 //

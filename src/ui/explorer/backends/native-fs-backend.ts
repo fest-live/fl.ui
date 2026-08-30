@@ -5,8 +5,8 @@
  * Reason: remove() → storage:delete for Capacitor /sdcard/ /saf/.
  */
 
-import { normalizeVirtualPath, type FileEntryLike, type FsBackend } from "../fs-backend.ts";
-import { listNativeStorage, readNativeStorageFile, removeNativeStorage, type StorageEntry } from "../storage-bridge.ts";
+import { normalizeVirtualPath, type FileEntryLike, type FsBackend } from "../fs-backend.js";
+import { listNativeStorage, readNativeStorageFile, removeNativeStorage, type StorageEntry } from "../storage-bridge.js";
 
 const toEntries = (path: string, rows: StorageEntry[]): FileEntryLike[] => {
     const base = normalizeVirtualPath(path, true);

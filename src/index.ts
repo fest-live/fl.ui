@@ -24,7 +24,7 @@
  * ```
  */
 
-import { loadInlineStyle } from "@fest-lib/dom";
+import { loadInlineStyle } from "@fest-lib/style-lib";
 
 // ============================================================================
 // CONFIGURATION

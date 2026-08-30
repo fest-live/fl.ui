@@ -6,8 +6,8 @@
  */
 
 import { registerDirectoryRoot, unregisterDirectoryRoot } from "@fest-lib/lure";
-import { normalizeVirtualPath, type FileEntryLike, type FsBackend } from "./fs-backend.ts";
-import { registerFsBackend, unregisterFsBackend } from "./path-router.ts";
+import { normalizeVirtualPath, type FileEntryLike, type FsBackend } from "./fs-backend.js";
+import { registerFsBackend, unregisterFsBackend } from "./path-router.js";
 
 export const MOUNTS_ROOT = "/mounts/";
 const CATALOG_KEY = "cw::explorer::mounts";

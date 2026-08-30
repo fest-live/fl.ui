@@ -6,7 +6,8 @@
  */
 
 import { property, defineElement, H, bindWith, initGlobalClipboard } from "@fest-lib/lure";
-import { addEvent, handleStyleChange, preloadStyle } from "@fest-lib/dom";
+import { addEvent, handleStyleChange } from "@fest-lib/dom";
+import { preloadStyle } from "@fest-lib/style-lib";
 import { ref } from "@fest-lib/object";
 
 //
@@ -14,14 +15,14 @@ import { UIElement } from "fl-ui/base/UIElement";
 
 // @ts-ignore
 import fmCss from "./FileManagerContent.scss?inline";
-import { type FileEntryItem, FileOperative } from "./Operative";
+import { type FileEntryItem, FileOperative } from "./Operative.ts";
 
 //
-import { createItemCtxMenu } from "./ContextMenu";
+import { createItemCtxMenu } from "./ContextMenu.ts";
 
 //
-import { entryKey, entryKind, iconFor, formatDate, formatSize } from "./utils";
-import { EXPLORER_SORT_EVENT, peekExplorerSort, sortExplorerEntries } from "./entry-sort";
+import { entryKey, entryKind, iconFor, formatDate, formatSize } from "./utils.ts";
+import { EXPLORER_SORT_EVENT, peekExplorerSort, sortExplorerEntries } from "./entry-sort.ts";
 import { resolveEntryIcon } from "./fs-backend.ts";
 
 //

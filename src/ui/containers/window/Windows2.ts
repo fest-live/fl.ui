@@ -6,8 +6,9 @@
  * FIND:win-footer
  * TAG:hang-open
  */
-import { defineElement, property, H, numberRef, bindStyle, S } from "@fest-lib/lure";
-import { preloadStyle, addEvent } from "@fest-lib/dom";
+import { defineElement, property, H, numberRef } from "@fest-lib/lure";
+import { addEvent } from "@fest-lib/dom";
+import { bindStyle, S, preloadStyle } from "@fest-lib/style-lib";
 import { UIElement } from "fl-ui/base/UIElement";
 import "@fest-lib/icon";
 import {

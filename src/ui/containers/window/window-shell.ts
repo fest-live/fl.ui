@@ -12,7 +12,7 @@
 import type { refType } from "@fest-lib/object";
 import { booleanRef, effect, numberRef } from "@fest-lib/object";
 import { h } from "../dom-lite.js";
-import { mountChromeButtons } from "./buttons.ts";
+import { mountChromeButtons } from "./buttons.js";
 
 export type DemoWindowRole = "viewer" | "explorer";
 

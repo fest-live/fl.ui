@@ -1,5 +1,6 @@
 /* Desktop Taskbar appearance styles DOM Mixin */
-import { DOMMixin, preloadStyle } from "@fest-lib/dom";
+import { DOMMixin } from "@fest-lib/dom";
+import { preloadStyle } from "@fest-lib/style-lib";
 
 //
 // @ts-ignore

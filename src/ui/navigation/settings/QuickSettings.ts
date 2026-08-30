@@ -13,7 +13,8 @@
  * subsystem can still react via the `u2-theme-change` event this module dispatches.
  */
 import { defineElement, H, navigate } from "@fest-lib/lure";
-import { MOCElement, preloadStyle } from "@fest-lib/dom";
+import { MOCElement } from "@fest-lib/dom";
+import { preloadStyle } from "@fest-lib/style-lib";
 import { UIElement } from "fl-ui/base/UIElement";
 import "@fest-lib/icon";
 import { getSpeedDialViewOpener } from "fl-ui/speed-dial/view-opener";

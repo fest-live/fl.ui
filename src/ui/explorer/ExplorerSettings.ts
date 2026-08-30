@@ -7,14 +7,15 @@
  */
 
 import { H, defineElement } from "@fest-lib/lure";
-import { addEvent, preloadStyle } from "@fest-lib/dom";
+import { addEvent } from "@fest-lib/dom";
+import { preloadStyle } from "@fest-lib/style-lib";
 import { UIElement } from "fl-ui/base/UIElement";
 import {
     addDirectoryMount,
     listExplorerMounts,
     removeDirectoryMount
 } from "./mounts.ts";
-import { peekExplorerSort, writeExplorerSort, type ExplorerSortBy } from "./entry-sort";
+import { peekExplorerSort, writeExplorerSort, type ExplorerSortBy } from "./entry-sort.ts";
 import {
     canShowDirectoryPicker,
     getAllFilesStatus,

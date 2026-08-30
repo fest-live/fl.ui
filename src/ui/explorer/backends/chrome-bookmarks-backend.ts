@@ -17,7 +17,7 @@ import {
     normalizeVirtualPath,
     type FsBackend,
     type FileEntryLike
-} from "../fs-backend.ts";
+} from "../fs-backend.js";
 
 /**
  * Minimal subset of `chrome.bookmarks` this adapter depends on. Kept structural

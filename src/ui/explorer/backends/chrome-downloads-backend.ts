@@ -6,7 +6,7 @@
  * Reason: CRX `chrome.downloads` as a read-only `/downloads/` FsBackend.
  */
 
-import { type FileEntryLike, type FsBackend } from "../fs-backend.ts";
+import { type FileEntryLike, type FsBackend } from "../fs-backend.js";
 
 export const DOWNLOADS_ROOT = "/downloads/";
 

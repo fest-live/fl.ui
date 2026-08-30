@@ -7,7 +7,7 @@
  * Reason for changes: Name the FS adapter libs. One Explorer; hosts register backends, they do not fork the view.
  */
 
-import { ensureDefaultFsBackends } from "./path-router.ts";
+import { ensureDefaultFsBackends } from "./path-router.js";
 
 /**
  * Virtual roots. Implementation lives in `path-router` + `backends/*`.

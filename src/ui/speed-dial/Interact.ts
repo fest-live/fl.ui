@@ -4,7 +4,8 @@
  * Change date and time: 21.12.00_28.07.2026
  * Reason for changes: Keep the public interaction entrypoint as a compatibility facade over Pointer Events.
  */
-import { RAFBehavior, orientOf, setStyleProperty, resolveGridCellFromClientPoint } from "@fest-lib/dom";
+import { RAFBehavior, orientOf, resolveGridCellFromClientPoint } from "@fest-lib/dom";
+import { setStyleProperty } from "@fest-lib/style-lib";
 import { makeObjectAssignable, observe, affected, numberRef } from "@fest-lib/object";
 import { makeShiftTrigger, LongPressHandler, clampCell, bindDraggable } from "@fest-lib/lure";
 import { redirectCell } from "@fest-lib/core";

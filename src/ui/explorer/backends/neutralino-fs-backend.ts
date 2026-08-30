@@ -6,7 +6,7 @@
  * Reason: Desktop Neutralino home tree as `/desktop/` FsBackend (CRX/Capacitor skip).
  */
 
-import { normalizeVirtualPath, type FileEntryLike, type FsBackend } from "../fs-backend.ts";
+import { normalizeVirtualPath, type FileEntryLike, type FsBackend } from "../fs-backend.js";
 
 export const DESKTOP_ROOT = "/desktop/";
 

@@ -24,10 +24,10 @@ import {
     tileIconFetchSize,
     type SpeedDialItem,
     type SpeedDialMetaRegistry
-} from "./launcher-state";
-import { showSuccess, showError } from "./toast";
-import { isLauncherLaunchSpecEmpty, resolveAppLaunchSpec } from "./app-launch";
-import { getSpeedDialViewOpener } from "./view-opener";
+} from "./launcher-state.ts";
+import { showSuccess, showError } from "./toast.ts";
+import { isLauncherLaunchSpecEmpty, resolveAppLaunchSpec } from "./app-launch.ts";
+import { getSpeedDialViewOpener } from "./view-opener.ts";
 import {
     androidIconCacheKey,
     formatAndroidIconRef,
@@ -35,14 +35,14 @@ import {
     normalizeAndroidIconVariant,
     parseAndroidIconRef,
     type AndroidIconVariant
-} from "./android-icon-ref";
+} from "./android-icon-ref.ts";
 
 /** Minimal launcher IPC surface — host registers at boot (Capacitor entry). */
 export type LauncherBridgeSpeedDialApi = {
     launcherLaunch: (
         pkg: string,
         component?: string,
-        launch?: import("./app-launch").LauncherLaunchSpec
+        launch?: import("./app-launch.ts").LauncherLaunchSpec
     ) => Promise<boolean>;
     launcherStartShortcut?: (pkg: string, shortcutId: string) => Promise<boolean>;
     launcherShortcutIcon?: (pkg: string, shortcutId: string, size?: number) => Promise<string>;

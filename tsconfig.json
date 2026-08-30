@@ -27,6 +27,9 @@
             "@fest-lib/cdnImport": [
                 "./typings/cdnImport.d.ts"
             ],
+            "@fest-lib/style-lib": [
+                "../style.ts/src/index.ts"
+            ],
             "@fest-lib/dom": [
                 "../dom.ts/src/index.ts"
             ],

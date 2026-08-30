@@ -15,7 +15,8 @@
 
 //
 import { attrRef, defineElement, H, property, valueAsNumberRef, valueRef, dragSlider, getInputValues, Q, bindWith } from "@fest-lib/lure";
-import { preloadStyle, handleProperty } from "@fest-lib/dom";
+import { handleProperty } from "@fest-lib/dom";
+import { preloadStyle } from "@fest-lib/style-lib";
 import { computed, assign, propRef } from "@fest-lib/object";
 
 //

@@ -16,7 +16,7 @@
  */
 import { booleanRef, effect } from "@fest-lib/object";
 import { Windows2 } from "@fest-lib/fl-ui";
-import type { WindowChromeModel } from "../frame/window-shell.ts";
+import type { WindowChromeModel } from "../frame/window-shell.js";
 
 void Windows2;
 

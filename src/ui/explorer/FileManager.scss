@@ -1,4 +1,3 @@
 // Shell: real layout/tokens live in styles/ui/_explorer.scss (also re-exported via styles/ui/_index.scss).
-// WHY: color-mod only — `_variables` :root must not ride this adopted sheet onto document.
-@use "../../styles/ui/color-mod" as *;
+// WHY: no color-mod — `@function --u2-color-mod` makes Capacitor replaceSync drop the whole sheet.
 @use "../../styles/ui/explorer" as *;

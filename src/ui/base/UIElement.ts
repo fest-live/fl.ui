@@ -22,14 +22,14 @@ export class UIElement extends GLitElement() {
     connectedCallback(): this {
         const result = super.connectedCallback?.();
         const self : any = result ?? this;
+        // WHY: icon sheet must re-attach on reconnect; Veela runtime stays out (freeze).
+        self.loadStyleLibrary(ensureStyleSheet());
         return self;
     }
 
     //
     onInitialize(): this {
         const result = super.onInitialize();
-        // Only load icon styles, not the heavy veela runtime styles
-        // which cause freezing/hanging performance issues
         const self : any = result ?? this;
         self.loadStyleLibrary(ensureStyleSheet());
         return self;

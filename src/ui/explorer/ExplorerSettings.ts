@@ -28,7 +28,7 @@ import {
 // @ts-ignore
 import settingsCss from "./ExplorerSettings.scss?inline";
 
-const styled = preloadStyle(settingsCss);
+try { preloadStyle(settingsCss); } catch { /* COMPAT: style preload must not block define */ }
 
 const paintMounts = (host: HTMLElement): void => {
     const list = host.querySelector("[data-explorer-mounts]") as HTMLElement | null;
@@ -82,7 +82,8 @@ const paintStatus = (host: HTMLElement, status: AllFilesStatus | null, note = ""
 
 @defineElement("ui-explorer-settings")
 export class ExplorerSettings extends UIElement {
-    styles = () => styled;
+    /** WHY: pass CSS text so Glit can refill / shadow-fallback if the constructable sheet emptied. */
+    styles = () => settingsCss;
 
     onInitialize(): this {
         const result = super.onInitialize();

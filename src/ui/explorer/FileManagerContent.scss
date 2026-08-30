@@ -1,3 +1,3 @@
 // Content grid: real rules in styles/ui/_explorer-content.scss.
-@use "../../styles/ui/color-mod" as *;
+// WHY: no color-mod — `@function --u2-color-mod` makes Capacitor replaceSync drop the whole sheet.
 @use "../../styles/ui/explorer-content" as *;

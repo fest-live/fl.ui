@@ -1,8 +1,8 @@
 /*
  * Filename: FileManagerContent.ts
  * FullPath: modules/projects/fl.ui/src/ui/explorer/FileManagerContent.ts
- * Change date and time: 22.30.00_29.08.2026
- * Reason for changes: List rows honor Explorer sort prefs (name / date / type / size).
+ * Change date and time: 17.05.00_30.08.2026
+ * Reason for changes: Kick row paint on app resume — recents dropped glyphs again.
  */
 
 import { property, defineElement, H, bindWith, initGlobalClipboard } from "@fest-lib/lure";
@@ -28,7 +28,7 @@ import { resolveEntryIcon } from "./fs-backend.ts";
 initGlobalClipboard();
 
 //
-const styled = preloadStyle(fmCss);
+try { preloadStyle(fmCss); } catch { /* COMPAT: style preload must not block define */ }
 
 // @ts-ignore
 @defineElement("ui-file-manager-content")
@@ -67,7 +67,20 @@ export class FileManagerContent extends UIElement {
     //
     onInitialize(): this {
         const result = super.onInitialize();
+        this.bindResumePaint();
         return (result ?? this) as this;
+    }
+
+    /** WHY: Android recents pauses the compositor; names vanish until a style recalc. */
+    private bindResumePaint(): void {
+        const onShow = (): void => {
+            if (typeof document !== "undefined" && document.visibilityState === "hidden") return;
+            const rows = this.findRowsContainer();
+            if (rows) this.kickRowPaint(rows);
+        };
+        addEvent(document, "visibilitychange", onShow);
+        addEvent(document, "cwsp:theme-resume", onShow);
+        addEvent(globalThis, "pageshow", onShow);
     }
 
     //
@@ -244,6 +257,16 @@ export class FileManagerContent extends UIElement {
             fragment.append(this.makeListElement(item, operative, index + 1));
         });
         rows.append(fragment);
+        this.kickRowPaint(rows);
+    }
+
+    /** WHY: WebView skips row glyphs after replaceChildren or shell re-slot. */
+    private kickRowPaint(rows: HTMLElement): void {
+        rows.style.translate = "0";
+        void rows.offsetHeight;
+        requestAnimationFrame(() => {
+            rows.style.removeProperty("translate");
+        });
     }
 
     private makeListElement(item: FileEntryItem, operative: FileOperative, order: number) {
@@ -285,9 +308,9 @@ export class FileManagerContent extends UIElement {
             data-entry-key=${entryKey(item)}
         >
             <div style="pointer-events:none;background-color:transparent;inline-size:1.5rem;block-size:1.5rem;min-inline-size:1.5rem;min-block-size:1.5rem;max-inline-size:1.5rem;max-block-size:1.5rem;flex-shrink:0;overflow:visible" class="c icon">${iconSlot}</div>
-            <div style="pointer-events: none; background-color: transparent;" class="c name" title=${item?.name || ""}>${item?.name || ""}</div>
-            <div style="pointer-events: none; background-color: transparent;" class="c size">${isFile ? formatSize(item?.size) : ""}</div>
-            <div style="pointer-events: none; background-color: transparent;" class="c date">${isFile ? formatDate(item?.lastModified ?? 0) : ""}</div>
+            <div style="pointer-events: none; background-color: transparent;" class="c name" title=${item?.name || ""}><span class="t">${item?.name || ""}</span></div>
+            <div style="pointer-events: none; background-color: transparent;" class="c size"><span class="t">${isFile ? formatSize(item?.size) : ""}</span></div>
+            <div style="pointer-events: none; background-color: transparent;" class="c date"><span class="t">${isFile ? formatDate(item?.lastModified ?? 0) : ""}</span></div>
             <div style="pointer-events: none; background-color: transparent;" class="c actions">
                 <button class="action-btn" title="Copy Path" on:click=${(ev: MouseEvent) => { ev.stopPropagation(); requestAnimationFrame(() => op.onMenuAction?.(item, "copyPath", ev)); }}>
                     <ui-icon icon="copy" />
@@ -305,15 +328,16 @@ export class FileManagerContent extends UIElement {
     }
 
     //
-    styles = () => styled;
+    /** WHY: pass CSS text so Glit can refill / shadow-fallback if the constructable sheet emptied. */
+    styles = () => fmCss;
     render = function () {
         const self: any = this;
         const fileHeader = H`<div class="fm-grid-header">
-            <div class="c icon">@</div>
-            <div class="c name">Name</div>
-            <div class="c size">Size</div>
-            <div class="c date">Modified</div>
-            <div class="c actions">Actions</div>
+            <div class="c icon"><span class="t">@</span></div>
+            <div class="c name"><span class="t">Name</span></div>
+            <div class="c size"><span class="t">Size</span></div>
+            <div class="c date"><span class="t">Modified</span></div>
+            <div class="c actions"><span class="t">Actions</span></div>
         </div>`
 
         //
@@ -321,7 +345,9 @@ export class FileManagerContent extends UIElement {
         if (!operative) return "";
 
         //
-        const fileRows = H`<div class="fm-grid-rows" style="will-change: contents;"></div>`;
+        /* WHY: `will-change: contents` made Android WebView skip painting
+         * row text until a later style recalc (icons still drew). */
+        const fileRows = H`<div class="fm-grid-rows"></div>`;
         this.#rowsContainer = fileRows as HTMLElement;
         createItemCtxMenu?.(fileRows, operative.onMenuAction.bind(operative), self.entries);
         queueMicrotask(() => {

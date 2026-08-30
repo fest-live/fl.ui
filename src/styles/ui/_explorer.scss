@@ -11,7 +11,6 @@
         }
 
         & {
-            perspective: 1000;
             container-type: inline-size;
             display: flex;
             flex-direction: column;
@@ -29,10 +28,12 @@
             max-block-size: none;
             max-inline-size: none;
 
-            /* WHY: hex first — defined-but-invalid `--color-*` (`--u2-color-mod`) skip var() fallbacks. */
+            /* WHY: plain hex before light-dark/var — WebView may lack both; invalid `--color-*` is IACVT. */
             color-scheme: inherit;
+            background-color: #f7f8fc;
             background-color: light-dark(#f7f8fc, #1a1d24);
             background-color: var(--color-surface);
+            color: #1a1c1f;
             color: light-dark(#1a1c1f, #e8eaed);
             color: var(--color-on-surface);
             --ui-icon-size: var(--ui-explorer-icon-size, 1.5rem);
@@ -67,12 +68,15 @@
             border-radius: 0;
             padding: 0.5rem 0.75rem;
             line-height: normal;
+            background: #f7f8fc;
             background: light-dark(#f7f8fc, #1a1d24);
             background: var(--color-surface);
             box-shadow: 0 1px 0 color-mix(in oklab, var(--color-on-surface, #fff) 6%, transparent);
 
             button, input {
                 background-color: transparent;
+                color: #1a1c1f;
+                color: light-dark(#1a1c1f, #e8eaed);
                 color: var(--color-on-surface);
             }
 

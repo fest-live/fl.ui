@@ -1,10 +1,6 @@
 // File Manager content grid styles (basic variant)
 
-@property --base-color {
-    syntax: "<color>";
-    inherits: false;
-    initial-value: inherit;
-}
+/* WHY: `@property … initial-value: inherit` is invalid and Capacitor replaceSync drops the sheet. */
 
 //
 @layer ux-file-manager-content {
@@ -14,9 +10,7 @@
 
     :host(ui-file-manager-content) {
         & {
-            --base-color: var(--base-color, inherit) !important;
-
-            perspective: 1000;
+            /* WHY: perspective + isolation skipped descendant text paint on Capacitor WebView. */
             display: flex;
             flex-direction: column;
             flex: 1 1 auto;
@@ -32,7 +26,6 @@
             z-index: 1;
             position: relative;
             contain: none;
-            isolation: isolate;
             container-type: size;
 
             touch-action: manipulation;
@@ -41,8 +34,10 @@
             margin: 0;
 
             color-scheme: inherit;
+            background-color: #f7f8fc;
             background-color: light-dark(#f7f8fc, #1a1d24);
             background-color: var(--color-surface);
+            color: #1a1c1f;
             color: light-dark(#1a1c1f, #e8eaed);
             color: var(--color-on-surface);
 
@@ -198,6 +193,26 @@
             block-size: auto;
         }
 
+        /* WHY: anonymous flex text nodes often do not paint on Android WebView. */
+        .c.name,
+        .c.size,
+        .c.date {
+            display: block;
+            color: #1a1c1f;
+            color: light-dark(#1a1c1f, #e8eaed);
+            color: var(--color-on-surface);
+            -webkit-text-fill-color: currentColor;
+        }
+
+        .c .t {
+            display: block;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            color: inherit;
+            -webkit-text-fill-color: currentColor;
+        }
+
         .icon {
             display: flex;
             grid-column: icon;
@@ -340,7 +355,10 @@
             font-weight: 600;
             letter-spacing: 0.04em;
             text-transform: uppercase;
+            color: #5c5f66;
+            color: light-dark(#5c5f66, #c4c7ce);
             color: var(--color-on-surface-variant);
+            -webkit-text-fill-color: currentColor;
             opacity: 1;
             gap: 0.35rem;
             min-block-size: 2rem;

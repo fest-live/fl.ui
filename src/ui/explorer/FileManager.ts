@@ -14,7 +14,7 @@ import { toExplorerStoragePath } from "./path-router";
 import fmCss from "./FileManager.scss?inline";
 
 //
-const styled = preloadStyle(fmCss);
+try { preloadStyle(fmCss); } catch { /* COMPAT: style preload must not block ui-file-manager define */ }
 
 export type ContextMenuItem = {
     id: string;
@@ -36,7 +36,8 @@ export class FileManager extends UIElement {
     @property({ source: "inline-size" }) inlineSize?: number;
 
     // refs/state
-    styles = () => styled;
+    /** WHY: pass CSS text so Glit can refill / shadow-fallback if the constructable sheet emptied. */
+    styles = () => fmCss;
     #pathWatcherDisposer: (() => void) | null = null;
     /** WHY: `wireExplorerSubtree` sets `path` before `onInitialize` creates the operative. */
     #pendingPath: string | null = null;

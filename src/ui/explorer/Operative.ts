@@ -2,8 +2,8 @@
  * Filename: Operative.ts
  * FullPath: modules/projects/fl.ui/src/ui/explorer/Operative.ts
  * FIND:bookmarks
- * Change date and time: 08.30.00_30.08.2026
- * Reason for changes: context-action must bubble to `ui-file-manager` (Transfer / View / pin).
+ * Change date and time: 11.10.00_30.08.2026
+ * Reason for changes: Context Share + clipboard copies; context-action still bubbles.
  */
 
 import { observe, iterated, ref, affected } from "@fest-lib/object";
@@ -20,6 +20,14 @@ import {
     type FsBackend
 } from "./path-router";
 import { buildExplorerDragPayload } from "./fs-backend";
+import {
+    copyExplorerBase64Url,
+    copyExplorerBlobUrl,
+    copyExplorerImage,
+    copyExplorerInlineText,
+    copyExplorerRealPath,
+    shareExplorerItem
+} from "./share-copy";
 import { openBookmarkFieldsDialog } from "fl-ui/navigation/app-menu/app-actions";
 
 // OPFS helpers
@@ -1187,6 +1195,25 @@ export class FileOperative {
                         detail: { action: "send-transfer", item }
                     }));
                     break;
+                case "share":
+                case "copy-base64":
+                case "copy-text":
+                case "copy-image":
+                case "copy-real-path":
+                case "copy-blob-url": {
+                    const current = this.path || "/";
+                    const result =
+                        actionId === "share" ? await shareExplorerItem(item, current)
+                        : actionId === "copy-base64" ? await copyExplorerBase64Url(item, current)
+                        : actionId === "copy-text" ? await copyExplorerInlineText(item, current)
+                        : actionId === "copy-image" ? await copyExplorerImage(item, current)
+                        : actionId === "copy-real-path" ? await copyExplorerRealPath(item, current)
+                        : await copyExplorerBlobUrl(item, current);
+                    this.dispatchEvent(new CustomEvent("context-action", {
+                        detail: { action: actionId, item, handled: true, message: result.message }
+                    }));
+                    break;
+                }
                 case "attach-workcenter":
                     // Dispatch custom event for unified messaging
                     this.dispatchEvent(new CustomEvent('context-action', {

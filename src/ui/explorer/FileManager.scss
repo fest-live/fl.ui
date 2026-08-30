@@ -1,3 +1,4 @@
 // Shell: real layout/tokens live in styles/ui/_explorer.scss (also re-exported via styles/ui/_index.scss).
-@use "../../styles/ui/variables" as *;
+// WHY: color-mod only — `_variables` :root must not ride this adopted sheet onto document.
+@use "../../styles/ui/color-mod" as *;
 @use "../../styles/ui/explorer" as *;

@@ -2,8 +2,8 @@
  * Filename: ContextMenu.ts
  * FullPath: modules/projects/fl.ui/src/ui/explorer/ContextMenu.ts
  * FIND:bookmarks
- * Change date and time: 22.50.00_29.08.2026
- * Reason for changes: Chrome bookmarks empty/item menus — create, edit URL, delete; submenu clamp unchanged.
+ * Change date and time: 11.10.00_30.08.2026
+ * Reason for changes: Share + clipboard copy actions on file / folder / bookmark rows.
  */
 
 import { MOCElement } from "@fest-lib/dom";
@@ -16,6 +16,7 @@ import {
 } from "@fest-lib/lure";
 import type { FileEntryItem } from "./Operative";
 import { canReceiveIncomingPath, isBookmarksPath } from "./Operative";
+import { isImageLikeEntry, isTextLikeEntry } from "./share-copy";
 import { entryKey, entryKind } from "./utils";
 
 
@@ -703,6 +704,7 @@ const makeFileActionOps = () => {
                   { id: "view-base", label: "View (Base tab)", icon: "arrow-square-out" }
               ]
             : []),
+        { id: "share", label: "Share…", icon: "share-network" },
         { id: "send-transfer", label: "Send to Transfer", icon: "paper-plane-tilt" },
         { id: "attach-workcenter", label: "Attach to Work Center", icon: "lightning" },
         { id: "attach-workcenter-queued", label: "Queue attach (pending)", icon: "clock-counter-clockwise" },
@@ -717,20 +719,27 @@ const makeFileSystemOps = () => {
     return [
         { id: "delete", label: "Delete", icon: "trash" },
         { id: "rename", label: "Rename", icon: "pencil" },
+        { id: "copy-base64", label: "Copy as Base64 URL", icon: "code" },
+        { id: "copy-text", label: "Copy as text", icon: "text-t" },
+        { id: "copy-image", label: "Copy as image", icon: "image" },
+        { id: "copy-real-path", label: "Copy real path", icon: "map-pin" },
+        { id: "copy-blob-url", label: "Copy as Blob URL", icon: "link" },
         { id: "copyPath", label: "Copy Path", icon: "copy" },
         { id: "movePath", label: "Move Path", icon: "hand-withdraw" }
     ];
 };
 
 const makeDirectoryOps = () => {
-    const allowed = new Set(["open", "download", "delete", "rename", "copyPath", "movePath"]);
+    const allowed = new Set(["open", "download", "delete", "rename", "copyPath", "movePath", "share", "copy-real-path"]);
     return [...makeFileActionOps(), ...makeFileSystemOps()].filter((item) => allowed.has(item.id));
 };
 
 const makeBookmarkFileOps = () => [
     { id: "open", label: "Open", icon: "arrow-square-out" },
+    { id: "share", label: "Share…", icon: "share-network" },
     { id: "edit-bookmark", label: "Edit bookmark…", icon: "pencil" },
     { id: "delete", label: "Delete", icon: "trash" },
+    { id: "copy-real-path", label: "Copy real path", icon: "map-pin" },
     { id: "copyPath", label: "Copy Path", icon: "copy" },
     { id: "movePath", label: "Move", icon: "hand-withdraw" }
 ];
@@ -789,7 +798,13 @@ export const createItemCtxMenu = (
         ev.preventDefault();
         ev.stopPropagation();
 
-        const menuItems = baseItems.map((menuItem: any) => ({
+        const filtered = baseItems.filter((menuItem) => {
+            if (menuItem.id === "copy-text") return isTextLikeEntry(item, item?.path || currentPath);
+            if (menuItem.id === "copy-image") return isImageLikeEntry(item, item?.path || currentPath);
+            return true;
+        });
+
+        const menuItems = filtered.map((menuItem: any) => ({
             ...menuItem,
             danger: menuItem.id === "delete",
             action: () => onMenuAction?.(item, menuItem.id, ev)

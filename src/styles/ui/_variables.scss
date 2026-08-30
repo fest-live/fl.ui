@@ -1,30 +1,11 @@
 /*
  * Filename: _variables.scss
  * FullPath: modules/projects/fl.ui/src/styles/ui/_variables.scss
- * Change date and time: 15.16.00_22.08.2026
- * Reason for changes: Fallback seed matches veela; emit inside @layer tokens so unlayered :root cannot beat SoT.
+ * Change date and time: 11.45.00_30.08.2026
+ * Reason for changes: Do not re-emit --color-* on :root — adopted FileManager sheets were beating veela.
  */
 
-// Design tokens for fl.ui when veela is not loaded (minimal fallback).
-// WHY: function duplicated so vl-basic / standalone fl.ui sheets still resolve mods.
-@#{"function --u2-color-mod(--base-color <color>, --index <number> : 550) returns <color>"} {
-    --i: clamp(0, var(--index), 1000);
-    --pivot: 550;
-    --white-distance: clamp(0, calc((var(--pivot) - var(--i)) / var(--pivot)), 1);
-    --black-distance: clamp(0, calc((var(--i) - var(--pivot)) / (1000 - var(--pivot))), 1);
-    --to-white: pow(var(--white-distance), 1.15);
-    --to-black: pow(var(--black-distance), 1.08);
-    --center-left: clamp(0, calc(var(--i) / var(--pivot)), 1);
-    --center-right: clamp(0, calc((1000 - var(--i)) / (1000 - var(--pivot))), 1);
-    --chroma-shape: sqrt(min(var(--center-left), var(--center-right)));
-    --chroma-scale: calc(0.08 + 0.92 * var(--chroma-shape));
-    result: oklch(
-        from var(--base-color)
-        calc(l + (0.985 - l) * var(--to-white) + (0.16 - l) * var(--to-black))
-        calc(c * var(--chroma-scale))
-        h
-    );
-}
+@use "./color-mod" as *;
 
 @layer tokens {
 :root {
@@ -32,14 +13,10 @@
     --fl-ui-gap: var(--space-md, 0.75rem);
 
     /*
-     * NOTE: Standalone fallback only. Same seed as veela SoT (`#5a9ec8`).
-     * INVARIANT: stay inside `@layer tokens` — unlayered :root would beat veela.
+     * WHY: This sheet is also adopted onto `document`. Writing `--color-surface`
+     * here overwrote veela `light-dark()` tokens (gray chrome, missing ink).
+     * INVARIANT: aliases only — never assign `--color-*` / `--base-color` here.
      */
-    --color-primary: #5a9ec8;
-    --base-color: var(--color-primary);
-    --color-surface: --u2-color-mod(var(--base-color), 920);
-    --color-on-surface: --u2-color-mod(var(--base-color), 100);
-    --color-on-surface-variant: --u2-color-mod(var(--base-color), 280);
     --error-color: var(--color-error, #f87171);
     --surface-color: var(--color-surface);
     --on-surface-color: var(--color-on-surface);

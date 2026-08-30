@@ -1,8 +1,8 @@
 /*
  * Filename: storage-bridge.ts
  * FullPath: modules/projects/fl.ui/src/ui/explorer/storage-bridge.ts
- * Change date: 01.20.00_30.08.2026
- * Reason: storage:open for Capacitor /sdcard/ /saf/ (no JS byte hop).
+ * Change date: 11.20.00_30.08.2026
+ * Reason: storage:copy-image — Android system clipboard bitmap via FileProvider URI.
  */
 
 export type StorageEntry = {
@@ -110,6 +110,56 @@ export const resolveNativeStorageUri = async (virtualPath: string): Promise<stri
     if (!parsed) return "";
     const echo = await capacitorInvoke("storage:uri", { root: parsed.root, path: parsed.rel });
     return String(echo.uri || echo.url || "").trim();
+};
+
+/** Put `/sdcard/` `/saf/` image on the Android clipboard (ClipData URI). */
+export const copyNativeStorageImage = async (virtualPath: string): Promise<boolean> => {
+    const parsed = parseNativeStoragePath(virtualPath);
+    if (!parsed) return false;
+    const echo = await capacitorInvoke("storage:copy-image", { root: parsed.root, path: parsed.rel });
+    return echo.copied === true || echo.ok === true;
+};
+
+/** Bytes (data URL) → cache FileProvider URI → system clipboard. */
+export const writeNativeClipboardImage = async (
+    dataUrl: string,
+    mimeType = "image/png",
+    name = "image.png"
+): Promise<boolean> => {
+    const data = String(dataUrl || "").trim();
+    if (!data) return false;
+    const echo = await capacitorInvoke("clipboard:write-local-image", {
+        data,
+        mimeType: String(mimeType || "image/png"),
+        name: String(name || "image.png")
+    });
+    return echo.copied === true || echo.ok === true;
+};
+
+/** ACTION_SEND chooser — Android share sheet, no JS byte hop. */
+export const shareNativeStorageFile = async (
+    virtualPath: string,
+    opts: { mimeType?: string; title?: string } = {}
+): Promise<boolean> => {
+    const parsed = parseNativeStoragePath(virtualPath);
+    if (!parsed) return false;
+    const mimeType = String(opts.mimeType || "").trim();
+    const title = String(opts.title || "Share").trim();
+    const echo = await capacitorInvoke("storage:share", {
+        root: parsed.root,
+        path: parsed.rel,
+        ...(mimeType ? { mimeType } : {}),
+        ...(title ? { title } : {})
+    });
+    return echo.opened === true || echo.sent === true || echo.ok === true;
+};
+
+/** Absolute `/storage/emulated/0/…` or SAF `content://` URI. */
+export const resolveNativeStorageRealPath = async (virtualPath: string): Promise<string> => {
+    const parsed = parseNativeStoragePath(virtualPath);
+    if (!parsed) return "";
+    const echo = await capacitorInvoke("storage:realpath", { root: parsed.root, path: parsed.rel });
+    return String(echo.path || echo.uri || echo.url || "").trim();
 };
 
 /**

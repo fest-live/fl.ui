@@ -29,13 +29,16 @@
             max-block-size: none;
             max-inline-size: none;
 
-            /* WHY: inherit scheme; hex fallbacks keep ink if --u2-color-mod is not in this sheet. */
+            /* WHY: hex first — defined-but-invalid `--color-*` (`--u2-color-mod`) skip var() fallbacks. */
             color-scheme: inherit;
-            background-color: var(--color-surface, light-dark(#f7f8fc, #1a1d24));
-            color: var(--color-on-surface, light-dark(#1a1c1f, #e8eaed));
+            background-color: light-dark(#f7f8fc, #1a1d24);
+            background-color: var(--color-surface);
+            color: light-dark(#1a1c1f, #e8eaed);
+            color: var(--color-on-surface);
             --ui-icon-size: var(--ui-explorer-icon-size, 1.5rem);
             --ui-icon-padding: 0px;
-            --icon-color: var(--color-on-surface, light-dark(#1a1c1f, #e8eaed));
+            --icon-color: light-dark(#1a1c1f, #e8eaed);
+            --icon-color: var(--color-on-surface);
         }
 
         .fm-root {
@@ -64,7 +67,8 @@
             border-radius: 0;
             padding: 0.5rem 0.75rem;
             line-height: normal;
-            background: var(--color-surface, light-dark(#f7f8fc, #1a1d24));
+            background: light-dark(#f7f8fc, #1a1d24);
+            background: var(--color-surface);
             box-shadow: 0 1px 0 color-mix(in oklab, var(--color-on-surface, #fff) 6%, transparent);
 
             button, input {

@@ -1,12 +1,12 @@
 /*
  * Filename: native-fs-backend.ts
  * FullPath: modules/projects/fl.ui/src/ui/explorer/backends/native-fs-backend.ts
- * Change date: 16.42.00_21.08.2026
- * Reason: /sdcard/ and /saf/ FsBackends via Capacitor storage IPC.
+ * Change date: 12.42.00_30.08.2026
+ * Reason: remove() → storage:delete for Capacitor /sdcard/ /saf/.
  */
 
 import { normalizeVirtualPath, type FileEntryLike, type FsBackend } from "../fs-backend.ts";
-import { listNativeStorage, readNativeStorageFile, type StorageEntry } from "../storage-bridge.ts";
+import { listNativeStorage, readNativeStorageFile, removeNativeStorage, type StorageEntry } from "../storage-bridge.ts";
 
 const toEntries = (path: string, rows: StorageEntry[]): FileEntryLike[] => {
     const base = normalizeVirtualPath(path, true);
@@ -25,7 +25,7 @@ const toEntries = (path: string, rows: StorageEntry[]): FileEntryLike[] => {
 
 export const createNativeFsBackend = (root: "/sdcard/" | "/saf/"): FsBackend => ({
     root,
-    writable: root === "/sdcard/",
+    writable: true,
     async list(path: string) {
         const rel = normalizeVirtualPath(path, true).slice(root.length - 1) || "/";
         const rows = await listNativeStorage(root === "/saf/" ? "saf" : "sdcard", rel);
@@ -33,5 +33,8 @@ export const createNativeFsBackend = (root: "/sdcard/" | "/saf/"): FsBackend => 
     },
     async readFile(path: string) {
         return readNativeStorageFile(path);
+    },
+    async remove(path: string, _recursive?: boolean) {
+        await removeNativeStorage(path);
     }
 });

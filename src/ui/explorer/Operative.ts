@@ -1068,10 +1068,18 @@ export class FileOperative {
                         if (bmBackend?.remove) {
                             if (globalThis.confirm?.(`Delete “${itemName || "bookmark"}”?`) !== true) break;
                             await bmBackend.remove(bmPath, true);
-                        } else if (isUserPath(abs)) {
-                            await this.removeUserEntry(abs, true);
                         } else {
-                            await remove(this.#fsRoot, abs);
+                            const fsBackend = resolveFsBackend(abs) || (bmPath ? resolveFsBackend(bmPath) : null);
+                            const nativePath =
+                                bmPath && fsBackend && bmPath.startsWith(fsBackend.root) ? bmPath : abs;
+                            if (fsBackend?.remove && fsBackend.root !== "/user/" && fsBackend.root !== "/assets/") {
+                                if (globalThis.confirm?.(`Delete “${itemName || "item"}”?`) !== true) break;
+                                await fsBackend.remove(nativePath, true);
+                            } else if (isUserPath(abs)) {
+                                await this.removeUserEntry(abs, true);
+                            } else {
+                                await remove(this.#fsRoot, abs);
+                            }
                         }
                         await this.refreshList(this.path);
                         break;

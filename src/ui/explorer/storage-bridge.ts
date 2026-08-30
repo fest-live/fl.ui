@@ -1,8 +1,8 @@
 /*
  * Filename: storage-bridge.ts
  * FullPath: modules/projects/fl.ui/src/ui/explorer/storage-bridge.ts
- * Change date: 11.20.00_30.08.2026
- * Reason: storage:copy-image — Android system clipboard bitmap via FileProvider URI.
+ * Change date: 12.42.00_30.08.2026
+ * Reason: storage:delete for Capacitor /sdcard/ /saf/.
  */
 
 export type StorageEntry = {
@@ -134,6 +134,23 @@ export const writeNativeClipboardImage = async (
         name: String(name || "image.png")
     });
     return echo.copied === true || echo.ok === true;
+};
+
+/** Delete a `/sdcard/` or `/saf/` file or folder through CwsBridge (`storage:delete`). */
+export const removeNativeStorage = async (virtualPath: string): Promise<void> => {
+    const parsed = parseNativeStoragePath(virtualPath);
+    if (!parsed) throw new Error("not native storage");
+    const plugin = (globalThis as { Capacitor?: { Plugins?: { CwsBridge?: { invoke?: Function } } } })
+        .Capacitor?.Plugins?.CwsBridge;
+    if (typeof plugin?.invoke !== "function") throw new Error("no native storage");
+    const r = (await plugin.invoke({
+        channel: "storage:delete",
+        payload: { root: parsed.root, path: parsed.rel }
+    })) as { ok?: boolean; echo?: { deleted?: boolean; error?: string; ok?: boolean } };
+    const echo = r?.echo || {};
+    if (r?.ok === false || echo.deleted !== true) {
+        throw new Error(String(echo.error || "delete failed"));
+    }
 };
 
 /** ACTION_SEND chooser — Android share sheet, no JS byte hop. */

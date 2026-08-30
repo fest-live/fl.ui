@@ -41,8 +41,10 @@
             margin: 0;
 
             color-scheme: inherit;
-            background-color: var(--color-surface, light-dark(#f7f8fc, #1a1d24));
-            color: var(--color-on-surface, light-dark(#1a1c1f, #e8eaed));
+            background-color: light-dark(#f7f8fc, #1a1d24);
+            background-color: var(--color-surface);
+            color: light-dark(#1a1c1f, #e8eaed);
+            color: var(--color-on-surface);
 
             outline: none 0px transparent;
             border: none 0px transparent;

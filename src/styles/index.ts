@@ -1,25 +1,20 @@
 /**
- * Veela.CSS TypeScript Module
+ * FL.UI Style Facade
  *
- * Exports font loading utilities and type definitions.
- * Runtime styles and initialization are in ../scss/runtime/index.ts
+ * Loads canonical Veela styles while retaining FL.UI's public runtime API.
  */
 
-import { loadAllFonts, loadFontRegistry } from './font-loader';
+import { loadAllFonts } from './font-loader';
 import { loadAsAdopted } from '@fest-lib/style-lib'; //@ts-ignore
-import styles from './index.scss?inline';
-import globalNativeControlStyles from './patch-global-native-controls.scss?inline';
-
-//
-const fontStyles = `
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-`;
+// @ts-ignore Vite inline SCSS
+import styles from 'veela-lib/ui/index.scss?inline';
+// @ts-ignore Vite inline SCSS
+import globalNativeControlStyles from 'veela-lib/ui/native-controls.scss?inline';
 
 //
 export * from './font-loader';
 export type { FontMetadata } from './font-loader';
 export const loader = async (options?: { includeGlobalNativeControls?: boolean }) => {
-    await loadAsAdopted(fontStyles)?.catch(() => undefined);
     await loadAllFonts().catch(() => undefined);
     await loadAsAdopted(styles)?.catch(() => undefined);
     if (options?.includeGlobalNativeControls) {

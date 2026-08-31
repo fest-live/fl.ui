@@ -1,7 +1,7 @@
 {
     "name": "@fest-lib/fl-ui",
     "description": "fest-lib FL.UI: windows, taskbar, app menu, Speed Dial (shapeless tiles). Dev: npm run dev",
-    "version": "0.1.21",
+    "version": "1.0.0",
     "license": "MIT",
     "type": "module",
     "sideEffects": true,
@@ -41,22 +41,10 @@
             "import": "./dist/fl-ui.js",
             "default": "./dist/fl-ui.js"
         },
-        "./styles": {
-            "import": "./src/styles/_index.scss",
-            "default": "./src/styles/_index.scss"
-        },
-        "./styles/core": {
-            "import": "./src/styles/core/_index.scss",
-            "default": "./src/styles/core/_index.scss"
-        },
-        "./styles/lib": {
-            "import": "./src/styles/lib/_index.scss",
-            "default": "./src/styles/lib/_index.scss"
-        },
-        "./styles/patch-global-native-controls": {
-            "import": "./src/styles/patch-global-native-controls.scss",
-            "default": "./src/styles/patch-global-native-controls.scss"
-        },
+        "./styles": "./src/styles/index.scss",
+        "./styles/core": "./src/styles/core.scss",
+        "./styles/lib": "./src/styles/lib.scss",
+        "./styles/patch-global-native-controls": "./src/styles/native-controls.scss",
         "./items/*": {
             "import": "./src/ui/items/*",
             "default": "./src/ui/items/*"
@@ -80,12 +68,7 @@
         "@fest-lib/object": ">=0.1.0",
         "@fest-lib/style-lib": ">=0.1.0",
         "@fest-lib/uniform": ">=0.1.0",
-        "@fest-lib/veela": ">=0.1.0"
-    },
-    "peerDependenciesMeta": {
-        "@fest-lib/veela": {
-            "optional": true
-        }
+        "@fest-lib/veela": ">=1.0.0"
     },
     "scripts": {
         "test": "vite --host 0.0.0.0",

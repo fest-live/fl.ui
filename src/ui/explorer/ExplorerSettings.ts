@@ -27,7 +27,7 @@ import {
 } from "./storage-bridge.ts";
 
 // @ts-ignore
-import settingsCss from "./ExplorerSettings.scss?inline";
+import settingsCss from "veela-lib/ui/components/explorer-settings.scss?inline";
 
 try { preloadStyle(settingsCss); } catch { /* COMPAT: style preload must not block define */ }
 

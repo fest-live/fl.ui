@@ -1,0 +1,7 @@
+/*
+ * Filename: native-controls.scss
+ * FullPath: modules/projects/fl.ui/src/styles/native-controls.scss
+ * Reason for changes: Public FL.UI native-control facade delegates to Veela.
+ */
+
+@forward "pkg:@fest-lib/veela/scss/native-controls";

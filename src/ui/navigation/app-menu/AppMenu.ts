@@ -95,7 +95,7 @@ import {
 } from "fl-ui/navigation/app-menu/app-sort";
 
 // @ts-ignore — Vite inline SCSS → adopted stylesheet
-import styles from "./AppMenu.scss?inline";
+import styles from "veela-lib/ui/components/app-menu.scss?inline";
 
 export {
     setBookmarksMenuApi,

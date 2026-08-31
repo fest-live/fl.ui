@@ -23,7 +23,7 @@ import {
 } from "./native-theme-color";
 
 // @ts-ignore — Vite inline SCSS → adopted stylesheet
-import styles from "./Windows2.scss?inline";
+import styles from "veela-lib/ui/components/window.scss?inline";
 
 const styled = preloadStyle(styles);
 

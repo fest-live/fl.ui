@@ -9,13 +9,13 @@ import { loadAsAdopted } from "@fest-lib/style-lib";
 import { SpeedDial, createCtxMenu } from "./SpeedDial";
 
 // @ts-ignore Vite inline SCSS
-import speedDialViewStyles from "./SpeedDial.scss?inline";
+import speedDialViewStyles from "veela-lib/ui/components/speed-dial.scss?inline";
 /*
  * WHY: fl-design alias (not ../../styles) — Vite preserveSymlinks resolves this
  * module via home-view/ts symlink; relative escapes to styles/ break.
  */
 // @ts-ignore Vite inline SCSS
-import homeHostStyles from "fl-design/ui/home-host-apply.scss?inline";
+import homeHostStyles from "veela-lib/ui/home-host-apply.scss?inline";
 // Registers `data-mixin="ui-orientbox"` (container-type / --orient wiring).
 import "./OrientBox";
 

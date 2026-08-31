@@ -24,8 +24,6 @@
  * ```
  */
 
-import { loadInlineStyle } from "@fest-lib/style-lib";
-
 // ============================================================================
 // CONFIGURATION
 // ============================================================================
@@ -67,9 +65,6 @@ export function getFlUIConfig(): FlUIConfig {
     return { ..._config };
 }
 
-//@ts-ignore
-import styles from "./styles/index.scss?inline";
-
 // ============================================================================
 // EXPORTS
 // ============================================================================
@@ -81,9 +76,6 @@ import { loader, loadFlUIGlobalNativeControlStyles } from "./styles";
     const cfg = getFlUIConfig();
     if (cfg.loadStyles === false) return;
     await loader({ includeGlobalNativeControls: cfg.includeGlobalNativeControlStyles === true });
-    // Inline <style> only: bundled SCSS often still contains @import, which
-    // CSSStyleSheet.replaceSync() rejects (constructable sheets limitation).
-    await loadInlineStyle(styles);
 })()?.catch?.(() => undefined);
 
 export { loadFlUIGlobalNativeControlStyles };

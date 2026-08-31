@@ -44,7 +44,7 @@ import { H, defineElement } from "@fest-lib/lure";
 
 //
 // @ts-ignore
-import styles from "../scss/TaskBar.scss?inline";
+import styles from "veela-lib/ui/components/taskbar.scss?inline";
 import { preloadStyle } from "@fest-lib/style-lib";
 const styled = preloadStyle(styles);
 

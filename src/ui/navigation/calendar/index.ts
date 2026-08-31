@@ -1,5 +1,5 @@
 // @ts-ignore
-import styles from "./index.scss?inline";
+import styles from "veela-lib/ui/components/calendar/index.scss?inline";
 
 export type CalendarView = "month" | "week" | "day";
 

@@ -29,7 +29,7 @@ import {
 } from "../flyout/ChromeFlyout";
 
 // @ts-ignore
-import styles from "./QuickSettings.scss?inline";
+import styles from "veela-lib/ui/components/quick-settings.scss?inline";
 const styled = preloadStyle(styles);
 
 /** Shared exclusivity/positioning kind — see `ChromeFlyout.ts`. Mirrors `CalendarFlyout.ts`. */

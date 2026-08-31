@@ -1,2 +1,7 @@
-@use "./fonts" as *;
-@use "./ui" as *;
+/*
+ * Filename: index.scss
+ * FullPath: modules/projects/fl.ui/src/styles/index.scss
+ * Reason for changes: Public FL.UI stylesheet facade delegates to canonical Veela UI.
+ */
+
+@forward "pkg:@fest-lib/veela/scss/ui";

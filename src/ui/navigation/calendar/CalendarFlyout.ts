@@ -19,7 +19,7 @@ import {
 } from "../flyout/ChromeFlyout";
 
 // @ts-ignore — Vite inline SCSS → adopted stylesheet
-import styles from "./CalendarFlyout.scss?inline";
+import styles from "veela-lib/ui/components/calendar/flyout.scss?inline";
 const styled = preloadStyle(styles);
 
 /** Shared exclusivity/positioning kind — see `ChromeFlyout.ts`. */

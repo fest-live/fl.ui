@@ -4,7 +4,7 @@ import { preloadStyle } from "@fest-lib/style-lib";
 
 //
 // @ts-ignore
-import styles from "./Desktop.scss?inline";
+import styles from "veela-lib/ui/components/appearance-desktop.scss?inline";
 const styled = preloadStyle(styles);
 
 //

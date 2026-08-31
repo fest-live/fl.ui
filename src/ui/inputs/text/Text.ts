@@ -20,7 +20,7 @@ import { assign, propRef } from "@fest-lib/object";
  */
 
 // @ts-ignore
-import styles from "./Text.scss?inline"
+import styles from "veela-lib/ui/components/text.scss?inline"
 const styled  = preloadStyle(styles);
 
 // @ts-ignore

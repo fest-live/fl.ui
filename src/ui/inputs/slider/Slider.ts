@@ -23,7 +23,7 @@ import { computed, assign, propRef } from "@fest-lib/object";
 import { UIElement } from "fl-ui/base/UIElement";
 
 // @ts-ignore
-import styles from "./Slider.scss?inline"
+import styles from "veela-lib/ui/components/slider.scss?inline"
 const styled  = preloadStyle(styles);
 
 // @ts-ignore

@@ -1,0 +1,7 @@
+/*
+ * Filename: lib.scss
+ * FullPath: modules/projects/fl.ui/src/styles/lib.scss
+ * Reason for changes: Public FL.UI foundation facade delegates to Veela.
+ */
+
+@forward "pkg:@fest-lib/veela/scss";

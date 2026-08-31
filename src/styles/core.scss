@@ -1,0 +1,7 @@
+/*
+ * Filename: core.scss
+ * FullPath: modules/projects/fl.ui/src/styles/core.scss
+ * Reason for changes: Public FL.UI core facade delegates to Veela.
+ */
+
+@forward "pkg:@fest-lib/veela/scss/core";

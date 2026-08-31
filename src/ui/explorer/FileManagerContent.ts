@@ -14,7 +14,7 @@ import { ref } from "@fest-lib/object";
 import { UIElement } from "fl-ui/base/UIElement";
 
 // @ts-ignore
-import fmCss from "./FileManagerContent.scss?inline";
+import fmCss from "veela-lib/ui/components/file-manager-content.scss?inline";
 import { type FileEntryItem, FileOperative } from "./Operative.ts";
 
 //

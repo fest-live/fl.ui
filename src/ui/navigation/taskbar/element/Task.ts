@@ -13,7 +13,7 @@ import { preloadStyle } from "@fest-lib/style-lib";
 import { H, property, defineElement } from "@fest-lib/lure";
 
 // @ts-ignore
-import styles from "../scss/Task.scss?inline";
+import styles from "veela-lib/ui/components/task.scss?inline";
 const styled = preloadStyle(styles);
 
 /** First letter for blank-glyph fallback — never String(undefined)→"U". */

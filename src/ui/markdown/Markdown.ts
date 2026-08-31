@@ -1,81 +1,8 @@
 // @ts-ignore — canonical typography: `src/styles/ui/_markdown.scss` (veela-backed tokens)
-import styles from "../../styles/ui/_markdown.scss?inline";
-import DOMPurify from 'dompurify';
-import { marked, type MarkedExtension } from "marked";
+import styles from "veela-lib/ui/markdown.scss?inline";
 import { E, H, provide, defineElement, property } from "@fest-lib/lure";
-import renderMathInElement from "katex/dist/contrib/auto-render.mjs";
 import UIElement from "../base/UIElement";
-import markedKatex from "marked-katex-extension";
-
-//
-const MATH_DELIMITER_PATTERN = /\$\$[\s\S]*?\$\$|\\\[[\s\S]*?\\\]|(?<!\$)\$[^$\n]+\$|\\\([\s\S]*?\\\)/;
-const FENCED_CODE_PATTERN = /(^|\n)(`{3,}|~{3,})[^\n]*\n[\s\S]*?\n\2(?=\n|$)/g;
-const INLINE_CODE_PATTERN = /`[^`\n]+`/g;
-const SANITIZE_OPTIONS = {
-    USE_PROFILES: { html: true, mathMl: true, svg: true },
-    FORBID_TAGS: ["script", "style", "iframe", "object", "embed", "applet", "link", "meta", "base", "form", "noscript", "template"],
-    FORBID_CONTENTS: ["script", "style", "iframe", "object", "embed", "applet", "noscript", "template"]
-};
-
-function maskCodeSegments(markdown: string): { masked: string; restore: (value: string) => string } {
-    const maskedValues: string[] = [];
-    const tokenPrefix = "__MD_MASK_";
-    const tokenSuffix = "__";
-
-    const mask = (value: string): string => value.replace(FENCED_CODE_PATTERN, (segment) => {
-        const token = `${tokenPrefix}${maskedValues.length}${tokenSuffix}`;
-        maskedValues.push(segment);
-        return token;
-    });
-
-    const maskInline = (value: string): string => value.replace(INLINE_CODE_PATTERN, (segment) => {
-        const token = `${tokenPrefix}${maskedValues.length}${tokenSuffix}`;
-        maskedValues.push(segment);
-        return token;
-    });
-
-    const masked = maskInline(mask(markdown));
-
-    return {
-        masked,
-        restore: (value: string): string => value.replace(/__MD_MASK_(\d+)__/g, (_, index) => maskedValues[Number(index)] ?? "")
-    };
-}
-
-// Configure marked with KaTeX extension for HTML output with proper delimiters
-marked?.use?.(markedKatex({
-    throwOnError: false,
-    nonStandard: true,
-    output: "mathml",
-    strict: false,
-}) as unknown as MarkedExtension,
-{
-    hooks: {
-        preprocess: (markdown: string): string => {
-            if (!MATH_DELIMITER_PATTERN.test(markdown)) {
-                return markdown;
-            }
-
-            const { masked, restore } = maskCodeSegments(markdown);
-            const katexNode = document.createElement("div");
-            katexNode.textContent = masked;
-            renderMathInElement(katexNode, {
-                throwOnError: false,
-                nonStandard: true,
-                output: "mathml",
-                strict: false,
-                delimiters: [
-                    { left: "$$", right: "$$", display: true },
-                    { left: "\\[", right: "\\]", display: true },
-                    { left: "$", right: "$", display: false },
-                    { left: "\\(", right: "\\)", display: false }
-                ]
-            });
-
-            return restore(katexNode.innerHTML);
-        },
-    },
-});
+import { renderSafeMarkdown, sanitizeMarkdownHtml } from "./render";
 
 //
 /** One document-level injection: markdown typography targets `.markdown-body`, `md-view`, etc. (see veela tokens). */
@@ -218,7 +145,7 @@ export class MarkdownView extends UIElement {
     async setContent(content: string): Promise<void> {
         this.#content = content || "";
         await this.writeToCache(this.#content).catch(console.warn.bind(console));
-        return this.setHTML(await marked.parse((this.#content || "")?.trim?.() || "")).catch(console.warn.bind(console));
+        return this.setHTML(renderSafeMarkdown((this.#content || "")?.trim?.() || "")).catch(console.warn.bind(console));
     }
 
     /**
@@ -234,7 +161,7 @@ export class MarkdownView extends UIElement {
     async setHTML(doc: string | Promise<string> = ""): Promise<void> {
         const view = this.#ensureBodyElement();
         const html = await doc;
-        const sanitized = DOMPurify?.sanitize?.((html || "")?.trim?.() || "", SANITIZE_OPTIONS) || "";
+        const sanitized = sanitizeMarkdownHtml((html || "")?.trim?.() || "");
         view.innerHTML = sanitized || view.innerHTML || "";
         document.dispatchEvent(new CustomEvent("ext-ready", {}));
     }

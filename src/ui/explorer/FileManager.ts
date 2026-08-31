@@ -12,7 +12,7 @@ import { closeExplorerSettings, openExplorerSettings } from "./ExplorerSettings"
 import { toExplorerStoragePath } from "./path-router";
 
 // @ts-ignore
-import fmCss from "./FileManager.scss?inline";
+import fmCss from "veela-lib/ui/components/file-manager.scss?inline";
 
 //
 try { preloadStyle(fmCss); } catch { /* COMPAT: style preload must not block ui-file-manager define */ }

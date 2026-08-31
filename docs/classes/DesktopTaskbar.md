@@ -1,4 +1,4 @@
-[**@fest-lib/fl-ui v0.1.20**](../README.md)
+[**@fest-lib/fl-ui v1.0.0**](../README.md)
 
 ***
 
@@ -6,7 +6,7 @@
 
 # Class: DesktopTaskbar
 
-Defined in: fl.ui/src/ui/navigation/appearance/Desktop.ts:10
+Defined in: fl.ui/src/ui/navigation/appearance/Desktop.ts:11
 
 ## Extends
 
@@ -20,7 +20,7 @@ Defined in: fl.ui/src/ui/navigation/appearance/Desktop.ts:10
 new DesktopTaskbar(): DesktopTaskbar;
 ```
 
-Defined in: fl.ui/src/ui/navigation/appearance/Desktop.ts:14
+Defined in: fl.ui/src/ui/navigation/appearance/Desktop.ts:15
 
 #### Returns
 
@@ -40,7 +40,7 @@ DOMMixin.constructor
 optional element?: any;
 ```
 
-Defined in: fl.ui/src/ui/navigation/appearance/Desktop.ts:11
+Defined in: fl.ui/src/ui/navigation/appearance/Desktop.ts:12
 
 ## Accessors
 
@@ -52,7 +52,7 @@ Defined in: fl.ui/src/ui/navigation/appearance/Desktop.ts:11
 get elements(): any;
 ```
 
-Defined in: [dom.ts/src/mixin/Mixins.ts:142](https://github.com/fest-live/dom.ts/blob/5adb66c816e7cde57eecd68b89570ffa473fcdf8/src/mixin/Mixins.ts#L142)
+Defined in: [dom.ts/src/mixin/Mixins.ts:146](https://github.com/fest-live/dom.ts/blob/7199acc40df7f8a261aa5e43a8c29341398c98f3/src/mixin/Mixins.ts#L146)
 
 ##### Returns
 
@@ -74,7 +74,7 @@ DOMMixin.elements
 get name(): any;
 ```
 
-Defined in: [dom.ts/src/mixin/Mixins.ts:144](https://github.com/fest-live/dom.ts/blob/5adb66c816e7cde57eecd68b89570ffa473fcdf8/src/mixin/Mixins.ts#L144)
+Defined in: [dom.ts/src/mixin/Mixins.ts:148](https://github.com/fest-live/dom.ts/blob/7199acc40df7f8a261aa5e43a8c29341398c98f3/src/mixin/Mixins.ts#L148)
 
 ##### Returns
 
@@ -94,7 +94,7 @@ Defined in: [dom.ts/src/mixin/Mixins.ts:144](https://github.com/fest-live/dom.ts
 get storage(): any;
 ```
 
-Defined in: [dom.ts/src/mixin/Mixins.ts:143](https://github.com/fest-live/dom.ts/blob/5adb66c816e7cde57eecd68b89570ffa473fcdf8/src/mixin/Mixins.ts#L143)
+Defined in: [dom.ts/src/mixin/Mixins.ts:147](https://github.com/fest-live/dom.ts/blob/7199acc40df7f8a261aa5e43a8c29341398c98f3/src/mixin/Mixins.ts#L147)
 
 ##### Returns
 
@@ -114,7 +114,7 @@ DOMMixin.storage
 connect(element?): DesktopTaskbar;
 ```
 
-Defined in: fl.ui/src/ui/navigation/appearance/Desktop.ts:19
+Defined in: fl.ui/src/ui/navigation/appearance/Desktop.ts:20
 
 #### Parameters
 
@@ -140,7 +140,7 @@ DOMMixin.connect
 disconnect(element?): DesktopTaskbar;
 ```
 
-Defined in: fl.ui/src/ui/navigation/appearance/Desktop.ts:26
+Defined in: fl.ui/src/ui/navigation/appearance/Desktop.ts:27
 
 #### Parameters
 
@@ -166,7 +166,7 @@ DOMMixin.disconnect
 relatedForElement(element): object;
 ```
 
-Defined in: [dom.ts/src/mixin/Mixins.ts:139](https://github.com/fest-live/dom.ts/blob/5adb66c816e7cde57eecd68b89570ffa473fcdf8/src/mixin/Mixins.ts#L139)
+Defined in: [dom.ts/src/mixin/Mixins.ts:143](https://github.com/fest-live/dom.ts/blob/7199acc40df7f8a261aa5e43a8c29341398c98f3/src/mixin/Mixins.ts#L143)
 
 #### Parameters
 
@@ -210,7 +210,7 @@ DOMMixin.relatedForElement
 storeForElement(element): any;
 ```
 
-Defined in: [dom.ts/src/mixin/Mixins.ts:138](https://github.com/fest-live/dom.ts/blob/5adb66c816e7cde57eecd68b89570ffa473fcdf8/src/mixin/Mixins.ts#L138)
+Defined in: [dom.ts/src/mixin/Mixins.ts:142](https://github.com/fest-live/dom.ts/blob/7199acc40df7f8a261aa5e43a8c29341398c98f3/src/mixin/Mixins.ts#L142)
 
 #### Parameters
 

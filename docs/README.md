@@ -1,8 +1,8 @@
-**@fest-lib/fl-ui v0.1.20**
+**@fest-lib/fl-ui v1.0.0**
 
 ***
 
-# @fest-lib/fl-ui v0.1.20
+# @fest-lib/fl-ui v1.0.0
 
 ## Classes
 
@@ -30,6 +30,8 @@
 - [AnchoredWindowOptions](type-aliases/AnchoredWindowOptions.md)
 - [AnchoredWindowParts](type-aliases/AnchoredWindowParts.md)
 - [AppMenuMode](type-aliases/AppMenuMode.md)
+- [AttachmentCandidate](type-aliases/AttachmentCandidate.md)
+- [AttachmentSource](type-aliases/AttachmentSource.md)
 - [BookmarkMenuEntry](type-aliases/BookmarkMenuEntry.md)
 - [BookmarksMenuApi](type-aliases/BookmarksMenuApi.md)
 - [ChromeFlyoutController](type-aliases/ChromeFlyoutController.md)
@@ -61,6 +63,7 @@
 - [APP\_BOX\_TAG](variables/APP_BOX_TAG.md)
 - [CHROME\_DESKTOP\_MQ](variables/CHROME_DESKTOP_MQ.md)
 - [CHROME\_FLYOUT\_Z](variables/CHROME_FLYOUT_Z.md)
+- [MARKDOWN\_SANITIZE\_OPTIONS](variables/MARKDOWN_SANITIZE_OPTIONS.md)
 - [WINDOW\_TITLEBAR\_TAG](variables/WINDOW_TITLEBAR_TAG.md)
 
 ## Functions
@@ -78,7 +81,10 @@
 - [closeChromeFlyout](functions/closeChromeFlyout.md)
 - [closeQuickSettingsFlyout](functions/closeQuickSettingsFlyout.md)
 - [closeToastLayer](functions/closeToastLayer.md)
+- [collectAttachmentCandidates](functions/collectAttachmentCandidates.md)
+- [collectFileCandidates](functions/collectFileCandidates.md)
 - [configureFlUI](functions/configureFlUI.md)
+- [configureMarkdownRendering](functions/configureMarkdownRendering.md)
 - [createAnchoredModal](functions/createAnchoredModal.md)
 - [~~createAnchoredWindow~~](functions/createAnchoredWindow.md)
 - [createAnchoredWindowShell](functions/createAnchoredWindowShell.md)
@@ -126,8 +132,10 @@
 - [probeNativeWindowChrome](functions/probeNativeWindowChrome.md)
 - [registerOpenFlyout](functions/registerOpenFlyout.md)
 - [renderAddress](functions/renderAddress.md)
+- [renderSafeMarkdown](functions/renderSafeMarkdown.md)
 - [resolveAppMenuMode](functions/resolveAppMenuMode.md)
 - [restoreQuickFilters](functions/restoreQuickFilters.md)
+- [sanitizeMarkdownHtml](functions/sanitizeMarkdownHtml.md)
 - [setBookmarksMenuApi](functions/setBookmarksMenuApi.md)
 - [setChromeFlyoutShellHost](functions/setChromeFlyoutShellHost.md)
 - [setLauncherBridgeForAppMenu](functions/setLauncherBridgeForAppMenu.md)

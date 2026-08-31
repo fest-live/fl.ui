@@ -1,4 +1,4 @@
-[**@fest-lib/fl-ui v0.1.20**](../README.md)
+[**@fest-lib/fl-ui v1.0.0**](../README.md)
 
 ***
 
@@ -6,7 +6,7 @@
 
 # Class: CalendarFlyout
 
-Defined in: fl.ui/src/ui/navigation/calendar/CalendarFlyout.ts:105
+Defined in: fl.ui/src/ui/navigation/calendar/CalendarFlyout.ts:106
 
 Win11-like calendar flyout: today header + navigable month grid.
 
@@ -27,7 +27,7 @@ helpers, which wrap `ChromeFlyout` (mirrors Quick Settings wiring).
 new CalendarFlyout(): CalendarFlyout;
 ```
 
-Defined in: fl.ui/src/ui/navigation/calendar/CalendarFlyout.ts:132
+Defined in: fl.ui/src/ui/navigation/calendar/CalendarFlyout.ts:133
 
 #### Returns
 
@@ -45,7 +45,7 @@ Defined in: fl.ui/src/ui/navigation/calendar/CalendarFlyout.ts:132
 adoptedStyleSheets: CSSStyleSheet[];
 ```
 
-Defined in: lur.e/src/lure/misc/Glit.ts:143
+Defined in: lur.e/src/lure/misc/Glit.ts:149
 
 #### Inherited from
 
@@ -59,7 +59,7 @@ Defined in: lur.e/src/lure/misc/Glit.ts:143
 optional initialAttributes?: Record<string, any> | (() => Record<string, any>);
 ```
 
-Defined in: lur.e/src/lure/misc/Glit.ts:141
+Defined in: lur.e/src/lure/misc/Glit.ts:147
 
 #### Inherited from
 
@@ -73,7 +73,7 @@ Defined in: lur.e/src/lure/misc/Glit.ts:141
 render: () => any;
 ```
 
-Defined in: fl.ui/src/ui/navigation/calendar/CalendarFlyout.ts:113
+Defined in: fl.ui/src/ui/navigation/calendar/CalendarFlyout.ts:114
 
 #### Returns
 
@@ -91,7 +91,7 @@ Defined in: fl.ui/src/ui/navigation/calendar/CalendarFlyout.ts:113
 styleLibs: HTMLStyleElement[];
 ```
 
-Defined in: lur.e/src/lure/misc/Glit.ts:142
+Defined in: lur.e/src/lure/misc/Glit.ts:148
 
 #### Inherited from
 
@@ -105,7 +105,7 @@ Defined in: lur.e/src/lure/misc/Glit.ts:142
 styles: () => any;
 ```
 
-Defined in: fl.ui/src/ui/navigation/calendar/CalendarFlyout.ts:112
+Defined in: fl.ui/src/ui/navigation/calendar/CalendarFlyout.ts:113
 
 #### Returns
 
@@ -123,7 +123,7 @@ Defined in: fl.ui/src/ui/navigation/calendar/CalendarFlyout.ts:112
 theme: string = "default";
 ```
 
-Defined in: fl.ui/src/ui/base/UIElement.ts:8
+Defined in: fl.ui/src/ui/base/UIElement.ts:15
 
 #### Inherited from
 
@@ -137,7 +137,7 @@ Defined in: fl.ui/src/ui/base/UIElement.ts:8
 static optional formAssociated?: boolean;
 ```
 
-Defined in: lur.e/src/lure/misc/Glit.ts:128
+Defined in: lur.e/src/lure/misc/Glit.ts:134
 
 #### Inherited from
 
@@ -151,7 +151,7 @@ Defined in: lur.e/src/lure/misc/Glit.ts:128
 static optional observedAttributes?: string[];
 ```
 
-Defined in: lur.e/src/lure/misc/Glit.ts:127
+Defined in: lur.e/src/lure/misc/Glit.ts:133
 
 #### Inherited from
 
@@ -165,7 +165,7 @@ Defined in: lur.e/src/lure/misc/Glit.ts:127
 optional $init(): void;
 ```
 
-Defined in: lur.e/src/lure/misc/Glit.ts:150
+Defined in: lur.e/src/lure/misc/Glit.ts:156
 
 #### Returns
 
@@ -183,7 +183,7 @@ Defined in: lur.e/src/lure/misc/Glit.ts:150
 optional adoptedCallback(): void | CalendarFlyout | undefined;
 ```
 
-Defined in: lur.e/src/lure/misc/Glit.ts:119
+Defined in: lur.e/src/lure/misc/Glit.ts:125
 
 #### Returns
 
@@ -204,7 +204,7 @@ optional attributeChangedCallback(
    newValue): void | CalendarFlyout | undefined;
 ```
 
-Defined in: lur.e/src/lure/misc/Glit.ts:120
+Defined in: lur.e/src/lure/misc/Glit.ts:126
 
 #### Parameters
 
@@ -236,7 +236,7 @@ Defined in: lur.e/src/lure/misc/Glit.ts:120
 close(): void;
 ```
 
-Defined in: fl.ui/src/ui/navigation/calendar/CalendarFlyout.ts:264
+Defined in: fl.ui/src/ui/navigation/calendar/CalendarFlyout.ts:265
 
 #### Returns
 
@@ -250,7 +250,7 @@ Defined in: fl.ui/src/ui/navigation/calendar/CalendarFlyout.ts:264
 connectedCallback(): this;
 ```
 
-Defined in: fl.ui/src/ui/base/UIElement.ts:22
+Defined in: fl.ui/src/ui/base/UIElement.ts:28
 
 #### Returns
 
@@ -268,7 +268,7 @@ Defined in: fl.ui/src/ui/base/UIElement.ts:22
 createShadowRoot(): ShadowRoot;
 ```
 
-Defined in: lur.e/src/lure/misc/Glit.ts:149
+Defined in: lur.e/src/lure/misc/Glit.ts:155
 
 #### Returns
 
@@ -286,7 +286,7 @@ Defined in: lur.e/src/lure/misc/Glit.ts:149
 disconnectedCallback(): void;
 ```
 
-Defined in: fl.ui/src/ui/navigation/calendar/CalendarFlyout.ts:145
+Defined in: fl.ui/src/ui/navigation/calendar/CalendarFlyout.ts:146
 
 #### Returns
 
@@ -304,7 +304,7 @@ Defined in: fl.ui/src/ui/navigation/calendar/CalendarFlyout.ts:145
 loadStyleLibrary(module): void | CalendarFlyout | undefined;
 ```
 
-Defined in: lur.e/src/lure/misc/Glit.ts:148
+Defined in: lur.e/src/lure/misc/Glit.ts:154
 
 #### Parameters
 
@@ -328,7 +328,7 @@ Defined in: lur.e/src/lure/misc/Glit.ts:148
 onInitialize(): this;
 ```
 
-Defined in: fl.ui/src/ui/base/UIElement.ts:29
+Defined in: fl.ui/src/ui/base/UIElement.ts:37
 
 #### Returns
 
@@ -346,7 +346,7 @@ Defined in: fl.ui/src/ui/base/UIElement.ts:29
 onRender(): void;
 ```
 
-Defined in: fl.ui/src/ui/navigation/calendar/CalendarFlyout.ts:139
+Defined in: fl.ui/src/ui/navigation/calendar/CalendarFlyout.ts:140
 
 #### Returns
 
@@ -364,7 +364,7 @@ Defined in: fl.ui/src/ui/navigation/calendar/CalendarFlyout.ts:139
 open(): void;
 ```
 
-Defined in: fl.ui/src/ui/navigation/calendar/CalendarFlyout.ts:257
+Defined in: fl.ui/src/ui/navigation/calendar/CalendarFlyout.ts:258
 
 #### Returns
 
@@ -378,7 +378,7 @@ Defined in: fl.ui/src/ui/navigation/calendar/CalendarFlyout.ts:257
 styleLayers(): string[];
 ```
 
-Defined in: lur.e/src/lure/misc/Glit.ts:144
+Defined in: lur.e/src/lure/misc/Glit.ts:150
 
 #### Returns
 
@@ -396,7 +396,7 @@ Defined in: lur.e/src/lure/misc/Glit.ts:144
 toggle(anchor?): void;
 ```
 
-Defined in: fl.ui/src/ui/navigation/calendar/CalendarFlyout.ts:270
+Defined in: fl.ui/src/ui/navigation/calendar/CalendarFlyout.ts:271
 
 #### Parameters
 

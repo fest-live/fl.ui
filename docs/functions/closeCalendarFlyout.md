@@ -1,4 +1,4 @@
-[**@fest-lib/fl-ui v0.1.20**](../README.md)
+[**@fest-lib/fl-ui v1.0.0**](../README.md)
 
 ***
 
@@ -10,7 +10,7 @@
 function closeCalendarFlyout(): void;
 ```
 
-Defined in: fl.ui/src/ui/navigation/calendar/CalendarFlyout.ts:319
+Defined in: fl.ui/src/ui/navigation/calendar/CalendarFlyout.ts:320
 
 ## Returns
 

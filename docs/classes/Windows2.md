@@ -1,4 +1,4 @@
-[**@fest-lib/fl-ui v0.1.20**](../README.md)
+[**@fest-lib/fl-ui v1.0.0**](../README.md)
 
 ***
 
@@ -6,7 +6,7 @@
 
 # Class: Windows2
 
-Defined in: fl.ui/src/ui/containers/window/Windows2.ts:63
+Defined in: fl.ui/src/ui/containers/window/Windows2.ts:64
 
 Draggable window chrome: titlebar + content + footer slots, standard window controls.
 
@@ -28,7 +28,7 @@ titlebar uses CSS `window-drag` / `app-region` instead of JS pointer-drag.
 new Windows2(): Windows2;
 ```
 
-Defined in: fl.ui/src/ui/containers/window/Windows2.ts:131
+Defined in: fl.ui/src/ui/containers/window/Windows2.ts:132
 
 #### Returns
 
@@ -46,7 +46,7 @@ Defined in: fl.ui/src/ui/containers/window/Windows2.ts:131
 adoptedStyleSheets: CSSStyleSheet[];
 ```
 
-Defined in: lur.e/src/lure/misc/Glit.ts:143
+Defined in: lur.e/src/lure/misc/Glit.ts:149
 
 #### Inherited from
 
@@ -60,7 +60,7 @@ Defined in: lur.e/src/lure/misc/Glit.ts:143
 optional contentHandler?: HTMLElement;
 ```
 
-Defined in: fl.ui/src/ui/containers/window/Windows2.ts:65
+Defined in: fl.ui/src/ui/containers/window/Windows2.ts:66
 
 ***
 
@@ -70,7 +70,7 @@ Defined in: fl.ui/src/ui/containers/window/Windows2.ts:65
 optional footerHandler?: HTMLElement;
 ```
 
-Defined in: fl.ui/src/ui/containers/window/Windows2.ts:66
+Defined in: fl.ui/src/ui/containers/window/Windows2.ts:67
 
 ***
 
@@ -80,7 +80,7 @@ Defined in: fl.ui/src/ui/containers/window/Windows2.ts:66
 optional initialAttributes?: Record<string, any> | (() => Record<string, any>);
 ```
 
-Defined in: lur.e/src/lure/misc/Glit.ts:141
+Defined in: lur.e/src/lure/misc/Glit.ts:147
 
 #### Inherited from
 
@@ -94,7 +94,7 @@ Defined in: lur.e/src/lure/misc/Glit.ts:141
 render: (this) => any;
 ```
 
-Defined in: fl.ui/src/ui/containers/window/Windows2.ts:88
+Defined in: fl.ui/src/ui/containers/window/Windows2.ts:89
 
 #### Parameters
 
@@ -118,7 +118,7 @@ Defined in: fl.ui/src/ui/containers/window/Windows2.ts:88
 optional resizer?: HTMLElement;
 ```
 
-Defined in: fl.ui/src/ui/containers/window/Windows2.ts:67
+Defined in: fl.ui/src/ui/containers/window/Windows2.ts:68
 
 ***
 
@@ -128,7 +128,7 @@ Defined in: fl.ui/src/ui/containers/window/Windows2.ts:67
 styleLibs: HTMLStyleElement[];
 ```
 
-Defined in: lur.e/src/lure/misc/Glit.ts:142
+Defined in: lur.e/src/lure/misc/Glit.ts:148
 
 #### Inherited from
 
@@ -142,7 +142,7 @@ Defined in: lur.e/src/lure/misc/Glit.ts:142
 styles: () => any;
 ```
 
-Defined in: fl.ui/src/ui/containers/window/Windows2.ts:87
+Defined in: fl.ui/src/ui/containers/window/Windows2.ts:88
 
 #### Returns
 
@@ -160,7 +160,7 @@ Defined in: fl.ui/src/ui/containers/window/Windows2.ts:87
 theme: string = "default";
 ```
 
-Defined in: fl.ui/src/ui/base/UIElement.ts:8
+Defined in: fl.ui/src/ui/base/UIElement.ts:15
 
 #### Inherited from
 
@@ -174,7 +174,7 @@ Defined in: fl.ui/src/ui/base/UIElement.ts:8
 optional titleHandler?: HTMLElement;
 ```
 
-Defined in: fl.ui/src/ui/containers/window/Windows2.ts:64
+Defined in: fl.ui/src/ui/containers/window/Windows2.ts:65
 
 ***
 
@@ -184,7 +184,7 @@ Defined in: fl.ui/src/ui/containers/window/Windows2.ts:64
 static optional formAssociated?: boolean;
 ```
 
-Defined in: lur.e/src/lure/misc/Glit.ts:128
+Defined in: lur.e/src/lure/misc/Glit.ts:134
 
 #### Inherited from
 
@@ -198,7 +198,7 @@ Defined in: lur.e/src/lure/misc/Glit.ts:128
 static optional observedAttributes?: string[];
 ```
 
-Defined in: lur.e/src/lure/misc/Glit.ts:127
+Defined in: lur.e/src/lure/misc/Glit.ts:133
 
 #### Inherited from
 
@@ -214,7 +214,7 @@ Defined in: lur.e/src/lure/misc/Glit.ts:127
 get isMaximized(): boolean;
 ```
 
-Defined in: fl.ui/src/ui/containers/window/Windows2.ts:400
+Defined in: fl.ui/src/ui/containers/window/Windows2.ts:401
 
 ##### Returns
 
@@ -230,7 +230,7 @@ Defined in: fl.ui/src/ui/containers/window/Windows2.ts:400
 get isMinimized(): boolean;
 ```
 
-Defined in: fl.ui/src/ui/containers/window/Windows2.ts:409
+Defined in: fl.ui/src/ui/containers/window/Windows2.ts:410
 
 ##### Returns
 
@@ -246,7 +246,7 @@ Defined in: fl.ui/src/ui/containers/window/Windows2.ts:409
 get managed(): boolean;
 ```
 
-Defined in: fl.ui/src/ui/containers/window/Windows2.ts:136
+Defined in: fl.ui/src/ui/containers/window/Windows2.ts:137
 
 Shell-driven chrome: position/size come from host CSS, not transform.
 
@@ -264,7 +264,7 @@ Shell-driven chrome: position/size come from host CSS, not transform.
 get nativeMode(): boolean;
 ```
 
-Defined in: fl.ui/src/ui/containers/window/Windows2.ts:141
+Defined in: fl.ui/src/ui/containers/window/Windows2.ts:142
 
 Host requested mono/task native chrome (WCO / standalone / fallback full-bleed).
 
@@ -278,7 +278,7 @@ Host requested mono/task native chrome (WCO / standalone / fallback full-bleed).
 set nativeMode(value): void;
 ```
 
-Defined in: fl.ui/src/ui/containers/window/Windows2.ts:145
+Defined in: fl.ui/src/ui/containers/window/Windows2.ts:146
 
 ##### Parameters
 
@@ -300,7 +300,7 @@ Defined in: fl.ui/src/ui/containers/window/Windows2.ts:145
 get nativeSurface(): "standalone" | "off" | "wco" | "fallback";
 ```
 
-Defined in: fl.ui/src/ui/containers/window/Windows2.ts:150
+Defined in: fl.ui/src/ui/containers/window/Windows2.ts:151
 
 ##### Returns
 
@@ -316,7 +316,7 @@ Defined in: fl.ui/src/ui/containers/window/Windows2.ts:150
 get usesNativeWindowDrag(): boolean;
 ```
 
-Defined in: fl.ui/src/ui/containers/window/Windows2.ts:414
+Defined in: fl.ui/src/ui/containers/window/Windows2.ts:415
 
 True when CSS window-drag owns titlebar (WCO / installed standalone).
 
@@ -332,7 +332,7 @@ True when CSS window-drag owns titlebar (WCO / installed standalone).
 optional $init(): void;
 ```
 
-Defined in: lur.e/src/lure/misc/Glit.ts:150
+Defined in: lur.e/src/lure/misc/Glit.ts:156
 
 #### Returns
 
@@ -350,7 +350,7 @@ Defined in: lur.e/src/lure/misc/Glit.ts:150
 optional adoptedCallback(): void | Windows2 | undefined;
 ```
 
-Defined in: lur.e/src/lure/misc/Glit.ts:119
+Defined in: lur.e/src/lure/misc/Glit.ts:125
 
 #### Returns
 
@@ -368,7 +368,7 @@ Defined in: lur.e/src/lure/misc/Glit.ts:119
 applyBounds(bounds): void;
 ```
 
-Defined in: fl.ui/src/ui/containers/window/Windows2.ts:371
+Defined in: fl.ui/src/ui/containers/window/Windows2.ts:372
 
 Apply absolute bounds (managed shells / workspace layer).
 
@@ -393,7 +393,7 @@ optional attributeChangedCallback(
    newValue): void | Windows2 | undefined;
 ```
 
-Defined in: lur.e/src/lure/misc/Glit.ts:120
+Defined in: lur.e/src/lure/misc/Glit.ts:126
 
 #### Parameters
 
@@ -425,7 +425,7 @@ Defined in: lur.e/src/lure/misc/Glit.ts:120
 bringToFront(z): void;
 ```
 
-Defined in: fl.ui/src/ui/containers/window/Windows2.ts:509
+Defined in: fl.ui/src/ui/containers/window/Windows2.ts:510
 
 #### Parameters
 
@@ -445,7 +445,7 @@ Defined in: fl.ui/src/ui/containers/window/Windows2.ts:509
 clearFocused(): void;
 ```
 
-Defined in: fl.ui/src/ui/containers/window/Windows2.ts:515
+Defined in: fl.ui/src/ui/containers/window/Windows2.ts:516
 
 #### Returns
 
@@ -459,7 +459,7 @@ Defined in: fl.ui/src/ui/containers/window/Windows2.ts:515
 closeWindow(): void;
 ```
 
-Defined in: fl.ui/src/ui/containers/window/Windows2.ts:486
+Defined in: fl.ui/src/ui/containers/window/Windows2.ts:487
 
 #### Returns
 
@@ -473,7 +473,7 @@ Defined in: fl.ui/src/ui/containers/window/Windows2.ts:486
 connectedCallback(): void;
 ```
 
-Defined in: fl.ui/src/ui/containers/window/Windows2.ts:163
+Defined in: fl.ui/src/ui/containers/window/Windows2.ts:164
 
 #### Returns
 
@@ -491,7 +491,7 @@ Defined in: fl.ui/src/ui/containers/window/Windows2.ts:163
 createShadowRoot(): ShadowRoot;
 ```
 
-Defined in: lur.e/src/lure/misc/Glit.ts:149
+Defined in: lur.e/src/lure/misc/Glit.ts:155
 
 #### Returns
 
@@ -509,7 +509,7 @@ Defined in: lur.e/src/lure/misc/Glit.ts:149
 disconnectedCallback(): void;
 ```
 
-Defined in: fl.ui/src/ui/containers/window/Windows2.ts:169
+Defined in: fl.ui/src/ui/containers/window/Windows2.ts:170
 
 #### Returns
 
@@ -527,7 +527,7 @@ Defined in: fl.ui/src/ui/containers/window/Windows2.ts:169
 enterNativeMode(): void;
 ```
 
-Defined in: fl.ui/src/ui/containers/window/Windows2.ts:423
+Defined in: fl.ui/src/ui/containers/window/Windows2.ts:424
 
 Enter/exit native-mode. Managed hosts should listen for `window-native` /
 `window-exit-native` instead of mutating attrs directly when preferred.
@@ -544,7 +544,7 @@ Enter/exit native-mode. Managed hosts should listen for `window-native` /
 exitNativeMode(): void;
 ```
 
-Defined in: fl.ui/src/ui/containers/window/Windows2.ts:432
+Defined in: fl.ui/src/ui/containers/window/Windows2.ts:433
 
 #### Returns
 
@@ -558,7 +558,7 @@ Defined in: fl.ui/src/ui/containers/window/Windows2.ts:432
 loadStyleLibrary(module): void | Windows2 | undefined;
 ```
 
-Defined in: lur.e/src/lure/misc/Glit.ts:148
+Defined in: lur.e/src/lure/misc/Glit.ts:154
 
 #### Parameters
 
@@ -582,7 +582,7 @@ Defined in: lur.e/src/lure/misc/Glit.ts:148
 onInitialize(): void;
 ```
 
-Defined in: fl.ui/src/ui/containers/window/Windows2.ts:154
+Defined in: fl.ui/src/ui/containers/window/Windows2.ts:155
 
 #### Returns
 
@@ -600,7 +600,7 @@ Defined in: fl.ui/src/ui/containers/window/Windows2.ts:154
 onRender(): void;
 ```
 
-Defined in: fl.ui/src/ui/containers/window/Windows2.ts:158
+Defined in: fl.ui/src/ui/containers/window/Windows2.ts:159
 
 #### Returns
 
@@ -618,7 +618,7 @@ Defined in: fl.ui/src/ui/containers/window/Windows2.ts:158
 requestFocus(): void;
 ```
 
-Defined in: fl.ui/src/ui/containers/window/Windows2.ts:505
+Defined in: fl.ui/src/ui/containers/window/Windows2.ts:506
 
 #### Returns
 
@@ -632,7 +632,7 @@ Defined in: fl.ui/src/ui/containers/window/Windows2.ts:505
 restoreWindow(): void;
 ```
 
-Defined in: fl.ui/src/ui/containers/window/Windows2.ts:474
+Defined in: fl.ui/src/ui/containers/window/Windows2.ts:475
 
 #### Returns
 
@@ -646,7 +646,7 @@ Defined in: fl.ui/src/ui/containers/window/Windows2.ts:474
 setVisible(visible): void;
 ```
 
-Defined in: fl.ui/src/ui/containers/window/Windows2.ts:394
+Defined in: fl.ui/src/ui/containers/window/Windows2.ts:395
 
 #### Parameters
 
@@ -666,7 +666,7 @@ Defined in: fl.ui/src/ui/containers/window/Windows2.ts:394
 styleLayers(): string[];
 ```
 
-Defined in: lur.e/src/lure/misc/Glit.ts:144
+Defined in: lur.e/src/lure/misc/Glit.ts:150
 
 #### Returns
 
@@ -684,7 +684,7 @@ Defined in: lur.e/src/lure/misc/Glit.ts:144
 toggleMaximize(): void;
 ```
 
-Defined in: fl.ui/src/ui/containers/window/Windows2.ts:450
+Defined in: fl.ui/src/ui/containers/window/Windows2.ts:451
 
 WHY (managed): only emit intent — environment-shell owns attrs via applyChrome.
 
@@ -700,7 +700,7 @@ WHY (managed): only emit intent — environment-shell owns attrs via applyChrome
 toggleMinimize(): void;
 ```
 
-Defined in: fl.ui/src/ui/containers/window/Windows2.ts:463
+Defined in: fl.ui/src/ui/containers/window/Windows2.ts:464
 
 #### Returns
 

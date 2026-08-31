@@ -1,4 +1,4 @@
-[**@fest-lib/fl-ui v0.1.20**](../README.md)
+[**@fest-lib/fl-ui v1.0.0**](../README.md)
 
 ***
 
@@ -38,7 +38,7 @@ Defined in: fl.ui/src/ui/navigation/taskbar/element/Task.ts:51
 adoptedStyleSheets: CSSStyleSheet[];
 ```
 
-Defined in: lur.e/src/lure/misc/Glit.ts:143
+Defined in: lur.e/src/lure/misc/Glit.ts:149
 
 #### Inherited from
 
@@ -62,7 +62,7 @@ Defined in: fl.ui/src/ui/navigation/taskbar/element/Task.ts:48
 optional initialAttributes?: Record<string, any> | (() => Record<string, any>);
 ```
 
-Defined in: lur.e/src/lure/misc/Glit.ts:141
+Defined in: lur.e/src/lure/misc/Glit.ts:147
 
 #### Inherited from
 
@@ -100,7 +100,7 @@ Defined in: fl.ui/src/ui/navigation/taskbar/element/Task.ts:53
 styleLibs: HTMLStyleElement[];
 ```
 
-Defined in: lur.e/src/lure/misc/Glit.ts:142
+Defined in: lur.e/src/lure/misc/Glit.ts:148
 
 #### Inherited from
 
@@ -114,7 +114,7 @@ Defined in: lur.e/src/lure/misc/Glit.ts:142
 theme: string = "default";
 ```
 
-Defined in: fl.ui/src/ui/base/UIElement.ts:8
+Defined in: fl.ui/src/ui/base/UIElement.ts:15
 
 #### Inherited from
 
@@ -148,7 +148,7 @@ UIElement.title
 static optional formAssociated?: boolean;
 ```
 
-Defined in: lur.e/src/lure/misc/Glit.ts:128
+Defined in: lur.e/src/lure/misc/Glit.ts:134
 
 #### Inherited from
 
@@ -162,7 +162,7 @@ Defined in: lur.e/src/lure/misc/Glit.ts:128
 static optional observedAttributes?: string[];
 ```
 
-Defined in: lur.e/src/lure/misc/Glit.ts:127
+Defined in: lur.e/src/lure/misc/Glit.ts:133
 
 #### Inherited from
 
@@ -176,7 +176,7 @@ Defined in: lur.e/src/lure/misc/Glit.ts:127
 optional $init(): void;
 ```
 
-Defined in: lur.e/src/lure/misc/Glit.ts:150
+Defined in: lur.e/src/lure/misc/Glit.ts:156
 
 #### Returns
 
@@ -194,7 +194,7 @@ Defined in: lur.e/src/lure/misc/Glit.ts:150
 optional adoptedCallback(): void | UITask | undefined;
 ```
 
-Defined in: lur.e/src/lure/misc/Glit.ts:119
+Defined in: lur.e/src/lure/misc/Glit.ts:125
 
 #### Returns
 
@@ -215,7 +215,7 @@ optional attributeChangedCallback(
    newValue): void | UITask | undefined;
 ```
 
-Defined in: lur.e/src/lure/misc/Glit.ts:120
+Defined in: lur.e/src/lure/misc/Glit.ts:126
 
 #### Parameters
 
@@ -247,7 +247,7 @@ Defined in: lur.e/src/lure/misc/Glit.ts:120
 connectedCallback(): this;
 ```
 
-Defined in: fl.ui/src/ui/base/UIElement.ts:22
+Defined in: fl.ui/src/ui/base/UIElement.ts:28
 
 #### Returns
 
@@ -265,7 +265,7 @@ Defined in: fl.ui/src/ui/base/UIElement.ts:22
 createShadowRoot(): ShadowRoot;
 ```
 
-Defined in: lur.e/src/lure/misc/Glit.ts:149
+Defined in: lur.e/src/lure/misc/Glit.ts:155
 
 #### Returns
 
@@ -283,7 +283,7 @@ Defined in: lur.e/src/lure/misc/Glit.ts:149
 optional disconnectedCallback(): void | UITask | undefined;
 ```
 
-Defined in: lur.e/src/lure/misc/Glit.ts:118
+Defined in: lur.e/src/lure/misc/Glit.ts:124
 
 #### Returns
 
@@ -301,7 +301,7 @@ Defined in: lur.e/src/lure/misc/Glit.ts:118
 loadStyleLibrary(module): void | UITask | undefined;
 ```
 
-Defined in: lur.e/src/lure/misc/Glit.ts:148
+Defined in: lur.e/src/lure/misc/Glit.ts:154
 
 #### Parameters
 
@@ -325,7 +325,7 @@ Defined in: lur.e/src/lure/misc/Glit.ts:148
 onInitialize(): this;
 ```
 
-Defined in: fl.ui/src/ui/base/UIElement.ts:29
+Defined in: fl.ui/src/ui/base/UIElement.ts:37
 
 #### Returns
 
@@ -343,7 +343,7 @@ Defined in: fl.ui/src/ui/base/UIElement.ts:29
 onRender(): void | UITask | undefined;
 ```
 
-Defined in: fl.ui/src/ui/base/UIElement.ts:17
+Defined in: fl.ui/src/ui/base/UIElement.ts:24
 
 #### Returns
 
@@ -361,7 +361,7 @@ Defined in: fl.ui/src/ui/base/UIElement.ts:17
 styleLayers(): string[];
 ```
 
-Defined in: lur.e/src/lure/misc/Glit.ts:144
+Defined in: lur.e/src/lure/misc/Glit.ts:150
 
 #### Returns
 

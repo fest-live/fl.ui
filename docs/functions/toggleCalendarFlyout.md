@@ -1,4 +1,4 @@
-[**@fest-lib/fl-ui v0.1.20**](../README.md)
+[**@fest-lib/fl-ui v1.0.0**](../README.md)
 
 ***
 
@@ -10,7 +10,7 @@
 function toggleCalendarFlyout(anchor?): void;
 ```
 
-Defined in: fl.ui/src/ui/navigation/calendar/CalendarFlyout.ts:296
+Defined in: fl.ui/src/ui/navigation/calendar/CalendarFlyout.ts:297
 
 Toggle the shared calendar flyout, wired through `ChromeFlyout`'s exclusive-open contract.
 

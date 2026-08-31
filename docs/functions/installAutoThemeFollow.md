@@ -1,4 +1,4 @@
-[**@fest-lib/fl-ui v0.1.20**](../README.md)
+[**@fest-lib/fl-ui v1.0.0**](../README.md)
 
 ***
 
@@ -10,7 +10,7 @@
 function installAutoThemeFollow(): void;
 ```
 
-Defined in: fl.ui/src/ui/navigation/settings/QuickSettings.ts:156
+Defined in: fl.ui/src/ui/navigation/settings/QuickSettings.ts:157
 
 Follow OS light/dark when preference is `auto`. Idempotent.
 

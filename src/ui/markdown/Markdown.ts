@@ -1,6 +1,6 @@
 // @ts-ignore — canonical typography: `src/styles/ui/_markdown.scss` (veela-backed tokens)
 import styles from "veela-lib/ui/markdown.scss?inline";
-import { E, H, provide, defineElement, property } from "@fest-lib/lure";
+import { E, H, provide, asProvidedFile, defineElement, property } from "@fest-lib/lure";
 import UIElement from "../base/UIElement";
 import { renderSafeMarkdown, sanitizeMarkdownHtml } from "./render";
 
@@ -185,7 +185,7 @@ export class MarkdownView extends UIElement {
             // Try OPFS first if available
             if (navigator?.storage) {
                 try {
-                    const cachedFile = await provide("/user/cache/last.md");
+                    const cachedFile = asProvidedFile(await provide("/user/cache/last.md"));
                     if (cachedFile) {
                         const text = await cachedFile.text?.();
                         if (text) return text;
@@ -261,7 +261,7 @@ export class MarkdownView extends UIElement {
                 fileStr.startsWith("./") ||
                 fileStr.startsWith("../")) {
                 try {
-                    const fetched = await provide(fileStr);
+                    const fetched = asProvidedFile(await provide(fileStr));
                     if (fetched) {
                         const text = await fetched.text?.();
                         if (text) {

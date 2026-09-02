@@ -6,7 +6,15 @@
  * FIND:explorer-settings
  */
 
-import { H, defineElement } from "@fest-lib/lure";
+import {
+    H,
+    defineElement,
+    isOpfsCapabilityAvailable,
+    isOpfsSupportEnabled,
+    refreshMappedStorageRoots,
+    setOpfsSupportEnabled
+} from "@fest-lib/lure";
+import { ensureDefaultFsBackends, unregisterFsBackend } from "./path-router.js";
 import { addEvent } from "@fest-lib/dom";
 import { preloadStyle } from "@fest-lib/style-lib";
 import { UIElement } from "fl-ui/base/UIElement";
@@ -166,6 +174,24 @@ export class ExplorerSettings extends UIElement {
                         });
                     }}>Pick SAF folder</button>
                 </div>
+            </section>
+            <section class="explorer-settings__card">
+                <h3 class="explorer-settings__title">
+                    <ui-icon icon="hard-drives" icon-style="duotone" size="20"></ui-icon>
+                    Origin storage
+                </h3>
+                <p>OPFS is <code>/user/</code> when available. IndexedDB is <code>/idb/</code> beside it, or <code>/user/</code> if OPFS is off.</p>
+                <label class="explorer-settings__check">
+                    <input type="checkbox" data-explorer-opfs-enabled checked=${isOpfsSupportEnabled()} disabled=${!isOpfsCapabilityAvailable()} on:change=${(ev: Event) => {
+                        setOpfsSupportEnabled((ev.currentTarget as HTMLInputElement).checked);
+                        refreshMappedStorageRoots();
+                        unregisterFsBackend("/user/");
+                        unregisterFsBackend("/idb/");
+                        ensureDefaultFsBackends();
+                        window.dispatchEvent(new CustomEvent("cwsp:explorer-mount-change"));
+                    }} />
+                    <span>Use OPFS for <code>/user/</code></span>
+                </label>
             </section>
             <section class="explorer-settings__card" hidden=${native || !picker}>
                 <h3 class="explorer-settings__title">

@@ -73,6 +73,8 @@ test("ensureDefaultFsBackends registers /user/ and /assets/ at module boot", asy
   assert.deepEqual(listing, []);
   const assetListing = await assets!.list("/assets/");
   assert.deepEqual(assetListing, []);
+  // WHY: node has no OPFS, so IDB stays behind `/user/` and `/idb/` is absent.
+  assert.equal(resolveFsBackend("/idb/"), null);
 });
 
 // ---- Final review #2: OPFS /user/ list entries must carry absolute `path` ----

@@ -7,7 +7,7 @@
  */
 
 import { observe, iterated, ref, affected } from "@fest-lib/object";
-import { isUserScopePath } from "@fest-lib/core";
+import { isIdbScopePath, isUserScopePath } from "@fest-lib/core";
 
 // PathRouter + FsBackend registry (Task 1). The router owns the virtual root
 // listing; backends registered at init keep the existing `/user/` + `/assets/`
@@ -45,7 +45,9 @@ import {
     provide,
     readFile,
     uploadDirectory,
-    handleIncomingEntries
+    handleIncomingEntries,
+    resolveRootHandle,
+    asProvidedFile
 } from "@fest-lib/lure";
 
 //
@@ -151,6 +153,8 @@ const isVirtualRootPath = (path?: string): boolean => normalizeDirectoryPath(pat
 const isReadonlyPath = (path?: string): boolean => isAssetsPath(path) || isVirtualRootPath(path);
 const isIconsPath = (path?: string): boolean => normalizeDirectoryPath(path).startsWith("/assets/icons/");
 const isUserPath = (path?: string): boolean => isUserScopePath(normalizeDirectoryPath(path));
+const isIdbPath = (path?: string): boolean => isIdbScopePath(normalizeDirectoryPath(path));
+const isWorkspacePath = (path?: string): boolean => isUserPath(path) || isIdbPath(path);
 
 const BOOKMARKS_ROOT = "/bookmarks/";
 
@@ -164,7 +168,7 @@ export const isBookmarksPath = (path?: string): boolean =>
  */
 export const canReceiveIncomingPath = (path?: string): boolean => {
     const normalized = normalizeDirectoryPath(path);
-    return isVirtualRootPath(normalized) || isUserPath(normalized) || isBookmarksPath(normalized);
+    return isVirtualRootPath(normalized) || isWorkspacePath(normalized) || isBookmarksPath(normalized);
 };
 
 const buildVirtualAssetPaths = (path: string): string[] => {
@@ -256,7 +260,7 @@ export class FileOperative {
             this.#readonly.value = isReadonlyPath(path || "/");
             this.loadPath(path || "/");
         });
-        navigator?.storage?.getDirectory?.()?.then?.((h) => {
+        void resolveRootHandle("/user/").then((h) => {
             this.#fsRoot = h;
             void this.refreshList(this.path || "/");
         });
@@ -401,7 +405,7 @@ export class FileOperative {
     }
 
     private async getDirectoryHandleByPath(path: string, create = false): Promise<any> {
-        const root = this.#fsRoot || await navigator?.storage?.getDirectory?.();
+        const root = this.#fsRoot || await this.getStorageRootHandle("/user/");
         if (!root) return null;
         const clean = normalizeDirectoryPath(path);
         const parts = clean.split("/").filter(Boolean);
@@ -414,18 +418,24 @@ export class FileOperative {
 
     private normalizeUserRelativePath(path: string): string {
         const normalized = normalizeDirectoryPath(path);
-        if (normalized === "/user/") return "/";
+        if (normalized === "/user/" || normalized === "/idb/") return "/";
         if (normalized.startsWith("/user/")) return normalized.slice("/user".length);
+        if (normalized.startsWith("/idb/")) return normalized.slice("/idb".length);
         return normalized;
     }
 
+    private async getStorageRootHandle(path: string): Promise<any> {
+        const virtual = isIdbPath(path) ? "/idb/" : "/user/";
+        return resolveRootHandle(virtual, path);
+    }
+
     private async getOpfsRootHandle(): Promise<any> {
-        this.#fsRoot = this.#fsRoot || await navigator?.storage?.getDirectory?.();
+        this.#fsRoot = await this.getStorageRootHandle("/user/");
         return this.#fsRoot;
     }
 
     private async getUserDirHandle(path: string, create = false): Promise<any> {
-        const root = await this.getOpfsRootHandle();
+        const root = await this.getStorageRootHandle(path);
         if (!root) return null;
         const rel = this.normalizeUserRelativePath(path);
         const parts = rel.split("/").filter(Boolean);
@@ -515,7 +525,7 @@ export class FileOperative {
      */
     private incomingDestinationPath(): string | null {
         const currentPath = normalizeDirectoryPath(this.path);
-        if (canReceiveIncomingPath(currentPath) && isUserPath(currentPath)) return currentPath;
+        if (canReceiveIncomingPath(currentPath) && isWorkspacePath(currentPath)) return currentPath;
         if (isBookmarksPath(currentPath)) return currentPath;
         if (isVirtualRootPath(currentPath)) return "/user/";
         return null;
@@ -674,7 +684,7 @@ export class FileOperative {
     }
 
     private async removeUserEntry(absPath: string, recursive = true): Promise<boolean> {
-        const root = await this.getOpfsRootHandle();
+        const root = await this.getStorageRootHandle(absPath);
         if (!root) return false;
         const rel = this.normalizeUserRelativePath(absPath).replace(/\/+$/g, "");
         const parts = rel.split("/").filter(Boolean);
@@ -689,7 +699,7 @@ export class FileOperative {
     }
 
     private async renameUserFile(absPath: string, newName: string): Promise<void> {
-        const root = await this.getOpfsRootHandle();
+        const root = await this.getStorageRootHandle(absPath);
         if (!root) return;
         const rel = this.normalizeUserRelativePath(absPath).replace(/\/+$/g, "");
         const parts = rel.split("/").filter(Boolean);
@@ -877,7 +887,7 @@ export class FileOperative {
                     item.file = await backend.readFile(loadPath).catch(() => null);
                 }
                 if (!item.file) {
-                    item.file = await provide(loadPath).catch(() => null);
+                    item.file = asProvidedFile(await provide(loadPath).catch(() => null));
                 }
                 if (item.file) {
                     item.size = item.file.size;
@@ -941,6 +951,14 @@ export class FileOperative {
                 return this;
             }
             if (isAssetsPath(rel)) {
+                const backend = resolveFsBackend(rel);
+                try {
+                    const remote = await backend?.list?.(rel);
+                    if (remote && remote.length) {
+                        this.applyEntries(remote.map((e) => observe(e) as FileEntryItem));
+                        return this;
+                    }
+                } catch { /* seed + cache fallback */ }
                 this.applyEntries(await this.listAssetEntries(rel));
                 return this;
             }
@@ -1075,7 +1093,7 @@ export class FileOperative {
                             if (fsBackend?.remove && fsBackend.root !== "/user/" && fsBackend.root !== "/assets/") {
                                 if (globalThis.confirm?.(`Delete “${itemName || "item"}”?`) !== true) break;
                                 await fsBackend.remove(nativePath, true);
-                            } else if (isUserPath(abs)) {
+                            } else if (isWorkspacePath(abs)) {
                                 await this.removeUserEntry(abs, true);
                             } else {
                                 await remove(this.#fsRoot, abs);
@@ -1090,7 +1108,7 @@ export class FileOperative {
                             if (bmBackend?.rename) {
                                 await bmBackend.rename(bmPath, next);
                             } else if (item?.kind === "file") {
-                                if (isUserPath(abs)) {
+                                if (isWorkspacePath(abs)) {
                                     await this.renameUserFile(abs ?? "", next ?? "");
                                 } else {
                                     await this.renameFile(abs ?? "", next ?? "");
@@ -1141,8 +1159,9 @@ export class FileOperative {
                     } else {
                         const name = prompt("Folder name:", "New folder");
                         if (!name) break;
-                        if (isUserPath(this.path)) {
-                            await this.getUserDirHandle(this.path, true);
+                        if (isWorkspacePath(this.path)) {
+                            const folder = String(name).trim();
+                            if (folder) await this.getUserDirHandle(`${this.path}${folder}/`, true);
                         }
                     }
                     await this.refreshList(this.path);
@@ -1231,7 +1250,7 @@ export class FileOperative {
                 case "download":
                     Promise.try(async () => {
                         if (isAssetsPath(abs)) {
-                            const file = await provide(abs);
+                            const file = asProvidedFile(await provide(abs));
                             if (file) await downloadFile(file);
                             return;
                         }

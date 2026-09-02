@@ -1,6 +1,8 @@
 /*
  * Filename: path-router.ts
  * FullPath: modules/projects/fl.ui/src/ui/explorer/path-router.ts
+ * FIND:idb-fs
+ * TAG:explorer-adapters,opfs
  * Change date and time: 08.45.00_19.08.2026
  * Reason for changes: Register `/bookmarks/` + `/downloads/` on CRX; `/desktop/` on Neutralino.
  */
@@ -61,6 +63,7 @@ export function registerFsBackend(backend: FsBackend): void {
   const key = normalizeRoot(backend.root);
   registry.set(key, backend);
   notifyBackendRegistered(key);
+  bindFsBackendToProvide(backend);
 }
 
 export function unregisterFsBackend(root: string): void {
@@ -122,35 +125,48 @@ export function listVirtualRootEntriesFromRouter(): FileEntryLike[] {
  * These standalone backends are registered at module boot so any caller
  * (SpeedDial, Explorer, CRX) can list `/user/` without an Operative instance.
  *
- * `/user/` maps to OPFS root via `navigator.storage.getDirectory()`. The
- * virtual `/user/` prefix is stripped, mirroring `createOpfsLinkStoreIo` in
- * link-store. In node/tests `navigator.storage` is absent → list returns [].
+ * `/user/` maps to OPFS while that backend is active, otherwise IndexedDB.
+ * `/idb/` is registered only while OPFS is still the `/user/` backend.
+ * In node/tests `navigator.storage` and IndexedDB are absent → list returns [].
  *
- * `/assets/` lists via Explorer `listAssetEntries`. `readFile` fetches the
- * same-origin path so open-item can load markdown/images without OPFS.
+ * `/assets/` lists a backend-mounted directory over WS / Socket.IO / HTTPS
+ * when the host exposes `/ssre/fs`. Otherwise Explorer falls back to seed +
+ * Cache API + same-origin `fetch`.
  *
  * INVARIANT: `ensureDefaultFsBackends` is self-healing — it re-registers any
  * missing default backend rather than no-op behind a one-shot flag, so it
  * recovers after a test or caller unregisters a default root.
  */
-const stripUserPrefix = (path: string): string => {
-  const vpath = String(path || "").replace(/^\/+/, "");
-  if (vpath.startsWith("user/")) return "/" + vpath.slice("user/".length);
-  return "/" + vpath;
+const OPFS_SUPPORT_KEY = "cwsp.opfs.enabled";
+
+const isOpfsSupportEnabledSync = (): boolean => {
+  try {
+    if (typeof localStorage === "undefined") return true;
+    const value = localStorage.getItem(OPFS_SUPPORT_KEY);
+    return value !== "0" && value !== "false";
+  } catch {
+    return true;
+  }
 };
 
-const listOpfsUserDirectory = async (path: string): Promise<FileEntryLike[]> => {
-  const nav: any = (typeof navigator !== "undefined") ? (navigator as any) : null;
-  const getDir = nav?.storage?.getDirectory;
-  if (typeof getDir !== "function") return [];
-  let root: any;
-  try {
-    root = await getDir.call(nav.storage);
-  } catch {
-    return [];
-  }
+const isOpfsCapabilityAvailableSync = (): boolean =>
+  typeof navigator !== "undefined" && typeof navigator.storage?.getDirectory === "function";
+
+const isOpfsBackendActiveSync = (): boolean =>
+  isOpfsCapabilityAvailableSync() && isOpfsSupportEnabledSync();
+
+const stripStoragePrefix = (path: string, scope: "user" | "idb"): string => {
+  const vpath = String(path || "").replace(/^\/+/, "");
+  const prefix = `${scope}/`;
+  if (vpath.startsWith(prefix)) return `/${vpath.slice(prefix.length)}`;
+  if (vpath === scope) return "/";
+  return `/${vpath}`;
+};
+
+const listHandleDirectory = async (root: any, path: string): Promise<FileEntryLike[]> => {
   if (!root) return [];
-  const relative = stripUserPrefix(path);
+  const scope = normalizeVirtualPath(path, true).startsWith("/idb/") ? "idb" : "user";
+  const relative = stripStoragePrefix(path, scope);
   const segments = relative.split("/").filter(Boolean);
   let dir: any = root;
   for (const seg of segments) {
@@ -179,54 +195,163 @@ const listOpfsUserDirectory = async (path: string): Promise<FileEntryLike[]> => 
   return entries;
 };
 
+const readHandleFile = async (root: any, path: string, scope: "user" | "idb"): Promise<File | null> => {
+  if (!root) return null;
+  const relative = stripStoragePrefix(path, scope);
+  const segments = relative.split("/").filter(Boolean);
+  if (!segments.length) return null;
+  let dir: any = root;
+  for (const seg of segments.slice(0, -1)) {
+    try {
+      dir = await dir.getDirectoryHandle(seg, { create: false });
+    } catch {
+      return null;
+    }
+  }
+  try {
+    const handle = await dir.getFileHandle(segments[segments.length - 1], { create: false });
+    return await handle.getFile();
+  } catch {
+    return null;
+  }
+};
+
+const bindFsBackendToProvide = (backend: FsBackend): void => {
+  if (backend.root === "/bookmarks/" || backend.root === "/downloads/") return;
+  void import("@fest-lib/lure").then(({ registerProvideBackend }) => {
+    registerProvideBackend({
+      root: backend.root,
+      list: async (path) => {
+        const rows = await backend.list(path);
+        const base = normalizeVirtualPath(path, true);
+        return rows.map((row) => ({
+          name: row.name,
+          kind: row.kind,
+          path: row.path || `${base}${row.name}${row.kind === "directory" ? "/" : ""}`
+        }));
+      },
+      readFile: backend.readFile,
+      writeFile: backend.writeFile
+        ? async (path, file) => {
+            const slash = String(path || "").lastIndexOf("/");
+            const parent = slash >= 0 ? path.slice(0, slash + 1) : backend.root;
+            await backend.writeFile?.(parent, file);
+            return true;
+          }
+        : undefined
+    });
+  }).catch(() => { /* node tests / missing lure export */ });
+};
+
+const loadIdbRoot = async (): Promise<any> => {
+  if (typeof indexedDB === "undefined") return null;
+  try {
+    const { getIdbRoot } = await import("@fest-lib/lure");
+    return await getIdbRoot();
+  } catch {
+    return null;
+  }
+};
+
+const resolveUserHandleRoot = async (): Promise<any> => {
+  if (isOpfsBackendActiveSync()) {
+    try {
+      return await navigator.storage.getDirectory();
+    } catch {
+      return null;
+    }
+  }
+  return loadIdbRoot();
+};
+
+const createStorageFsBackend = (root: "/user/" | "/idb/", getRoot: () => Promise<any>): FsBackend => {
+  const scope = root === "/idb/" ? "idb" : "user";
+  return {
+    root,
+    writable: true,
+    async list(path: string) {
+      return listHandleDirectory(await getRoot().catch(() => null), path);
+    },
+    async readFile(path: string) {
+      return readHandleFile(await getRoot().catch(() => null), path, scope);
+    },
+    async mkdir(parentPath: string, name: string) {
+      const handleRoot = await getRoot();
+      if (!handleRoot) return;
+      const relative = stripStoragePrefix(parentPath, scope);
+      const segments = [...relative.split("/").filter(Boolean), String(name || "").trim()].filter(Boolean);
+      let dir: any = handleRoot;
+      for (const seg of segments) {
+        dir = await dir.getDirectoryHandle(seg, { create: true });
+      }
+    },
+    async writeFile(parentPath: string, file: File) {
+      const handleRoot = await getRoot();
+      if (!handleRoot || !file) return;
+      const relative = stripStoragePrefix(parentPath, scope);
+      const segments = relative.split("/").filter(Boolean);
+      let dir: any = handleRoot;
+      for (const seg of segments) {
+        dir = await dir.getDirectoryHandle(seg, { create: true });
+      }
+      const fileHandle = await dir.getFileHandle(file.name || `file-${Date.now()}`, { create: true });
+      const writable = await fileHandle.createWritable();
+      await writable.write(file);
+      await writable.close();
+    },
+    async remove(path: string, recursive = true) {
+      const handleRoot = await getRoot();
+      if (!handleRoot) return;
+      const relative = stripStoragePrefix(path, scope).replace(/\/+$/g, "");
+      const segments = relative.split("/").filter(Boolean);
+      if (!segments.length) return;
+      const name = segments.pop() as string;
+      let dir: any = handleRoot;
+      for (const seg of segments) {
+        dir = await dir.getDirectoryHandle(seg, { create: false });
+      }
+      await dir.removeEntry(name, { recursive });
+    }
+  };
+};
+
 export function ensureDefaultFsBackends(): void {
   // WHY: self-heal — tests and callers may `unregisterFsBackend("/user/")`
   // (e.g. the path-router test cleans up its own registrations). Re-running
   // this function must restore the defaults rather than no-op behind a flag.
   if (!resolveFsBackend("/user/")) {
-    registerFsBackend({
-      root: "/user/",
-      writable: true,
-      async list(path: string) {
-        return listOpfsUserDirectory(path);
-      },
-      async readFile(path: string) {
-        const nav: any = typeof navigator !== "undefined" ? (navigator as any) : null;
-        const getDir = nav?.storage?.getDirectory;
-        if (typeof getDir !== "function") return null;
-        const root = await getDir.call(nav.storage).catch(() => null);
-        if (!root) return null;
-        const relative = stripUserPrefix(path);
-        const segments = relative.split("/").filter(Boolean);
-        if (!segments.length) return null;
-        let dir: any = root;
-        for (const seg of segments.slice(0, -1)) {
-          try {
-            dir = await dir.getDirectoryHandle(seg, { create: false });
-          } catch {
-            return null;
-          }
-        }
-        try {
-          const handle = await dir.getFileHandle(segments[segments.length - 1], { create: false });
-          return await handle.getFile();
-        } catch {
-          return null;
-        }
-      }
-    });
+    registerFsBackend(createStorageFsBackend("/user/", resolveUserHandleRoot));
+  }
+  if (isOpfsBackendActiveSync() && typeof indexedDB !== "undefined") {
+    if (!resolveFsBackend("/idb/")) {
+      registerFsBackend(createStorageFsBackend("/idb/", loadIdbRoot));
+    }
+  } else {
+    unregisterFsBackend("/idb/");
+    void import("@fest-lib/lure").then(({ unregisterProvideBackend }) => {
+      unregisterProvideBackend("/idb/");
+    }).catch(() => {});
   }
   if (!resolveFsBackend("/assets/")) {
     registerFsBackend({
       root: "/assets/",
       writable: false,
-      async list() {
-        // Explorer lists assets via `listAssetEntries`; this keeps the root visible.
-        return [];
+      async list(path: string) {
+        try {
+          const { tryRemoteMountedList } = await import("@fest-lib/lure");
+          return (await tryRemoteMountedList(path)) ?? [];
+        } catch {
+          return [];
+        }
       },
       async readFile(path: string) {
         const p = String(path || "").trim();
         if (!p || p.endsWith("/")) return null;
+        try {
+          const { tryRemoteMountedRead } = await import("@fest-lib/lure");
+          const remote = await tryRemoteMountedRead(p);
+          if (remote) return remote;
+        } catch { /* HTTPS / WS host missing */ }
         try {
           const r = await fetch(p);
           if (!r?.ok) return null;
@@ -239,6 +364,9 @@ export function ensureDefaultFsBackends(): void {
       }
     });
   }
+  void import("@fest-lib/lure").then(({ ensureRemoteMountedFs }) => {
+    void ensureRemoteMountedFs();
+  }).catch(() => {});
   /*
    * WHY (CRX dual-registry): NTP boot registers `/bookmarks/` via
    * `fl-ui/explorer/path-router` (lands in `com/app.js`), but Explorer's

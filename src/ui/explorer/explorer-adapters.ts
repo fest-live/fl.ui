@@ -11,11 +11,16 @@ import { ensureDefaultFsBackends } from "./path-router.js";
 
 /**
  * Virtual roots. Implementation lives in `path-router` + `backends/*`.
- * OPFS is `/user/`. HTTP bundled files are `/assets/`. CRX favorites are `/bookmarks/`.
- * Android storage is `/sdcard/` `/saf/`.
+ * OPFS is `/user/` while supported. IndexedDB is `/idb/` beside OPFS, or `/user/`
+ * when OPFS is missing or turned off. `provide()` reads files and directories
+ * on these roots plus Capacitor `/sdcard/` `/saf/`.
+ * HTTP bundled files are `/assets/` — listed from a backend mount via
+ * WS / Socket.IO / HTTPS when `/ssre/fs` is up, else seed + cache + fetch.
+ * CRX favorites are `/bookmarks/`. Android storage is `/sdcard/` `/saf/`.
  */
 export const EXPLORER_ADAPTER_LIBS = [
     { id: "opfs", root: "/user/", kind: "opfs" },
+    { id: "idb", root: "/idb/", kind: "idb" },
     { id: "http-assets", root: "/assets/", kind: "http" },
     { id: "crx-favorites", root: "/bookmarks/", kind: "crx" },
     { id: "crx-downloads", root: "/downloads/", kind: "crx" },

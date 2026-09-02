@@ -30,6 +30,15 @@
             "@fest-lib/lure": [
                 "../../lur.e/src/index.ts"
             ],
+            "@fest-lib/lure/idb-fs": [
+                "../../lur.e/src/utils/opfs/IdbFs.ts"
+            ],
+            "@fest-lib/lure/provide": [
+                "../../lur.e/src/utils/opfs/provide.ts"
+            ],
+            "@fest-lib/lure/remote-fs": [
+                "../../lur.e/src/utils/opfs/remote-fs.ts"
+            ],
             "@fest-lib/object": [
                 "../../object.ts/src/index.ts"
             ],
@@ -41,6 +50,9 @@
             ],
             "@fest-lib/uniform": [
                 "../../uniform.ts/src/index.ts"
+            ],
+            "@fest-lib/uniform/mounted-fs": [
+                "../../uniform.ts/src/newer/messaging/MountedFs.ts"
             ],
             "@fest-lib/theme": [
                 "../../theme.core/src/index.ts"

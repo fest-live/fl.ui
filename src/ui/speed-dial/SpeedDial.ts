@@ -7,7 +7,7 @@
  */
 
 import { observe, numberRef, propRef, stringRef, affected } from "@fest-lib/object";
-import { E, H, orientRef, M, provide, handleIncomingEntries } from "@fest-lib/lure";
+import { E, H, orientRef, M, provide, asProvidedFile, handleIncomingEntries } from "@fest-lib/lure";
 import { pointerAnchorRef } from "@fest-lib/lure";
 import { bindPointerInteraction } from "./pointer-interaction";
 import {
@@ -1554,12 +1554,18 @@ export function makeWallpaper() {
             /* Asset / app path — paint directly; also try OPFS under /user for user copies. */
             applySrc(raw);
             void provide("/user" + raw)
-                ?.then?.((blob: Blob) => applySrc(URL.createObjectURL(blob)))
+                ?.then?.((got) => {
+                    const file = asProvidedFile(got);
+                    if (file) applySrc(URL.createObjectURL(file));
+                })
                 ?.catch?.(() => { /* keep asset path */ });
             return;
         }
         void provide(raw.startsWith("/user") ? raw : "/user" + raw)
-            ?.then?.((blob: Blob) => applySrc(URL.createObjectURL(blob)))
+            ?.then?.((got) => {
+                const file = asProvidedFile(got);
+                if (file) applySrc(URL.createObjectURL(file));
+            })
             ?.catch?.(() => {
                 void resolveAppWallpaperUrl().then(applySrc).catch(() => applySrc(DEFAULT_WALLPAPER_SRC));
             });

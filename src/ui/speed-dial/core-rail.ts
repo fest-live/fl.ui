@@ -189,7 +189,7 @@ export function mountCoreRail(host: HTMLElement): () => void {
             if (
                 n instanceof Element &&
                 n.closest?.(
-                    "dialog, .cw-context-menu-layer, .env-shell-app-menu, .speed-dial-editor, .sd-icon-picker"
+                    "dialog, .cw-context-menu-layer, .env-shell-app-menu, .speed-dial-editor, .sd-icon-picker, .speed-dial-chrome-rail, ui-calendar-flyout, ui-quick-settings"
                 )
             ) {
                 return true;

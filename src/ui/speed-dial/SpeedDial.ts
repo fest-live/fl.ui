@@ -80,6 +80,8 @@ import {
 import { isInFocus, MOCElement, updateVP, ensureVirtualKeyboardOverlay } from "@fest-lib/dom";
 import { openShortcutEditor } from "./ShortcutEditor";
 import { mountCoreRail } from "./core-rail";
+import { mountChromeRail } from "./chrome-rail";
+import { applyTilesLockedAttr, isTilesLocked, TILES_LOCKED_EVENT } from "./tiles-lock";
 import { setSpeedDialViewOpener, getSpeedDialViewOpener } from "./view-opener";
 import {
     bootWorkspacePages,
@@ -547,8 +549,34 @@ const isEmptySpeedDialSurface = (root: HTMLElement, target: EventTarget | null):
     if (!(target instanceof Element)) return target === root;
     if (!root.contains(target)) return false;
     return !target.closest(
-        "[data-speed-dial-item], .ui-ws-item, dialog, .cw-context-menu-layer, .env-shell-app-menu, .speed-dial-editor"
+        "[data-speed-dial-item], .ui-ws-item, dialog, .cw-context-menu-layer, .env-shell-app-menu, .speed-dial-editor, .speed-dial-core-rail, .speed-dial-chrome-rail"
     );
+};
+
+const isLauncherChromeHit = (target: EventTarget | null): boolean =>
+    target instanceof Element &&
+    !!target.closest(
+        "dialog, .cw-context-menu-layer, .env-shell-app-menu, .speed-dial-editor, .sd-icon-picker, .speed-dial-core-rail, .speed-dial-chrome-rail, .speed-dial-workspace-pager, input, textarea, select, .sd-widget__search"
+    );
+
+/** WHY: pinned tiles skip drag — workspace / app-menu swipes may start on icons too. */
+const canStartDesktopSwipe = (root: HTMLElement, target: EventTarget | null): boolean => {
+    if (isLauncherChromeHit(target)) return false;
+    if (isTilesLocked()) {
+        if (!(target instanceof Node)) return target === root;
+        return root === target || root.contains(target);
+    }
+    return isEmptySpeedDialSurface(root, target);
+};
+
+const suppressTileClickAfterSwipe = (target: EventTarget | null): void => {
+    const tile =
+        target instanceof Element ? target.closest<HTMLElement>("[data-speed-dial-item]") : null;
+    if (!tile) return;
+    tile.dataset.interactionState = "onRelax";
+    window.setTimeout(() => {
+        if (tile.dataset.interactionState === "onRelax") tile.dataset.interactionState = "onHover";
+    }, 80);
 };
 
 const mountWorkspacePager = (root: HTMLElement): void => {
@@ -594,7 +622,7 @@ const bindEmptySpaceSwipeOpenAppMenu = (root: HTMLElement): void => {
         "pointerdown",
         (ev: PointerEvent) => {
             if (ev.pointerType === "mouse") return;
-            if (!isEmptySpeedDialSurface(root, ev.target)) return;
+            if (!canStartDesktopSwipe(root, ev.target)) return;
             if (document.querySelector(".env-shell-app-menu[data-open]")) return;
             tracking = true;
             pointerId = ev.pointerId;
@@ -611,11 +639,13 @@ const bindEmptySpaceSwipeOpenAppMenu = (root: HTMLElement): void => {
         const dx = ev.clientX - startX;
         const dy = ev.clientY - startY;
         if (Math.abs(dx) >= SWIPE_WORKSPACE_MIN_DX && Math.abs(dx) > Math.abs(dy) * 1.1) {
+            suppressTileClickAfterSwipe(ev.target);
             switchWorkspaceByDelta(dx < 0 ? 1 : -1);
             return;
         }
         if (dy > -SWIPE_APP_MENU_MIN_DY) return;
         if (Math.abs(dx) > Math.abs(dy) * SWIPE_APP_MENU_MAX_DX_RATIO) return;
+        suppressTileClickAfterSwipe(ev.target);
         tryOpenLauncherAppMenu();
     };
 
@@ -659,6 +689,11 @@ const bindRootOrientation = (root: HTMLElement): void => {
         );
     }
     bindEmptySpaceSwipeOpenAppMenu(root);
+    applyTilesLockedAttr(root);
+    if (root.dataset.tilesLockBound !== "1") {
+        root.dataset.tilesLockBound = "1";
+        window.addEventListener(TILES_LOCKED_EVENT, () => applyTilesLockedAttr(root));
+    }
     mountWorkspacePager(root);
     bindIconGridShadowJanitor(root);
     queueMicrotask(() => bindIconGridShadowJanitor(root));
@@ -2032,6 +2067,7 @@ export function SpeedDial(makeView: any) {
     const box = H`<div slot="underlay" style="pointer-events: auto; position: relative; contain: none; overflow: visible; display: grid;" id="home" class="speed-dial-root" tabindex="-1" ref=${(el: HTMLElement) => {
         bindRootOrientation(el);
         mountCoreRail(el);
+        mountChromeRail(el);
     }} on:dragover=${(ev: DragEvent) => acceptHomeLinkDragOver(ev)} on:drop=${(ev: DragEvent) => handleWallpaperDropOrPaste(ev)} on:paste=${(ev: ClipboardEvent) => void handleWallpaperDropOrPaste(ev)} prop:onPaste=${async (ev: ClipboardEvent) => await handleWallpaperDropOrPaste(ev)}>
         <div class="speed-dial-grid speed-dial-label-layer speed-dial-grid--labels ui-launcher-grid" data-layer="items" data-grid-layer="labels" data-grid-columns=${columnsRef} data-grid-rows=${rowsRef} data-grid-shape=${shapeRef}>
             ${M(speedDialItems, renderLabelItem)}

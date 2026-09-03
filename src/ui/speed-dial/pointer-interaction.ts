@@ -1,8 +1,8 @@
 /*
  * Filename: pointer-interaction.ts
  * FullPath: modules/projects/fl.ui/src/ui/speed-dial/pointer-interaction.ts
- * Change date and time: 19.29.00_03.09.2026
- * Reason for changes: Drop from live widget rect; grab axis is the pointer, not 50%.
+ * Change date and time: 19.50.00_03.09.2026
+ * Reason for changes: Pinned tiles skip pointer capture so swipes win over drag.
  */
 
 import {
@@ -17,6 +17,7 @@ import {
     type GridSpan,
     type Orient
 } from "./layout";
+import { isTilesLocked } from "./tiles-lock";
 
 type GridItem = {
     id: string;
@@ -270,6 +271,8 @@ export const bindPointerInteraction = (
     };
 
     const onPointerDown = (event: PointerEvent): void => {
+        /* INVARIANT: pinned tiles must not capture the pointer — swipes stay on the desktop. */
+        if (isTilesLocked()) return;
         if (pointerId !== null || event.button !== 0) return;
         pointerId = event.pointerId;
         lastPointerClient = null;

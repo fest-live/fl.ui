@@ -14,6 +14,7 @@ export const CHROME_DESKTOP_MQ = "(min-width: 641px)";
 export const CHROME_FLYOUT_Z = "2147483600";
 
 export type ChromeFlyoutKind = "calendar" | "quick-settings";
+export type ChromeFlyoutAlign = "start" | "end";
 
 export type ChromeFlyoutController = {
     kind: ChromeFlyoutKind;
@@ -34,7 +35,16 @@ const flyoutAnchorSelectors = [
     ".env-shell-taskbar__clock",
     ".env-ui-statusbar__clock",
     ".env-device-tray",
+    ".speed-dial-chrome-rail",
+    ".speed-dial-core-rail",
 ];
+
+export const resolveFlyoutAlign = (anchor?: HTMLElement | null): ChromeFlyoutAlign => {
+    if (!anchor) return "end";
+    if (anchor.dataset.chromeFlyoutSide === "start") return "start";
+    if (anchor.closest?.(".speed-dial-chrome-rail, [data-chrome-flyout-side='start']")) return "start";
+    return "end";
+};
 
 export const isDesktopChrome = (): boolean => {
     if (typeof document !== "undefined") {
@@ -89,8 +99,14 @@ export const ensureOverlayRoot = (host?: HTMLElement | null): HTMLElement => {
  * Place flyout for desktop (bottom-right) or mobile (calendar center / QS top-center).
  * INVARIANT: panel itself must set `pointer-events: auto`.
  */
-export const positionFlyout = (el: HTMLElement, mode: ChromeFlyoutKind): void => {
+export const positionFlyout = (
+    el: HTMLElement,
+    mode: ChromeFlyoutKind,
+    opts?: { align?: ChromeFlyoutAlign; anchor?: HTMLElement | null }
+): void => {
     const desktop = isDesktopChrome();
+    const align = opts?.align ?? resolveFlyoutAlign(opts?.anchor);
+    el.dataset.flyoutAlign = align;
     el.style.position = "fixed";
     el.style.zIndex = String(Number(CHROME_FLYOUT_Z) + 1);
     el.style.pointerEvents = "auto";
@@ -98,10 +114,15 @@ export const positionFlyout = (el: HTMLElement, mode: ChromeFlyoutKind): void =>
 
     if (desktop) {
         el.style.top = "auto";
-        el.style.left = "auto";
-        el.style.right = "0.75rem";
         el.style.bottom = "4.5rem";
         el.style.transform = "none";
+        if (align === "start") {
+            el.style.left = "0.75rem";
+            el.style.right = "auto";
+        } else {
+            el.style.left = "auto";
+            el.style.right = "0.75rem";
+        }
         return;
     }
 

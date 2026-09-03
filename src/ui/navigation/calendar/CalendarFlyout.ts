@@ -302,9 +302,8 @@ export function toggleCalendarFlyout(anchor?: HTMLElement | null): void {
             el.dataset.theme = pinned;
             el.style.colorScheme = pinned;
         }
-        positionFlyout(el, FLYOUT_KIND);
+        positionFlyout(el, FLYOUT_KIND, { anchor });
         el.open();
-        void anchor; // reserved — no anchor-relative positioning yet, mirrors `positionFlyout` contract.
         return {
             kind: FLYOUT_KIND,
             el,

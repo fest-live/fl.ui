@@ -17,6 +17,7 @@ import {
     type SpeedDialItem
 } from "./launcher-state";
 import { logicalToVisualSpan, normalizeOrient, normalizeSpan, type GridSpan } from "./layout";
+import { isTilesLocked } from "./tiles-lock";
 
 export type SpeedDialWidgetKind = "clock" | "search" | "android";
 
@@ -364,7 +365,7 @@ export const bindWidgetResize = (
     };
 
     handle.addEventListener("pointerdown", (ev) => {
-        if (ev.button !== 0) return;
+        if (ev.button !== 0 || isTilesLocked()) return;
         ev.preventDefault();
         ev.stopPropagation();
         pointerId = ev.pointerId;

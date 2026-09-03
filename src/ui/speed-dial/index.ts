@@ -15,3 +15,11 @@ export * from "./launcher-state";
 export * from "./link-store";
 export * from "./workspace-pages";
 export * from "./widgets";
+export {
+    isTilesLocked,
+    setTilesLocked,
+    applyTilesLockedAttr,
+    TILES_LOCKED_EVENT
+} from "./tiles-lock";
+export { mountChromeRail, isChromeRailOpen, setChromeRailOpen } from "./chrome-rail";
+export { mountCoreRail } from "./core-rail";

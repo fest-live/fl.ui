@@ -1,4 +1,4 @@
-[**@fest-lib/fl-ui v1.0.6**](../README.md)
+[**@fest-lib/fl-ui v1.0.7**](../README.md)
 
 ***
 
@@ -10,7 +10,7 @@
 type ChromeFlyoutController = object;
 ```
 
-Defined in: fl.ui/src/ui/navigation/flyout/ChromeFlyout.ts:18
+Defined in: fl.ui/src/ui/navigation/flyout/ChromeFlyout.ts:19
 
 ## Properties
 
@@ -20,7 +20,7 @@ Defined in: fl.ui/src/ui/navigation/flyout/ChromeFlyout.ts:18
 close: () => void;
 ```
 
-Defined in: fl.ui/src/ui/navigation/flyout/ChromeFlyout.ts:21
+Defined in: fl.ui/src/ui/navigation/flyout/ChromeFlyout.ts:22
 
 #### Returns
 
@@ -34,7 +34,7 @@ Defined in: fl.ui/src/ui/navigation/flyout/ChromeFlyout.ts:21
 contains: (node) => boolean;
 ```
 
-Defined in: fl.ui/src/ui/navigation/flyout/ChromeFlyout.ts:22
+Defined in: fl.ui/src/ui/navigation/flyout/ChromeFlyout.ts:23
 
 #### Parameters
 
@@ -54,7 +54,7 @@ Defined in: fl.ui/src/ui/navigation/flyout/ChromeFlyout.ts:22
 el: HTMLElement;
 ```
 
-Defined in: fl.ui/src/ui/navigation/flyout/ChromeFlyout.ts:20
+Defined in: fl.ui/src/ui/navigation/flyout/ChromeFlyout.ts:21
 
 ***
 
@@ -64,4 +64,4 @@ Defined in: fl.ui/src/ui/navigation/flyout/ChromeFlyout.ts:20
 kind: ChromeFlyoutKind;
 ```
 
-Defined in: fl.ui/src/ui/navigation/flyout/ChromeFlyout.ts:19
+Defined in: fl.ui/src/ui/navigation/flyout/ChromeFlyout.ts:20

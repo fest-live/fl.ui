@@ -1,8 +1,8 @@
-**@fest-lib/fl-ui v1.0.6**
+**@fest-lib/fl-ui v1.0.7**
 
 ***
 
-# @fest-lib/fl-ui v1.0.6
+# @fest-lib/fl-ui v1.0.7
 
 ## Classes
 
@@ -34,6 +34,7 @@
 - [AttachmentSource](type-aliases/AttachmentSource.md)
 - [BookmarkMenuEntry](type-aliases/BookmarkMenuEntry.md)
 - [BookmarksMenuApi](type-aliases/BookmarksMenuApi.md)
+- [ChromeFlyoutAlign](type-aliases/ChromeFlyoutAlign.md)
 - [ChromeFlyoutController](type-aliases/ChromeFlyoutController.md)
 - [ChromeFlyoutKind](type-aliases/ChromeFlyoutKind.md)
 - [EnvironmentShellStatusRefs](type-aliases/EnvironmentShellStatusRefs.md)
@@ -134,6 +135,7 @@
 - [renderAddress](functions/renderAddress.md)
 - [renderSafeMarkdown](functions/renderSafeMarkdown.md)
 - [resolveAppMenuMode](functions/resolveAppMenuMode.md)
+- [resolveFlyoutAlign](functions/resolveFlyoutAlign.md)
 - [restoreQuickFilters](functions/restoreQuickFilters.md)
 - [sanitizeMarkdownHtml](functions/sanitizeMarkdownHtml.md)
 - [setBookmarksMenuApi](functions/setBookmarksMenuApi.md)

@@ -1,8 +1,8 @@
 /*
  * Filename: pointer-interaction.ts
  * FullPath: modules/projects/fl.ui/src/ui/speed-dial/pointer-interaction.ts
- * Change date and time: 20.26.00_23.08.2026
- * Reason for changes: Drag --drag-x/y also drives the shaped under-glow sibling.
+ * Change date and time: 19.29.00_03.09.2026
+ * Reason for changes: Drop from live widget rect; grab axis is the pointer, not 50%.
  */
 
 import {
@@ -12,7 +12,6 @@ import {
     markOccupiedSpan,
     normalizeSpan,
     pointToLogicalCell,
-    visualLayout,
     type GridCell,
     type GridLayout,
     type GridSpan,
@@ -85,6 +84,8 @@ const resetTransforms = (nodes: readonly HTMLElement[]): void => {
         node.style.removeProperty("transform");
         node.style.setProperty("--drag-x", "0px");
         node.style.setProperty("--drag-y", "0px");
+        node.style.removeProperty("--sd-grab-ox");
+        node.style.removeProperty("--sd-grab-oy");
         node.removeAttribute("data-dragging");
     }
 };
@@ -208,35 +209,33 @@ export const bindPointerInteraction = (
         return live;
     };
 
-    const getDropCell = (clientPoint: [number, number]): GridCell => {
+    const liveLogicalLayout = (grid: HTMLElement): GridLayout => {
+        const cols = Number(grid.dataset.gridColumns);
+        const rows = Number(grid.dataset.gridRows);
+        if (cols >= 1 && rows >= 1) return [Math.floor(cols), Math.floor(rows)];
+        return options.getLayout();
+    };
+
+    const getDropCell = (_clientPoint: [number, number]): GridCell => {
         const grid = iconGrid();
         if (!grid) return liveCell();
-        const { point, size } = getGridContentPoint(grid, clientPoint);
-        const layout = options.getLayout();
+        const layout = liveLogicalLayout(grid);
         const orient = options.getOrient();
         const span = itemSpan();
-        const tracked: [number, number] = [
-            point[0] - grabOffset[0],
-            point[1] - grabOffset[1]
-        ];
-        /* WHY: grab is the box center (same as icons). Persist the span origin so a
-         * 2×N search tile dropped in the middle does not clamp into a corner. */
         const [spanX, spanY] = logicalToVisualSpan(span, orient);
-        const [cols, rows] = visualLayout(layout, orient);
-        const cellW = size[0] / Math.max(1, cols);
-        const cellH = size[1] / Math.max(1, rows);
-        const originPoint: [number, number] =
-            spanX > 1 || spanY > 1
-                ? [tracked[0] - (spanX * cellW) / 2, tracked[1] - (spanY * cellH) / 2]
-                : tracked;
-        /* WHY: spanned widgets must not teleport across the board; clamp nearby. */
-        const searchRadius = spanX > 1 || spanY > 1 ? 2 : undefined;
+        const wide = spanX > 1 || spanY > 1;
+        /* WHY: live box includes --drag-x/y. Reconstructing from grabOffset after
+         * clearPointer (or :active scale from 50%) put the search bar under the cursor. */
+        const rect = node.getBoundingClientRect();
+        const sample: [number, number] = wide
+            ? [rect.left, rect.top]
+            : centerOf(rect);
+        const { point, size } = getGridContentPoint(grid, sample);
         return findNearestFreeRect(
-            pointToLogicalCell(originPoint, size, layout, orient, "round"),
+            pointToLogicalCell(point, size, layout, orient, wide ? "floor" : "round"),
             span,
             occupiedCells(options.items, options.item.id, options.getSpan),
-            layout,
-            searchRadius
+            layout
         );
     };
 
@@ -250,7 +249,7 @@ export const bindPointerInteraction = (
             ghost.setAttribute("aria-hidden", "true");
             grid.append(ghost);
         }
-        const layout = options.getLayout();
+        const layout = liveLogicalLayout(grid);
         const orient = options.getOrient();
         const [vx, vy] = logicalToVisualCell(cell, layout, orient);
         const [sx, sy] = logicalToVisualSpan(itemSpan(), orient);
@@ -277,8 +276,9 @@ export const bindPointerInteraction = (
         pointerDownAt = [event.clientX, event.clientY];
         options.item.cell = liveCell();
         const rect = node.getBoundingClientRect();
-        const center = centerOf(rect);
-        grabOffset = [event.clientX - center[0], event.clientY - center[1]];
+        grabOffset = [event.clientX - rect.left, event.clientY - rect.top];
+        node.style.setProperty("--sd-grab-ox", `${grabOffset[0]}px`);
+        node.style.setProperty("--sd-grab-oy", `${grabOffset[1]}px`);
         node.setPointerCapture?.(event.pointerId);
     };
 
@@ -319,6 +319,8 @@ export const bindPointerInteraction = (
         node.releasePointerCapture?.(event.pointerId);
         // WHY: Must read lastPointerClient before clearPointer nulls it.
         const dropPoint = lastPointerClient ?? [event.clientX, event.clientY];
+        /* INVARIANT: sample the live rect before clearing grab / --drag-*. */
+        const targetCell = wasDragging ? getDropCell(dropPoint) : liveCell();
         clearPointer();
         if (!wasDragging) return;
 
@@ -327,7 +329,6 @@ export const bindPointerInteraction = (
         const fromRects = new Map<HTMLElement, DOMRect>(
             currentNodes.map((entry) => [entry, entry.getBoundingClientRect()])
         );
-        const targetCell = getDropCell(dropPoint);
         clearDropGhost();
         const run = ++animationRun;
 

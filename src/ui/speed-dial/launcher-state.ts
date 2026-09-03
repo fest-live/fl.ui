@@ -534,14 +534,22 @@ const ensureCell = (cell?: ReturnType<typeof observe<GridCell>>): ReturnType<typ
 };
 
 const createMetaState = (meta: SpeedDialItemMeta = {}) => {
+    const kind = String(meta.widgetKind || "").toLowerCase();
+    /*
+     * WHY: Properties used to stamp `widgetKind: clock` on shortcuts. Infer
+     * `widget` only from search/android — clock alone is not proof.
+     */
+    const inferredAction =
+        String(meta.action || "").trim() ||
+        (kind === "search" || kind === "android" ? "widget" : "open-view");
     return makeObjectAssignable(observe({
-        action: meta.action || "open-view",
         view: meta.view || "",
         href: meta.href || "",
         description: meta.description || "",
         entityType: meta.entityType || "",
         tags: Array.isArray(meta.tags) ? [...meta.tags] : [],
-        ...meta
+        ...meta,
+        action: inferredAction
     }));
 };
 
@@ -1325,10 +1333,17 @@ export const defaultWidgetSpan = (kind: string): GridSpan => {
 
 export const getItemSpan = (id?: string | null): GridSpan => {
     const meta = id ? getSpeedDialMeta(id) : null;
-    const action = String(meta?.action || "").toLowerCase();
-    const kind =
-        action === "widget" ? String(meta?.widgetKind || "").toLowerCase() : "";
-    const fallback = kind ? defaultWidgetSpan(kind) : ([1, 1] as GridSpan);
+    const item = id ? (speedDialItems || []).find((it) => it?.id === id) : null;
+    /* INVARIANT: item.action === widget wins over a stale meta.action (CRX hydrate). */
+    const isWidget =
+        String(item?.action || "").toLowerCase() === "widget" ||
+        String(meta?.action || "").toLowerCase() === "widget";
+    const kind = isWidget ? String(meta?.widgetKind || "").toLowerCase() : "";
+    const fallback = kind
+        ? defaultWidgetSpan(kind)
+        : isWidget
+          ? defaultWidgetSpan("clock")
+          : ([1, 1] as GridSpan);
     return normalizeSpan([
         metaNumber(meta?.spanCols, fallback[0]),
         metaNumber(meta?.spanRows, fallback[1])
@@ -1390,6 +1405,14 @@ export const ensureSpeedDialMeta = (id: string, defaults: SpeedDialItemMeta = {}
     let changed = false;
     for (const [key, value] of Object.entries(defaults)) {
         if (value == null || value === "") continue;
+        /* INVARIANT: defaults must not demote a live widget to open-view. */
+        if (
+            key === "action" &&
+            String((meta as Record<string, unknown>).action || "").toLowerCase() === "widget" &&
+            String(value || "").toLowerCase() !== "widget"
+        ) {
+            continue;
+        }
         if ((meta as Record<string, unknown>)[key] !== value) {
             (meta as Record<string, unknown>)[key] = value;
             changed = true;
@@ -2301,9 +2324,12 @@ const migrateLegacyDesktopState = (): void => {
 
 migrateLegacyDesktopState();
 
-export const applyGridSettings = (settings?: {
-    grid?: Partial<GridLayoutSettings> & { defaultOpenLinkTarget?: string };
-}) => {
+export const applyGridSettings = (
+    settings?: {
+        grid?: Partial<GridLayoutSettings> & { defaultOpenLinkTarget?: string };
+    },
+    opts?: { relocate?: boolean }
+) => {
     const gridConfig = settings?.grid || gridLayoutState;
     const columns = Math.max(1, Math.min(16, Number(gridConfig?.columns) || gridLayoutState.columns || 4));
     const rows = Math.max(1, Math.min(16, Number(gridConfig?.rows) || gridLayoutState.rows || 8));
@@ -2317,10 +2343,15 @@ export const applyGridSettings = (settings?: {
         "fill"
     );
 
-    // WHY: shrink before writing layout state so the first visual pass already
-    // has in-bounds cells. Clamping in logicalToVisualCell would stack overflow
-    // tiles on the last track; CSS grid-column then grows implicit columns.
+    /*
+     * INVARIANT: relocate only when the user (or settings event) changes the
+     * grid. Boot rAF used to run against default 4×8 before chrome.storage
+     * hydrated the real layout — widgets (2×1) overflowed and persist sealed
+     * everyone into the 4×8 origin pack.
+     */
+    const relocate = opts?.relocate === true || (opts?.relocate !== false && Boolean(settings?.grid));
     if (
+        relocate &&
         relocateItemsToLayout(speedDialItems, [columns, rows], (item) =>
             getItemSpan((item as { id?: string }).id)
         )
@@ -2393,13 +2424,13 @@ if (typeof window !== "undefined") {
             });
             return;
         }
-        applyGridSettings({ grid: detail });
+        applyGridSettings({ grid: detail }, { relocate: true });
         detail.ack?.();
     });
 }
 
 if (typeof globalThis !== "undefined" && typeof document !== "undefined") {
-    const run = () => applyGridSettings();
+    const run = () => applyGridSettings(undefined, { relocate: false });
     if (typeof requestAnimationFrame === "function") {
         requestAnimationFrame(run);
     } else {

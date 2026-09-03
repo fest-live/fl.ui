@@ -1,13 +1,16 @@
 /*
  * Filename: widgets.ts
  * FullPath: modules/projects/fl.ui/src/ui/speed-dial/widgets.ts
- * Change date and time: 14.32.00_22.08.2026
- * Reason for changes: Ignore widgetKind on non-widget shortcuts (Properties New-tab bug).
+ * Change date and time: 18.52.00_03.09.2026
+ * Reason for changes: Heal widget action/span; reuse clock/search nodes across CRX remounts.
+ * FIND:speed-dial-widgets
  */
 
 import {
+    defaultWidgetSpan,
     getItemSpan,
     getSpeedDialMeta,
+    persistSpeedDialItems,
     persistSpeedDialMeta,
     setItemSpan,
     speedDialItems,
@@ -69,38 +72,71 @@ export const hasAndroidWidgetBridge = (): boolean => {
     }
 };
 
-export const getSpeedDialWidgetKind = (item: SpeedDialItem): SpeedDialWidgetKind | "" => {
+const VALID_WIDGET_KINDS = new Set<SpeedDialWidgetKind>(["clock", "search", "android"]);
+
+const asWidgetKind = (value: unknown): SpeedDialWidgetKind | "" => {
+    const kind = String(value || "").toLowerCase();
+    return VALID_WIDGET_KINDS.has(kind as SpeedDialWidgetKind) ? (kind as SpeedDialWidgetKind) : "";
+};
+
+/** True when the tile is a widget — `item.action` wins over a stale `meta.action`. */
+export const isSpeedDialWidgetItem = (item?: SpeedDialItem | null): boolean => {
+    if (!item?.id) return false;
     const meta = getSpeedDialMeta(item.id);
-    const action = String(meta?.action || item.action || "").toLowerCase();
-    /* INVARIANT: widgetKind on a shortcut must not turn it into a clock plate. */
-    if (action !== "widget") return "";
-    const kind = String(meta?.widgetKind || "").toLowerCase();
-    if (kind === "clock" || kind === "search" || kind === "android") return kind;
-    return "clock";
+    const itemAction = String(item.action || "").toLowerCase();
+    const metaAction = String(meta?.action || "").toLowerCase();
+    if (itemAction === "widget" || metaAction === "widget") return true;
+    const kind = asWidgetKind(meta?.widgetKind);
+    /* WHY: Properties stamped `widgetKind: clock` on shortcuts — clock alone is not proof. */
+    return kind === "search" || kind === "android";
+};
+
+export const getSpeedDialWidgetKind = (item: SpeedDialItem): SpeedDialWidgetKind | "" => {
+    if (!isSpeedDialWidgetItem(item)) return "";
+    const meta = getSpeedDialMeta(item.id);
+    return asWidgetKind(meta?.widgetKind) || "clock";
 };
 
 /** Properties used to stamp `widgetKind: clock` on every save — drop that on shortcuts. */
 export const stripStaleWidgetMetaFromShortcuts = (): boolean => {
-    let changed = false;
+    let metaChanged = false;
+    let itemsChanged = false;
     for (const item of speedDialItems || []) {
-        const meta = getSpeedDialMeta(item?.id);
+        if (!item?.id) continue;
+        const meta = getSpeedDialMeta(item.id);
         if (!meta) continue;
-        const action = String(meta.action || item.action || "").toLowerCase();
-        if (action === "widget") continue;
-        if (meta.widgetKind) {
-            delete meta.widgetKind;
-            changed = true;
+        if (isSpeedDialWidgetItem(item)) {
+            if (String(item.action || "").toLowerCase() !== "widget") {
+                item.action = "widget";
+                itemsChanged = true;
+            }
+            if (String(meta.action || "").toLowerCase() !== "widget") {
+                meta.action = "widget";
+                metaChanged = true;
+            }
+            if (!asWidgetKind(meta.widgetKind)) {
+                meta.widgetKind = "clock";
+                metaChanged = true;
+            }
+            continue;
         }
-        const cols = Number(meta.spanCols);
-        const rows = Number(meta.spanRows);
-        if ((Number.isFinite(cols) && cols > 1) || (Number.isFinite(rows) && rows > 1)) {
-            meta.spanCols = 1;
-            meta.spanRows = 1;
-            changed = true;
+        const stampedKind = asWidgetKind(meta.widgetKind);
+        if (stampedKind) {
+            const [dc, dr] = defaultWidgetSpan(stampedKind);
+            delete meta.widgetKind;
+            metaChanged = true;
+            const cols = Number(meta.spanCols);
+            const rows = Number(meta.spanRows);
+            /* WHY: only unwind the Properties default span — do not smash user 2×N icon tiles. */
+            if (cols === dc && rows === dr) {
+                meta.spanCols = 1;
+                meta.spanRows = 1;
+            }
         }
     }
-    if (changed) persistSpeedDialMeta();
-    return changed;
+    if (itemsChanged) persistSpeedDialItems();
+    if (metaChanged) persistSpeedDialMeta();
+    return metaChanged || itemsChanged;
 };
 
 export const getAndroidWidgetId = (item: SpeedDialItem): number => {
@@ -167,6 +203,55 @@ const ensureWidgetChrome = (el: HTMLElement): void => {
     }
 };
 
+type CachedWidgetNode = { kind: SpeedDialWidgetKind; node: HTMLElement; stop?: () => void };
+
+const widgetNodeCache = (): Map<string, CachedWidgetNode> => {
+    const g = globalThis as Record<string, Map<string, CachedWidgetNode> | undefined>;
+    if (!(g.__CWSP_SD_WIDGET_NODES_V1__ instanceof Map)) {
+        g.__CWSP_SD_WIDGET_NODES_V1__ = new Map();
+    }
+    return g.__CWSP_SD_WIDGET_NODES_V1__;
+};
+
+type CachedWidgetHost = { kind: SpeedDialWidgetKind; host: HTMLElement };
+
+const widgetHostCache = (): Map<string, CachedWidgetHost> => {
+    const g = globalThis as Record<string, Map<string, CachedWidgetHost> | undefined>;
+    if (!(g.__CWSP_SD_WIDGET_HOSTS_V1__ instanceof Map)) {
+        g.__CWSP_SD_WIDGET_HOSTS_V1__ = new Map();
+    }
+    return g.__CWSP_SD_WIDGET_HOSTS_V1__;
+};
+
+export const disposeWidgetNode = (id?: string | null): void => {
+    const key = String(id || "").trim();
+    if (!key) return;
+    const prev = widgetNodeCache().get(key);
+    prev?.stop?.();
+    widgetNodeCache().delete(key);
+    widgetHostCache().delete(key);
+};
+
+/** Reuse a disconnected host only — never steal a node still in a live Mapped grid. */
+export const reuseWidgetHost = (
+    id: string,
+    kind: SpeedDialWidgetKind
+): HTMLElement | null => {
+    const prev = widgetHostCache().get(id);
+    if (!prev || prev.kind !== kind) return null;
+    if (prev.host.isConnected) return null;
+    return prev.host;
+};
+
+export const rememberWidgetHost = (
+    id: string,
+    kind: SpeedDialWidgetKind,
+    host: HTMLElement
+): void => {
+    if (!id || !(host instanceof HTMLElement)) return;
+    widgetHostCache().set(id, { kind, host });
+};
+
 export const createClockWidgetNode = (item?: SpeedDialItem): HTMLElement => {
     const el = document.createElement("div");
     el.className = "sd-widget sd-widget--clock";
@@ -186,7 +271,7 @@ export const createClockWidgetNode = (item?: SpeedDialItem): HTMLElement => {
     const timer = window.setInterval(paint, 1_000);
     el.append(time, date);
     const stop = (): void => clearInterval(timer);
-    el.addEventListener("remove", stop);
+    (el as HTMLElement & { __cwspClockStop?: () => void }).__cwspClockStop = stop;
     return el;
 };
 
@@ -229,9 +314,23 @@ export const createAndroidWidgetNode = (item: SpeedDialItem): HTMLElement => {
 };
 
 export const createWidgetNode = (kind: SpeedDialWidgetKind, item?: SpeedDialItem): HTMLElement => {
-    if (kind === "search") return createSearchWidgetNode(item);
-    if (kind === "android" && item) return createAndroidWidgetNode(item);
-    return createClockWidgetNode(item);
+    const id = String(item?.id || "").trim();
+    const cache = widgetNodeCache();
+    if (id) {
+        const prev = cache.get(id);
+        if (prev && prev.kind === kind) return prev.node;
+        prev?.stop?.();
+        cache.delete(id);
+    }
+    const node =
+        kind === "search"
+            ? createSearchWidgetNode(item)
+            : kind === "android" && item
+              ? createAndroidWidgetNode(item)
+              : createClockWidgetNode(item);
+    const stop = (node as HTMLElement & { __cwspClockStop?: () => void }).__cwspClockStop;
+    if (id) cache.set(id, { kind, node, stop });
+    return node;
 };
 
 export const decorateWidgetHost = (host: HTMLElement, _kind: SpeedDialWidgetKind): void => {

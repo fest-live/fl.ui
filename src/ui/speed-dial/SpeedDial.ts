@@ -95,10 +95,13 @@ import {
     bindWidgetResize,
     createWidgetNode,
     decorateWidgetHost,
+    disposeWidgetNode,
     getSpeedDialWidgetKind,
     hideAndroidWidgetHosts,
     openWidgetPicker,
     releaseAndroidWidget,
+    rememberWidgetHost,
+    reuseWidgetHost,
     stripStaleWidgetMetaFromShortcuts,
     syncAndroidWidgetHosts
 } from "./widgets";
@@ -355,7 +358,11 @@ const usedGridLine = (el: HTMLElement, axis: "column" | "row"): string => {
     return fromData && fromData !== "auto" ? fromData : "";
 };
 
-const stampItemGridLine = (el: HTMLElement, visualCell: GridCell): void => {
+const stampItemGridLine = (
+    el: HTMLElement,
+    visualCell: GridCell,
+    _span: readonly [number, number] = [1, 1]
+): void => {
     const col = visualCell[0] + 1;
     const row = visualCell[1] + 1;
     el.dataset.cellColumn = String(col);
@@ -363,7 +370,7 @@ const stampItemGridLine = (el: HTMLElement, visualCell: GridCell): void => {
     el.style.setProperty("--cell-column", String(col));
     el.style.setProperty("--cell-row", String(row));
     if (el.dataset.layer !== "labels") return;
-    /* WHY: stylesheet `auto` packed captions into the top rows; inline !important pins 1×1. */
+    /* WHY: labels still pin 1×1 — widgets use `--cs-grid-*` like icon tiles. */
     el.style.setProperty("grid-column", `${col} / span 1`, "important");
     el.style.setProperty("grid-row", `${row} / span 1`, "important");
 };
@@ -416,7 +423,6 @@ const applyVisualCell = (el: HTMLElement, item: SpeedDialItem, root?: HTMLElemen
     el.style.setProperty("--cell-y", String(logicalCell[1]));
     el.style.setProperty("--p-cell-x", String(logicalCell[0]));
     el.style.setProperty("--p-cell-y", String(logicalCell[1]));
-    stampItemGridLine(el, visualCell);
     const [spanCols, spanRows] = getItemSpan(item.id);
     const [spanX, spanY] = logicalToVisualSpan([spanCols, spanRows], orient);
     const [visCols, visRows] = visualLayout(layout, orient);
@@ -424,6 +430,7 @@ const applyVisualCell = (el: HTMLElement, item: SpeedDialItem, root?: HTMLElemen
     const fitY = Math.max(1, Math.min(spanY, visRows - visualCell[1]));
     el.style.setProperty("--cell-span-x", String(fitX));
     el.style.setProperty("--cell-span-y", String(fitY));
+    stampItemGridLine(el, visualCell, [fitX, fitY]);
     if (el.dataset.layer === "labels") el.removeAttribute("data-spanned");
     else el.toggleAttribute("data-spanned", fitX > 1 || fitY > 1);
     const widgetKind = getSpeedDialWidgetKind(item);
@@ -980,8 +987,13 @@ const bindCell = (el: HTMLElement, args: any): void => {
     sync();
     /* WHY: lure writes `style=` after `ref=` and would drop `--cell-*` (incl. 0,0). */
     queueMicrotask(sync);
+    if (typeof globalThis.requestAnimationFrame === "function") {
+        globalThis.requestAnimationFrame(sync);
+    }
     affected([item.cell, 0], sync);
     affected([item.cell, 1], sync);
+    /* WHY: chrome.storage reloadInto may replace the cell array; axis listeners would go stale. */
+    affected(item, "cell", sync);
     const meta = getSpeedDialMeta(item.id);
     if (meta) {
         affected([meta, "spanCols"], sync);
@@ -1973,11 +1985,16 @@ export function SpeedDial(makeView: any) {
     const renderIconItem = (item: SpeedDialItem)=>{
         const widgetKind = getSpeedDialWidgetKind(item);
         if (widgetKind) {
+            const cached = reuseWidgetHost(item.id, widgetKind);
+            if (cached) return cached;
             const widget = createWidgetNode(widgetKind, item);
-            /* INVARIANT: widgets are shapeless — no tile plate, clip, or under-shadow. */
-            return H`<div data-shape="none" data-id=${item.id} class="ui-ws-item ui-ws-item-icon sd-widget-host" data-speed-dial-item data-layer="icons" data-widget=${widgetKind} ref=${(el) => attachItemNode(item, el as HTMLElement, true, makeView)}>
+            /* INVARIANT: widgets are shapeless — no tile plate, clip, or under-shadow.
+             * Do not stamp JS `grid-column` — placement is `--cell-x` → `--cs-grid-*` like icons. */
+            const host = H`<div data-shape="none" data-id=${item.id} class="ui-ws-item ui-ws-item-icon sd-widget-host" data-speed-dial-item data-layer="icons" data-widget=${widgetKind} ref=${(el) => attachItemNode(item, el as HTMLElement, true, makeView)}>
                 ${widget}
             </div>`;
+            rememberWidgetHost(item.id, widgetKind, host as HTMLElement);
+            return host;
         }
         const model = readTileIconModel(item);
         const pendingShortcut =
@@ -2033,6 +2050,7 @@ export function SpeedDial(makeView: any) {
             if (operation === "remove" || operation === "delete") {
                 const id = String(prev?.id || "").trim();
                 if (id) {
+                    disposeWidgetNode(id);
                     document.querySelectorAll(`[data-id="${CSS.escape(id)}"]`).forEach((node) => {
                         if (!(node instanceof HTMLElement)) return;
                         if (
@@ -2194,8 +2212,12 @@ const openItemEditor = (item?: SpeedDialItem, opts?: {
             workingMeta.openLinkTarget = normalizeOpenLinkTarget(next.openLinkTarget);
             if (workingItem.action === "widget") {
                 const kind = String(next.widgetKind || "").toLowerCase();
-                workingMeta.widgetKind =
+                const nextKind =
                     kind === "search" || kind === "android" || kind === "clock" ? kind : "clock";
+                if (String(workingMeta.widgetKind || "") !== nextKind) {
+                    disposeWidgetNode(workingItem.id);
+                }
+                workingMeta.widgetKind = nextKind;
                 setItemSpan(workingItem.id, [
                     Math.max(1, Math.min(8, Number(next.spanCols) || 1)),
                     Math.max(1, Math.min(8, Number(next.spanRows) || 1))
@@ -2204,6 +2226,7 @@ const openItemEditor = (item?: SpeedDialItem, opts?: {
                 workingMeta.searchUrl = String(next.searchUrl || "").trim();
                 workingMeta.action = "widget";
             } else {
+                disposeWidgetNode(workingItem.id);
                 delete workingMeta.widgetKind;
                 workingMeta.spanCols = 1;
                 workingMeta.spanRows = 1;
@@ -2241,6 +2264,7 @@ const openItemEditor = (item?: SpeedDialItem, opts?: {
             ? undefined
             : () => {
                 releaseAndroidWidget(workingItem);
+                disposeWidgetNode(workingItem.id);
                 removeSpeedDialItem(workingItem.id);
                 persistSpeedDialItems();
                 persistSpeedDialMeta();
@@ -2398,6 +2422,7 @@ export function createCtxMenu(makeView?: any) {
                                 danger: true,
                                 action: ()=>{
                                     releaseAndroidWidget(item);
+                                    disposeWidgetNode(item.id);
                                     removeSpeedDialItem(item.id);
                                     persistSpeedDialItems();
                                     persistSpeedDialMeta();

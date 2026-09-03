@@ -60,6 +60,7 @@ import {
     parseSpeedDialItemFromVirtualPath,
     isSpeedDialVirtualPath,
     resolveItemOpenLinkTarget,
+    normalizeOpenLinkTarget,
     defaultOpenLinkTargetForHref,
     getDefaultTileShape,
     applyItemIconScaleToElement,
@@ -108,6 +109,7 @@ import {
     getSpeedDialActionRegistry,
     getSpeedDialActionLabels,
     getSpeedDialActionIcons,
+    nativeStorageVirtualPath,
     getCachedLauncherIconObjectUrl,
     getCachedIconResourceObjectUrl,
     isLauncherAppSpeedDialItem,
@@ -716,7 +718,15 @@ const schedulePersistItems = () => {
 const resolveItemAction = (item: SpeedDialItem, override?: string) => {
     if (override) return override;
     const entry = getSpeedDialMeta(item.id);
-    return entry?.action || item?.action || "open-view";
+    const action = entry?.action || item?.action || "open-view";
+    /* WHY: older tiles kept open-view after Open-in Document — that launched an empty APK. */
+    if (
+        action === "open-view" &&
+        nativeStorageVirtualPath(String(entry?.path || (item as { path?: string }).path || entry?.href || ""))
+    ) {
+        return "open-path";
+    }
+    return action;
 };
 
 const BASE_ACTION_OPTIONS = [
@@ -2134,7 +2144,8 @@ const openItemEditor = (item?: SpeedDialItem, opts?: {
         registerForBackNavigation: true,
         isViewAction: (value) => value === "open-view",
         /* WHY: windowed view tiles may also carry an Open-link URL (hash / deep link). */
-        isHrefAction: (value) => value === "open-link" || value === "copy-link" || value === "open-view",
+        isHrefAction: (value) =>
+            value === "open-link" || value === "copy-link" || value === "open-view" || value === "open-path",
         isWidgetAction: (value) => value === "widget",
         onSave: (next) => {
             workingItem.label.value = next.label;
@@ -2143,6 +2154,23 @@ const openItemEditor = (item?: SpeedDialItem, opts?: {
             workingMeta.action = workingItem.action;
             workingMeta.view = next.view;
             workingMeta.href = next.href;
+            {
+                const href = String(next.href || "").trim();
+                const nativePath = /^\/(?:sdcard|saf)(?:\/|$)/i.test(href)
+                    ? href
+                    : href.replace(/^(?:\/storage\/emulated\/0|\/mnt\/sdcard)(?=\/|$)/i, "/sdcard");
+                if (/^\/(?:sdcard|saf)(?:\/|$)/i.test(nativePath)) {
+                    workingMeta.path = nativePath;
+                    (workingItem as SpeedDialItem & { path?: string }).path = nativePath;
+                    if (!workingItem.action || workingItem.action === "open-view") {
+                        workingItem.action = "open-path";
+                        workingMeta.action = "open-path";
+                    }
+                } else if (workingItem.action === "open-path" && href) {
+                    workingMeta.path = href;
+                    (workingItem as SpeedDialItem & { path?: string }).path = href;
+                }
+            }
             workingMeta.description = next.description;
             workingMeta.shape = next.shape;
             workingMeta.iconDisplay = normalizeIconDisplay(next.iconDisplay) || "glyph";
@@ -2163,21 +2191,7 @@ const openItemEditor = (item?: SpeedDialItem, opts?: {
                           ? persistSpeedDialIconBlob(workingItem.id, rawUrl)
                           : rawUrl;
             }
-            {
-                const v = String(next.openLinkTarget || "").toLowerCase();
-                workingMeta.openLinkTarget =
-                    v === "native-window" || v === "native" || v === "window"
-                        ? "native-window"
-                        : v === "new-tab" || v === "tab" || v === "browser" || v === "browser-tab"
-                          ? "new-tab"
-                          : v === "external-app" ||
-                              v === "app" ||
-                              v === "chooser" ||
-                              v === "open-with" ||
-                              v === "open-in-app"
-                            ? "external-app"
-                            : "inline";
-            }
+            workingMeta.openLinkTarget = normalizeOpenLinkTarget(next.openLinkTarget);
             if (workingItem.action === "widget") {
                 const kind = String(next.widgetKind || "").toLowerCase();
                 workingMeta.widgetKind =

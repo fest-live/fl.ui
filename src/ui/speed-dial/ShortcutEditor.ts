@@ -244,7 +244,7 @@ export const openShortcutEditor = (options: ShortcutEditorOptions): void => {
                 </div>
                 <div class="modal-field" data-field="href">
                     <label for="sd-edit-href">Link</label>
-                    <input id="sd-edit-href" name="href" type="text" inputmode="url" autocomplete="off" placeholder="/settings?native=1, /workcenter, or https://…" />
+                    <input id="sd-edit-href" name="href" type="text" inputmode="url" autocomplete="off" placeholder="/sdcard/Download/note.md, /settings, or https://…" />
                 </div>
                 <div class="modal-field" data-field="open-link-target">
                     <label for="sd-edit-open-target">Open link in</label>

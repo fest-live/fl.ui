@@ -43,10 +43,32 @@ const capacitorInvoke = async (
     return (r?.echo || r || {}) as Record<string, unknown>;
 };
 
+/**
+ * WHY: Speed Dial / shortcuts store `file:///storage/emulated/0/…`, `/mnt/sdcard/…`,
+ * or `sdcard/…`. CwsStorageHost only understands `/sdcard/` `/saf/`.
+ */
+export const toNativeStorageVirtualPath = (raw: string): string => {
+    let s = String(raw || "").trim();
+    if (!s) return "";
+    try {
+        s = decodeURIComponent(s);
+    } catch {
+        /* keep raw */
+    }
+    s = s.replace(/^file:\/\/(?:localhost)?/i, "");
+    if (/^\/(?:sdcard|saf)(?:\/|$)/i.test(s)) return s;
+    if (/^(?:sdcard|saf)(?:\/|$)/i.test(s)) return `/${s}`;
+    const mapped = s.replace(
+        /^(?:\/storage\/emulated\/0|\/mnt\/sdcard|storage\/emulated\/0|mnt\/sdcard)(?=\/|$)/i,
+        "/sdcard"
+    );
+    return /^\/sdcard(?:\/|$)/i.test(mapped) ? mapped : "";
+};
+
 const parseNativeStoragePath = (
     virtualPath: string
 ): { root: "sdcard" | "saf"; rel: string } | null => {
-    const raw = String(virtualPath || "").trim();
+    const raw = toNativeStorageVirtualPath(virtualPath) || String(virtualPath || "").trim();
     if (!raw) return null;
     const root: "sdcard" | "saf" | "" =
         raw === "/saf" || raw.startsWith("/saf/")
@@ -200,7 +222,49 @@ export const openNativeStorageFile = async (
         ...(mimeType ? { mimeType } : {}),
         ...(title ? { title } : {})
     });
-    return echo.opened === true || echo.sent === true;
+    if (echo.opened === true || echo.sent === true || echo.ok === true) return true;
+    const err = String(echo.error || "");
+    if (err === "all-files-required" || (parsed.root === "sdcard" && err === "not a file")) {
+        const status = await getAllFilesStatus();
+        if (!status.allFilesAccess) await requestAllFilesAccess();
+    }
+    return false;
+};
+
+/**
+ * WHY: Document / Process do not import Explorer path-router, so `provide("/sdcard/…")`
+ * had no backend and the viewer stayed empty.
+ */
+export const ensureNativeStorageProvide = async (): Promise<void> => {
+    if (!isNativeStorageAvailable()) return;
+    try {
+        const { registerProvideBackend } = await import("@fest-lib/lure");
+        const bind = (root: "/sdcard/" | "/saf/"): void => {
+            registerProvideBackend({
+                root,
+                list: async (path) => {
+                    const parsed = parseNativeStoragePath(String(path || root));
+                    const rows = await listNativeStorage(
+                        parsed?.root || (root === "/saf/" ? "saf" : "sdcard"),
+                        parsed?.rel || "/"
+                    );
+                    const base = String(path || root).endsWith("/") ? String(path || root) : `${path || root}/`;
+                    return rows
+                        .filter((row) => row?.name)
+                        .map((row) => ({
+                            name: String(row.name),
+                            kind: row.kind === "directory" ? "directory" : "file",
+                            path: row.path || `${base}${row.name}${row.kind === "directory" ? "/" : ""}`
+                        }));
+                },
+                readFile: (path) => readNativeStorageFile(path)
+            });
+        };
+        bind("/sdcard/");
+        bind("/saf/");
+    } catch {
+        /* web / lure missing */
+    }
 };
 
 export const pickSafTree = async (): Promise<string> => {

@@ -426,6 +426,119 @@ const tryLaunchLinkTargetSku = async (target: string): Promise<boolean> => {
     return false;
 };
 
+/** Explorer virtual path → CwsStorageHost `/sdcard/` `/saf/`. */
+export const nativeStorageVirtualPath = (raw: string): string => {
+    const s = String(raw || "").trim();
+    if (!s) return "";
+    if (/^\/(?:sdcard|saf)(?:\/|$)/i.test(s)) return s;
+    if (/^(?:sdcard|saf)(?:\/|$)/i.test(s)) return `/${s}`;
+    let stripped = s.replace(/^file:\/\/(?:localhost)?/i, "");
+    try {
+        stripped = decodeURIComponent(stripped);
+    } catch {
+        /* keep */
+    }
+    if (/^\/(?:sdcard|saf)(?:\/|$)/i.test(stripped)) return stripped;
+    const mapped = stripped.replace(
+        /^(?:\/storage\/emulated\/0|\/mnt\/sdcard|storage\/emulated\/0|mnt\/sdcard)(?=\/|$)/i,
+        "/sdcard"
+    );
+    return /^\/sdcard(?:\/|$)/i.test(mapped) ? mapped : "";
+};
+
+const collectItemNativePath = (meta: any, item: any, extra = ""): string =>
+    nativeStorageVirtualPath(
+        String(meta?.path || item?.path || extra || meta?.href || item?.href || "")
+    );
+
+const SKU_ANDROID_PACKAGE: Record<string, string> = {
+    document: "space.u2re.document",
+    viewer: "space.u2re.document",
+    workcenter: "space.u2re.process",
+    transfer: "space.u2re.transfer",
+    explorer: "space.u2re.explorer"
+};
+
+const packageForLinkTarget = async (target: string): Promise<string> => {
+    try {
+        const { androidPackageForSku } = await import("com/config/ecosystem-skus");
+        if (target === "document" || target === "viewer") return androidPackageForSku("document") || SKU_ANDROID_PACKAGE.document;
+        if (target === "workcenter") return androidPackageForSku("process") || SKU_ANDROID_PACKAGE.workcenter;
+        if (target === "transfer") return androidPackageForSku("transfer") || SKU_ANDROID_PACKAGE.transfer;
+        if (target === "explorer") return androidPackageForSku("explorer") || SKU_ANDROID_PACKAGE.explorer;
+    } catch {
+        /* home-view symlink / web */
+    }
+    return SKU_ANDROID_PACKAGE[target] || "";
+};
+
+/**
+ * WHY: `/sdcard/note.md` has no scheme — Cap `openUri` rejects it. FileProvider + SEND/VIEW
+ * through `storage:open` is the one hop that reaches Document / Process / the system sheet.
+ */
+const openNativeStorageByLinkTarget = async (
+    path: string,
+    linkTarget: string,
+    mimeType?: string
+): Promise<boolean> => {
+    const virtual = nativeStorageVirtualPath(path);
+    if (!virtual) return false;
+    try {
+        /* WHY: home-view is a symlink of this file — relative `../explorer/` resolves under views/, not fl.ui. */
+        const { openNativeStorageFile } = await import("fl-ui/explorer/storage-bridge");
+        const declared = String(mimeType || "").trim();
+        /* WHY: system sheet (QuickEdit, …) matches text/plain, not text/markdown. */
+        const systemMime =
+            !declared ||
+            /^text\/(?:x-)?markdown$/i.test(declared) ||
+            /^application\/json$/i.test(declared) ||
+            (declared.startsWith("text/") && declared !== "text/html")
+                ? "text/plain"
+                : declared;
+        const mime = String(mimeType || "").trim();
+        if (
+            linkTarget === "external-app" ||
+            linkTarget === "new-tab" ||
+            linkTarget === "native-window"
+        ) {
+            return openNativeStorageFile(virtual, { chooser: true, mimeType: systemMime, title: "Open with" });
+        }
+        if (linkTarget === "inline") {
+            const looksDoc = /\.(md|markdown|txt|pdf|png|jpe?g|gif|webp|svg|html?)$/i.test(virtual);
+            if (looksDoc) {
+                const pkg = await packageForLinkTarget("document");
+                if (
+                    pkg &&
+                    (await openNativeStorageFile(virtual, {
+                        packageName: pkg,
+                        chooser: false,
+                        mimeType: mime,
+                        title: "Open"
+                    }))
+                ) {
+                    return true;
+                }
+            }
+            return openNativeStorageFile(virtual, { chooser: true, mimeType: systemMime, title: "Open with" });
+        }
+        const pkg = await packageForLinkTarget(linkTarget);
+        if (
+            pkg &&
+            (await openNativeStorageFile(virtual, {
+                packageName: pkg,
+                chooser: false,
+                mimeType: mime,
+                title: "Open"
+            }))
+        ) {
+            return true;
+        }
+        return openNativeStorageFile(virtual, { chooser: true, mimeType: systemMime, title: "Open with" });
+    } catch {
+        return false;
+    }
+};
+
 /** Apply fetched Android icon to a launcher `ui-icon` via resource + presentation mode. */
 export function applyLauncherIconToUiIcon(
     host: HTMLElement,
@@ -847,24 +960,35 @@ const installBuiltins = (): void => {
         const item = context?.items?.find?.((i: SpeedDialItem) => i?.id === context?.id) || null;
         const metaMap = context?.meta as SpeedDialMetaRegistry | undefined;
         const meta = item && metaMap?.get ? metaMap.get(item.id) : null;
-        const rawTarget = meta?.view || entityDesc?.view || entityDesc?.type || "";
-        const targetView = resolveOpenViewTarget(String(rawTarget || ""));
-        if (!targetView) {
-            showError("No view target");
-            return;
-        }
-        if (await tryLaunchSiblingView(targetView)) return;
-        const viewMaker = context?.viewMaker ?? getSpeedDialViewOpener();
-        /*
-         * Explicit per-tile / menu Native → new PWA/app window (same as open-link native).
-         * Default open-view stays inline in the current environment shell.
-         */
         const linkTarget =
             context?.openLinkTarget != null
                 ? normalizeOpenLinkTarget(context.openLinkTarget)
                 : meta?.openLinkTarget != null && String(meta.openLinkTarget).trim()
                   ? normalizeOpenLinkTarget(meta.openLinkTarget)
                   : "inline";
+        const nativePath = collectItemNativePath(meta, item || entityDesc);
+        /* WHY: Open-in Document/Process on an open-view tile used to launch an empty sibling APK. */
+        if (nativePath && !nativePath.endsWith("/")) {
+            const mime = guessMimeFromHrefOrLabel(
+                nativePath,
+                String(meta?.description || item?.label || entityDesc?.label || "")
+            );
+            if (await openNativeStorageByLinkTarget(nativePath, linkTarget, mime)) return;
+            showError("Allow all-files access, then open again");
+            return;
+        }
+        const rawTarget = meta?.view || entityDesc?.view || entityDesc?.type || "";
+        const targetView = resolveOpenViewTarget(String(rawTarget || ""));
+        if (!targetView) {
+            showError("No view target");
+            return;
+        }
+        if (!nativePath && (await tryLaunchSiblingView(targetView))) return;
+        const viewMaker = context?.viewMaker ?? getSpeedDialViewOpener();
+        /*
+         * Explicit per-tile / menu Native → new PWA/app window (same as open-link native).
+         * Default open-view stays inline in the current environment shell.
+         */
         if (
             linkTarget === "viewer" ||
             linkTarget === "document" ||
@@ -911,6 +1035,9 @@ const installBuiltins = (): void => {
          * - new-tab → ordinary browser tab (`target=_blank`) for http(s)/www or app URL
          */
         const raw = meta?.href || (item as any)?.href || context?.href || resolveSpeedDialItemHref(item);
+        const nativePath = nativeStorageVirtualPath(
+            String(meta?.path || (item as { path?: string } | null)?.path || raw || "")
+        );
         const viewFromMeta = resolveOpenViewTarget(String(meta?.view || ""));
         const externalHref = isExternalWebHref(raw) ? normalizeExternalWebHref(raw) || normalizeSpeedDialOpenHref(String(raw || "")) : "";
         const view = externalHref
@@ -921,6 +1048,17 @@ const installBuiltins = (): void => {
                 ? normalizeOpenLinkTarget(context.openLinkTarget)
                 : resolveItemOpenLinkTarget(meta);
         const opener = context?.viewMaker ?? getSpeedDialViewOpener();
+
+        /* WHY: `/sdcard/…` is not a URL — openUri needs FileProvider. Do not launch an empty sibling APK. */
+        if (nativePath) {
+            const mime = guessMimeFromHrefOrLabel(
+                nativePath,
+                String(meta?.description || item?.label || "")
+            );
+            if (await openNativeStorageByLinkTarget(nativePath, linkTarget, mime)) return;
+            showError("Allow all-files access, then open again");
+            return;
+        }
 
         /* Inline: http(s) → iframe browser first (never markdown viewer). */
         if (linkTarget === "inline") {
@@ -1174,6 +1312,18 @@ const installBuiltins = (): void => {
         const shortcutId = String(
             (meta as { shortcutId?: string } | null)?.shortcutId || entityDesc?.shortcutId || ""
         ).trim();
+        const linkTarget =
+            context?.openLinkTarget != null
+                ? normalizeOpenLinkTarget(context.openLinkTarget)
+                : resolveItemOpenLinkTarget(meta);
+        const nativePath = collectItemNativePath(meta, item || entityDesc);
+        if (nativePath && !nativePath.endsWith("/")) {
+            const mime = guessMimeFromHrefOrLabel(
+                nativePath,
+                String(meta?.description || item?.label || "")
+            );
+            if (await openNativeStorageByLinkTarget(nativePath, linkTarget, mime)) return;
+        }
         if (!pkg || !shortcutId) {
             showError("Shortcut missing");
             return;
@@ -1192,15 +1342,36 @@ const installBuiltins = (): void => {
     actionRegistry.set("open-path", async (context: any, entityDesc?: any) => {
         const metaMap = context?.meta as SpeedDialMetaRegistry | undefined;
         const itemId = String(entityDesc?.id || context?.id || "").trim();
+        const item = context?.items?.find?.((row: SpeedDialItem) => row?.id === itemId) || null;
         const meta = (itemId && metaMap?.get ? metaMap.get(itemId) : null) || entityDesc?.meta || null;
-        const path = String(entityDesc?.path || meta?.path || context?.path || "").trim();
+        const path = String(
+            entityDesc?.path ||
+                meta?.path ||
+                (item as { path?: string } | null)?.path ||
+                context?.path ||
+                meta?.href ||
+                ""
+        ).trim();
         if (!path) {
             showError("Path is missing");
             return;
         }
         const opener = context?.viewMaker || getSpeedDialViewOpener();
+        const linkTarget =
+            context?.openLinkTarget != null
+                ? normalizeOpenLinkTarget(context.openLinkTarget)
+                : resolveItemOpenLinkTarget(meta);
         const isDirectory = path.endsWith("/") || entityDesc?.kind === "directory" || meta?.kind === "directory";
+        const nativePath = nativeStorageVirtualPath(path);
+        /* INVARIANT: Capacitor `/sdcard/` files go through storage:open — WebView cannot fetch them. */
+        if (nativePath && !isDirectory) {
+            const mime = guessMimeFromHrefOrLabel(nativePath, String(meta?.description || item?.label || ""));
+            if (await openNativeStorageByLinkTarget(nativePath, linkTarget, mime)) return;
+            showError("Allow all-files access, then open again");
+            return;
+        }
         if (isDirectory) {
+            if (linkTarget === "explorer" && (await tryLaunchLinkTargetSku("explorer"))) return;
             await opener?.("explorer", { path, initialPath: path } as any);
             return;
         }

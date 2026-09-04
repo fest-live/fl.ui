@@ -21,3 +21,6 @@ export * from "../misc/Toast";
 export * from "../misc/Format";
 export * from "./inputs/attachments/AttachmentSources";
 export * from "./markdown/render";
+// WHY: do not re-export `./markdown/highlight` here. Boot (`@fest-lib/fl-ui`)
+// goes through `fest/fl-ui` with preserveSymlinks; a static highlight edge
+// 500s the whole UI barrel if that graph cannot resolve overlay SoT.

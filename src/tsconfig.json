@@ -39,6 +39,9 @@
             "@fest-lib/lure/remote-fs": [
                 "../../lur.e/src/utils/opfs/remote-fs.ts"
             ],
+            "@fest-lib/lure/code-overlay": [
+                "../../lur.e/src/lure/misc/CodeOverlay.ts"
+            ],
             "@fest-lib/object": [
                 "../../object.ts/src/index.ts"
             ],

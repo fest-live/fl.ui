@@ -1,4 +1,4 @@
-[**@fest-lib/fl-ui v1.0.7**](../README.md)
+[**@fest-lib/fl-ui v1.0.8**](../README.md)
 
 ***
 

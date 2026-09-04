@@ -2,6 +2,7 @@
 import styles from "veela-lib/ui/markdown.scss?inline";
 import { E, H, provide, asProvidedFile, defineElement, property } from "@fest-lib/lure";
 import UIElement from "../base/UIElement";
+import { highlightCodeTree } from "./highlight";
 import { renderSafeMarkdown, sanitizeMarkdownHtml } from "./render";
 
 //
@@ -163,6 +164,7 @@ export class MarkdownView extends UIElement {
         const html = await doc;
         const sanitized = sanitizeMarkdownHtml((html || "")?.trim?.() || "");
         view.innerHTML = sanitized || view.innerHTML || "";
+        highlightCodeTree(view);
         document.dispatchEvent(new CustomEvent("ext-ready", {}));
     }
 

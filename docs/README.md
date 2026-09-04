@@ -1,8 +1,8 @@
-**@fest-lib/fl-ui v1.0.7**
+**@fest-lib/fl-ui v1.0.8**
 
 ***
 
-# @fest-lib/fl-ui v1.0.7
+# @fest-lib/fl-ui v1.0.8
 
 ## Classes
 
@@ -64,6 +64,7 @@
 - [APP\_BOX\_TAG](variables/APP_BOX_TAG.md)
 - [CHROME\_DESKTOP\_MQ](variables/CHROME_DESKTOP_MQ.md)
 - [CHROME\_FLYOUT\_Z](variables/CHROME_FLYOUT_Z.md)
+- [CODE\_LANGUAGE\_ATTR](variables/CODE_LANGUAGE_ATTR.md)
 - [MARKDOWN\_SANITIZE\_OPTIONS](variables/MARKDOWN_SANITIZE_OPTIONS.md)
 - [WINDOW\_TITLEBAR\_TAG](variables/WINDOW_TITLEBAR_TAG.md)
 
@@ -128,6 +129,7 @@
 - [mountEnvironmentAppMenu](functions/mountEnvironmentAppMenu.md)
 - [mountEnvironmentStatusBar](functions/mountEnvironmentStatusBar.md)
 - [mountEnvironmentTaskBar](functions/mountEnvironmentTaskBar.md)
+- [normalizeFenceLanguage](functions/normalizeFenceLanguage.md)
 - [openModal](functions/openModal.md)
 - [positionFlyout](functions/positionFlyout.md)
 - [probeNativeWindowChrome](functions/probeNativeWindowChrome.md)

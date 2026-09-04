@@ -2,13 +2,24 @@
  * Shared safe Markdown rendering for view-level prose surfaces.
  *
  * FIND:safe-markdown-render
+ * TAG:code-highlight
  * WHY: Rendering and sanitization must stay identical for markdown-view and
  * assistant output; raw structured model output is never safe HTML.
+ * Fence language is stamped on `data-language` (and `language-*`) for highlight.js.
  */
 import DOMPurify from "dompurify";
 import { marked, type MarkedExtension } from "marked";
 import markedKatex from "marked-katex-extension";
 import renderMathInElement from "katex/dist/contrib/auto-render.mjs";
+
+export const CODE_LANGUAGE_ATTR = "data-language";
+
+const LANGUAGE_TOKEN = /^[\w.+#-]+$/;
+
+export const normalizeFenceLanguage = (raw: string | undefined | null): string => {
+    const token = String(raw || "").trim().split(/\s+/)[0] || "";
+    return LANGUAGE_TOKEN.test(token) ? token : "";
+};
 
 const MATH_DELIMITER_PATTERN = /\$\$[\s\S]*?\$\$|\\\[[\s\S]*?\\\]|(?<!\$)\$[^$\n]+\$|\\\([\s\S]*?\\\)/;
 const FENCED_CODE_PATTERN = /(^|\n)(`{3,}|~{3,})[^\n]*\n[\s\S]*?\n\2(?=\n|$)/g;
@@ -16,8 +27,21 @@ const INLINE_CODE_PATTERN = /`[^`\n]+`/g;
 
 export const MARKDOWN_SANITIZE_OPTIONS = {
     USE_PROFILES: { html: true, mathMl: true, svg: true },
+    ADD_ATTR: [CODE_LANGUAGE_ATTR, "data-lang"],
     FORBID_TAGS: ["script", "style", "iframe", "object", "embed", "applet", "link", "meta", "base", "form", "noscript", "template"],
     FORBID_CONTENTS: ["script", "style", "iframe", "object", "embed", "applet", "noscript", "template"]
+};
+
+const escapeHtml = (value: string): string =>
+    value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+
+/** marked v15+ fence token → `<pre data-language>` + `<code class="language-*">`. */
+const renderFencedCode = (token: { text?: string; lang?: string }): string => {
+    const language = normalizeFenceLanguage(token.lang);
+    const body = escapeHtml(String(token.text ?? ""));
+    const langAttr = language ? ` ${CODE_LANGUAGE_ATTR}="${escapeHtml(language)}"` : "";
+    const langClass = language ? ` class="language-${escapeHtml(language)}"` : "";
+    return `<pre${langAttr}><code${langAttr}${langClass}>${body}</code></pre>\n`;
 };
 
 const maskCodeSegments = (markdown: string): { masked: string; restore: (value: string) => string } => {
@@ -75,6 +99,9 @@ export const configureMarkdownRendering = (): void => {
                 });
                 return restore(katexNode.innerHTML);
             }
+        },
+        renderer: {
+            code: renderFencedCode
         }
     });
 };

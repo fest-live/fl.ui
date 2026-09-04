@@ -36,6 +36,39 @@ const loadHljs = (): Promise<HljsLike | null> => {
     return hljsPromise;
 };
 
+const FILENAME_LANGUAGE: Record<string, string> = {
+    ts: "typescript",
+    tsx: "typescript",
+    mts: "typescript",
+    cts: "typescript",
+    js: "javascript",
+    jsx: "javascript",
+    mjs: "javascript",
+    cjs: "javascript",
+    json: "json",
+    css: "css",
+    scss: "scss",
+    html: "xml",
+    htm: "xml",
+    svg: "xml",
+    md: "markdown",
+    markdown: "markdown",
+    py: "python",
+    sh: "bash",
+    bash: "bash",
+    yml: "yaml",
+    yaml: "yaml",
+    xml: "xml",
+};
+
+/** WHY: Viewer raw `</>` is a bare `<pre>`, not a fence — language comes from the file name. */
+export const languageFromFilename = (pathOrName: string): string => {
+    const base = String(pathOrName || "").split(/[?#]/)[0].split(/[/\\]/).pop() || "";
+    const dot = base.lastIndexOf(".");
+    const ext = dot >= 0 ? base.slice(dot + 1).toLowerCase() : "";
+    return normalizeFenceLanguage(FILENAME_LANGUAGE[ext] || ext);
+};
+
 export const resolveCodeLanguage = (el: Element): string => {
     const direct =
         el.getAttribute(CODE_LANGUAGE_ATTR) ||
@@ -85,6 +118,15 @@ const highlightText = async (text: string, language: string): Promise<{ html: st
     return { html: auto.value, language: auto.language || language || "" };
 };
 
+const isCapacitorNative = (): boolean => {
+    try {
+        const cap = (globalThis as { Capacitor?: { isNativePlatform?: () => boolean } }).Capacitor;
+        return typeof cap?.isNativePlatform === "function" && cap.isNativePlatform();
+    } catch {
+        return false;
+    }
+};
+
 const buildOverlay = (lineCount: number, showGutter: boolean): { overlay: HTMLElement; paint: HTMLElement; gutter: HTMLElement | null } => {
     const overlay = document.createElement("div");
     overlay.className = "code-highlight-overlay";
@@ -125,12 +167,26 @@ export const attachCodeHighlight = (
     const digits = String(lineCount).length;
     (host?.parentElement?.style ?? host.style)?.setProperty("--code-gutter", showGutter ? `calc(${digits} * 1ch + 0.75rem)` : "0px");
     host?.classList?.add("code-highlight-source");
+    /* WHY: source `pre-wrap` vs overlay `pre` (or a narrower overlay) shifts selection by rows. */
+    host.style.whiteSpace = "pre";
+    host.style.wordBreak = "normal";
+    host.style.overflowWrap = "normal";
+
+    /* WHY: Capacitor WebView measures native selection on the transparent <code>
+     * with different glyph widths than the overlay paint (Roboto vs mono). */
+    const inplace = isCapacitorNative()
+        && !(host instanceof HTMLTextAreaElement)
+        && host.contentEditable !== "true";
+    if (inplace) host.classList.add("code-highlight-inplace");
 
     const { overlay, paint, gutter } = buildOverlay(lineCount, showGutter);
-    const handle = attachCodeOverlay(host, overlay, {
-        paint,
-        scroller: host instanceof HTMLTextAreaElement ? host : host.closest("pre"),
-    });
+    if (inplace) paint.remove();
+    const handle = showGutter || !inplace
+        ? attachCodeOverlay(host, overlay, {
+            paint: inplace ? overlay : paint,
+            scroller: host instanceof HTMLTextAreaElement ? host : host.closest("pre"),
+        })
+        : null;
 
     const updatePaint = async (): Promise<void> => {
         const next = readHostText(host);
@@ -146,15 +202,16 @@ export const attachCodeHighlight = (
         if (painted.language && painted.language !== nextLanguage) {
             stampCodeLanguage(host, painted.language);
         }
-        paint.innerHTML = painted.html;
+        const target = inplace ? host : paint;
+        target.innerHTML = painted.html;
         /* WHY: Unescaped `<tag>` in paint HTML becomes empty elements; source was
          * already made transparent → blank boxes. Keep glyphs if paint collapsed. */
-        if (next && (paint.textContent?.length ?? 0) < Math.max(1, Math.floor(next.length * 0.5))) {
-            paint.textContent = next;
+        if (next && (target.textContent?.length ?? 0) < Math.max(1, Math.floor(next.length * 0.5))) {
+            target.textContent = next;
         }
-        host.classList.toggle("code-highlight-painted", (paint.textContent?.length ?? 0) > 0);
-        handle.updateMetrics();
-        handle.syncScroll();
+        host.classList.toggle("code-highlight-painted", !inplace && (paint.textContent?.length ?? 0) > 0);
+        handle?.updateMetrics();
+        handle?.syncScroll();
     };
 
     const onInput = (): void => {
@@ -163,12 +220,17 @@ export const attachCodeHighlight = (
     host.addEventListener("input", onInput);
 
     const wrapped = {
-        ...handle,
+        overlay: handle?.overlay ?? overlay,
+        paint: inplace ? host : paint,
+        updateMetrics: handle?.updateMetrics ?? ((): void => undefined),
+        syncScroll: handle?.syncScroll ?? ((): void => undefined),
         updatePaint,
         disconnect: (): void => {
             host.removeEventListener("input", onInput);
-            host.classList.remove("code-highlight-painted");
-            handle.disconnect();
+            host.classList.remove("code-highlight-painted", "code-highlight-inplace");
+            if (inplace) host.textContent = host.textContent ?? "";
+            handle?.disconnect();
+            overlay.remove();
             attached.delete(host);
         },
     };
@@ -189,6 +251,7 @@ export const highlightCodeTree = (root: ParentNode | null | undefined): void => 
         if (code.closest(".code-highlight-overlay")) continue;
         const overlay = code.nextElementSibling;
         if (overlay?.classList.contains("code-highlight-overlay")) continue;
+        if (code.classList.contains("code-highlight-inplace") && attached.get(code)) continue;
         attached.get(code)?.disconnect();
         attachCodeHighlight(code);
     }

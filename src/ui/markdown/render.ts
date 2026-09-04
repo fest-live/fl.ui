@@ -68,42 +68,77 @@ const maskCodeSegments = (markdown: string): { masked: string; restore: (value: 
 
 let configured = false;
 
+const KATEX_MARKED_OPTIONS = {
+    throwOnError: false,
+    nonStandard: true,
+    output: "mathml" as const,
+    strict: false
+};
+
+const looksLikeMarkedExtension = (value: unknown): value is MarkedExtension => {
+    if (!value || typeof value !== "object") return false;
+    const ext = value as MarkedExtension & { extensions?: unknown };
+    return Array.isArray(ext.extensions) || ext.hooks != null || ext.renderer != null;
+};
+
+/**
+ * WHY: CRX Rolldown remaps `marked-katex-extension`'s default onto `katex`.
+ * `marked.use(katex({…}))` then throws and every markdown parse dies.
+ */
+const markedKatexExtension = (): MarkedExtension | null => {
+    if (typeof markedKatex !== "function") return null;
+    try {
+        const ext = markedKatex(KATEX_MARKED_OPTIONS) as unknown;
+        return looksLikeMarkedExtension(ext) ? ext : null;
+    } catch {
+        return null;
+    }
+};
+
+const preprocessMathInMarkdown = (markdown: string): string => {
+    if (!MATH_DELIMITER_PATTERN.test(markdown)) return markdown;
+    if (typeof document === "undefined") return markdown;
+
+    const { masked, restore } = maskCodeSegments(markdown);
+    const katexNode = document.createElement("div");
+    katexNode.textContent = masked;
+    renderMathInElement(katexNode, {
+        ...KATEX_MARKED_OPTIONS,
+        delimiters: [
+            { left: "$$", right: "$$", display: true },
+            { left: "\\[", right: "\\]", display: true },
+            { left: "$", right: "$", display: false },
+            { left: "\\(", right: "\\)", display: false }
+        ]
+    });
+    return restore(katexNode.innerHTML);
+};
+
+const fenceAndMathHooks: MarkedExtension = {
+    hooks: {
+        preprocess: preprocessMathInMarkdown
+    },
+    renderer: {
+        code: renderFencedCode
+    }
+};
+
 /** Install the shared MathML-aware marked hook exactly once per document realm. */
 export const configureMarkdownRendering = (): void => {
     if (configured) return;
     configured = true;
-    marked.use(markedKatex({
-        throwOnError: false,
-        nonStandard: true,
-        output: "mathml",
-        strict: false
-    }) as unknown as MarkedExtension, {
-        hooks: {
-            preprocess: (markdown: string): string => {
-                if (!MATH_DELIMITER_PATTERN.test(markdown)) return markdown;
-
-                const { masked, restore } = maskCodeSegments(markdown);
-                const katexNode = document.createElement("div");
-                katexNode.textContent = masked;
-                renderMathInElement(katexNode, {
-                    throwOnError: false,
-                    nonStandard: true,
-                    output: "mathml",
-                    strict: false,
-                    delimiters: [
-                        { left: "$$", right: "$$", display: true },
-                        { left: "\\[", right: "\\]", display: true },
-                        { left: "$", right: "$", display: false },
-                        { left: "\\(", right: "\\)", display: false }
-                    ]
-                });
-                return restore(katexNode.innerHTML);
-            }
-        },
-        renderer: {
-            code: renderFencedCode
+    const katexExt = markedKatexExtension();
+    try {
+        if (katexExt) marked.use(katexExt, fenceAndMathHooks);
+        else marked.use(fenceAndMathHooks);
+    } catch (error) {
+        console.warn("[safe-markdown] marked.use failed; fence renderer only", error);
+        try {
+            marked.use({ renderer: { code: renderFencedCode } });
+        } catch {
+            /* marked stays at defaults — still parseable */
         }
-    });
+    }
 };
 
 /** Parse Markdown synchronously and sanitize all generated or embedded HTML. */

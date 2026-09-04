@@ -1,4 +1,4 @@
-[**@fest-lib/fl-ui v1.0.8**](../README.md)
+[**@fest-lib/fl-ui v1.0.9**](../README.md)
 
 ***
 
@@ -10,7 +10,7 @@
 function configureMarkdownRendering(): void;
 ```
 
-Defined in: fl.ui/src/ui/markdown/render.ts:72
+Defined in: fl.ui/src/ui/markdown/render.ts:127
 
 Install the shared MathML-aware marked hook exactly once per document realm.
 

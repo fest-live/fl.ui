@@ -1,4 +1,4 @@
-[**@fest-lib/fl-ui v1.0.8**](../README.md)
+[**@fest-lib/fl-ui v1.0.9**](../README.md)
 
 ***
 
@@ -10,7 +10,7 @@
 function sanitizeMarkdownHtml(html): string;
 ```
 
-Defined in: fl.ui/src/ui/markdown/render.ts:117
+Defined in: fl.ui/src/ui/markdown/render.ts:152
 
 Sanitize raw HTML before a Markdown surface inserts it into the document.
 

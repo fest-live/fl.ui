@@ -80,7 +80,7 @@ export function toExplorerStoragePath(path: string, asDirectory = true): string 
     p = rel ? `/sdcard/${rel}` : "/sdcard/";
   }
   p = p.replace(/\\/g, "/");
-  p = p.replace(/^(?:\/storage\/emulated\/0|\/mnt\/sdcard)(?=\/|$)/i, "/sdcard");
+  p = p.replace(/^(?:\/storage\/emulated\/0|\/mnt\/sdcard|storage\/emulated\/0|mnt\/sdcard)(?=\/|$)/i, "/sdcard");
   p = p.replace(/^\/sdcard\/sdcard(?=\/|$)/i, "/sdcard");
   if (!p.startsWith("/")) p = `/${p}`;
   return normalizeVirtualPath(p, asDirectory);

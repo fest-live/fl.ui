@@ -5,6 +5,8 @@
  * Reason: storage:delete for Capacitor /sdcard/ /saf/.
  */
 
+import { toExplorerStoragePath } from "./fs-backend";
+
 export type StorageEntry = {
     name: string;
     kind: "file" | "directory";
@@ -32,15 +34,40 @@ export const setExplorerStorageApi = (next: ExplorerStorageApi | null): void => 
     api = next;
 };
 
+const INVOKE_MS = 12_000;
+
+const withTimeout = async <T>(task: Promise<T>, ms: number, fallback: T): Promise<T> => {
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    try {
+        return await Promise.race([
+            task,
+            new Promise<T>((resolve) => {
+                timer = setTimeout(() => resolve(fallback), ms);
+            })
+        ]);
+    } finally {
+        if (timer) clearTimeout(timer);
+    }
+};
+
 const capacitorInvoke = async (
     channel: string,
     payload: Record<string, unknown> = {}
 ): Promise<Record<string, unknown>> => {
-    const plugin = (globalThis as { Capacitor?: { Plugins?: { CwsBridge?: { invoke?: Function } } } })
-        .Capacitor?.Plugins?.CwsBridge;
-    if (typeof plugin?.invoke !== "function") return { ok: false };
-    const r = await plugin.invoke({ channel, payload });
-    return (r?.echo || r || {}) as Record<string, unknown>;
+    const g = globalThis as {
+        __CWS_BRIDGE_PLUGIN__?: { invoke?: Function };
+        Capacitor?: { Plugins?: { CwsBridge?: { invoke?: Function } } };
+    };
+    const plugin = g.__CWS_BRIDGE_PLUGIN__ || g.Capacitor?.Plugins?.CwsBridge;
+    if (typeof plugin?.invoke !== "function") return { ok: false, error: "no-bridge" };
+    /* WHY: storage:read on the UI thread + Binder-sized data URLs never resolve — viewer stayed on Loading. */
+    const r = await withTimeout(
+        Promise.resolve(plugin.invoke({ channel, payload })) as Promise<Record<string, unknown> | null>,
+        INVOKE_MS,
+        { ok: false, error: "timeout" }
+    );
+    const echo = r?.echo && typeof r.echo === "object" ? (r.echo as Record<string, unknown>) : {};
+    return { ...(r || {}), ...echo };
 };
 
 /**
@@ -55,14 +82,8 @@ export const toNativeStorageVirtualPath = (raw: string): string => {
     } catch {
         /* keep raw */
     }
-    s = s.replace(/^file:\/\/(?:localhost)?/i, "");
-    if (/^\/(?:sdcard|saf)(?:\/|$)/i.test(s)) return s;
-    if (/^(?:sdcard|saf)(?:\/|$)/i.test(s)) return `/${s}`;
-    const mapped = s.replace(
-        /^(?:\/storage\/emulated\/0|\/mnt\/sdcard|storage\/emulated\/0|mnt\/sdcard)(?=\/|$)/i,
-        "/sdcard"
-    );
-    return /^\/sdcard(?:\/|$)/i.test(mapped) ? mapped : "";
+    const mapped = toExplorerStoragePath(s, false);
+    return /^\/(?:sdcard|saf)(?:\/|$)/i.test(mapped) ? mapped : "";
 };
 
 const parseNativeStoragePath = (
@@ -106,24 +127,80 @@ export const listNativeStorage = async (
 const dataUrlToFile = async (dataUrl: string, name: string, mime: string): Promise<File | null> => {
     const src = String(dataUrl || "").trim();
     if (!src) return null;
+    const fileName = name || "file";
+    const fallbackType = mime || "application/octet-stream";
+    /* WHY: Capacitor WebView COEP blocks fetch(data:) — decode bytes here. */
+    if (src.startsWith("data:")) {
+        const comma = src.indexOf(",");
+        if (comma < 0) return null;
+        const meta = src.slice(5, comma);
+        const payload = src.slice(comma + 1);
+        const type = meta.split(";")[0] || fallbackType;
+        try {
+            if (/;base64/i.test(meta)) {
+                const bin = atob(payload);
+                const bytes = new Uint8Array(bin.length);
+                for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+                return new File([bytes], fileName, { type });
+            }
+            return new File([decodeURIComponent(payload)], fileName, { type });
+        } catch {
+            return null;
+        }
+    }
+    if (/^[A-Za-z0-9+/=\s]+$/.test(src) && src.length > 16) {
+        try {
+            const bin = atob(src.replace(/\s/g, ""));
+            const bytes = new Uint8Array(bin.length);
+            for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+            return new File([bytes], fileName, { type: fallbackType });
+        } catch {
+            /* not raw base64 */
+        }
+    }
     try {
         const blob = await (await fetch(src)).blob();
-        return new File([blob], name || "file", { type: blob.type || mime || "application/octet-stream" });
+        return new File([blob], fileName, { type: blob.type || fallbackType });
     } catch {
         return null;
     }
 };
 
 /** Read one `/sdcard/` or `/saf/` file through CwsBridge (`storage:read`). */
-export const readNativeStorageFile = async (virtualPath: string): Promise<File | null> => {
+export const readNativeStorageFile = async (
+    virtualPath: string,
+    opts?: { requestAccess?: boolean }
+): Promise<File | null> => {
     const parsed = parseNativeStoragePath(virtualPath);
     if (!parsed) return null;
-    const echo = await capacitorInvoke("storage:read", { root: parsed.root, path: parsed.rel });
-    const data = String(echo.data || echo.dataUrl || "");
-    if (!data) return null;
-    const name = String(echo.name || virtualPath.split("/").filter(Boolean).pop() || "file");
-    const mime = String(echo.mime || echo.mimeType || "application/octet-stream");
-    return dataUrlToFile(data, name, mime);
+    const readOnce = async (): Promise<{ file: File | null; error: string }> => {
+        const echo = await capacitorInvoke("storage:read", { root: parsed.root, path: parsed.rel });
+        const name = String(echo.name || virtualPath.split("/").filter(Boolean).pop() || "file");
+        const mime = String(echo.mime || echo.mimeType || "application/octet-stream");
+        const error = String(echo.error || "");
+        const text = String(echo.text || echo.content || "");
+        if (text) {
+            return { file: new File([text], name, { type: mime || "text/markdown" }), error };
+        }
+        const data = String(echo.data || echo.dataUrl || "");
+        if (data) {
+            return { file: await dataUrlToFile(data, name, mime), error };
+        }
+        return { file: null, error };
+    };
+    let got = await readOnce();
+    if (got.file) return got.file;
+    /* WHY: Opening Settings mid-await pauses the WebView — Document path bar stayed on Loading. */
+    if (opts?.requestAccess === false) return null;
+    if (parsed.root === "sdcard") {
+        const denied = /all-files-required|permission|EACCES|denied|timeout/i.test(got.error);
+        const status = await getAllFilesStatus();
+        if (denied || !status.allFilesAccess) {
+            await requestAllFilesAccess();
+            got = await readOnce();
+        }
+    }
+    return got.file;
 };
 
 /** content:// or file:// for Document ACTION_VIEW — do not read bytes. */

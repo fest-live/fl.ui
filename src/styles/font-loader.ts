@@ -180,7 +180,15 @@ export async function loadFontRegistry(): Promise<any> {
     if (loadingFontRegistry) {
         return loadingFontRegistry;
     }
-    loadingFontRegistry = import("./font-registry")?.catch?.((error: any) => { console.error("Failed to load font registry:", error); });;
+    loadingFontRegistry = import("./font-registry")
+        .then((mod) =>
+            typeof mod.loadFontRegistryShards === "function"
+                ? mod.loadFontRegistryShards().then((fontRegistry) => ({ fontRegistry }))
+                : { fontRegistry: mod.fontRegistry }
+        )
+        .catch((error: unknown) => {
+            console.error("Failed to load font registry:", error);
+        });
     return loadingFontRegistry;
 }
 

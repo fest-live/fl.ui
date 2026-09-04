@@ -22,6 +22,7 @@ export const normalizeFenceLanguage = (raw: string | undefined | null): string =
 };
 
 const MATH_DELIMITER_PATTERN = /\$\$[\s\S]*?\$\$|\\\[[\s\S]*?\\\]|(?<!\$)\$[^$\n]+\$|\\\([\s\S]*?\\\)/;
+const MATH_TOKEN_PATTERN = /(\$\$[\s\S]*?\$\$|\\\[[\s\S]*?\\\]|(?<!\$)\$[^$\n]+\$|\\\([\s\S]*?\\\))/g;
 const FENCED_CODE_PATTERN = /(^|\n)(`{3,}|~{3,})[^\n]*\n[\s\S]*?\n\2(?=\n|$)/g;
 const INLINE_CODE_PATTERN = /`[^`\n]+`/g;
 
@@ -95,14 +96,10 @@ const markedKatexExtension = (): MarkedExtension | null => {
     }
 };
 
-const preprocessMathInMarkdown = (markdown: string): string => {
-    if (!MATH_DELIMITER_PATTERN.test(markdown)) return markdown;
-    if (typeof document === "undefined") return markdown;
-
-    const { masked, restore } = maskCodeSegments(markdown);
-    const katexNode = document.createElement("div");
-    katexNode.textContent = masked;
-    renderMathInElement(katexNode, {
+const renderMathSnippet = (snippet: string): string => {
+    const node = document.createElement("span");
+    node.textContent = snippet;
+    renderMathInElement(node, {
         ...KATEX_MARKED_OPTIONS,
         delimiters: [
             { left: "$$", right: "$$", display: true },
@@ -111,7 +108,17 @@ const preprocessMathInMarkdown = (markdown: string): string => {
             { left: "\\(", right: "\\)", display: false }
         ]
     });
-    return restore(katexNode.innerHTML);
+    return node.innerHTML;
+};
+
+const preprocessMathInMarkdown = (markdown: string): string => {
+    const { masked, restore } = maskCodeSegments(markdown);
+    /* WHY: `${…}` inside fences used to trip this hook; textContent of the whole
+     * file then escaped raw HTML (`<h1 align>`, badges) so Open showed tags. */
+    if (!MATH_DELIMITER_PATTERN.test(masked)) return markdown;
+    if (typeof document === "undefined") return markdown;
+    MATH_TOKEN_PATTERN.lastIndex = 0;
+    return restore(masked.replace(MATH_TOKEN_PATTERN, (match) => renderMathSnippet(match)));
 };
 
 const fenceAndMathHooks: MarkedExtension = {

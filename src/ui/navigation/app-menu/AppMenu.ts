@@ -1290,6 +1290,7 @@ export function mountEnvironmentAppMenu(): MountAppMenuResult {
     search.className = "env-shell-app-menu__search";
     search.placeholder = mode === "bookmarks" ? "Search bookmarks" : "Search apps";
     search.autocomplete = "off";
+    search.inputMode = "search";
     search.setAttribute("aria-label", mode === "bookmarks" ? "Search bookmarks" : "Search apps");
 
     const tools = document.createElement("div");

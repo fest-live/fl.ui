@@ -1,8 +1,9 @@
 /*
  * Filename: storage-bridge.ts
  * FullPath: modules/projects/fl.ui/src/ui/explorer/storage-bridge.ts
- * Change date: 12.42.00_30.08.2026
- * Reason: storage:delete for Capacitor /sdcard/ /saf/.
+ * FIND:file-markdown
+ * Change date: 14.30.00_05.09.2026
+ * Reason: storage:write / create-document for Capacitor Save.
  */
 
 import { toExplorerStoragePath } from "./fs-backend";
@@ -235,6 +236,195 @@ export const writeNativeClipboardImage = async (
     return echo.copied === true || echo.ok === true;
 };
 
+const writeEchoOk = (echo: Record<string, unknown>): boolean =>
+    echo.written === true || echo.ok === true;
+
+/** Write UTF-8 text to `/sdcard/` or `/saf/` (creates parents + file). */
+export const writeNativeStorageFile = async (
+    virtualPath: string,
+    content: string,
+    opts?: { mimeType?: string; requestAccess?: boolean }
+): Promise<boolean> => {
+    const parsed = parseNativeStoragePath(virtualPath);
+    if (!parsed) return false;
+    const payload = {
+        root: parsed.root,
+        path: parsed.rel,
+        text: String(content ?? ""),
+        mimeType: String(opts?.mimeType || "text/markdown")
+    };
+    const echo = await capacitorInvoke("storage:write", payload);
+    if (writeEchoOk(echo)) return true;
+    if (opts?.requestAccess === false) return false;
+    if (parsed.root === "sdcard") {
+        const denied = /all-files-required|permission|EACCES|denied/i.test(String(echo.error || ""));
+        if (denied) {
+            await requestAllFilesAccess();
+            const again = await capacitorInvoke("storage:write", payload);
+            return writeEchoOk(again);
+        }
+    }
+    return false;
+};
+
+/** Overwrite a remembered `content://` / `file://` from ACTION_CREATE_DOCUMENT. */
+export const writeNativeStorageUri = async (uri: string, content: string): Promise<boolean> => {
+    const target = String(uri || "").trim();
+    if (!target) return false;
+    const echo = await capacitorInvoke("storage:write-uri", {
+        uri: target,
+        text: String(content ?? "")
+    });
+    return writeEchoOk(echo);
+};
+
+export type NativeCreateDocumentResult = {
+    ok: boolean;
+    cancelled?: boolean;
+    uri?: string;
+};
+
+const nativeBridgePlugin = (): { invoke?: Function } | null => {
+    const g = globalThis as {
+        __CWS_BRIDGE_PLUGIN__?: { invoke?: Function };
+        Capacitor?: { Plugins?: { CwsBridge?: { invoke?: Function } } };
+    };
+    return g.__CWS_BRIDGE_PLUGIN__ || g.Capacitor?.Plugins?.CwsBridge || null;
+};
+
+/** WHY: Android MimeTypeMap maps `.ts` → `video/mp2t`. CREATE_DOCUMENT then
+ * treats TypeScript as MPEG-TS or rewrites the extension. Octet-stream keeps the name. */
+export const saveDocumentMimeForName = (filename: string, fallback = "text/markdown"): string => {
+    const n = String(filename || "").trim().toLowerCase();
+    if (/\.(tsx?|mts|cts|jsx?|mjs|cjs|css|scss|sass|less|vue|svelte|json|xml|ya?ml|sh|bash|py|rs|go|java|kt)$/.test(n)) {
+        return "application/octet-stream";
+    }
+    if (n.endsWith(".md") || n.endsWith(".markdown")) return "text/markdown";
+    if (n.endsWith(".txt") || n.endsWith(".log") || n.endsWith(".csv")) return "text/plain";
+    if (n.endsWith(".html") || n.endsWith(".htm")) return "text/html";
+    if (n.endsWith(".svg")) return "image/svg+xml";
+    return fallback;
+};
+
+const mimeFromSavePickerOptions = (options?: {
+    suggestedName?: string;
+    types?: Array<{ accept?: Record<string, string[]> }>;
+}): string => {
+    const name = String(options?.suggestedName || "").trim();
+    const fromName = saveDocumentMimeForName(name, "");
+    if (fromName) return fromName;
+    const accept = options?.types?.[0]?.accept;
+    if (accept && typeof accept === "object") {
+        const first = Object.keys(accept).find((key) => key && key !== "*/*" && !key.startsWith("video/"));
+        if (first) return first;
+    }
+    return "text/markdown";
+};
+
+const invokeCreateDocument = async (
+    filename: string,
+    content: string,
+    mimeType: string
+): Promise<NativeCreateDocumentResult> => {
+    const plugin = nativeBridgePlugin();
+    if (typeof plugin?.invoke !== "function") return { ok: false };
+    const r = (await Promise.resolve(plugin.invoke({
+        channel: "storage:create-document",
+        payload: { name: filename, text: String(content ?? ""), mimeType }
+    })) as { ok?: boolean; error?: string; echo?: { uri?: string; written?: boolean; error?: string; ok?: boolean } } | null);
+    const echo = (r?.echo || {}) as Record<string, unknown>;
+    const err = String(echo.error || r?.error || "");
+    if (/cancel/i.test(err)) return { ok: false, cancelled: true };
+    const uri = String(echo.uri || echo.url || "").trim();
+    if (uri && content && echo.written !== true) {
+        if (await writeNativeStorageUri(uri, content)) return { ok: true, uri };
+    }
+    const ok = r?.ok !== false && (echo.written === true || echo.ok === true || Boolean(uri));
+    return ok ? { ok: true, uri: uri || undefined } : { ok: false };
+};
+
+type NativeSaveHandle = FileSystemFileHandle & { __cwsNativeUri?: string };
+
+const nativeFileHandle = (uri: string, name: string): NativeSaveHandle => {
+    const chunks: BlobPart[] = [];
+    const handle = {
+        kind: "file" as const,
+        name,
+        __cwsNativeUri: uri,
+        queryPermission: async () => "granted" as const,
+        requestPermission: async () => "granted" as const,
+        getFile: async () => new File([], name),
+        createWritable: async () => ({
+            write: async (chunk: BlobPart | { type?: string; data?: BlobPart }) => {
+                const data = chunk && typeof chunk === "object" && "data" in chunk ? chunk.data : chunk;
+                if (data != null && (typeof data === "string" || data instanceof Blob || ArrayBuffer.isView(data) || data instanceof ArrayBuffer)) {
+                    chunks.push(data as BlobPart);
+                }
+            },
+            close: async () => {
+                const blob = new Blob(chunks);
+                const text = await blob.text();
+                chunks.length = 0;
+                if (!(await writeNativeStorageUri(uri, text))) {
+                    throw new DOMException("Write failed.", "InvalidStateError");
+                }
+            },
+            abort: async () => {
+                chunks.length = 0;
+            }
+        })
+    };
+    return handle as NativeSaveHandle;
+};
+
+/**
+ * Capacitor stand-in for `showSaveFilePicker`: ACTION_CREATE_DOCUMENT, then write.
+ * WHY: Android WebView has no FSA picker; this call waits on the system sheet (no 12s cap).
+ */
+export const createNativeStorageDocument = async (
+    filename: string,
+    content: string,
+    mimeType = "text/markdown"
+): Promise<NativeCreateDocumentResult> => {
+    if (!isNativeStorageAvailable()) return { ok: false };
+    const name = String(filename || "document.md").trim() || "document.md";
+    return invokeCreateDocument(name, content, mimeType || saveDocumentMimeForName(name));
+};
+
+export const nativeUriFromSaveHandle = (handle: FileSystemFileHandle | null | undefined): string =>
+    String((handle as NativeSaveHandle | null | undefined)?.__cwsNativeUri || "").trim();
+
+/**
+ * Overwrite WebView `showSaveFilePicker` (stub / NotAllowedError) with ACTION_CREATE_DOCUMENT.
+ * INVARIANT: only on Capacitor; web/PWA/CRX keep the browser picker.
+ */
+export const installNativeShowSaveFilePicker = (): boolean => {
+    if (!isNativeStorageAvailable()) return false;
+    const g = globalThis as {
+        showSaveFilePicker?: (opts?: Record<string, unknown>) => Promise<FileSystemFileHandle>;
+        __CWS_NATIVE_SAVE_PICKER__?: boolean;
+    };
+    if (g.__CWS_NATIVE_SAVE_PICKER__ && typeof g.showSaveFilePicker === "function") return true;
+    g.showSaveFilePicker = async (options?: Record<string, unknown>) => {
+        const opts = (options || {}) as {
+            suggestedName?: string;
+            types?: Array<{ accept?: Record<string, string[]> }>;
+        };
+        const name = String(opts.suggestedName || "document.md").trim() || "document.md";
+        const mime = mimeFromSavePickerOptions(opts);
+        const created = await invokeCreateDocument(name, "", mime);
+        if (created.cancelled) {
+            throw new DOMException("The user aborted a request.", "AbortError");
+        }
+        if (!created.uri) {
+            throw new DOMException("Could not create file.", "InvalidStateError");
+        }
+        return nativeFileHandle(created.uri, name);
+    };
+    g.__CWS_NATIVE_SAVE_PICKER__ = true;
+    return true;
+};
+
 /** Delete a `/sdcard/` or `/saf/` file or folder through CwsBridge (`storage:delete`). */
 export const removeNativeStorage = async (virtualPath: string): Promise<void> => {
     const parsed = parseNativeStoragePath(virtualPath);
@@ -334,7 +524,11 @@ export const ensureNativeStorageProvide = async (): Promise<void> => {
                             path: row.path || `${base}${row.name}${row.kind === "directory" ? "/" : ""}`
                         }));
                 },
-                readFile: (path) => readNativeStorageFile(path)
+                readFile: (path) => readNativeStorageFile(path),
+                writeFile: async (path, file) => {
+                    const text = await file.text().catch(() => "");
+                    return writeNativeStorageFile(path, text, { mimeType: file.type || "text/markdown" });
+                }
             });
         };
         bind("/sdcard/");

@@ -705,7 +705,7 @@ const makeFileActionOps = () => {
               ]
             : []),
         { id: "share", label: "Share…", icon: "share-network" },
-        { id: "send-transfer", label: "Send to Transfer", icon: "paper-plane-tilt" },
+        { id: "send-transfer", label: "Send to CWSP Transfer", icon: "paper-plane-tilt" },
         { id: "attach-workcenter", label: "Attach to Work Center", icon: "lightning" },
         { id: "attach-workcenter-queued", label: "Queue attach (pending)", icon: "clock-counter-clockwise" },
         { id: "attach-workcenter-headless", label: "Queue attach (headless)", icon: "wave-sine" },

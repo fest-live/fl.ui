@@ -237,7 +237,7 @@ export function mountEnvironmentTaskBar(opts: EnvironmentTaskbarOptions): MountT
         const mobile = isMobileChrome();
         tHome.setAttribute("title", mobile ? "Home" : "Start");
         tHome.setAttribute("aria-label", mobile ? "Home" : "Start");
-        tHome.setAttribute("icon", mobile ? "house-line" : "windows-logo");
+        tHome.setAttribute("icon", mobile ? "house-line" : "aperture");
         tHome.toggleAttribute("data-env-start", !mobile);
         if (mobile) tHome.setAttribute("aria-keyshortcuts", "LongPress");
         else tHome.removeAttribute("aria-keyshortcuts");

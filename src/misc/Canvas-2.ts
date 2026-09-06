@@ -1,1 +1,1 @@
-../../../image.ts/src/canvas/Canvas-2.ts
+../../../image.ts/src/canvas/Canvas.ts

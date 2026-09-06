@@ -1,9 +1,12 @@
 /*
  * Filename: toast.ts
  * FullPath: modules/projects/fl.ui/src/misc/Toast.ts
- * Change date and time: 13.35.00_19.07.2026
- * Reason for changes: Fix CRX/content-script toast design — Shadow DOM isolation, no light-dark/@layer.
+ * FIND:toast
+ * Change date and time: 17.46.00_06.09.2026
+ * Reason for changes: Decode percent-encoded Cyrillic in toast text (decodeURI / decodeURIComponent).
  */
+import { decodeToastMessage } from "@fest-lib/lure";
+export { decodeToastMessage };
 /**
  * Standalone Toast System (kept in sync with subsystem `boot/toast.ts`).
  *
@@ -335,7 +338,8 @@ const broadcastToast = (options: ToastOptions): void => {
  */
 export const showToast = (options: ToastOptions | string): HTMLElement | null => {
     // Handle string shorthand
-    const opts: ToastOptions = typeof options === "string" ? { message: options } : options;
+    const raw: ToastOptions = typeof options === "string" ? { message: options } : options;
+    const opts: ToastOptions = { ...raw, message: decodeToastMessage(raw.message) };
 
     const {
         message,

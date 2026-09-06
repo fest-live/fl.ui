@@ -394,6 +394,55 @@ export const createNativeStorageDocument = async (
 export const nativeUriFromSaveHandle = (handle: FileSystemFileHandle | null | undefined): string =>
     String((handle as NativeSaveHandle | null | undefined)?.__cwsNativeUri || "").trim();
 
+export const nativeHandleFromUri = (uri: string, name: string): FileSystemFileHandle | null => {
+    const target = String(uri || "").trim();
+    if (!target) return null;
+    return nativeFileHandle(target, String(name || "document.md").trim() || "document.md");
+};
+
+export type NativeOpenDocumentResult = {
+    ok: boolean;
+    cancelled?: boolean;
+    uri?: string;
+    virtualPath?: string;
+    name?: string;
+    file?: File | null;
+};
+
+/** ACTION_OPEN_DOCUMENT — persist write grant and map primary: files to `/sdcard/…`. */
+export const openNativeStorageDocument = async (): Promise<NativeOpenDocumentResult> => {
+    if (!isNativeStorageAvailable()) return { ok: false };
+    const plugin = nativeBridgePlugin();
+    if (typeof plugin?.invoke !== "function") return { ok: false };
+    const r = (await Promise.resolve(plugin.invoke({
+        channel: "storage:open-document",
+        payload: {}
+    })) as { ok?: boolean; error?: string; echo?: Record<string, unknown> } | null);
+    const echo = (r?.echo || {}) as Record<string, unknown>;
+    const err = String(echo.error || r?.error || "");
+    if (/cancel/i.test(err)) return { ok: false, cancelled: true };
+    const uri = String(echo.uri || echo.url || "").trim();
+    const virtualPath = String(echo.virtualPath || echo.path || "").trim()
+        || toNativeStorageVirtualPath(uri);
+    const name = String(echo.name || virtualPath.split("/").filter(Boolean).pop() || "document.md");
+    const mime = String(echo.mime || echo.mimeType || "text/markdown");
+    const text = String(echo.text || echo.content || "");
+    let file: File | null = null;
+    if (text) file = new File([text], name, { type: mime || "text/markdown" });
+    else {
+        const data = String(echo.data || echo.dataUrl || "");
+        if (data) file = await dataUrlToFile(data, name, mime);
+    }
+    const ok = r?.ok !== false && Boolean(file);
+    return {
+        ok,
+        uri: uri || undefined,
+        virtualPath: virtualPath || undefined,
+        name,
+        file
+    };
+};
+
 /**
  * Overwrite WebView `showSaveFilePicker` (stub / NotAllowedError) with ACTION_CREATE_DOCUMENT.
  * INVARIANT: only on Capacitor; web/PWA/CRX keep the browser picker.
@@ -506,6 +555,18 @@ export const ensureNativeStorageProvide = async (): Promise<void> => {
     if (!isNativeStorageAvailable()) return;
     try {
         const { registerProvideBackend } = await import("@fest-lib/lure");
+        const { registerMarkdownFilePicker } = await import("@fest-lib/lure/markdown-assets");
+        registerMarkdownFilePicker(async () => {
+            const opened = await openNativeStorageDocument();
+            if (opened.cancelled) return null;
+            if (!opened.ok || !opened.file) return undefined;
+            return {
+                file: opened.file,
+                sidecars: [],
+                virtualPath: opened.virtualPath || null,
+                handle: opened.uri ? nativeHandleFromUri(opened.uri, opened.file.name) : null
+            };
+        });
         const bind = (root: "/sdcard/" | "/saf/"): void => {
             registerProvideBackend({
                 root,
